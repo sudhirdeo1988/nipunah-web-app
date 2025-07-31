@@ -1,0 +1,1682 @@
+/* -------------------------------------
+                Theme Variables
+              ------------------------------------- */
+@use "sass:color";
+
+/* -------------------------------------
+                                🍔 2. Buttons
+                              ------------------------------------- */
+
+.theme-btn {
+  position: relative;
+  z-index: 2;
+  vertical-align: middle;
+  display: inline-block;
+  border: none;
+  text-transform: capitalize;
+  text-align: center;
+  background: linear-gradient(84deg, $secondary-color 0%, $primary-color 100%);
+  color: $font-color-dark;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  padding: 16px 36px;
+  max-height: 54px;
+  border-radius: 4px;
+  transition: 0.5s ease-in-out;
+  outline: none !important;
+  overflow: hidden;
+  cursor: pointer;
+
+  &::before,
+  &::after {
+    content: "";
+    width: 50%;
+    height: 0%;
+    position: absolute;
+    background-color: $primary-color;
+    transition: 0.4s;
+    -webkit-transition: 0.4s;
+    -moz-transition: 0.4s;
+    -ms-transition: 0.4s;
+    -o-transition: 0.4s;
+    z-index: -1;
+  }
+  &::before {
+    top: 0%;
+    right: 0%;
+  }
+  &::after {
+    left: 0%;
+    bottom: 0%;
+  }
+
+  &:hover {
+    &::before,
+    &::after {
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+.C-button {
+  background-color: transparent;
+  border: 0;
+  color: $white;
+  cursor: pointer;
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 500;
+  height: auto !important;
+  line-height: 1.3rem !important;
+  letter-spacing: 0.1px;
+  padding: 12px 34px;
+  text-decoration: none !important;
+  @include rounded-corners(6px);
+  @include box-shadow(none);
+  @include transition(all ease 0.3s);
+
+  .g-icon {
+    font-size: 1.4rem !important;
+    max-height: 21px;
+  }
+
+  // - without background color and border
+  &.is-clean {
+    background-color: transparent !important;
+    border: 0 !important;
+    padding: 2px !important;
+  }
+
+  &.has-animation {
+    position: relative;
+    overflow: hidden;
+    z-index: 1 !important;
+    @include transition(color 0.3s ease);
+
+    &:before {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 0%;
+      height: 100%;
+      background-color: color.scale($white, $lightness: -0%);
+      transition: all 0.4s;
+      z-index: -1;
+    }
+
+    &:hover {
+      color: $primary-color !important;
+      &:before {
+        width: 100%;
+      }
+    }
+  }
+
+  &.has-disable-animation:hover {
+    transform: scale(1.05);
+    animation: shake 0.5s ease-in-out;
+  }
+
+  &.has-Loading-animation {
+    cursor: wait;
+    &:hover {
+      animation: pulse 1.5s infinite;
+    }
+  }
+
+  // - For Primary Button with background
+  &.is-filled {
+    border: 1px solid $primary-color;
+    background-color: $third-color;
+    color: $white;
+
+    &:hover {
+      @include box-shadow(0 0 7px #dbdbdb);
+    }
+
+    &:hover,
+    &:active,
+    &:focus {
+      background-color: #{color.scale($primary-color, $lightness: -15%)} !important;
+      color: $white;
+    }
+
+    &:disabled {
+      color: $white;
+      background-color: color.scale($gray, $lightness: 40%) !important;
+      border: 1px solid color.scale($gray, $lightness: 40%) !important;
+      // width: 100%;
+      box-sizing: border-box;
+    }
+
+    .g-icon {
+      color: $white;
+    }
+  }
+
+  // - For Primary Button with border
+  &.is-bordered {
+    background-color: transparent !important;
+    border: 1px solid $primary-color !important;
+    color: $primary-color !important;
+
+    &:hover {
+      @include box-shadow(0 0 7px #dbdbdb);
+    }
+
+    &.has-animation {
+      &:before {
+        background-color: color.scale($primary-color, $lightness: -15%);
+      }
+
+      &:hover {
+        color: $white !important;
+      }
+    }
+
+    &:disabled {
+      color: color.scale($gray, $lightness: 40%) !important;
+      border-color: color.scale($gray, $lightness: 40%) !important;
+    }
+
+    .g-icon {
+      color: $primary-color;
+    }
+
+    &.white {
+      border-color: $white !important;
+      color: $white !important;
+      .g-icon {
+        color: $white !important;
+      }
+    }
+  }
+
+  // - For Button Link
+  &.is-link {
+    background-color: transparent;
+    border: 1px solid transparent !important;
+    color: $primary-color;
+    font-weight: 500;
+    padding: 9px 10px 8px;
+
+    & * {
+      color: $primary-color !important;
+    }
+
+    &.colored_success {
+      color: $success !important;
+    }
+
+    &.has-animation {
+      position: relative;
+      padding: 9px 10px 6px !important;
+
+      &:hover,
+      &:focus,
+      &:active {
+        background-color: transparent;
+        border: 1px solid transparent;
+        color: color.scale($primary-color, $lightness: 12%);
+      }
+
+      // Pseudo-element for the underline animation
+      &::after {
+        content: "";
+        position: absolute;
+        right: 0; // Start from the right
+        bottom: 0; // Place underline at the bottom
+        width: 0;
+        height: 2px;
+        background-color: color.scale($primary-color, $lightness: 12%);
+        transition: width 0.3s ease-in-out;
+      }
+
+      &:hover::after,
+      &:focus::after,
+      &:active::after {
+        width: 90%; // Animate to full width
+        left: 0; // Ensure it transitions to the left
+        right: auto; // Reset `right` during the animation
+      }
+    }
+
+    &:hover,
+    &:focus,
+    &:active {
+      background-color: transparent;
+      border: 1px solid transparent;
+      color: color.scale(#245ea4, $lightness: 12%);
+    }
+
+    &:disabled {
+      color: color.scale($gray, $lightness: 40%) !important;
+    }
+  }
+
+  // - Full width button
+  &.is-fullWidth {
+    text-align: center;
+    width: 100%;
+  }
+
+  // - Rounded corner button
+  &.is-round {
+    @include rounded-corners(50px);
+  }
+
+  // - Extra Small size
+  &.extra-small {
+    font-size: 0.7rem !important;
+    height: auto !important;
+    line-height: 0.6rem !important;
+    padding: 5px 8px 4px;
+  }
+
+  // - Small size
+  &.small {
+    font-size: 0.8rem;
+    line-height: 0.9rem;
+    height: auto !important;
+    letter-spacing: 0.1px;
+    padding: 5px 12px 4px;
+  }
+
+  // - Medium size
+  &.medium {
+    font-size: 1rem !important;
+    height: auto !important;
+    padding: 12px !important;
+  }
+
+  // - Disabled button
+  &:disabled {
+    cursor: not-allowed;
+  }
+  .ant-tooltip-disabled-compatible-wrapper {
+    opacity: 0.5;
+    cursor: not-allowed;
+    button {
+      border: 0;
+      background-color: transparent;
+    }
+  }
+
+  &.for-dropdown {
+    padding: 8px 8px 8px 12px;
+    .ant-space {
+      width: 100%;
+      &-item:not(:nth-child(2)) {
+        text-align: left;
+        flex-grow: 1;
+      }
+    }
+  }
+
+  &.pd-0 {
+    padding: 0 !important;
+  }
+}
+
+.C-settingButton {
+  background-color: color.scale($page-bg-color, $lightness: -4%);
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  cursor: pointer;
+  display: inline-grid;
+  height: 36px !important;
+  place-items: center;
+  padding: 0 !important;
+  position: relative;
+  width: 36px;
+  @include rounded-corners(4px);
+  @include transition(all ease 0.3s);
+
+  &.rounded {
+    @include rounded-corners(100px);
+  }
+
+  &.small {
+    height: 32px !important;
+    width: 32px;
+  }
+
+  &.extra-small {
+    height: 20px !important;
+    width: 20px;
+  }
+
+  &.disabled {
+    cursor: not-allowed !important;
+  }
+
+  &.is-dotted {
+    border: 1px dashed #727c93;
+  }
+
+  &.is-bordered {
+    background-color: $white;
+    border: 1px solid color.scale($black, $lightness: 60%);
+    @include rounded-corners(4px);
+  }
+
+  &.is-clean {
+    background-color: transparent !important;
+    border-color: transparent !important;
+  }
+}
+
+/* -------------------------------------
+                                🍔 3. Heading
+                              ------------------------------------- */
+
+.sub-title {
+  display: inline-flex;
+  text-align: center;
+  padding: 6px 19px;
+  background: linear-gradient(
+    84deg,
+    rgba(63, 181, 253, 0.12) 0%,
+    rgba(11, 110, 218, 0.12) 100%
+  );
+  margin-bottom: 15px;
+  border-radius: 4px;
+  span {
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: normal;
+    letter-spacing: 0.26px;
+    background: linear-gradient(84deg, #3fb5fd 0%, #0b6eda 100%);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    text-transform: uppercase;
+  }
+}
+.C-heading {
+  color: $font-color;
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.3rem;
+  margin-bottom: 2px;
+  position: relative;
+  word-break: break-all;
+
+  sup {
+    top: 0 !important;
+  }
+
+  &.size-1 {
+    font-size: 4rem;
+    line-height: 4.6rem;
+  }
+  &.size-2 {
+    font-size: 3.5rem;
+    line-height: 4rem;
+  }
+  &.size-3 {
+    font-size: 3rem;
+    line-height: 3.5rem;
+  }
+  &.size-4 {
+    font-size: 2.2rem;
+    line-height: 2.9rem;
+  }
+  &.size-5 {
+    font-size: 1.35rem;
+    line-height: 1.9rem;
+  }
+  &.size-6 {
+    font-size: 1.05rem;
+    line-height: 1.6rem;
+  }
+  &.size-xs {
+    font-size: 0.9rem;
+    line-height: 1.4rem;
+  }
+
+  &.dont-break {
+    word-break: normal;
+  }
+
+  &.notify-color {
+    padding-left: 16px;
+    position: relative;
+    @include ellipsis(1);
+    &::before {
+      background-color: var(--datacolor);
+      content: "";
+      height: 10px;
+      position: absolute;
+      left: 0;
+      top: 4px;
+      width: 10px;
+      @include rounded-corners(2px);
+    }
+  }
+}
+
+/* -------------------------------------
+                                🍔 4. Tabs
+                            ------------------------------------- */
+
+.C-tab {
+  $tabBorderColor: #dcdcdc;
+  .ant-tabs-nav {
+    &::before {
+      border-bottom-color: $border-color;
+    }
+
+    .ant-tabs-tab {
+      padding: 0;
+      margin: 0;
+
+      .ant-tabs-tab-btn {
+        color: $font-color;
+        padding: 12px;
+        text-shadow: none;
+        font: 500 0.88rem/1rem $secondary-font;
+      }
+
+      &.ant-tabs-tab-active {
+        .ant-tabs-tab-btn,
+        .g-icon {
+          color: $primary-color;
+        }
+      }
+    }
+
+    .ant-tabs-ink-bar {
+      background-color: $primary-color;
+      height: 3px !important;
+      @include rounded-corners(6px);
+    }
+
+    .ant-tabs-extra-content {
+      margin-bottom: 4px;
+    }
+  }
+
+  &.small {
+    .ant-tabs-tab {
+      .ant-tabs-tab-btn {
+        font-size: 0.8rem;
+        font-weight: 500;
+        line-height: 0.9rem;
+        padding: 12px;
+      }
+    }
+  }
+
+  &.left {
+    & > .ant-tabs-left {
+      & > .ant-tabs-nav {
+        flex-basis: 260px;
+      }
+
+      .ant-tabs-tabpane {
+        padding: 8px 0 8px 8px !important;
+      }
+
+      .ant-tabs-tab {
+        display: block;
+        padding: 0 !important;
+        @include rounded-corners(0);
+
+        & + .ant-tabs-tab {
+          margin-top: 0 !important;
+        }
+
+        &.ant-tabs-tab-active {
+          background-color: $page-bg-color;
+        }
+
+        .ant-tabs-tab-btn {
+          display: block;
+          padding: 0 !important;
+          .wrapper {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            padding: 12px !important;
+            text-align: left !important;
+            @include rounded-corners(0);
+          }
+        }
+      }
+    }
+    .ant-tabs-content-holder {
+      border-left-color: $tabBorderColor !important;
+    }
+  }
+
+  &.is-filled {
+    // margin: 0 -24px;
+    .ant-tabs-nav {
+      &::before {
+        border: 0;
+      }
+    }
+    .ant-tabs-tab-active {
+      .wrapper {
+        &::after {
+          background-color: $white !important;
+          bottom: -1px;
+          content: "";
+          height: 1px;
+          left: 0;
+          position: absolute;
+          width: 100%;
+          z-index: 2;
+        }
+      }
+    }
+
+    .wrapper {
+      align-items: center;
+      background-color: #dee2f3;
+      color: $font-color !important;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 12px;
+      justify-content: center;
+      min-width: 140px;
+      height: 44px;
+      @include rounded-corners(8px 8px 0 0);
+
+      &.is-truncated {
+        text-overflow: ellipsis;
+        max-width: 25ch;
+      }
+    }
+    .ant-tabs-nav {
+      margin-bottom: 0;
+      position: relative;
+      overflow: unset;
+      z-index: 1;
+
+      // ! remove this if any css issue found in workspace tab
+      .ant-tabs-nav-wrap {
+        overflow: initial !important;
+      }
+    }
+    .ant-tabs-nav-list {
+      margin-left: 24px;
+      gap: 6px;
+      .ant-tabs-tab {
+        border: 1px solid $border-color !important;
+        border-bottom: 0 !important;
+        padding: 0 !important;
+        @include rounded-corners(8px 8px 0 0);
+        .ant-tabs-tab-btn {
+          padding: 0 !important;
+          @include rounded-corners(8px 8px 0 0);
+        }
+        &.ant-tabs-tab-active {
+          .ant-tabs-tab-btn {
+            border-bottom: 0;
+          }
+          .wrapper {
+            background-color: $white;
+            position: relative;
+            @include transition(background-color ease 0.4s);
+          }
+        }
+      }
+    }
+    .ant-tabs-ink-bar {
+      background-color: transparent;
+      position: relative;
+      margin-left: -32px;
+      margin-top: 4px;
+    }
+    .ant-tabs-content-holder {
+      background-color: $white;
+      border-top: 1px solid $border-color;
+      padding: 20px;
+      position: relative;
+      z-index: 0;
+    }
+
+    &.dark {
+      .ant-tabs-nav-list {
+        .ant-tabs-tab {
+          border: 1px solid color.scale($border-color, $lightness: -4%) !important;
+          border-bottom: 0 !important;
+        }
+      }
+      .ant-tabs-tab-active {
+        .wrapper {
+          background-color: #f9fafb !important;
+        }
+      }
+      .ant-tabs-content-holder {
+        background-color: #f9fafb;
+        border-color: color.scale($border-color, $lightness: -4%);
+      }
+    }
+  }
+
+  &.is-add-options {
+    .ant-tabs-nav-wrap {
+      flex: none !important;
+    }
+    .ant-tabs-ink-bar {
+      display: none;
+    }
+    .ant-tabs-extra-content {
+      display: flex;
+      align-items: center;
+      padding-left: 0.6%;
+    }
+    .C-Menu-dropDown {
+      padding: 16px 15px 3px;
+      background-color: #dee2f3;
+      margin-right: 0.6rem !important;
+      @include rounded-corners(8px 8px 0 0);
+    }
+  }
+
+  &.is-fullWidth {
+    margin: 0 -24px;
+  }
+
+  .wrapper {
+    &.with-setting {
+      display: flex !important;
+      gap: 4px;
+      flex-direction: row !important;
+      min-width: 200px;
+    }
+    &_info {
+      flex-grow: 1;
+      max-width: 200px;
+    }
+    &_options {
+      text-align: center;
+      min-width: 18px;
+    }
+  }
+}
+
+/* -------------------------------------
+                                🍔 5. Dropdown
+                              ------------------------------------- */
+
+.C-dropdown {
+  min-width: 200px;
+
+  &.ant-select-focused,
+  &.ant-select-open {
+    .ant-select-selector {
+      border-color: $primary-color !important;
+    }
+  }
+
+  .ant-select-selection-search-input {
+    font-size: 0.85rem;
+    line-height: 1rem;
+    height: 36px !important;
+  }
+
+  .ant-select-selector {
+    background: var(--white);
+    border: 1px solid $border-color;
+    box-sizing: border-box;
+    color: $fontColor;
+    font-size: 0.85rem;
+    line-height: 1rem;
+    min-height: 38px !important;
+    padding: 4px 12px !important;
+    @include rounded-corners(6px);
+    @include box-shadow(inset 0px 1px 2px #e0e0e0);
+
+    &:hover {
+      border-color: $primary-color !important;
+    }
+
+    .ant-select-selection-item {
+      color: $font-color;
+      font-size: 0.85rem;
+      height: 28px;
+      line-height: 1rem !important;
+      padding: 6px 0 7px !important;
+      @include rounded-corners(4px);
+    }
+  }
+  &.ant-select-multiple {
+    .ant-select-selector {
+      padding: 0 12px !important;
+    }
+    .ant-select-selection-item {
+      align-items: center;
+      background-color: color.scale($gray, $lightness: 80%);
+      display: flex;
+      font-size: 0.8rem;
+      flex-direction: row;
+      gap: 6px;
+      padding: 6px !important;
+    }
+  }
+
+  &.small {
+    min-height: 28px !important;
+    .ant-select-selection {
+      height: 28px !important;
+      padding: 2px 0 !important;
+    }
+    .ant-select-selector {
+      min-height: 30px !important;
+      height: 30px !important;
+      padding: 0 24px 0 8px !important;
+    }
+    .ant-select-selection-item {
+      font-size: 0.74rem !important;
+      padding: 7px 0 5px !important;
+    }
+    .ant-select-selection-search-input {
+      height: 28px !important;
+    }
+  }
+}
+
+// --- custom dropdown with icon
+.dropdown_overlay {
+  background-color: $white;
+  max-width: 240px;
+  @include rounded-corners(4px);
+
+  .customSelect_menu {
+    background-color: $white;
+    &_icon {
+      font-size: 1.2rem;
+      margin-top: -10px;
+    }
+    &.no-icons {
+      padding-left: 12px !important;
+    }
+  }
+
+  .no-icons {
+    .customSelect_menu {
+      font-weight: 500;
+      padding: 8px 12px;
+
+      &.no-icons {
+        padding-left: 8px !important;
+      }
+    }
+  }
+
+  .customSelect {
+    &_menuWrapper {
+      background-color: $white;
+      border: 1px solid color.scale($gray, $lightness: 75%);
+      padding: 0;
+      overflow: hidden;
+      min-width: 140px;
+      @include box-shadow(0 2px 3px $page-bg-color);
+      @include rounded-corners(4px);
+
+      ul {
+        padding: 0;
+        @include rounded-corners(4px);
+        li {
+          padding: 0;
+        }
+      }
+    }
+
+    &_menu {
+      border: 0;
+      cursor: pointer;
+      display: flex;
+      height: auto;
+      line-height: normal;
+      min-height: 34px;
+      padding: 8px 12px 8px 32px;
+      text-align: left;
+      position: relative;
+      width: 100%;
+      @include box-shadow(none);
+      @include rounded-corners(0);
+      @include transition(all ease 0.3s);
+
+      &.noIcon {
+        padding-left: 8px;
+      }
+
+      &_icon {
+        left: 8px;
+        margin-top: -10px;
+        position: absolute !important;
+        top: 50%;
+        @include transition(color ease 0.3s);
+      }
+
+      &:hover,
+      &.is-selected {
+        background-color: $page-bg-color;
+
+        .C-heading,
+        .g-icon {
+          color: $primary-color;
+        }
+
+        .customSelect {
+          &_menu {
+            &_icon,
+            &_title {
+              color: $primary-color;
+            }
+          }
+        }
+      }
+
+      &:disabled,
+      &.is-disabled {
+        background-color: transparent;
+        color: color.scale($gray, $lightness: 50%);
+        cursor: not-allowed;
+
+        .customSelect {
+          &_menu {
+            &_icon,
+            &_title {
+              color: color.scale($gray, $lightness: 50%);
+              opacity: 0.5;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.C-subMenu {
+  .ant-menu-submenu-title {
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    .ant-menu-title-content {
+      color: $font-color !important;
+      font-size: 0.8rem;
+      line-height: 1.2rem;
+    }
+    &:hover {
+      background-color: $page-bg-color;
+      .ant-menu-title-content,
+      .g-icon {
+        color: $primary-color !important;
+      }
+    }
+  }
+  &.ant-menu-submenu-selected {
+    &::before {
+      left: 0 !important;
+    }
+    .ant-menu-submenu-title {
+      background-color: $page-bg-color;
+      .ant-menu-title-content,
+      .g-icon {
+        color: $primary-color !important;
+      }
+    }
+  }
+  .ant-menu-item-selected {
+    &::before {
+      left: 0 !important;
+    }
+  }
+  &::before {
+    left: 0 !important;
+  }
+}
+
+/* -------------------------------------
+                                🍔 6. Tags
+                              ------------------------------------- */
+
+.C-tag {
+  background: color.scale($page-bg-color, $lightness: -5%);
+  border: 1px solid color.scale($page-bg-color, $lightness: -15%) !important;
+  box-sizing: border-box;
+  color: $font-color !important;
+  font-size: 0.8rem !important;
+  height: 24px !important;
+  line-height: 1rem !important;
+  margin: 0 !important;
+  min-width: 36px;
+  max-width: 200px;
+  padding: 4px 8px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  .g-icon {
+    font-size: 1.15rem !important;
+    margin-left: -2px;
+  }
+
+  &.rounded {
+    padding: 4px 10px !important;
+    @include rounded-corners(100px);
+  }
+
+  &.small {
+    font-size: 0.7rem !important;
+    font-weight: 500 !important;
+    height: 20px !important;
+    line-height: 0.9rem !important;
+    padding: 2px 6px !important;
+  }
+
+  &.is-low {
+    background: color.scale($success, $lightness: 86%);
+    border-color: color.scale($success, $lightness: 65%) !important;
+    color: color.scale($success, $lightness: -5%) !important;
+
+    .g-icon {
+      color: color.scale($success, $lightness: -5%) !important;
+    }
+  }
+  &.is-major {
+    background: color.scale($warning, $lightness: 80%);
+    border-color: color.scale($warning, $lightness: 70%) !important;
+    color: color.scale($warning, $lightness: -5%) !important;
+
+    .g-icon {
+      color: color.scale($warning, $lightness: -5%) !important;
+    }
+  }
+  &.is-critical {
+    background: color.scale($alert, $lightness: 85%);
+    border-color: color.scale($alert, $lightness: 60%) !important;
+    color: color.scale($alert, $lightness: -10%) !important;
+
+    .g-icon {
+      color: color.scale($alert, $lightness: -10%) !important;
+    }
+  }
+  &.is-custom {
+    border-color: transparent !important;
+    color: color.scale($font-color, $lightness: -10%) !important;
+  }
+  &.is-disabled {
+    cursor: not-allowed;
+  }
+
+  &.with-image {
+    display: inline-block !important;
+    max-width: calc(200px - 18px);
+    position: relative;
+    padding-left: 28px !important;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    img {
+      position: absolute;
+      left: 6px;
+      top: 2px;
+      height: 18px;
+      width: 18px;
+    }
+  }
+}
+
+.C-tagList {
+  ul {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    li {
+      min-height: 24px;
+      .C-tag {
+        margin: 0 !important;
+      }
+    }
+  }
+}
+
+/* -------------------------------------
+                                🍔 7. Text Box, Textarea
+                              ------------------------------------- */
+
+.C-textbox {
+  background-color: transparent !important;
+  border: 1px solid #d0d5dd !important;
+  color: $font-color !important;
+  font-size: 0.85rem !important;
+  line-height: 1rem;
+  height: 38px;
+  padding: 8px 12px !important;
+  outline-color: $primary-color;
+  outline-width: thick;
+  @include rounded-corners(6px);
+  @include box-shadow(inset 0px 1px 2px #e0e0e0);
+  @include transition(all ease 0.3s);
+
+  &.ant-input::placeholder {
+    color: color.scale($font-color, $lightness: 35%) !important;
+    font-size: 0.75rem !important;
+    font-weight: 400 !important;
+    line-height: 1rem !important;
+  }
+
+  &.ant-input-number {
+    background-color: $white !important;
+  }
+
+  .ant-input-number-input {
+    height: auto !important;
+    padding-left: 0;
+  }
+
+  // - For textbox hover, active states
+  &:hover:not(:disabled, .ant-input-status-error),
+  &:focus,
+  &:active {
+    border: 1px solid $primary-color !important;
+  }
+
+  // - For textbox Placeholder styles
+  &::placeholder {
+    color: color.scale($font-color, $lightness: 35%) !important;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1.5715;
+  }
+
+  // - For textbox Disable states
+  &:disabled {
+    cursor: not-allowed;
+    background-color: $page-bg-color !important;
+  }
+
+  // - For textbox Error state
+  &.has-error {
+    border-color: color.scale($alert, $lightness: 30%) !important;
+  }
+
+  &.search {
+    padding-left: 30px !important;
+  }
+
+  &.ant-input-status-error,
+  &.ant-picker-status-error,
+  &.ant-input-number-status-error {
+    border-color: $alert !important;
+  }
+}
+.C-textbox::placeholder {
+  color: color.scale($font-color, $lightness: 35%) !important;
+  font-size: 0.85rem;
+  line-height: 1.1rem;
+}
+
+/* -------------------------------------
+                                🍔 8. Tooltip
+                              ------------------------------------- */
+.Graas_toolTip {
+  background-color: color.scale($black, $lightness: 10%);
+  padding: 8px 12px !important;
+  max-width: 460px;
+  @include rounded-corners(6px);
+  @include box-shadow(0 0 6px color.scale($black, $lightness: 14%));
+  .ant-tooltip-inner {
+    background-color: transparent;
+    padding: 0 !important;
+    min-height: 18px !important;
+    @include box-shadow(none);
+  }
+  .ant-tooltip-arrow {
+    display: none !important;
+  }
+  &.large {
+    max-width: 520px;
+  }
+  &.withLightColor {
+    background-color: $white !important;
+    @include box-shadow(0 0 4px color.scale($black, $lightness: 60%));
+  }
+}
+
+/* -------------------------------------
+                              🍔 9 - Modal
+                            ------------------------------------- */
+.C-modal {
+  .ant-modal-content {
+    @include rounded-corners(12px);
+    @include box-shadow(5px 10px 21px 1px rgba(71, 84, 103, 0.33));
+  }
+
+  .ant-modal-header {
+    @include rounded-corners(12px 12px 0 0);
+  }
+
+  &.small {
+    .ant-modal-content {
+      @include rounded-corners(4px);
+    }
+  }
+
+  &.medium {
+    .ant-modal-content {
+      @include rounded-corners(6px);
+    }
+  }
+
+  &.large {
+    .ant-modal-content {
+      @include rounded-corners(8px);
+    }
+  }
+}
+
+/* -------------------------------------
+                              🍔 10 - search
+                            ------------------------------------- */
+
+.C-search {
+  position: relative;
+  &:before {
+    content: "\e8b6";
+    color: #98a2b3;
+    font: 300 1.2rem/1.1rem $icon-font;
+    height: 16px;
+    left: 6px;
+    position: absolute;
+    top: 11px;
+    width: 16px;
+  }
+
+  .C-textbox {
+    padding-left: 30px !important;
+    &::before {
+      display: none;
+    }
+  }
+
+  &.C-search {
+    .ant-input-group {
+      border: 1px solid $border-color;
+      height: 42px;
+      padding: 2px;
+      @include box-shadow(inset 0px 1px 2px #e0e0e0);
+      @include rounded-corners(6px);
+      .ant-input-affix-wrapper {
+        border: 0;
+        height: 36px;
+      }
+      .ant-input-search-button {
+        height: 36px;
+        background-color: $primary-color;
+        @include rounded-corners(5px);
+      }
+    }
+  }
+}
+
+/* -------------------------------------
+  🍔 Components :: Input fields with add Ons
+  ------------------------------------- */
+
+.C-search-with-select {
+  .ant-select-arrow {
+    right: 4px !important;
+    .g-icon {
+      font-size: 1rem;
+    }
+  }
+  .ant-input-group-addon,
+  .ant-input-affix-wrapper,
+  .ant-btn {
+    height: 35px !important;
+    border-color: #d9d9d9 !important;
+    @include box-shadow(none);
+  }
+
+  .ant-input-group-addon {
+    max-width: 200px;
+    @include rounded-corners(6px 0 0 6px);
+  }
+
+  .ant-btn {
+    border: 1px solid $primary-color !important;
+    background-color: $primary-color !important;
+    color: $white !important;
+    @include rounded-corners(0 6px 6px 0);
+  }
+
+  .ant-select {
+    border-color: transparent !important;
+    .ant-select-selector {
+      border-color: transparent !important;
+    }
+    &:active,
+    &:focus,
+    &:hover {
+      .ant-select-selector {
+        border-color: $white !important;
+        @include box-shadow(none);
+      }
+    }
+
+    .ant-select-selection-item {
+      padding-right: 14px !important;
+    }
+  }
+
+  .ant-select-selector {
+    border: 0px none !important;
+    padding: 0 10px !important;
+    @include box-shadow(none);
+    .ant-select-selection-item {
+      color: $font-color !important;
+      font-size: 0.75rem !important;
+    }
+  }
+}
+
+.C-textBox-with-addOn {
+  border: 1px solid #d0d5dd !important;
+  height: 38px;
+  width: 100% !important;
+  line-height: 2.75 !important;
+  @include rounded-corners(6px 0 0 6px);
+  @include transition(border-color ease 0.3s);
+
+  .ant-input-group {
+    align-items: center;
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    .ant-input {
+      background-color: transparent !important;
+      border: 0 !important;
+      color: $font-color !important;
+      flex-grow: 1;
+      font-size: 0.85rem !important;
+      height: 36px;
+      line-height: 1rem;
+      outline: none;
+      padding: 8px 12px !important;
+      @include rounded-corners(6px 0 0 6px);
+      @include box-shadow(inset 0px 1px 2px #e0e0e0);
+    }
+    .ant-input-group-addon {
+      border: 0 !important;
+      color: $font-color;
+      border-left: 1px solid #d0d5dd !important;
+      display: grid;
+      flex: 0 0 auto;
+      font-size: 0.7rem !important;
+      font-weight: 500;
+      height: 36px !important;
+      line-height: 0.9rem;
+      min-width: 50px !important;
+      place-items: center;
+      padding: 0 10px !important;
+      width: auto;
+      @include rounded-corners(0 6px 6px 0);
+    }
+  }
+
+  &:hover {
+    border-color: $primary-color !important;
+  }
+
+  &.ant-input-group-wrapper-status-error,
+  &.ant-input-number-status-error {
+    border-color: $alert !important;
+  }
+}
+
+/* -------------------------------------
+                                  🍔 Components - Checkbox
+                              ------------------------------------- */
+.C-checkbox {
+  align-items: center !important;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+
+  .ant-radio-checked .ant-radio-inner {
+    border-color: $primary-color !important;
+  }
+
+  .ant-checkbox,
+  .ant-radio {
+    top: 0;
+    & + span {
+      flex-grow: 1;
+      margin: -1px 0 0 0 !important;
+      @include padding(right, 0);
+    }
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  .ant-checkbox-inner,
+  .ant-radio-inner {
+    width: 18px;
+    height: 18px;
+    background-color: $white;
+    border: 1px solid #8c93ab;
+    margin-top: 1px;
+    @include rounded-corners(3px);
+  }
+
+  .ant-radio-inner {
+    @include rounded-corners(100px);
+    &::after {
+      width: 18px;
+      height: 18px;
+      margin-top: -9px;
+      margin-left: -9px;
+      background-color: $primary-color;
+    }
+  }
+
+  .ant-checkbox-checked {
+    .ant-checkbox-inner {
+      background-color: $primary-color;
+      &::after {
+        top: calc(50% - 1px);
+      }
+    }
+    &::after {
+      display: none;
+    }
+  }
+
+  .ant-checkbox-disabled {
+    &.ant-checkbox-checked {
+      .ant-checkbox-inner {
+        background-color: #f5f5f5;
+      }
+
+      & ~ span {
+        color: $gray;
+      }
+    }
+  }
+
+  .checkHolder {
+    align-items: center;
+    display: flex;
+    gap: 8px;
+    flex-direction: row;
+    position: relative;
+    // top: 1.5px;
+
+    .C-heading {
+      flex-grow: 1;
+    }
+  }
+}
+
+.C-checkboxGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .C-checkbox {
+    margin-left: 0 !important;
+    // margin-bottom: 12px !important;
+  }
+  &.inline {
+    gap: 10px;
+    flex-direction: row;
+    .C-checkbox {
+      margin-bottom: 0 !important;
+      width: auto;
+    }
+  }
+  &.isButton {
+    display: inline-flex;
+    gap: 0;
+    flex-direction: row;
+    .C-checkbox {
+      display: grid;
+      place-items: center;
+      height: auto;
+      width: auto;
+      min-width: 64px;
+      @include padding(all, 2);
+
+      .g-icon {
+        color: $primary-color;
+      }
+      &.ant-radio-button-wrapper-checked {
+        background-color: $primary-color;
+        .g-icon {
+          color: $white;
+        }
+        .checkHolder {
+          .C-heading {
+            color: $white !important;
+          }
+        }
+      }
+      &:first-child {
+        @include rounded-corners(4px 0 0 4px);
+      }
+      &:last-child {
+        @include rounded-corners(0 4px 4px 0);
+      }
+    }
+  }
+  &.isTab {
+    .ant-radio-button-wrapper {
+      border-width: 0;
+      height: 40px;
+      line-height: 22px;
+      padding: 9px 16px;
+      position: relative;
+      @include rounded-corners(8px);
+      @include box-shadow(none);
+      @include transition(all ease 0.3s);
+      &:hover {
+        background: #f0f4ff;
+        border-width: 0 !important;
+        color: $primary-color;
+      }
+      &.ant-radio-button-wrapper-checked {
+        background: #f0f4ff;
+        border: 0 !important;
+        color: $primary-color !important;
+      }
+      &::before {
+        background-color: transparent !important;
+        border: 0;
+      }
+    }
+  }
+}
+
+.C-switch {
+  &.ant-switch-checked {
+    background-color: $primary-color;
+  }
+}
+
+/* -------------------------------------
+                                  🍔 Components - Cards
+                              ------------------------------------- */
+
+.C-card {
+  padding: 16px;
+  background-color: $white;
+  border-radius: 12px;
+  position: relative;
+
+  .image {
+    position: relative;
+    overflow: hidden;
+    img {
+      border-radius: 12px;
+      object-fit: cover;
+      width: 100%;
+    }
+  }
+}
+
+/* -------------------------------------
+                                  🍔 Components - Utilities
+                              ------------------------------------- */
+
+// Vertical center container
+.C-verticalCenter {
+  display: grid;
+  position: relative;
+  place-items: center;
+  height: calc(100vh - 170px);
+}
+
+// Text utilities
+.color-extra-light {
+  color: color.scale($font-color, $lightness: 10%);
+  font-weight: 400;
+}
+
+.color-normal {
+  color: $fontColor !important;
+}
+
+.color-light {
+  color: $white !important;
+}
+
+.color-dark {
+  color: $font-color-dark !important;
+}
+
+.color-black {
+  color: $black;
+}
+
+.color-white {
+  color: $white !important;
+}
+.color-dark {
+  color: $font-color-dark !important;
+}
+.color-primary {
+  color: $primary-color !important;
+}
+.color-secondary {
+  color: $secondary-color !important;
+}
+
+.color-success {
+  color: $success;
+}
+.color-warning {
+  color: $warning;
+}
+.color-error {
+  color: $alert;
+}
+
+.weightNormal {
+  font-weight: 300 !important;
+}
+.semiBold {
+  font-weight: 500 !important;
+}
+.bold {
+  font-weight: 600 !important;
+}
+.extraBold {
+  font-weight: 700 !important;
+}
+
+// Text Alignment
+.text-center {
+  @include textAlign(center);
+}
+.text-left {
+  @include textAlign(left);
+}
+.text-right {
+  @include textAlign(right);
+}
+
+.text-uppercase {
+  @include textTransform(uppercase);
+}
+.text-capitalize {
+  @include textTransform(capitalize);
+}
+
+.ellipsis-1 {
+  @include ellipsis(1);
+}
+// Applying mixin for different ellipsis classes
+.ellipsis-2 {
+  @include ellipsis(2);
+}
+
+.ellipsis-4 {
+  @include ellipsis(4);
+}
+.ellipsis-6 {
+  @include ellipsis(6);
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
+.display-inline {
+  display: inline-block;
+}
+
+.word-break {
+  word-break: unset !important;
+}
+
+.is-truncated {
+  padding-right: 10px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.underline {
+  text-decoration: underline !important;
+}
+.font-family-primary {
+  font-family: $primary-font !important;
+}
+.font-family-secondary {
+  font-family: $secondary-font !important;
+}
+
+.bg-cover {
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+  background-position: center;
+}
+
+.full-width {
+  width: 100% !important;
+}
+
+.has-gradient {
+  background: linear-gradient(84deg, $secondary-color 0%, $primary-color 100%);
+}

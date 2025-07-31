@@ -1,0 +1,130 @@
+//
+
+.section-padding {
+  padding: 120px 0;
+
+  @include breakpoint(max-xl) {
+    padding: 100px 0;
+  }
+
+  @include breakpoint(max-lg) {
+    padding: 80px 0;
+  }
+}
+
+.about-2 {
+  position: relative;
+  z-index: 1;
+
+  .bg-image {
+    overflow: hidden;
+    position: absolute !important;
+    top: -340px;
+    width: 100%;
+    height: 845px;
+    z-index: -1;
+    background-size: cover;
+    border-radius: 25px;
+
+    @include breakpoint(max-xl) {
+      top: -250px;
+    }
+  }
+}
+
+.choose-us-1 {
+  position: relative;
+
+  .shape {
+    position: absolute;
+    top: -10px;
+    left: 0;
+    opacity: 8%;
+  }
+
+  .choose-us-images {
+    position: relative;
+    width: 588px;
+    height: 710px;
+
+    @include breakpoint(max-md) {
+      width: 100%;
+      height: 100%;
+    }
+
+    img {
+      object-fit: contain;
+    }
+
+    .shape-img {
+      position: absolute;
+      top: 80px;
+      left: 10px;
+      z-index: -2;
+      opacity: 50%;
+      animation: rotate 100s infinite linear;
+
+      @keyframes rotate {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    }
+  }
+
+  .choose-us-content {
+    .icon-box {
+      gap: 20px;
+
+      @include breakpoint(max-md) {
+        flex-wrap: wrap;
+      }
+
+      .single-icon-box {
+        .g-icon {
+          color: $secondary-color !important;
+          font-size: 3rem;
+          display: inline-block;
+        }
+      }
+    }
+
+    .count-box {
+      background-color: $white;
+      margin-top: 40px;
+      @include flex;
+      justify-content: space-between;
+      padding: 15px 65px;
+      padding-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 7px 11px 50px 52px rgba(2, 8, 66, 0.03);
+
+      @include breakpoint(max-sm) {
+        flex-direction: column;
+      }
+
+      .single-count {
+        h2 {
+          font-size: 4rem;
+          font-weight: 800;
+          @include clip;
+          background-image: linear-gradient(
+            84deg,
+            $secondary-color 0%,
+            $primary-color 100%
+          );
+          line-height: 4rem;
+          margin-bottom: 1rem;
+
+          @include breakpoint(max-md) {
+            font-size: 40px;
+            text-align: center;
+          }
+        }
+      }
+    }
+  }
+}

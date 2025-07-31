@@ -1,0 +1,284 @@
+/* -------------------------------------
+    Theme Variables
+  ------------------------------------- */
+
+$primary-color: #3cadc3;
+$secondary-color: #d1e3f6;
+$third-color: #2a7e9f;
+
+$alert: #f04438;
+$warning: #f79009;
+$progress: #0ba5ec;
+$success: #149b5c;
+
+$black: #000;
+$white: #fff;
+$gray: #1d2939;
+
+$fontColor: #252d36;
+
+//  --- OVERWRITE COLORS - contain specific components like button
+$border-color: #e9ecf7;
+$page-bg-color: #f2f4f7;
+$font-color: #667085;
+$font-color-light: #98a2b3;
+$font-color-dark: #1e375a;
+
+$primary-font: "Barlow", sans-serif;
+$secondary-font: "Quicksand", sans-serif;
+$icon-font: "MaterialSymbolsRounded";
+
+/* -------------------------------------
+      SCSS Mixins
+    ------------------------------------- */
+/* -------------------------------------
+    🍔 Mixin - Rounded Corners
+  ------------------------------------- */
+@mixin rounded-corners($property) {
+  -webkit-border-radius: $property;
+  -moz-border-radius: $property;
+  border-radius: $property !important;
+}
+
+/* -------------------------------------
+      🍔 Mixin - Box Shadow
+    ------------------------------------- */
+@mixin box-shadow($property) {
+  box-shadow: $property !important;
+  -moz-box-shadow: $property !important;
+  -webkit-box-shadow: $property !important;
+  -ms-box-shadow: $property !important;
+  -o-box-shadow: $property !important;
+}
+
+/* -------------------------------------
+      🍔 Mixin - CSS Transition
+    ------------------------------------- */
+@mixin transition($property) {
+  transition: $property;
+  -moz-transition: $property;
+  -webkit-transition: $property;
+  -o-transition: $property;
+  -ms-transition: $property;
+}
+
+/* -------------------------------------
+      🍔 Mixin - Transform
+    ------------------------------------- */
+@mixin transform($property) {
+  transform: $property;
+  -moz-transform: $property;
+  -webkit-transform: $property;
+  -o-transform: $property;
+  -ms-transform: $property;
+}
+
+/* -------------------------------------
+      🍔 Mixin - Margin
+    ------------------------------------- */
+@mixin margin($side, $size) {
+  $spacing: 4px * $size;
+  @if $side == "all" {
+    margin: $spacing !important;
+  } @else {
+    margin-#{$side}: $spacing !important;
+  }
+}
+
+/* -------------------------------------
+      🍔 Mixin - Padding
+    ------------------------------------- */
+@mixin padding($side, $size) {
+  $spacing: 4px * $size;
+  @if $side == "all" {
+    padding: $spacing !important;
+  } @else {
+    padding-#{$side}: $spacing !important;
+  }
+}
+
+/* -------------------------------------
+      🍔 Mixin - Text Align
+    ------------------------------------- */
+@mixin textAlign($side) {
+  text-align: $side;
+}
+
+/* -------------------------------------
+      🍔 Mixin - Text Transform
+    ------------------------------------- */
+@mixin textTransform($side) {
+  text-transform: $side;
+}
+
+/* -------------------------------------
+      🍔 Mixin - Text Ellipsis
+    ------------------------------------- */
+@mixin ellipsis($lines) {
+  display: flex;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-clamp: $lines;
+  -webkit-line-clamp: $lines;
+  -moz-line-clamp: $lines;
+  box-orient: vertical;
+  -webkit-box-orient: vertical;
+  -moz-box-orient: vertical;
+}
+
+@mixin breakpoint($point) {
+  @if $point==xsmall {
+    @media (min-width: 450px) {
+      @content;
+    }
+  } @else if $point==max-xxsmall {
+    @media (max-width: 450px) {
+      @content;
+    }
+  }
+
+  @if $point==xxs {
+    @media (min-width: 470px) {
+      @content;
+    }
+  } @else if $point==max-xxs {
+    @media (max-width: 470px) {
+      @content;
+    }
+  }
+
+  @if $point==xs {
+    @media (min-width: 500px) {
+      @content;
+    }
+  } @else if $point==max-xs {
+    @media (max-width: 500px) {
+      @content;
+    }
+  }
+
+  @if $point==sm {
+    @media (min-width: 576px) {
+      @content;
+    }
+  } @else if $point==max-sm {
+    @media (max-width: 575px) {
+      @content;
+    }
+  } @else if $point==md {
+    @media (min-width: 768px) {
+      @content;
+    }
+  } @else if $point==max-md {
+    @media (max-width: 767px) {
+      @content;
+    }
+  } @else if $point==lg {
+    @media (min-width: 992px) {
+      @content;
+    }
+  } @else if $point==max-lg {
+    @media (max-width: 991px) {
+      @content;
+    }
+  } @else if $point==xl {
+    @media (min-width: 1200px) {
+      @content;
+    }
+  } @else if $point==max-xl {
+    @media (max-width: 1199px) {
+      @content;
+    }
+  } @else if $point==xxl {
+    @media (min-width: 1400px) {
+      @content;
+    }
+  } @else if $point==max-xxl {
+    @media (max-width: 1399px) {
+      @content;
+    }
+  } @else if $point==xxxl {
+    @media (min-width: 1600px) {
+      @content;
+    }
+  } @else if $point==max-xxxl {
+    @media (max-width: 1600px) {
+      @content;
+    }
+  } @else if $point==xl4 {
+    @media (min-width: 1899px) {
+      @content;
+    }
+  } @else if $point==max-xl4 {
+    @media (max-width: 1899px) {
+      @content;
+    }
+  }
+}
+
+@mixin before {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  content: "";
+}
+
+@mixin after {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  content: "";
+}
+
+@mixin mask {
+  mask-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+}
+
+@mixin clip {
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+@mixin icon {
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+@mixin flex {
+  display: flex;
+  align-items: center;
+}
+
+@mixin imgw {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@mixin left50 {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+@mixin transfromCenter {
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin has-gradient {
+  background: linear-gradient(84deg, $secondary-color 0%, $primary-color 100%);
+}

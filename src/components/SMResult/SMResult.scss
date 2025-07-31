@@ -1,0 +1,90 @@
+@use '../../assets/styles/scss-variables' as *;
+
+.c-notifiContainer {
+  display: block;
+  position: relative;
+  text-align: center;
+  margin: 46px 0 0;
+  min-height: 160px;
+
+  &.m0 {
+    margin: 0 !important;
+  }
+
+  &.small {
+    min-height: 40px;
+  }
+
+  &.forChart {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 380px;
+    &.comingSoonCard {
+      font-size: 18px;
+    }
+  }
+
+  .ant-result {
+    padding: 0;
+  }
+
+  &.container-type-empty {
+    &.small {
+      .notifi {
+        &_icon {
+          height: 76px;
+          width: 76px !important;
+        }
+      }
+    }
+  }
+
+  .notifi {
+    &_icon {
+      display: inline-block;
+      height: 60px;
+    }
+    &_spinner {
+      color: $primary-color;
+      font-size: 34px;
+      margin-bottom: 14px;
+    }
+    &_message {
+      color: $font-color;
+      display: block;
+      text-align: center;
+      font-size: 0.8rem;
+      line-height: 1rem;
+      letter-spacing: normal;
+    }
+  }
+  .ant-result {
+    .ant-result-icon {
+      margin-bottom: 6px;
+    }
+  }
+  &.small {
+    margin: 20px 0;
+    .ant-result {
+      padding: 0;
+      .ant-result-icon {
+        margin-bottom: 0;
+      }
+    }
+    .notifi {
+      &_icon {
+        height: 28px;
+        width: 52px !important;
+      }
+      &_spinner {
+        font-size: 24px;
+        margin-bottom: 7px;
+      }
+      &_message {
+        font-size: 0.7rem;
+        line-height: 1rem;
+      }
+    }
+  }
+}

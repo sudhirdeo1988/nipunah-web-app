@@ -1,0 +1,47 @@
+# Node modules
+/node_modules/
+
+# Output of `next build`
+.next/
+out/
+
+# Local env files
+.env*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Editor folders
+.vscode/
+.idea/
+*.swp
+
+# Test coverage
+coverage/
+
+# Optional: if using turbo repo
+turbo/
+
+# Optional: if using TypeScript
+*.tsbuildinfo
+
+# Optional: for Mac users with Apple Silicon (next/image can generate these)
+*.heic
+
+# Optional: local database or data dumps
+*.sqlite
+*.db
+
+# Optional: local screenshots or reports
+*.log
+*.tgz
+*.zip
+*.report.*

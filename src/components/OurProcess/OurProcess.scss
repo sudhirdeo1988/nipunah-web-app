@@ -1,0 +1,135 @@
+//
+
+.c-ourProcess {
+  background-color: $primary-color;
+  position: relative;
+
+  .process-items {
+    grid-template-columns: auto auto auto;
+    padding-top: 70px;
+
+    @include breakpoint(max-xxl) {
+      grid-template-columns: auto auto;
+      gap: 30px;
+      justify-content: center !important;
+    }
+
+    @include breakpoint(max-lg) {
+      grid-template-columns: auto;
+    }
+
+    .single-process-item {
+      position: relative;
+      z-index: 1;
+      width: 372px;
+
+      .icon {
+        width: 56px;
+        height: 56px;
+        @include icon;
+        background: linear-gradient(
+          84deg,
+          $primary-color 0%,
+          $secondary-color 100%
+        );
+        font-size: 20px;
+        font-weight: 700;
+        color: $white;
+        position: absolute;
+        top: 25px;
+        left: 10px;
+        z-index: 1;
+      }
+
+      &:nth-child(2) {
+        .icon {
+          top: 5px;
+          left: 15px;
+        }
+      }
+
+      @include breakpoint(max-lg) {
+        width: 100%;
+      }
+
+      .image {
+        mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 372 333" xmlns="http://www.w3.org/2000/svg"><path d="M0 75.1761C0 68.9789 2.87287 63.1318 7.77841 59.3447L79.2515 4.16861C82.7523 1.46598 87.0503 0 91.473 0H352C363.046 0 372 8.95431 372 20V312.34C372 323.385 363.046 332.34 352 332.34H20C8.95431 332.34 0 323.385 0 312.34V75.1761Z" /></svg>');
+        @include mask;
+        height: 332px;
+        mask-size: cover;
+
+        img {
+          @include imgw;
+          object-fit: cover;
+        }
+      }
+    }
+  }
+
+  .shape-1 {
+    position: absolute;
+    top: 0;
+    right: 0;
+    opacity: 5%;
+    animation: zoomBig 10s infinite linear;
+  }
+
+  .shape-2 {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    opacity: 40%;
+    animation: topToBottom 5s infinite linear;
+  }
+
+  .shape-3 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 40%;
+    animation: leftToRight 5s infinite linear;
+  }
+
+  .shape-4 {
+    position: absolute;
+    top: 26.5%;
+    left: 25.5%;
+    animation: leftToRight 3s infinite linear;
+  }
+
+  .shape-5 {
+    position: absolute;
+    bottom: 10.5%;
+    left: 49.5%;
+    animation: leftToRight 3s infinite linear;
+  }
+}
+
+//>>>>> topToBottom Animation end <<<<<//
+@keyframes topToBottom {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes leftToRight {
+  0% {
+    transform: translateX(0px);
+  }
+
+  50% {
+    transform: translateX(-20px);
+  }
+
+  100% {
+    transform: translateX(0px);
+  }
+}

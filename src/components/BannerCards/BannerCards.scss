@@ -1,0 +1,113 @@
+//
+
+.c-bannerCards {
+  margin-top: -130px;
+  position: relative;
+  z-index: 11;
+
+  .slick-slide > div {
+    margin: 0 12px;
+  }
+  /* Fix the overflow issue by compensating the gap */
+  .slick-list {
+    margin: 0 -12px;
+  }
+
+  .single-feature-item {
+    border: 1px solid transparent;
+    margin: 12px 6px;
+    height: 373px;
+    border-radius: 12px;
+
+    background: $white;
+    padding: 28px;
+    cursor: pointer;
+    @include box-shadow(0 0 6px rgba(2, 8, 66, 0.1));
+    @include transition(all ease 0.3s);
+
+    @include breakpoint(max-xxl) {
+      padding: 20px 30px;
+    }
+
+    .icon {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      @include flex;
+      justify-content: center;
+      overflow: hidden;
+      @include transition(all ease 0.3s);
+      @include has-gradient;
+
+      .g-icon {
+        color: $white;
+        font-size: 3rem;
+        position: relative;
+        z-index: 2;
+        display: inline-block;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        @include transition(all ease 0.3s);
+      }
+    }
+
+    &:hover {
+      border-color: $secondary-color;
+    }
+
+    h4 {
+      color: $black;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      padding: 10px 0 16px;
+      @include transition(all ease 0.3s);
+
+      .is-animated {
+        display: inline-block;
+        color: $black;
+        background: linear-gradient(
+            to right,
+            currentcolor 0%,
+            currentcolor 100%
+          )
+          0px 95%/0px 1px no-repeat;
+        transition: all 500ms ease;
+
+        &:hover {
+          background-size: 100% 1px;
+        }
+      }
+    }
+    .checkIcon {
+      color: $secondary-color;
+      font-size: 1.1rem;
+      @include transition(all ease 0.3s);
+    }
+  }
+}
+.ant-carousel .slick-dots-bottom {
+  bottom: -16px;
+  li {
+    height: 12px;
+    width: 12px;
+    &::after {
+      background-color: transparent !important;
+    }
+    button {
+      background-color: $primary-color;
+      height: 12px;
+      width: 12px;
+      @include rounded-corners(100px);
+      &::after {
+        display: none !important;
+      }
+    }
+    &.slick-active {
+      width: 12px !important;
+      button {
+        background-color: $secondary-color !important;
+        opacity: 1;
+      }
+    }
+  }
+}

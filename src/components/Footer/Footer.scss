@@ -1,0 +1,109 @@
+.footer-wrapper {
+  background-color: $primary-color;
+}
+.footer-widgets-1 {
+  padding: 60px 0;
+  .single-footer-widget {
+    .footer-content {
+      .footer-input {
+        position: relative;
+        margin-top: 15px;
+
+        input {
+          background: $page-bg-color;
+          border: none;
+          outline: none;
+          padding: 10px 22px;
+          width: 100%;
+          border-radius: 4px;
+          color: $fontColor;
+
+          &::placeholder {
+            color: $fontColor;
+          }
+        }
+
+        .newsletter-btn {
+          border: 0;
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          right: 5px;
+          width: 42px;
+          height: 38px;
+          border-radius: 5px;
+          text-align: center;
+          background-color: $third-color;
+          color: $white;
+        }
+      }
+
+      .social-icon {
+        gap: 0;
+        margin-top: 18px;
+        .anticon {
+          font-size: 1.2rem;
+          color: $white;
+          @include transition(all ease 0.3s);
+          &:hover {
+            color: $secondary-color;
+          }
+        }
+      }
+
+      .contact-info-area {
+        .contact {
+          @include flex;
+          gap: 15px;
+          margin-bottom: 20px;
+
+          .g-icon {
+            width: 44px;
+            height: 44px;
+            line-height: 1.4rem;
+            font-size: 1.4rem;
+            background: $third-color;
+            color: $white;
+            @include icon;
+          }
+
+          .contact-infu {
+            width: 75%;
+          }
+        }
+      }
+    }
+
+    .list-area {
+      li {
+        margin-bottom: 12px;
+
+        .foolterNavLink {
+          color: $white;
+          font-size: 0.85rem;
+          line-height: 1.1rem;
+          font-weight: 500;
+          position: relative;
+          @include transition(all ease 0.3s);
+
+          .anticon {
+            font-size: 0.9rem;
+            @include transition(all ease 0.3s);
+          }
+
+          &:hover {
+            color: $secondary-color;
+            .anticon {
+              color: $secondary-color;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.footer-bottom {
+  background-color: $third-color;
+  padding: 10px 0;
+}
