@@ -78,7 +78,7 @@ const AboutPage = () => {
                   </h2>
                 </div>
                 <p className="C-heading size-6 mb-3 dont-break">
-                  Nipunah.com is the world's first integrated maritime industry
+                  Nipunah.com is the worlds first integrated maritime industry
                   platform connecting global stakeholders across shipping,
                   dredging, ports, offshore, and marine services. Verified
                   listings, digital visibility, and trusted partnerships all in
@@ -87,14 +87,14 @@ const AboutPage = () => {
                 <p className="C-heading size-6 mb-3 dont-break">
                   Our purpose is to digitize and unify the maritime supply chain
                   in a secure, verified, and globally accessible network.
-                  Whether you're a contractor, equipment supplier, or service
+                  Whether youre a contractor, equipment supplier, or service
                   provider, Nipunah.com helps you get discovered, trusted, and
                   connected.
                 </p>
                 <p className="C-heading size-6 mb-3 dont-break">
                   Our purpose is to digitize and unify the maritime supply chain
                   in a secure, verified, and globally accessible network.
-                  Whether you're a contractor, equipment supplier, or service
+                  Whether youre a contractor, equipment supplier, or service
                   provider, Nipunah.com helps you get discovered, trusted, and
                   connected.
                 </p>
@@ -104,21 +104,21 @@ const AboutPage = () => {
                     <li>
                       <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                       <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Nipunah.com is the world's first integrated maritime
+                        Nipunah.com is the worlds first integrated maritime
                         industry platform
                       </span>
                     </li>
                     <li>
                       <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                       <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Nipunah.com is the world's first integrated maritime
+                        Nipunah.com is the worlds first integrated maritime
                         industry platform connecting
                       </span>
                     </li>
                     <li>
                       <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                       <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Nipunah.com is the world's first integrated maritime
+                        Nipunah.com is the worlds first integrated maritime
                         industry platform connecting
                       </span>
                     </li>
