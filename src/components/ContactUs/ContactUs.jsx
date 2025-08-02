@@ -14,7 +14,9 @@ const ContactUs = () => {
         <div className="row">
           <div className="col-xl-6 col-lg-6 col-md-12 mt-4">
             <div className="section-title">
-              <div className="sub-title">CONTACT US</div>
+              <div className="sub-title">
+                <span>CONTACT US</span>
+              </div>
               <h2 className="c-heading size-4 extraBold color-dark right">
                 To Make Requests for <br />
                 Further Information, <br />

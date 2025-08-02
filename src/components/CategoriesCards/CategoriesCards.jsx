@@ -135,34 +135,46 @@ const CategoriesCards = () => {
         </div>
 
         <div className="blog-inner">
-          <Carousel {...settings}>
+          {/* <Carousel {...settings}> */}
+          <div className="row g-3">
             {_map(data, (item) => {
               return (
-                <div className="C-card" key={item?.id}>
-                  <div className="image mb-2">
-                    <img src="https://placehold.co/220x140" alt="" />
+                <div
+                  className="col-xl-3 col-md-4 col-sm-2 col-xs-1"
+                  key={item?.id}
+                >
+                  <div className="C-card">
+                    <div className="image mb-2">
+                      <img src="https://placehold.co/220x140" alt="" />
+                    </div>
+                    <h3 className="C-heading size-6 extraBold color-dark mb-3 dont-break font-family-primary">
+                      {item?.title}
+                    </h3>
+                    <ul>
+                      {_map(item?.list, (listItem, listIndex) => {
+                        return (
+                          <li key={listIndex}>
+                            <span className="C-heading size-xs mb-0 dont-break">
+                              {listItem}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                    <button className="C-button is-link p-0 small bold mt-3">
+                      Read More
+                    </button>
                   </div>
-                  <h3 className="C-heading size-5 extraBold color-dark mb-3 dont-break font-family-primary">
-                    {item?.title}
-                  </h3>
-                  <ul>
-                    {_map(item?.list, (listItem, listIndex) => {
-                      return (
-                        <li key={listIndex}>
-                          <span className="C-heading size-xs mb-0 dont-break">
-                            {listItem}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  <button className="C-button is-link p-0 small bold mt-3">
-                    Read More
-                  </button>
                 </div>
               );
             })}
-          </Carousel>
+            {/* </Carousel> */}
+            <div className="col-12 text-center mt-4">
+              <button className="C-button is-filled">
+                View all categories
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

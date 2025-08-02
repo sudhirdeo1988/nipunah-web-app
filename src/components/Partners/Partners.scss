@@ -1,0 +1,45 @@
+.C-partners {
+  background-color: lighten($secondary-color, 8%);
+}
+
+.brand-tabs {
+  .ant-tabs-nav {
+    width: 260px;
+    .ant-tabs-tab {
+      padding: 10px 10px 10px 6px;
+      display: block;
+      text-align: left;
+      margin-top: 0 !important;
+      margin-bottom: 8px !important;
+      white-space: normal;
+
+      &.ant-tabs-tab-active {
+        background-color: $secondary-color;
+      }
+    }
+  }
+  .ant-tabs-content-holder {
+    padding: 24px 0;
+  }
+}
+
+.brand-logo {
+  background-color: $secondary-color;
+  padding: 24px 24px 24px;
+  margin-bottom: 24px;
+  text-align: center;
+  @include rounded-corners(10px);
+  .logo {
+    border: 1px solid $secondary-color;
+    background-color: $white;
+    padding: 14px;
+    width: 90%;
+    margin: -40px auto 20px;
+    @include rounded-corners(10px);
+    img {
+      width: 100%;
+      height: 35px;
+      object-fit: contain;
+    }
+  }
+}

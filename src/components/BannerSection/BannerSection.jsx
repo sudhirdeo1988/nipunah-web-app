@@ -31,7 +31,9 @@ const BannerSection = () => {
                 Nipunah.com helps you get discovered, trusted, and connected.
               </p>
               <div className="hero-button mt-4">
-                <button className="C-button is-filled">Explore More</button>
+                <button className="C-button is-filled">
+                  Know more about us
+                </button>
               </div>
             </div>
           </div>

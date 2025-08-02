@@ -2,12 +2,12 @@
 
 import React from "react";
 import Icon from "@/components/Icon/Icon";
-import { Space } from "antd";
-import "./Header.scss";
+import { Input, Popover, Space } from "antd";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
+import "./Header.scss";
 
 const Header = () => {
   const pathname = usePathname();
@@ -22,7 +22,7 @@ const Header = () => {
   ];
 
   return (
-    <header>
+    <header className="mainHeader">
       <div className="topbar">
         <div className="container">
           <div className="topbar-inner d-flex align-items-center justify-content-between">
@@ -48,16 +48,16 @@ const Header = () => {
             <div className="social">
               <Space size={8}>
                 <button className="C-settingButton extra-small is-clean">
-                  <Icon name="add_call" size="sm" className="color-light" />
+                  <i className="bi bi-facebook color-light"></i>
                 </button>
                 <button className="C-settingButton extra-small is-clean">
-                  <Icon name="add_call" size="sm" className="color-light" />
+                  <i className="bi bi-linkedin color-light"></i>
                 </button>
                 <button className="C-settingButton extra-small is-clean">
-                  <Icon name="add_call" size="sm" className="color-light" />
+                  <i className="bi bi-twitter color-light"></i>
                 </button>
                 <button className="C-settingButton extra-small is-clean">
-                  <Icon name="add_call" size="sm" className="color-light" />
+                  <i className="bi bi-instagram color-light"></i>
                 </button>
               </Space>
             </div>
@@ -104,6 +104,16 @@ const Header = () => {
                         Login/Get Listed
                       </button>
                     </Link>
+                  </li>
+                  <li>
+                    <Popover
+                      placement="bottom"
+                      content={<Input.Search placeholder="Search" />}
+                    >
+                      <button className="C-settingButton">
+                        <Icon name="search" />
+                      </button>
+                    </Popover>
                   </li>
                 </ul>
               </nav>

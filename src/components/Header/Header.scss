@@ -25,6 +25,7 @@
   min-height: 74px;
   padding: 8px 0;
   position: relative;
+  @include rounded-corners(30px 30px 0 0);
   .header-main {
     display: flex;
     align-items: center;
@@ -79,4 +80,8 @@
     height: 62px;
     padding: 6px 0;
   }
+}
+
+.mainHeader {
+  background-color: $primary-color;
 }

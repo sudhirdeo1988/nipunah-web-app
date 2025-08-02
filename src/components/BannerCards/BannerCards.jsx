@@ -96,10 +96,10 @@ const BannerCards = () => {
                 <div className="icon">
                   <Icon name={item?.icon || "mimo"} />
                 </div>
-                <h4 className="C-heading size-5 dont-break is- mgb-0 color-dark font-family-primary">
+                <h4 className="C-heading size-6 dont-break is- mgb-0 color-dark font-family-primary">
                   {item?.title}
                 </h4>
-                <p className="C-heading size-6 dont-break is-animated mb-3 font-family-primary">
+                <p className="C-heading size-xs dont-break is-animated mb-3">
                   {item?.subTitle}
                 </p>
                 <div className="d-flex flex-column gap-3">

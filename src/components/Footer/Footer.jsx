@@ -1,11 +1,6 @@
 "use client";
 import React from "react";
-import {
-  FacebookOutlined,
-  TwitterOutlined,
-  LinkedinOutlined,
-  CaretRightOutlined,
-} from "@ant-design/icons";
+import { CaretRightOutlined } from "@ant-design/icons";
 import { Space } from "antd";
 import Icon from "../Icon";
 import Image from "next/image";
@@ -60,13 +55,16 @@ const Footer = () => {
                   </div>
                   <div className="social-icon d-flex align-items-center">
                     <button className="C-settingButton is-clean ">
-                      <FacebookOutlined />
+                      <i className="bi bi-facebook color-light"></i>
                     </button>
                     <button className="C-settingButton is-clean">
-                      <LinkedinOutlined />
+                      <i className="bi bi-linkedin color-light"></i>
                     </button>
                     <button className="C-settingButton is-clean">
-                      <TwitterOutlined />
+                      <i className="bi bi-twitter color-light"></i>
+                    </button>
+                    <button className="C-settingButton is-clean">
+                      <i className="bi bi-instagram color-light"></i>
                     </button>
                   </div>
                 </div>
