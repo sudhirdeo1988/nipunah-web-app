@@ -68,6 +68,18 @@ body {
 /* -------------------------------------
       Overwrites
   ------------------------------------- */
+
+.section-padding {
+  padding: 120px 0;
+
+  @include breakpoint(max-xl) {
+    padding: 100px 0;
+  }
+
+  @include breakpoint(max-lg) {
+    padding: 80px 0;
+  }
+}
 iframe:not(
     #chat-widget,
     #chat-widget-minimized,
@@ -88,4 +100,178 @@ iframe:not(
 
 .container {
   max-width: 1344px;
+}
+
+// About
+
+.C-about-wrapper {
+  .about-images {
+    position: relative;
+  }
+
+  .about-images {
+    position: relative;
+    left: 130px;
+
+    .image-1 {
+      width: 509px;
+      height: 660px;
+      position: relative;
+      z-index: 1;
+
+      img {
+        @include imgw;
+        object-fit: cover;
+      }
+    }
+
+    .image-2 {
+      width: 293px;
+      height: 293px;
+      position: absolute;
+      right: 14%;
+      bottom: -40px;
+      z-index: 2;
+
+      img {
+        @include imgw;
+        border-radius: 50%;
+        object-fit: cover;
+      }
+    }
+    .shape-2 {
+      position: absolute;
+      bottom: -60px;
+      left: -130px;
+      opacity: 28%;
+      z-index: 0;
+      width: 602px;
+      height: 602px;
+    }
+  }
+}
+
+.coloredSection {
+  background: rgba(0, 85, 255, 0.01);
+  position: relative;
+  overflow: hidden;
+
+  .shape-1 {
+    position: absolute;
+    top: 0;
+    left: 0;
+    opacity: 21%;
+    z-index: 11;
+
+    @include breakpoint(max-xl4) {
+      display: none;
+    }
+  }
+
+  .shape-2 {
+    position: absolute;
+    top: 4%;
+    left: 5%;
+    opacity: 21%;
+    z-index: 11;
+    rotate: 90deg;
+    animation: zoomBig 3s infinite linear;
+
+    @include breakpoint(max-xl4) {
+      display: none;
+    }
+  }
+
+  .shape-3 {
+    position: absolute;
+    top: 2%;
+    right: 0;
+    animation: zoomBig 3s infinite linear;
+
+    @include breakpoint(max-xl4) {
+      display: none;
+    }
+  }
+}
+@keyframes zoomBig {
+  0% {
+    transform: scale(1.1, 1.1);
+  }
+
+  50% {
+    transform: scale(1, 1);
+  }
+
+  100% {
+    transform: scale(1.1, 1.1);
+  }
+}
+
+// Banner card
+.single-feature-item {
+  border: 1px solid transparent;
+  margin: 12px 6px;
+  height: 300px;
+  border-radius: 12px;
+
+  background: $white;
+  padding: 28px;
+  cursor: pointer;
+  @include box-shadow(0 0 6px rgba(2, 8, 66, 0.1));
+  @include transition(all ease 0.3s);
+
+  @include breakpoint(max-xxl) {
+    padding: 20px 30px;
+  }
+
+  .icon {
+    width: 66px;
+    height: 66px;
+    border-radius: 50%;
+    @include flex;
+    justify-content: center;
+    overflow: hidden;
+    @include transition(all ease 0.3s);
+    @include has-gradient;
+
+    .g-icon {
+      color: $white;
+      font-size: 3rem;
+      position: relative;
+      z-index: 2;
+      display: inline-block;
+      -webkit-backface-visibility: hidden;
+      backface-visibility: hidden;
+      @include transition(all ease 0.3s);
+    }
+  }
+
+  &:hover {
+    border-color: $secondary-color;
+  }
+
+  h4 {
+    color: $black;
+    font-weight: 700;
+    letter-spacing: -0.2px;
+    padding: 10px 0 16px;
+    @include transition(all ease 0.3s);
+
+    .is-animated {
+      display: inline-block;
+      color: $black;
+      background: linear-gradient(to right, currentcolor 0%, currentcolor 100%)
+        0px 95%/0px 1px no-repeat;
+      transition: all 500ms ease;
+
+      &:hover {
+        background-size: 100% 1px;
+      }
+    }
+  }
+  .checkIcon {
+    color: $secondary-color;
+    font-size: 1.1rem;
+    @include transition(all ease 0.3s);
+  }
 }

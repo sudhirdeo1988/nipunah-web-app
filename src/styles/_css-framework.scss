@@ -1655,7 +1655,9 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
-
+.no-underline {
+  text-decoration: none !important;
+}
 .underline {
   text-decoration: underline !important;
 }
@@ -1679,4 +1681,26 @@
 
 .has-gradient {
   background: linear-gradient(84deg, $secondary-color 0%, $primary-color 100%);
+}
+
+.C-bulletList {
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+
+    li {
+      display: block;
+      position: relative;
+      padding-left: 24px;
+      .bullet-icon {
+        position: absolute;
+        left: 0;
+        top: 1px;
+      }
+    }
+  }
 }

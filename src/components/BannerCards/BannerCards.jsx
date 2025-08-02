@@ -99,7 +99,7 @@ const BannerCards = () => {
                 <h4 className="C-heading size-6 dont-break is- mgb-0 color-dark font-family-primary">
                   {item?.title}
                 </h4>
-                <p className="C-heading size-xs dont-break is-animated mb-3">
+                <p className="C-heading size-xs dont-break is-animated mb-3 font-family-primary">
                   {item?.subTitle}
                 </p>
                 <div className="d-flex flex-column gap-3">

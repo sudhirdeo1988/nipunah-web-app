@@ -1,0 +1,17 @@
+//>>>>> Breadcrumb Start <<<<<//
+.breadcrumb-wrapper {
+  position: relative;
+  overflow: hidden;
+  z-index: 9;
+  padding: 80px 0;
+
+  &::before {
+    @include before;
+    background: linear-gradient(
+      89deg,
+      rgba(60, 173, 195, 0.75) 15.79%,
+      rgba(209, 227, 246, 0.8) 91.12%
+    );
+    z-index: -1;
+  }
+}

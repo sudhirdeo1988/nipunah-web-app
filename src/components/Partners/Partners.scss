@@ -1,5 +1,14 @@
 .C-partners {
-  background-color: lighten($secondary-color, 8%);
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 1) 0%,
+    rgba(117, 197, 213, 0.05) 12%,
+    rgba(60, 173, 195, 0.05) 17%,
+    rgba(60, 173, 195, 0.05) 50%,
+    rgba(60, 173, 195, 0.05) 84%,
+    rgba(121, 199, 214, 0.05) 89%,
+    rgba(255, 255, 255, 1) 100%
+  );
 }
 
 .brand-tabs {

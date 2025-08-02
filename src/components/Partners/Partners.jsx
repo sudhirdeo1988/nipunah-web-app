@@ -94,7 +94,7 @@ const Partners = () => {
           (item, index) => (
             <div className="col-6 col-lg-4 col-xl-3" key={index}>
               <div className="brand-logo">
-                <div class="logo">
+                <div className="logo">
                   <Image
                     src="/assets/images/01.png"
                     alt={item}
@@ -119,7 +119,7 @@ const Partners = () => {
   return (
     <div className="C-partners section-padding">
       <div className="container">
-        <div className="section-title mb-4">
+        <div className="section-title mb-4 text-center">
           <div className="sub-title">
             <span>PARTNERS</span>
           </div>
