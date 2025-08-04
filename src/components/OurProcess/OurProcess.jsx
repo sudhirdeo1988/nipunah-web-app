@@ -36,11 +36,11 @@ const OurProcess = () => {
               <img src="https://placehold.co/372x333" alt="" />
             </div>
             <h4 className="C-heading size-5 color-white extraBold mb-2">
-              Register & Verify
+              List Company
             </h4>
             <p className="C-heading size-xs color-white px-3 dont-break semiBold mb-0">
-              Create your profile and submit business credentials for
-              verification.
+              Create your profile and add services, equipment, and products
+              offered.
             </p>
           </div>
           <div className="single-process-item text-center">
@@ -49,11 +49,10 @@ const OurProcess = () => {
               <img src="https://placehold.co/372x333" alt="" />
             </div>
             <h4 className="C-heading size-5 color-white extraBold mb-2">
-              List Your Services
+              Get Verified
             </h4>
             <p className="C-heading size-xs color-white px-3 dont-break semiBold mb-0">
-              Showcase your offerings, certifications, past projects, and
-              contact details.
+              Provide authentic details to build trust and boost credibility.
             </p>
           </div>
           <div className="single-process-item text-center mt-xxl-5 pt-xxl-4">
@@ -62,11 +61,11 @@ const OurProcess = () => {
               <img src="https://placehold.co/372x333" alt="" />
             </div>
             <h4 className="C-heading size-5 color-white extraBold mb-2">
-              Get Discovered
+              Be Discovered Globally
             </h4>
             <p className="C-heading size-xs color-white px-3 dont-break semiBold mb-0">
-              Appear in search results when potential clients look for maritime
-              services.
+              Increase visibility, attract leads, and showcase your company
+              worldwide.
             </p>
           </div>
         </div>

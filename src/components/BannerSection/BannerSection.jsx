@@ -1,5 +1,7 @@
 import React from "react";
 import "./BannerSection.scss";
+import { Input } from "antd";
+import Icon from "../Icon";
 
 const BannerSection = () => {
   return (
@@ -10,38 +12,40 @@ const BannerSection = () => {
       <div className="hero-bg bg-cover"></div>
       <div className="container">
         <div className="row">
-          <div className="col-xl-6 col-lg-6 col-md-12 col-12">
-            <div className="hero-content pe-xl-3 text-lg-start text-center tp-play-up">
-              <h1 className="color-dark dont-break extraBold">
-                Powering the Maritime Supply Chain: <br /> Discover. Connect.
-                Collaborate.
-              </h1>
-              <p className="C-heading size-6 semiBold color-dark mb-3 dont-break font-family-secondary">
-                Nipunah.com is the world's first integrated maritime industry
-                platform connecting global stakeholders across shipping,
-                dredging, ports, offshore, and marine services. Verified
-                listings, digital visibility, and trusted partnerships all in
-                one secure.
-              </p>
+          <div className="col-12">
+            <div className="hero-content pe-xl-3 text-center tp-play-up text-center">
+              <div className="w-75 mx-auto">
+                <h1 className="color-dark dont-break extraBold">
+                  List. Connect. Grow
+                </h1>
+                <p className="C-heading size-6 semiBold color-dark mb-3 dont-break ">
+                  Be seen by the right people. Expand your reach. Build trusted
+                  global partnerships.
+                </p>
 
-              <p className="C-heading size-6 semiBold color-dark mb-3 dont-break font-family-secondary">
-                Our purpose is to digitize and unify the maritime supply chain
-                in a secure, verified, and globally accessible network. Whether
-                you're a contractor, equipment supplier, or service provider,
-                Nipunah.com helps you get discovered, trusted, and connected.
-              </p>
-              <div className="hero-button mt-4">
-                <button className="C-button is-filled">
-                  Know more about us
-                </button>
+                <p className="C-heading size-6 semiBold color-dark mb-3 dont-break ">
+                  Nipunah.com is the world's first integrated digital platform
+                  for the maritime and ocean economy — connecting shipowners,
+                  dredging firms, ports, offshore service providers, and marine
+                  tech companies.
+                </p>
+
+                <p className="C-heading size-5 bold color-dark mb-3 dont-break ">
+                  Join Nipunah.com — grow your maritime network, the smart way.
+                </p>
+              </div>
+
+              <div className="searchContainer">
+                <Input
+                  size="large"
+                  placeholder="Search, compare, and connect with verified maritime companies."
+                  prefix={<Icon name="search" />}
+                  className="searchInput"
+                />
               </div>
             </div>
           </div>
-          <div className="col-xl-6 col-lg-6 col-md-12 col-12 wow fadeInUp">
-            <div className="hero-image">
-              <img src="https://placehold.co/590x590" alt="" />
-            </div>
-          </div>
+          <div className="col-12"></div>
         </div>
       </div>
     </section>

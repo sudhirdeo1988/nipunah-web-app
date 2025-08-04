@@ -9,9 +9,15 @@
     padding-top: 70px;
 
     @include breakpoint(max-xxl) {
-      grid-template-columns: auto auto;
+      grid-template-columns: auto auto auto;
       gap: 30px;
       justify-content: center !important;
+    }
+
+    @include breakpoint(max-xl) {
+      .single-process-item {
+        width: auto !important;
+      }
     }
 
     @include breakpoint(max-lg) {

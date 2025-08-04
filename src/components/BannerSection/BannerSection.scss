@@ -6,6 +6,7 @@
   background-size: cover;
   position: relative;
   background-position: center;
+  padding-bottom: 100px;
 
   .hero-bg {
     background-color: $primary-color;
@@ -44,29 +45,51 @@
       }
     }
   }
+}
 
-  .hero-image {
-    width: 591px;
-    height: 591px;
-    margin-left: 55px;
-    position: relative;
-    z-index: 9;
-    margin-top: 50px;
+.searchContainer {
+  border: 1px solid $third-color;
+  margin: 0 auto 42px;
+  width: 60%;
+  @include rounded-corners(100px);
+  .searchInput {
+    border: 0;
+    padding: 0;
 
-    @include breakpoint(max-xxl) {
-      width: 100%;
-      margin-left: 0;
-      margin-top: 0;
+    .ant-input {
+      font: 300 1.2rem/1.4rem $primary-font;
+      &::placeholder {
+        color: $font-color-light;
+      }
     }
-
-    @include breakpoint(max-lg) {
-      height: 550px;
+    @include rounded-corners(100px);
+    .ant-input-prefix {
+      padding: 24px;
+      .g-icon {
+        font-size: 2rem;
+      }
     }
-
-    img {
-      width: 100%;
-      height: 100%;
-      object-fit: contain;
+  }
+}
+@media (max-width: 767px) {
+  .c-topBanner {
+    .hero-content {
+      padding: 20px 0;
+    }
+  }
+  .searchContainer {
+    width: 80%;
+    .searchInput {
+      .ant-input {
+        font-size: 1.4rem;
+        line-height: 1.6rem;
+      }
+      .ant-input-prefix {
+        padding: 12px;
+        .g-icon {
+          font-size: 1.4rem;
+        }
+      }
     }
   }
 }

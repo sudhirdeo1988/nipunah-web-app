@@ -8,32 +8,64 @@ const BannerCards = () => {
   const data = [
     {
       id: 1,
-      title: "Global Visibility for Maritime Services",
+      title: "Global Maritime Visibility",
       subTitle:
-        "Join the fastest-growing digital network for marine contractors, consultants, and suppliers. Increase your reach and unlock opportunities across the globe.",
+        "Join the fastest-growing digital network for marine suppliers, contractors, and consultants worldwide.",
       icon: "globe",
     },
     {
       id: 2,
-      title: "Verified & Trusted Industry Listings",
+      title: "Showcase Your Expertise",
       subTitle:
-        " Every profile is vetted for authenticity to ensure secure, professional collaborations.",
+        "Highlight services, certifications, past projects, equipment, products, and business strengths effectively.",
       icon: "verified_user",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
       id: 3,
-      title: "Digitizing Marine Procurement & Collaboration",
+      title: "Build Brand Trust",
       subTitle:
-        "Streamline sourcing, reduce costs, and boost transparency in service discovery and procurement.",
+        "Verified badges and client reviews boost your credibility and promote secure partnerships.",
       icon: "mimo",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
       id: 4,
-      title: "A Hub for All Maritime Sectors",
+      title: "Generate Quality Leads",
       subTitle:
-        "From dredging and shipbuilding to offshore energy and marine tourism — we connect every link in the maritime value chain.",
+        "Receive direct inquiries and collaboration offers from global maritime clients and partners.",
+      icon: "settings",
+      // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
+    },
+    {
+      id: 5,
+      title: "Complete Industry Coverage",
+      subTitle:
+        "Connect with all maritime sectors—from shipbuilding to tourism—on one comprehensive platform.",
+      icon: "settings",
+      // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
+    },
+    {
+      id: 6,
+      title: "Smart Search Filters",
+      subTitle:
+        "Let buyers find you easily by service type, sector, or global location.",
+      icon: "settings",
+      // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
+    },
+    {
+      id: 7,
+      title: "Digital Procurement Tools",
+      subTitle:
+        "Simplify sourcing, reduce procurement time, and boost efficiency across all maritime transactions.",
+      icon: "settings",
+      // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
+    },
+    {
+      id: 8,
+      title: "Sustainable Growth Engine",
+      subTitle:
+        "Expand your digital presence and partnerships while contributing to a greener maritime future.",
       icon: "settings",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },

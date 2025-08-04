@@ -1,7 +1,5 @@
-import AboutUsSection from "@/components/AboutUsSection";
 import BannerCards from "@/components/BannerCards";
 import BannerSection from "@/components/BannerSection";
-import BrandSlider from "@/components/BrandSlider";
 import CategoriesCards from "@/components/CategoriesCards";
 import ContactUs from "@/components/ContactUs";
 import OurProcess from "@/components/OurProcess";
@@ -15,13 +13,9 @@ export default function Home() {
 
       <BannerCards />
 
-      <AboutUsSection />
-
       <CategoriesCards />
 
       <OurProcess />
-
-      <BrandSlider />
 
       <Partners />
 
