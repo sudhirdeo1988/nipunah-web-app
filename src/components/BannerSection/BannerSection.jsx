@@ -23,6 +23,15 @@ const BannerSection = () => {
                   global partnerships.
                 </p>
 
+                <div className="searchContainer">
+                  <Input
+                    size="large"
+                    placeholder="Search, compare, and connect with verified maritime companies."
+                    prefix={<Icon name="search" />}
+                    className="searchInput"
+                  />
+                </div>
+
                 <p className="C-heading size-6 semiBold color-dark mb-3 dont-break ">
                   Nipunah.com is the world's first integrated digital platform
                   for the maritime and ocean economy — connecting shipowners,
@@ -33,15 +42,6 @@ const BannerSection = () => {
                 <p className="C-heading size-5 bold color-dark mb-3 dont-break ">
                   Join Nipunah.com — grow your maritime network, the smart way.
                 </p>
-              </div>
-
-              <div className="searchContainer">
-                <Input
-                  size="large"
-                  placeholder="Search, compare, and connect with verified maritime companies."
-                  prefix={<Icon name="search" />}
-                  className="searchInput"
-                />
               </div>
             </div>
           </div>

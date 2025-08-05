@@ -160,7 +160,7 @@ const Partners = () => {
             <span>PARTNERS</span>
           </div>
           <h2 className="C-heading size-4 extraBold color-dark">
-            Our partners
+            Discover Top Maritime Services and Equipment
           </h2>
         </div>
         <div className="mt-4 pt-3 mb-5">
@@ -181,7 +181,7 @@ const Partners = () => {
         {/* Logo slider */}
         <Divider>
           <span className="C-heading size-5 extraBold color-dark font-family-primary">
-            Trusted by 50+ companies from the whole world
+            Newly Onboarded Companies
           </span>
         </Divider>
         <Carousel {...settings} className="swiper-wrapper">

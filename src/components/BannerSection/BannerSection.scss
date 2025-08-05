@@ -49,8 +49,8 @@
 
 .searchContainer {
   border: 1px solid $third-color;
-  margin: 0 auto 42px;
-  width: 60%;
+  margin: 24px auto;
+  width: 80%;
   @include rounded-corners(100px);
   .searchInput {
     border: 0;
@@ -78,7 +78,6 @@
     }
   }
   .searchContainer {
-    width: 80%;
     .searchInput {
       .ant-input {
         font-size: 1.4rem;
