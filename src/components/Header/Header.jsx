@@ -105,16 +105,6 @@ const Header = () => {
                       </button>
                     </Link>
                   </li>
-                  <li>
-                    <Popover
-                      placement="bottom"
-                      content={<Input.Search placeholder="Search" />}
-                    >
-                      <button className="C-settingButton">
-                        <Icon name="search" />
-                      </button>
-                    </Popover>
-                  </li>
                 </ul>
               </nav>
             </div>

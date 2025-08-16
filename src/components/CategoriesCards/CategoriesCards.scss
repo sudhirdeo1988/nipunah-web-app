@@ -1,31 +1,5 @@
 //
 
-.c-cardsWrapper {
-  background-color: #f3f8ff;
-  position: relative;
-
-  .shape-1 {
-    position: absolute;
-    top: 50px;
-    left: 60px;
-    opacity: 5%;
-  }
-
-  .shape-2 {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    opacity: 22%;
-  }
-
-  .slick-slide > div {
-    margin: 0 12px;
-  }
-  .ant-carousel .slick-dots-bottom {
-    bottom: -30px;
-  }
-}
-
 .C-card {
   ul {
     display: flex;

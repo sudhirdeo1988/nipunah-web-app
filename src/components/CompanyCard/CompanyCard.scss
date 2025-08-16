@@ -1,0 +1,19 @@
+.companyCard {
+  background: #fbfbfb;
+  border: 1px solid #ecedf2;
+  padding: 1rem;
+  position: relative;
+  width: 100%;
+  @include rounded-corners(10px);
+  .profile {
+    background-color: $secondary-color;
+    height: 42px;
+    width: 42px;
+    @include rounded-corners(4px);
+  }
+
+  &:hover {
+    border-color: $secondary-color;
+    cursor: pointer;
+  }
+}

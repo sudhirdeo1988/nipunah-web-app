@@ -4,6 +4,7 @@ import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import Icon from "@/components/Icon";
 import { map as _map } from "lodash-es";
 import Partners from "@/components/Partners";
+import { Divider, Space } from "antd";
 
 const data = [
   {
@@ -69,57 +70,75 @@ const AboutPage = () => {
             </div>
             <div className="col-xl-6 col-lg-12">
               <div className="choose-us-content ms-xl-4 ps-xl-1">
-                <div className="section-title mb-4">
+                <div className="section-title mb-2">
                   <div className="sub-title">
                     <span>NIPUNAH</span>
                   </div>
-                  <h2 className="C-heading size-4 extraBold color-dark">
-                    Powering the Maritime Supply Chain
+                  <h2 className="C-heading size-5 extraBold color-dark">
+                    A Smarter Way to Connect the Maritime World
                   </h2>
                 </div>
                 <p className="C-heading size-6 mb-3 dont-break">
-                  Nipunah.com is the worlds first integrated maritime industry
-                  platform connecting global stakeholders across shipping,
-                  dredging, ports, offshore, and marine services. Verified
-                  listings, digital visibility, and trusted partnerships all in
-                  one secure.
+                  Nipunah.com is not just a listing site — it’s a specialized
+                  digital ecosystem built exclusively for the maritime and ocean
+                  sectors.
                 </p>
                 <p className="C-heading size-6 mb-3 dont-break">
-                  Our purpose is to digitize and unify the maritime supply chain
-                  in a secure, verified, and globally accessible network.
-                  Whether youre a contractor, equipment supplier, or service
-                  provider, Nipunah.com helps you get discovered, trusted, and
-                  connected.
+                  Our platform unites a traditionally fragmented industry by
+                  enabling verified companies, professionals, and institutions
+                  to connect, collaborate, and grow — all in one trusted, smart,
+                  and global space.
                 </p>
                 <p className="C-heading size-6 mb-3 dont-break">
-                  Our purpose is to digitize and unify the maritime supply chain
-                  in a secure, verified, and globally accessible network.
-                  Whether youre a contractor, equipment supplier, or service
-                  provider, Nipunah.com helps you get discovered, trusted, and
-                  connected.
+                  Whether you operate in shipping, ports, dredging, offshore
+                  energy, marine technology, shipbuilding, tourism, training, or
+                  regulation, Nipunah.com helps you showcase your services, gain
+                  visibility, and build meaningful partnerships across the
+                  globe.
                 </p>
 
-                <div className="C-bulletList">
+                <h2 className="C-heading size-6 extraBold color-dark mb-2">
+                  <Space>
+                    <i className="bi bi-award-fill color-secondary"></i>
+                    Our Vision
+                  </Space>
+                </h2>
+                <p className="C-heading size-6 mb-3 dont-break">
+                  To become the most trusted global hub for maritime discovery,
+                  connection, and innovation.
+                </p>
+
+                <h2 className="C-heading size-6 extraBold color-dark mb-2">
+                  <Space>
+                    <i className="bi bi-shield-fill-check color-secondary"></i>
+                    Our Purpose
+                  </Space>
+                </h2>
+                <p className="C-heading size-6 mb-1 dont-break">
+                  To digitally connect and empower the global blue economy.
+                </p>
+                <p className="C-heading size-6 mb-1 dont-break">
+                  We help maritime businesses:
+                </p>
+
+                <div className="C-bulletList mb-0">
                   <ul>
                     <li>
                       <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                       <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Nipunah.com is the worlds first integrated maritime
-                        industry platform
+                        Be seen and trusted globally
                       </span>
                     </li>
                     <li>
                       <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                       <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Nipunah.com is the worlds first integrated maritime
-                        industry platform connecting
+                        Build reliable, long-term partnerships
                       </span>
                     </li>
                     <li>
                       <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                       <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Nipunah.com is the worlds first integrated maritime
-                        industry platform connecting
+                        Support sustainable and transparent supply chains
                       </span>
                     </li>
                   </ul>
@@ -131,12 +150,262 @@ const AboutPage = () => {
       </section>
       {/* Static about us section End */}
 
+      <section className="c-cardsWrapper section-padding">
+        <div className="shape">
+          <img
+            className="shape-1"
+            src={"assets/images/shape-5-black.png"}
+            alt=""
+          />
+          <img className="shape-2" src={"assets/images/shape-12.png"} alt="" />
+        </div>
+        <div className="container">
+          <div className="section-title mb-2 text-center">
+            <div className="sub-title">
+              <span>NIPUNAH</span>
+            </div>
+            <h2 className="C-heading size-5 extraBold color-dark">
+              What You Can Do on Nipunah.com
+            </h2>
+          </div>
+          <div className="row mt-4 mb-4">
+            <div className="col-xl-3 col-lg-6 col-md-6">
+              <div className="signle-process-item pe-xl-4">
+                <img
+                  className="arrow-shape-1"
+                  src="assets/images/shape-6-arrow.png"
+                  alt=""
+                />
+                <div className="icons">
+                  <div className="icon-1">
+                    <Icon name="format_list_numbered" />
+                  </div>
+                  <div className="icon-2">01</div>
+                </div>
+                <h4 className="C-heading size-5 extraBold color-dark mb-2">
+                  List your company
+                </h4>
+                <p className="C-heading size-6 dont-break color-dark mb-0">
+                  List your company and showcase your services
+                </p>
+              </div>
+            </div>
+            <div
+              className="col-xl-3 col-lg-6 col-md-6 mt-xl-5 "
+              data-wow-delay="400ms"
+            >
+              <div className="signle-process-item pe-xl-3 ps-xl-2 ">
+                <img
+                  className="arrow-shape-2"
+                  src="assets/images/shape-7-arrow.png"
+                  alt=""
+                />
+                <div className="icons">
+                  <div className="icon-1">
+                    <Icon name="psychology" />
+                  </div>
+                  <div className="icon-2">02</div>
+                </div>
+                <h4 className="C-heading size-5 extraBold color-dark mb-2">
+                  Highlight Skills
+                </h4>
+                <p className="C-heading size-6 dont-break color-dark mb-0">
+                  Highlight certifications, projects, and areas of expertise
+                </p>
+              </div>
+            </div>
+            <div className="col-xl-3 col-lg-6 col-md-6 ">
+              <div className="signle-process-item ps-xl-3 pe-xl-2">
+                <img
+                  className="arrow-shape-1"
+                  src="assets/images/shape-6-arrow.png"
+                  alt=""
+                />
+                <div className="icons">
+                  <div className="icon-1">
+                    <Icon name="order_approve" />
+                  </div>
+                  <div className="icon-2">03</div>
+                </div>
+                <h4 className="C-heading size-5 extraBold color-dark mb-2">
+                  Receive Inqueries
+                </h4>
+                <p className="C-heading size-6 dont-break color-dark mb-0">
+                  Receive direct inquiries from clients, collaborators, and
+                  partners, Discover new suppliers or subcontractors using smart
+                  filters and geo-location
+                </p>
+              </div>
+            </div>
+            <div
+              className="col-xl-3 col-lg-6 col-md-6 mt-xl-5 "
+              data-wow-delay="400ms"
+            >
+              <div className="signle-process-item ps-xl-4">
+                <div className="icons">
+                  <div className="icon-1">
+                    <Icon name="support_agent" />
+                  </div>
+                  <div className="icon-2">04</div>
+                </div>
+                <h4 className="C-heading size-5 extraBold color-dark mb-2">
+                  visible 24/7
+                </h4>
+                <p className="C-heading size-6 dont-break color-dark mb-0">
+                  Stay visible 24/7 with a profile that works year-round —
+                  anywhere in the world
+                </p>
+              </div>
+            </div>
+          </div>
+          <Divider />
+          <div className="row">
+            <div className="col-md-6 col-sm-12">
+              <div className="section-title mb-3">
+                <h2 className="C-heading size-5 extraBold color-dark">
+                  Who We Serve
+                </h2>
+              </div>
+              <span className="C-heading size-6 mb-3">
+                Nipunah.com supports every part of the maritime value chain. Our
+                platform is built for:
+              </span>
+              <div className="C-bulletList mb-3">
+                <ul>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Shipping & logistics companies
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Dredging contractors & marine service providers
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Port & terminal operators
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Offshore energy & renewables firms
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Shipbuilders & marine equipment suppliers
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Marine tech developers & innovators
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Training institutions & regulatory bodies
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Ocean tourism operators & government agencies
+                    </span>
+                  </li>
+                </ul>
+              </div>
+              <span className="C-heading size-6 mb-3 dont-break">
+                Whether you're offering services, solutions, technology, or
+                infrastructure, Nipunah.com helps you connect with verified
+                clients, partners, and collaborators worldwide.
+              </span>
+            </div>
+            <div className="col-md-6 col-sm-12">
+              <div className="section-title mb-3">
+                <h2 className="C-heading size-5 extraBold color-dark">
+                  What makes us unique
+                </h2>
+              </div>
+              <div className="C-bulletList mb-0">
+                <ul>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Built exclusively for the maritime and ocean economy
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      All profiles are verified for credibility and trust
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Smart filters, tags, and location-based search for easy
+                      discovery
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Live 24/7, 365 days — your business is always working
+                    </span>
+                  </li>
+                  <li>
+                    <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                    <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                      Driven by visibility, trust, and global growth
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className="section-padding pb-0">
+        <div className="container">
+          <div className="cta-section">
+            <div className="row align-items-center">
+              <div className="col-md-8 col-sm-12">
+                <span className="C-heading size-5 extraBold color-dark mb-2 dont-break">
+                  Get Listed. Get Discovered. Grow Globally
+                </span>
+                <span className="C-heading size-6 semiBold color-dark mb-2">
+                  Nipunah.com is your gateway to new markets, trusted
+                  connections, and global visibility.
+                </span>
+                <span className="C-heading size-6 semiBold color-dark mb-2 dont-break">
+                  Join a platform where your profile is always active — helping
+                  you connect with the right people, at the right time, anywhere
+                  in the world.
+                </span>
+              </div>
+              <div className="col-md-4 col-sm-12 text-center">
+                <button className="C-button is-filled">Get Listed Now</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* cards Start */}
       <section className="coloredSection section-padding">
         <div className="shape">
-          <img class="shape-1" src="assets/images/shape-21.png" alt="" />
-          <img class="shape-2" src="assets/images/shape-11.png" alt="" />
-          <img class="shape-3" src="assets/images/shape-22.png" alt="" />
+          <img className="shape-1" src="assets/images/shape-21.png" alt="" />
+          <img className="shape-2" src="assets/images/shape-11.png" alt="" />
+          <img className="shape-3" src="assets/images/shape-22.png" alt="" />
         </div>
         <div className="container">
           <div className="row">
@@ -176,7 +445,9 @@ const AboutPage = () => {
         </div>
         {/* cards End */}
       </section>
-      <Partners />
+      <div className="mb-4">
+        <Partners />
+      </div>
     </PublicLayout>
   );
 };
