@@ -84,16 +84,7 @@ body {
     padding: 80px 0;
   }
 }
-iframe:not(
-    #chat-widget,
-    #chat-widget-minimized,
-    #fc_widget,
-    .pf-editor-iframe,
-    #wiz-iframe,
-    #wiz-iframe-intent
-  ):not(.creativesGrid_card iframe) {
-  display: none !important;
-}
+
 .page-wrapper {
   position: relative;
   margin: 0 auto;
@@ -421,4 +412,8 @@ iframe:not(
   padding: 1rem;
   margin-bottom: 24px;
   @include rounded-corners(10px);
+}
+
+.col-padding {
+  padding: 3rem;
 }

@@ -1,13 +1,28 @@
 .footer-wrapper {
-  background-color: $primary-color;
+  background: #eaeaea;
+  padding-top: 170px;
+  position: relative;
+  .shape-divider-fill {
+    fill: $white;
+    transform-origin: center;
+    transform: rotateY(0);
+  }
+  .shape-divider {
+    position: absolute;
+    top: -1px;
+    left: 0;
+    width: 100%;
+    overflow: hidden;
+    z-index: 1;
+  }
 }
+
 .footer-widgets-1 {
   padding: 60px 0;
   .single-footer-widget {
     .footer-content {
       .footer-input {
         position: relative;
-        margin-top: 15px;
 
         input {
           background: $page-bg-color;
@@ -79,8 +94,8 @@
         margin-bottom: 12px;
 
         .foolterNavLink {
-          color: $white;
-          font-size: 0.85rem;
+          color: $font-color;
+          font-size: 0.9rem;
           line-height: 1.1rem;
           font-weight: 500;
           position: relative;
@@ -92,9 +107,9 @@
           }
 
           &:hover {
-            color: $secondary-color;
+            color: $primary-color;
             .anticon {
-              color: $secondary-color;
+              color: $primary-color;
             }
           }
         }

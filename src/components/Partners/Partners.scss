@@ -1,62 +1,89 @@
-.C-partners {
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 1) 0%,
-    rgba(117, 197, 213, 0.05) 12%,
-    rgba(60, 173, 195, 0.05) 17%,
-    rgba(60, 173, 195, 0.05) 50%,
-    rgba(60, 173, 195, 0.05) 84%,
-    rgba(121, 199, 214, 0.05) 89%,
-    rgba(255, 255, 255, 1) 100%
-  );
-}
-
 .brand-tabs {
   .ant-tabs-nav {
     width: 260px;
     .ant-tabs-tab {
-      padding: 10px 10px 10px 6px;
+      border-bottom: 1px solid $border-color;
+      padding: 12px;
       display: block;
       text-align: left;
-      margin-top: 0 !important;
-      margin-bottom: 8px !important;
+      margin: 0 !important;
       white-space: normal;
 
       &.ant-tabs-tab-active {
-        background-color: $secondary-color;
+        background-color: $highlightColor;
       }
     }
   }
-  .ant-tabs-content-holder {
-    padding: 24px 0;
+  .ant-tabs-tabpane {
+    padding: 0 !important;
   }
 }
 
 .brand-logo {
-  background-color: $secondary-color;
-  padding: 24px 24px 24px;
-  margin-bottom: 24px;
+  border: 1px solid $border-color;
+  display: grid;
+  place-items: center;
   text-align: center;
-  @include rounded-corners(10px);
+  padding: 3rem;
+  margin-top: -1px;
+  margin-left: -1px;
+  gap: 12px;
   .logo {
-    border: 1px solid $secondary-color;
-    background-color: $white;
-    padding: 14px;
-    width: 90%;
-    margin: -40px auto 20px;
-    @include rounded-corners(10px);
+    height: 40px;
     img {
       width: 100%;
       height: 35px;
-      object-fit: contain;
     }
   }
 }
-.brand-logo-slider {
-  padding: 16px;
-  img {
-    width: 100%;
-    height: 35px;
-    object-fit: contain;
+
+.marq-brand {
+  overflow: hidden; /* hide overflow so only sliding area shows */
+  white-space: nowrap;
+  width: 100%;
+  .slider-box {
+    display: flex;
+    gap: 10px;
+    flex-wrap: nowrap;
+    animation: scroll linear infinite;
+
+    &-item {
+      background: $highlightColor;
+      border: 1px solid transparent;
+      flex: 0 0 auto;
+      display: grid;
+      place-items: center;
+      height: 160px;
+      line-height: 180px;
+      margin: 5px;
+      width: 300px;
+      @include rounded-corners(10px);
+      @include transition(all ease 0.3s);
+      &:hover {
+        background-color: $white;
+        border: 1px solid $border-color;
+      }
+      img {
+        vertical-align: middle;
+        opacity: 0.5;
+      }
+    }
+  }
+}
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Mobile-friendly sizing */
+@media (max-width: 768px) {
+  .marq-brand .slider-box-item {
+    min-width: 140px;
+    height: 90px;
+    font-size: 1rem;
   }
 }

@@ -22,6 +22,28 @@ const Footer = () => {
   ];
   return (
     <footer className="footer-wrapper">
+      <div className="shape-divider">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1280 140"
+          preserveAspectRatio="none"
+        >
+          <path
+            className="shape-divider-fill"
+            d="M0 51.76c36.21-2.25 77.57-3.58 126.42-3.58 320 0 320 57 640 57 271.15 0 312.58-40.91 513.58-53.4V0H0z"
+            opacity="0.3"
+          ></path>
+          <path
+            className="shape-divider-fill"
+            d="M0 24.31c43.46-5.69 94.56-9.25 158.42-9.25 320 0 320 89.24 640 89.24 256.13 0 307.28-57.16 481.58-80V0H0z"
+            opacity="0.5"
+          ></path>
+          <path
+            className="shape-divider-fill"
+            d="M0 0v3.4C28.2 1.6 59.4.59 94.42.59c320 0 320 84.3 640 84.3 285 0 316.17-66.85 545.58-81.49V0z"
+          ></path>
+        </svg>
+      </div>
       <div className="container">
         <div className="footer-widgets-1">
           <div className="row g-5">
@@ -36,12 +58,13 @@ const Footer = () => {
                   />
                 </div>
                 <div className="footer-content">
-                  <p className="C-heading size-xs mb-3 color-white semiBold">
-                    Lorem Ipsum is simply dummy text of the printing and
-                    typesetting industry. Lorem Ipsum has been the industry's
-                    standard.
+                  <p className="C-heading size-xs color-dark mb-3 semiBold">
+                    Nipunah.com is the world's first integrated digital platform
+                    for the maritime and ocean economy — connecting shipowners,
+                    dredging firms, ports, offshore service providers, and
+                    marine tech companies.
                   </p>
-                  <h5 className="C-heading size-xs semiBold mb-1 color-white">
+                  <h5 className="C-heading size-xs semiBold mb-1 bold">
                     Subscribe Now
                   </h5>
                   <div className="footer-input border-radius-none">
@@ -70,12 +93,9 @@ const Footer = () => {
                 </div>
               </div>
             </div>
-            <div
-              className="col-xl-2 col-lg-6 wow fadeInUp"
-              data-wow-delay="400ms"
-            >
+            <div className="col-xl-2 col-lg-6">
               <div className="single-footer-widget ms-xxl-2">
-                <h4 className="C-heading size-5 extraBold color-white mb-3">
+                <h4 className="C-heading size-5 extraBold color-dark mb-3">
                   Useful Links
                 </h4>
 
@@ -103,7 +123,7 @@ const Footer = () => {
               data-wow-delay="600ms"
             >
               <div className="single-footer-widget ms-xxl-4 ps-xxl-3">
-                <h4 className="C-heading size-5 extraBold color-white mb-3">
+                <h4 className="C-heading size-5 extraBold color-dark mb-3">
                   Useful Links
                 </h4>
                 <ul className="list-area">
@@ -163,7 +183,7 @@ const Footer = () => {
               data-wow-delay="800ms"
             >
               <div className="single-footer-widget ms-xxl-3">
-                <h4 className="C-heading size-5 extraBold color-white mb-3">
+                <h4 className="C-heading size-5 extraBold color-dark mb-3">
                   Contact Us
                 </h4>
                 <div className="footer-content">
@@ -171,10 +191,10 @@ const Footer = () => {
                     <div className="contact">
                       <Icon name="mail" />
                       <div className="contact-infu">
-                        <span className="C-heading size-xs mb-0 color-white semiBold">
+                        <span className="C-heading size-xs semiBold mb-0 color-light">
                           Mail Us:
                         </span>
-                        <h5 className="C-heading size-6 bold  color-white mb-0">
+                        <h5 className="C-heading size-6 semiBold color-dark mb-0">
                           test@gmail.com
                         </h5>
                       </div>
@@ -182,10 +202,10 @@ const Footer = () => {
                     <div className="contact">
                       <Icon name="location_on" />
                       <div className="contact-infu">
-                        <span className="C-heading size-xs mb-0 color-white semiBold">
+                        <span className="C-heading size-xs semiBold mb-0 color-light">
                           Address:
                         </span>
-                        <h5 className="C-heading size-6 bold color-white mb-0">
+                        <h5 className="C-heading size-xs semiBold color-dark mb-0">
                           Lorem Ipsum is simply dummy text, of the printing and
                         </h5>
                       </div>
@@ -193,10 +213,10 @@ const Footer = () => {
                     <div className="contact">
                       <Icon name="call" />
                       <div className="contact-infu">
-                        <span className="C-heading size-xs mb-0 color-white semiBold">
+                        <span className="C-heading size-xs semiBold mb-0 color-light">
                           Contact:
                         </span>
-                        <h5 className="C-heading size-6 bold color-white mb-0">
+                        <h5 className="C-heading size-6 semiBold color-dark mb-0">
                           +91 009 494 094
                         </h5>
                       </div>

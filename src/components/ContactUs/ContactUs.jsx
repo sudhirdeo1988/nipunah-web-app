@@ -6,18 +6,14 @@ import "./ContactUs.scss";
 const ContactUs = () => {
   return (
     <section className="c-contactUs section-padding">
-      <div className="shape">
-        <img className="shape-1" src={"assets/images/world.png"} alt="" />
-        <img className="shape-2" src={"assets/images/shape-15.png"} alt="" />
-      </div>
       <div className="container">
         <div className="row">
           <div className="col-xl-6 col-lg-6 col-md-12 mt-4">
-            <div className="section-title">
-              <div className="sub-title">
+            <div className="section-title text-left mb-3">
+              <div className="sub-title gradient-wrapper">
                 <span>CONTACT US</span>
               </div>
-              <h2 className="c-heading size-4 extraBold color-dark right">
+              <h2 className="C-heading size-4 extraBold gradient-text">
                 To Make Requests for <br />
                 Further Information, <br />
                 Contact Us
@@ -30,10 +26,10 @@ const ContactUs = () => {
                     <Icon name="add_call" style={{ color: "#1890ff" }} />
                   </div>
                   <div className="infu">
-                    <span className="C-heading size-xs semiBold mb-0">
+                    <span className="C-heading size-xs semiBold mb-2">
                       Call Us
                     </span>
-                    <h3 className="C-heading size-5 semiBold color-dark mb-0">
+                    <h3 className="C-heading size-6 semiBold color-dark mb-0">
                       +69 009 494 094
                     </h3>
                   </div>
@@ -45,10 +41,10 @@ const ContactUs = () => {
                     <Icon name="distance" style={{ color: "#1890ff" }} />
                   </div>
                   <div className="infu">
-                    <span className="C-heading size-xs semiBold mb-0">
+                    <span className="C-heading size-xs semiBold mb-2">
                       Our Location
                     </span>
-                    <h3 className="C-heading size-5 semiBold color-dark mb-0">
+                    <h3 className="C-heading size-6 semiBold color-dark mb-0">
                       Lorem Ipsum is simply dummy text, <br /> of the printing
                       and
                     </h3>
@@ -61,10 +57,10 @@ const ContactUs = () => {
                     <Icon name="mail" style={{ color: "#1890ff" }} />
                   </div>
                   <div className="infu">
-                    <span className="C-heading size-xs semiBold mb-0">
+                    <span className="C-heading size-xs semiBold mb-2">
                       Mail Us
                     </span>
-                    <h3 className="C-heading size-5 semiBold color-dark mb-0">
+                    <h3 className="C-heading size-6 semiBold color-dark mb-0">
                       test@gmail.com
                     </h3>
                   </div>
@@ -74,7 +70,7 @@ const ContactUs = () => {
           </div>
           <div className="col-xl-6 col-lg-6 col-md-12">
             <div className="contact-right mt-4 mt-md-0">
-              <h3 className="c-heading size-4 extraBold color-dark text-center mb-4">
+              <h3 className="C-heading size-5 extraBold color-dark text-center mb-4">
                 Send Your Message!
               </h3>
               <form action="#" id="contact-form" method="POST">

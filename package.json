@@ -12,6 +12,7 @@
     "antd": "^5.26.7",
     "bootstrap-icons": "^1.13.1",
     "cookie": "^1.0.2",
+    "framer-motion": "^12.23.12",
     "js-cookie": "^3.0.5",
     "lodash-es": "^4.17.21",
     "moment": "^2.30.1",

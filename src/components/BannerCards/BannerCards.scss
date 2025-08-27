@@ -1,42 +1,28 @@
 //
 
 .c-bannerCards {
-  margin-top: -130px;
   position: relative;
-  margin-bottom: 60px;
-  z-index: 11;
 
-  .slick-slide > div {
-    margin: 0 12px;
-  }
-  /* Fix the overflow issue by compensating the gap */
-  .slick-list {
-    margin: 0 -12px;
+  .single-card-item {
+    .logo {
+      display: grid;
+      place-items: center;
+      height: 60px;
+      width: 60px;
+      .g-icon {
+        color: $secondary-color;
+        font-size: 4rem;
+      }
+    }
+    .info {
+      height: 74px;
+    }
   }
 }
-.ant-carousel .slick-dots-bottom {
-  bottom: -16px;
-  li {
-    height: 12px;
-    width: 12px;
-    &::after {
-      background-color: transparent !important;
-    }
-    button {
-      background-color: $primary-color;
-      height: 12px;
-      width: 12px;
-      @include rounded-corners(100px);
-      &::after {
-        display: none !important;
-      }
-    }
-    &.slick-active {
-      width: 12px !important;
-      button {
-        background-color: $secondary-color !important;
-        opacity: 1;
-      }
-    }
-  }
+
+.bg-l {
+  background-color: $white;
+}
+.bg-d {
+  background-color: #f6f5fb;
 }

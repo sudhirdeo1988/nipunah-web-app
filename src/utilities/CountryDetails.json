@@ -1,0 +1,1406 @@
+[
+  {
+    "currencyCode": "SGD",
+    "countryName": "Singapore",
+    "countryCode": "SG",
+    "currencySymbol": "S$",
+    "dailCode": "+65",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Singapore"
+  },
+  {
+    "currencyCode": "MYR",
+    "countryName": "Malaysia",
+    "countryCode": "MY",
+    "currencySymbol": "RM",
+    "dailCode": "+60",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Kuala_Lumpur"
+  },
+  {
+    "currencyCode": "IDR",
+    "countryName": "Indonesia",
+    "countryCode": "ID",
+    "currencySymbol": "Rp",
+    "dailCode": "+62",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Jakarta"
+  },
+  {
+    "currencyCode": "VND",
+    "countryName": "Vietnam",
+    "countryCode": "VN",
+    "currencySymbol": "₫",
+    "dailCode": "+84",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Ho_Chi_Minh"
+  },
+  {
+    "currencyCode": "PHP",
+    "countryName": "Philippines",
+    "countryCode": "PH",
+    "currencySymbol": "₱",
+    "dailCode": "+63",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Manila"
+  },
+  {
+    "currencyCode": "THB",
+    "countryName": "Thailand",
+    "countryCode": "TH",
+    "currencySymbol": "฿",
+    "dailCode": "+66",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Bangkok"
+  },
+  {
+    "currencyCode": "INR",
+    "countryName": "India",
+    "countryCode": "IN",
+    "currencySymbol": "₹",
+    "dailCode": "+91",
+    "timeZoneDisplay": "(GMT +5:30)",
+    "timeZone": "Asia/Kolkata"
+  },
+  {
+    "currencyCode": "AFN",
+    "countryName": "Afghanistan",
+    "countryCode": "AF",
+    "currencySymbol": "؋'",
+    "dailCode": "+93",
+    "timeZoneDisplay": "(GMT +4:30)",
+    "timeZone": "Asia/Kabul"
+  },
+  {
+    "currencyCode": "ALL",
+    "countryName": "Albania",
+    "countryCode": "AL",
+    "currencySymbol": "L",
+    "dailCode": "+355",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Europe/Tirane"
+  },
+  {
+    "currencyCode": "DZD",
+    "countryName": "Algeria",
+    "countryCode": "DZ",
+    "currencySymbol": "د.ج'",
+    "dailCode": "+213",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Algiers"
+  },
+  {
+    "currencyCode": "AOA",
+    "countryName": "Angola",
+    "countryCode": "AO",
+    "currencySymbol": "Kz",
+    "dailCode": "+244",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Luanda"
+  },
+  {
+    "currencyCode": "ARS",
+    "countryName": "Argentina",
+    "countryCode": "AR",
+    "currencySymbol": "$",
+    "dailCode": "+54",
+    "timeZoneDisplay": "(GMT -3)",
+    "timeZone": "America/Argentina/Buenos_Aires"
+  },
+  {
+    "currencyCode": "AMD",
+    "countryName": "Armenia",
+    "countryCode": "AM",
+    "currencySymbol": "֏",
+    "dailCode": "+374",
+    "timeZoneDisplay": "(GMT +4)",
+    "timeZone": "Asia/Yerevan"
+  },
+  {
+    "currencyCode": "AWG",
+    "countryName": "Aruba",
+    "countryCode": "AW",
+    "currencySymbol": "ƒ",
+    "dailCode": "+297",
+    "timeZoneDisplay": "(GMT -4)",
+    "timeZone": "America/Aruba"
+  },
+  {
+    "currencyCode": "AUD",
+    "countryName": "Australia",
+    "countryCode": "AU",
+    "currencySymbol": "$",
+    "dailCode": "+61",
+    "timeZoneDisplay": "(GMT +10)",
+    "timeZone": "Australia/Lord_Howe"
+  },
+  {
+    "currencyCode": "AZN",
+    "countryName": "Azerbaijan",
+    "countryCode": "AZ",
+    "currencySymbol": "₼",
+    "dailCode": "+994",
+    "timeZoneDisplay": "(GMT +4)",
+    "timeZone": "Asia/Baku"
+  },
+  {
+    "currencyCode": "BSD",
+    "countryName": "Bahamas",
+    "countryCode": "BS",
+    "currencySymbol": "$",
+    "dailCode": "+1242",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Nassau"
+  },
+  {
+    "currencyCode": "BHD",
+    "countryName": "Bahrain",
+    "countryCode": "BH",
+    "currencySymbol": ".د.ب',",
+    "dailCode": "+973",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Asia/Bahrain"
+  },
+  {
+    "currencyCode": "BDT",
+    "countryName": "Bangladesh",
+    "countryCode": "BD",
+    "currencySymbol": "৳",
+    "dailCode": "+880",
+    "timeZoneDisplay": "(GMT +6)",
+    "timeZone": "Asia/Dhaka"
+  },
+  {
+    "currencyCode": "BBD",
+    "countryName": "Barbados",
+    "countryCode": "BB",
+    "currencySymbol": "$",
+    "dailCode": "+1246",
+    "timeZoneDisplay": "(GMT -4)",
+    "timeZone": "America/Barbados"
+  },
+  {
+    "currencyCode": "BYN",
+    "countryName": "Belarus",
+    "countryCode": "BY",
+    "currencySymbol": "Br",
+    "dailCode": "+375",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Europe/Minsk"
+  },
+  {
+    "currencyCode": "BZD",
+    "countryName": "Belize",
+    "countryCode": "BZ",
+    "currencySymbol": "$",
+    "dailCode": "+501",
+    "timeZoneDisplay": "(GMT -6)",
+    "timeZone": "America/Belize"
+  },
+  {
+    "currencyCode": "XOF",
+    "countryName": "Benin",
+    "countryCode": "BJ",
+    "currencySymbol": "Fr",
+    "dailCode": "+229",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Porto-Novo"
+  },
+  {
+    "currencyCode": "BMD",
+    "countryName": "Bermuda",
+    "countryCode": "BM",
+    "currencySymbol": "$",
+    "dailCode": "+1441",
+    "timeZoneDisplay": "(GMT -4)",
+    "timeZone": "Atlantic/Bermuda"
+  },
+  {
+    "currencyCode": "BOB",
+    "countryName": "Bolivia",
+    "countryCode": "BO",
+    "currencySymbol": "Bs.",
+    "dailCode": "+591",
+    "timeZoneDisplay": "(GMT -4)",
+    "timeZone": "America/La_Paz"
+  },
+  {
+    "currencyCode": "BAM",
+    "countryName": "Bosnia and Herzegovina",
+    "countryCode": "BA",
+    "currencySymbol": "KM",
+    "dailCode": "+387",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Sarajevo"
+  },
+  {
+    "currencyCode": "BWP",
+    "countryName": "Botswana",
+    "countryCode": "BW",
+    "currencySymbol": "P",
+    "dailCode": "+267",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Gaborone"
+  },
+  {
+    "currencyCode": "BRL",
+    "countryName": "Brazil",
+    "countryCode": "BR",
+    "currencySymbol": "R$",
+    "dailCode": "+55",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Noronha"
+  },
+  {
+    "currencyCode": "BGN",
+    "countryName": "Bulgaria",
+    "countryCode": "BG",
+    "currencySymbol": "лв",
+    "dailCode": "+359",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Europe/Sofia"
+  },
+  {
+    "currencyCode": "BIF",
+    "countryName": "Burundi",
+    "countryCode": "BI",
+    "currencySymbol": "Fr",
+    "dailCode": "+257",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Bujumbura"
+  },
+  {
+    "currencyCode": "KHR",
+    "countryName": "Cambodia",
+    "countryCode": "KH",
+    "currencySymbol": "៛",
+    "dailCode": "+855",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Phnom_Penh"
+  },
+  {
+    "currencyCode": "XAF",
+    "countryName": "Cameroon",
+    "countryCode": "CM",
+    "currencySymbol": "Fr",
+    "dailCode": "+237",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Douala"
+  },
+  {
+    "currencyCode": "CAD",
+    "countryName": "Canada",
+    "countryCode": "CA",
+    "currencySymbol": "$",
+    "dailCode": "+1",
+    "timeZoneDisplay": "(GMT -6)",
+    "timeZone": "America/St_Johns"
+  },
+  {
+    "currencyCode": "KYD",
+    "countryName": "Cayman Islands",
+    "countryCode": "KY",
+    "currencySymbol": "$",
+    "dailCode": "+ 345",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Cayman"
+  },
+  {
+    "currencyCode": "XAF",
+    "countryName": "Chad",
+    "countryCode": "TD",
+    "currencySymbol": "Fr",
+    "dailCode": "+235",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Ndjamena"
+  },
+  {
+    "currencyCode": "CLP",
+    "countryName": "Chile",
+    "countryCode": "CL",
+    "currencySymbol": "$",
+    "dailCode": "+56",
+    "timeZoneDisplay": "(GMT -3)",
+    "timeZone": "America/Santiago"
+  },
+  {
+    "currencyCode": "CNY",
+    "countryName": "China",
+    "countryCode": "CN",
+    "currencySymbol": "¥",
+    "dailCode": "+86",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Shanghai"
+  },
+  {
+    "currencyCode": "COP",
+    "countryName": "Colombia",
+    "countryCode": "CO",
+    "currencySymbol": "$",
+    "dailCode": "+57",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Bogota"
+  },
+  {
+    "currencyCode": "KMF",
+    "countryName": "Comoros",
+    "countryCode": "KM",
+    "currencySymbol": "Fr",
+    "dailCode": "+269",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Indian/Comoro"
+  },
+  {
+    "currencyCode": "CRC",
+    "countryName": "Costa Rica",
+    "countryCode": "CR",
+    "currencySymbol": "₡",
+    "dailCode": "+506",
+    "timeZoneDisplay": "(GMT -6)",
+    "timeZone": "America/Costa_Rica"
+  },
+  {
+    "currencyCode": "HRK",
+    "countryName": "Croatia",
+    "countryCode": "HR",
+    "currencySymbol": "kn",
+    "dailCode": "+385",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Zagreb"
+  },
+  {
+    "currencyCode": "CUC",
+    "countryName": "Cuba",
+    "countryCode": "CU",
+    "currencySymbol": "$",
+    "dailCode": "+53",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Havana"
+  },
+  {
+    "currencyCode": "ANG",
+    "countryName": "Curaçao and Sint Maarten",
+    "countryCode": "SX",
+    "dailCode": "+599",
+    "currencySymbol": "ƒ",
+    "timeZoneDisplay": "(GMT -4:00)",
+    "timeZone": "America/Lower_Princes"
+  },
+  {
+    "currencyCode": "CZK",
+    "countryName": "Czech Republic",
+    "countryCode": "CZ",
+    "currencySymbol": "Kč",
+    "dailCode": "+420",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Prague"
+  },
+  {
+    "currencyCode": "DKK",
+    "countryName": "Denmark",
+    "countryCode": "DK",
+    "dailCode": "+45",
+    "timeZoneDisplay": "(GMT +1:00)",
+    "currencySymbol": "kr",
+    "timeZone": "Europe/Copenhagen"
+  },
+  {
+    "currencyCode": "DJF",
+    "countryName": "Djibouti",
+    "countryCode": "DJ",
+    "currencySymbol": "Fr",
+    "dailCode": "+253",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Djibouti"
+  },
+  {
+    "currencyCode": "DOP",
+    "countryName": "Dominican Republic",
+    "countryCode": "DO",
+    "currencySymbol": "$",
+    "dailCode": "+1849",
+    "timeZoneDisplay": "(GMT -4)",
+    "timeZone": "America/Santo_Domingo"
+  },
+  {
+    "currencyCode": "XCD",
+    "countryName": "Eastern Caribbean States",
+    "countryCode": "EC",
+    "currencySymbol": "$",
+    "dailCode": "+593",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Guayaquil"
+  },
+  {
+    "currencyCode": "EGP",
+    "countryName": "Egypt",
+    "countryCode": "EG",
+    "currencySymbol": "£",
+    "dailCode": "+20",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Cairo"
+  },
+  {
+    "currencyCode": "ERN",
+    "countryName": "Eritrea",
+    "countryCode": "ER",
+    "currencySymbol": "Nfk",
+    "dailCode": "+291",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Asmara"
+  },
+  {
+    "currencyCode": "SZL",
+    "countryName": "Eswatini",
+    "countryCode": "SZ",
+    "currencySymbol": "L",
+    "dailCode": "+268",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Mbabane"
+  },
+  {
+    "currencyCode": "ETB",
+    "countryName": "Ethiopia",
+    "countryCode": "ET",
+    "currencySymbol": "Br",
+    "dailCode": "+251",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Addis_Ababa"
+  },
+  {
+    "currencyCode": "FKP",
+    "countryName": "Falkland Islands",
+    "countryCode": "FK",
+    "currencySymbol": "£",
+    "dailCode": "+500",
+    "timeZoneDisplay": "(GMT -3)",
+    "timeZone": "Atlantic/Stanley"
+  },
+  {
+    "currencyCode": "FJD",
+    "countryName": "Fiji",
+    "countryCode": "FJ",
+    "currencySymbol": "$",
+    "dailCode": "+679",
+    "timeZoneDisplay": "(GMT +12)",
+    "timeZone": "Pacific/Fiji"
+  },
+  {
+    "currencyCode": "EUR",
+    "countryName": "France",
+    "countryCode": "FR",
+    "currencySymbol": "€",
+    "dailCode": "+33",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Paris"
+  },
+  {
+    "currencyCode": "XPF",
+    "countryName": "French Polynesia",
+    "countryCode": "PF",
+    "currencySymbol": "Fr",
+    "dailCode": "+689",
+    "timeZoneDisplay": "(GMT -10)",
+    "timeZone": "Pacific/Tahiti"
+  },
+  {
+    "currencyCode": "GMD",
+    "countryName": "Gambia",
+    "countryCode": "GM",
+    "currencySymbol": "D",
+    "dailCode": "+220",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Banjul"
+  },
+  {
+    "currencyCode": "GEL",
+    "countryName": "Georgia",
+    "countryCode": "GE",
+    "currencySymbol": "ლ",
+    "dailCode": "+995",
+    "timeZoneDisplay": "(GMT +4)",
+    "timeZone": "Asia/Tbilisi"
+  },
+  {
+    "currencyCode": "GHS",
+    "countryName": "Ghana",
+    "countryCode": "GH",
+    "currencySymbol": "₵",
+    "dailCode": "+233",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Accra"
+  },
+  {
+    "currencyCode": "GIP",
+    "countryName": "Gibraltar",
+    "countryCode": "GI",
+    "currencySymbol": "£",
+    "dailCode": "+350",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Gibraltar"
+  },
+  {
+    "currencyCode": "GTQ",
+    "countryName": "Guatemala",
+    "countryCode": "GT",
+    "currencySymbol": "Q",
+    "dailCode": "+502",
+    "timeZoneDisplay": "(GMT -6)",
+    "timeZone": "America/Guatemala"
+  },
+  {
+    "currencyCode": "GNF",
+    "countryName": "Guinea",
+    "countryCode": "GN",
+    "currencySymbol": "Fr",
+    "dailCode": "+224",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Conakry"
+  },
+  {
+    "currencyCode": "GYD",
+    "countryName": "Guyana",
+    "countryCode": "GY",
+    "currencySymbol": "$",
+    "dailCode": "+595",
+    "timeZoneDisplay": "(GMT -4)",
+    "timeZone": "America/Guyana"
+  },
+  {
+    "currencyCode": "HTG",
+    "countryName": "Haiti",
+    "countryCode": "HT",
+    "currencySymbol": "G",
+    "dailCode": "+509",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Port-au-Prince"
+  },
+  {
+    "currencyCode": "HKD",
+    "countryName": "Hong Kong",
+    "countryCode": "HK",
+    "currencySymbol": "$",
+    "dailCode": "+852",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Hong_Kong"
+  },
+  {
+    "currencyCode": "HUF",
+    "countryName": "Hungary",
+    "countryCode": "HU",
+    "currencySymbol": "Ft",
+    "dailCode": "+36",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Budapest"
+  },
+  {
+    "currencyCode": "ISK",
+    "countryName": "Iceland",
+    "countryCode": "IS",
+    "currencySymbol": "kr",
+    "dailCode": "+354",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Atlantic/Reykjavik"
+  },
+  {
+    "currencyCode": "IRR",
+    "countryName": "IR",
+    "countryCode": "IR",
+    "currencySymbol": "﷼",
+    "dailCode": "+98",
+    "timeZoneDisplay": "(GMT +3:30)",
+    "timeZone": "Asia/Tehran"
+  },
+  {
+    "currencyCode": "IQD",
+    "countryName": "Iraq",
+    "countryCode": "IQ",
+    "currencySymbol": "ع.د'",
+    "dailCode": "+964",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Asia/Baghdad"
+  },
+  {
+    "currencyCode": "ILS",
+    "countryName": "Israel",
+    "countryCode": "IL",
+    "currencySymbol": "₪",
+    "dailCode": "+972",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Asia/Jerusalem"
+  },
+  {
+    "currencyCode": "JMD",
+    "countryName": "Jamaica",
+    "countryCode": "JM",
+    "currencySymbol": "$",
+    "dailCode": "+1876",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Jamaica"
+  },
+  {
+    "currencyCode": "JPY",
+    "countryName": "Japan",
+    "countryCode": "JP",
+    "currencySymbol": "¥",
+    "dailCode": "+81",
+    "timeZoneDisplay": "(GMT +9)",
+    "timeZone": "Asia/Tokyo"
+  },
+  {
+    "currencyCode": "GBP",
+    "countryName": "Jersey",
+    "countryCode": "JE",
+    "currencySymbol": "£",
+    "dailCode": "+44",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Europe/Jersey"
+  },
+  {
+    "currencyCode": "JOD",
+    "countryName": "Jordan",
+    "countryCode": "JO",
+    "currencySymbol": "د.ا",
+    "dailCode": "+962",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Asia/Amman"
+  },
+  {
+    "currencyCode": "KZT",
+    "countryName": "Kazakhstan",
+    "countryCode": "KZ",
+    "currencySymbol": "₸",
+    "dailCode": "+77",
+    "timeZoneDisplay": "(GMT +5)",
+    "timeZone": "Asia/Almaty"
+  },
+  {
+    "currencyCode": "KES",
+    "countryName": "Kenya",
+    "countryCode": "KE",
+    "currencySymbol": "K",
+    "dailCode": "+254",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Nairobi"
+  },
+  {
+    "currencyCode": "KWD",
+    "countryName": "Kuwait",
+    "countryCode": "KW",
+    "currencySymbol": "د.ك",
+    "dailCode": "+965",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Asia/Kuwait"
+  },
+  {
+    "currencyCode": "KGS",
+    "countryName": "Kyrgyzstan",
+    "countryCode": "KG",
+    "currencySymbol": "с",
+    "dailCode": "+996",
+    "timeZoneDisplay": "(GMT +6)",
+    "timeZone": "Asia/Bishkek"
+  },
+  {
+    "currencyCode": "LAK",
+    "countryName": "Laos",
+    "countryCode": "LA",
+    "currencySymbol": "₭",
+    "dailCode": "+856",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Vientiane"
+  },
+  {
+    "currencyCode": "LBP",
+    "countryName": "Lebanon",
+    "countryCode": "LB",
+    "currencySymbol": "ل.ل",
+    "dailCode": "+961",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Asia/Beirut"
+  },
+  {
+    "currencyCode": "LSL",
+    "countryName": "Lesotho",
+    "countryCode": "LS",
+    "currencySymbol": "L",
+    "dailCode": "+266",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Maseru"
+  },
+  {
+    "currencyCode": "LRD",
+    "countryName": "Liberia",
+    "countryCode": "LR",
+    "currencySymbol": "$",
+    "dailCode": "+231",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Monrovia"
+  },
+  {
+    "currencyCode": "LYD",
+    "countryName": "Libya",
+    "countryCode": "LY",
+    "currencySymbol": "ل.د",
+    "dailCode": "+218",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Tripoli"
+  },
+  {
+    "currencyCode": "MOP",
+    "countryName": "Macau",
+    "countryCode": "MO",
+    "currencySymbol": "P",
+    "dailCode": "+853",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Macau"
+  },
+  {
+    "currencyCode": "MGA",
+    "countryName": "Madagascar",
+    "countryCode": "MG",
+    "currencySymbol": "Ar",
+    "dailCode": "+261",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Indian/Antananarivo"
+  },
+  {
+    "currencyCode": "MWK",
+    "countryName": "Malawi",
+    "countryCode": "MW",
+    "currencySymbol": "MK",
+    "dailCode": "+265",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Blantyre"
+  },
+  {
+    "currencyCode": "MVR",
+    "countryName": "Maldives",
+    "countryCode": "MV",
+    "currencySymbol": ".ރ",
+    "dailCode": "+960",
+    "timeZoneDisplay": "(GMT +5)",
+    "timeZone": "Indian/Maldives"
+  },
+  {
+    "currencyCode": "MRO",
+    "countryName": "Mauritania",
+    "countryCode": "MR",
+    "currencySymbol": "UM",
+    "dailCode": "+222",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Nouakchott"
+  },
+  {
+    "currencyCode": "MUR",
+    "countryName": "Mauritius",
+    "countryCode": "MU",
+    "currencySymbol": "₨",
+    "dailCode": "+230",
+    "timeZoneDisplay": "(GMT +4)",
+    "timeZone": "Indian/Mauritius"
+  },
+  {
+    "currencyCode": "MXN",
+    "countryName": "Mexico",
+    "countryCode": "MX",
+    "currencySymbol": "$",
+    "dailCode": "+52",
+    "timeZoneDisplay": "(GMT -6)",
+    "timeZone": "America/Mexico_City"
+  },
+  {
+    "currencyCode": "MDL",
+    "countryName": "Moldova",
+    "countryCode": "MD",
+    "currencySymbol": "L",
+    "dailCode": "+373",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Europe/Chisinau"
+  },
+  {
+    "currencyCode": "MNT",
+    "countryName": "Mongolia",
+    "countryCode": "MN",
+    "currencySymbol": "₮",
+    "dailCode": "+976",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Ulaanbaatar"
+  },
+  {
+    "currencyCode": "MAD",
+    "countryName": "Morocco",
+    "countryCode": "MA",
+    "currencySymbol": "د.م.",
+    "dailCode": "+212",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Casablanca"
+  },
+  {
+    "currencyCode": "MZN",
+    "countryName": "Mozambique",
+    "countryCode": "MZ",
+    "currencySymbol": "MT",
+    "dailCode": "+258",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Maputo"
+  },
+  {
+    "currencyCode": "MMK",
+    "countryName": "Myanmar",
+    "countryCode": "MM",
+    "currencySymbol": "Ks",
+    "dailCode": "+95",
+    "timeZoneDisplay": "(GMT +6:30)",
+    "timeZone": "Asia/Rangoon"
+  },
+  {
+    "currencyCode": "NAD",
+    "countryName": "Namibia",
+    "countryCode": "NA",
+    "currencySymbol": "$",
+    "dailCode": "+264",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Windhoek"
+  },
+  {
+    "currencyCode": "NPR",
+    "countryName": "Nepal",
+    "countryCode": "NP",
+    "currencySymbol": "₨",
+    "dailCode": "+977",
+    "timeZoneDisplay": "(GMT +5:450)",
+    "timeZone": "Asia/Kathmandu"
+  },
+  {
+    "currencyCode": "NZD",
+    "countryName": "New Zealand",
+    "countryCode": "NZ",
+    "currencySymbol": "$",
+    "dailCode": "+64",
+    "timeZoneDisplay": "(GMT +12)",
+    "timeZone": "Pacific/Auckland"
+  },
+  {
+    "currencyCode": "NIO",
+    "countryName": "Nicaragua",
+    "countryCode": "NI",
+    "currencySymbol": "C$",
+    "dailCode": "+505",
+    "timeZoneDisplay": "(GMT -6)",
+    "timeZone": "America/Managua"
+  },
+  {
+    "currencyCode": "NGN",
+    "countryName": "Nigeria",
+    "countryCode": "NG",
+    "currencySymbol": "₦",
+    "dailCode": "+234",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Lagos"
+  },
+  {
+    "currencyCode": "KPW",
+    "countryName": "North Korea",
+    "countryCode": "KP",
+    "currencySymbol": "₩",
+    "dailCode": "+850",
+    "timeZoneDisplay": "(GMT +8:30)",
+    "timeZone": "Asia/Pyongyang"
+  },
+  {
+    "currencyCode": "MKD",
+    "countryName": "North Macedonia",
+    "countryCode": "MK",
+    "currencySymbol": "ден",
+    "dailCode": "+389",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Skopje"
+  },
+  {
+    "currencyCode": "NOK",
+    "countryName": "Norway",
+    "countryCode": "NO",
+    "currencySymbol": "kr",
+    "dailCode": "+47",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Oslo"
+  },
+  {
+    "currencyCode": "OMR",
+    "countryName": "Oman",
+    "countryCode": "OM",
+    "currencySymbol": "ر.ع.",
+    "dailCode": "+968",
+    "timeZoneDisplay": "(GMT +4)",
+    "timeZone": "Asia/Muscat"
+  },
+  {
+    "currencyCode": "PKR",
+    "countryName": "Pakistan",
+    "countryCode": "PK",
+    "currencySymbol": "₨",
+    "dailCode": "+92",
+    "timeZoneDisplay": "(GMT +5)",
+    "timeZone": "Asia/Karachi"
+  },
+  {
+    "currencyCode": "PAB",
+    "countryName": "Panama",
+    "countryCode": "PA",
+    "currencySymbol": "B/.",
+    "dailCode": "+507",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Panama"
+  },
+  {
+    "currencyCode": "PGK",
+    "countryName": "Papua New Guinean",
+    "countryCode": "PG",
+    "currencySymbol": "K",
+    "dailCode": "+675",
+    "timeZoneDisplay": "(GMT +10)",
+    "timeZone": "Pacific/Port_Moresby"
+  },
+  {
+    "currencyCode": "PYG",
+    "countryName": "Paraguay",
+    "countryCode": "PY",
+    "currencySymbol": "₲",
+    "dailCode": "+595",
+    "timeZoneDisplay": "(GMT -4)",
+    "timeZone": "America/Asuncion"
+  },
+  {
+    "currencyCode": "PEN",
+    "countryName": "Peru",
+    "countryCode": "PE",
+    "currencySymbol": "S/",
+    "dailCode": "+51",
+    "timeZoneDisplay": "(GMT -5)",
+    "timeZone": "America/Lima"
+  },
+  {
+    "currencyCode": "PLN",
+    "countryName": "Poland",
+    "countryCode": "PL",
+    "currencySymbol": "zł",
+    "dailCode": "+48",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Warsaw"
+  },
+  {
+    "currencyCode": "QAR",
+    "countryName": "Qatar",
+    "countryCode": "QA",
+    "currencySymbol": "ر.ق",
+    "dailCode": "+974",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Asia/Qatar"
+  },
+  {
+    "currencyCode": "CDF",
+    "countryName": "Republic of Cape Congo",
+    "countryCode": "CG",
+    "currencySymbol": "Fr",
+    "dailCode": "+242",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Brazzaville"
+  },
+  {
+    "currencyCode": "CVE",
+    "countryName": "Republic of Cape Verde",
+    "countryCode": "CV",
+    "currencySymbol": "Esc",
+    "dailCode": "+238",
+    "timeZoneDisplay": "(GMT -1)",
+    "timeZone": "Atlantic/Cape_Verde"
+  },
+  {
+    "currencyCode": "SSP",
+    "countryName": "Republic of South Sudan",
+    "countryCode": "SS",
+    "currencySymbol": "£",
+    "dailCode": "+211",
+    "timeZoneDisplay": "(GMT +2:00)",
+    "timeZone": "Africa/Juba"
+  },
+  {
+    "currencyCode": "SDG",
+    "countryName": "Republic of the Sudan",
+    "countryCode": "SD",
+    "currencySymbol": "ج.س.",
+    "dailCode": "+249",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Khartoum"
+  },
+  {
+    "currencyCode": "RON",
+    "countryName": "Romania",
+    "countryCode": "RO",
+    "currencySymbol": "lei",
+    "dailCode": "+40",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Europe/Bucharest"
+  },
+  {
+    "currencyCode": "RUB",
+    "countryName": "Russia",
+    "countryCode": "RU",
+    "currencySymbol": "₽",
+    "dailCode": "+7",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Europe/Kaliningrad"
+  },
+  {
+    "currencyCode": "RWF",
+    "countryName": "Rwanda",
+    "countryCode": "RW",
+    "currencySymbol": "Fr",
+    "dailCode": "+250",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Kigali"
+  },
+  {
+    "currencyCode": "SHP",
+    "countryName": "Saint Helena",
+    "countryCode": "SH",
+    "currencySymbol": "£",
+    "dailCode": "+290",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Atlantic/St_Helena"
+  },
+  {
+    "currencyCode": "WST",
+    "countryName": "Samoa",
+    "countryCode": "WS",
+    "currencySymbol": "T",
+    "dailCode": "+685",
+    "timeZoneDisplay": "(GMT +13)",
+    "timeZone": "Pacific/Apia"
+  },
+  {
+    "currencyCode": "SAR",
+    "countryName": "Saudi Arabia",
+    "countryCode": "SA",
+    "currencySymbol": "ر.س",
+    "dailCode": "+966",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Asia/Riyadh"
+  },
+  {
+    "currencyCode": "GBP",
+    "countryName": "Scotland",
+    "countryCode": "SF",
+    "currencySymbol": "£",
+    "dailCode": "+44",
+    "timeZoneDisplay": "(GMT)",
+    "timeZone": "Europe/London"
+  },
+  {
+    "currencyCode": "RSD",
+    "countryName": "Serbia",
+    "countryCode": "RS",
+    "currencySymbol": "дин.",
+    "dailCode": "+381",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Belgrade"
+  },
+  {
+    "currencyCode": "SCR",
+    "countryName": "Seychelles",
+    "countryCode": "SC",
+    "currencySymbol": "₨",
+    "dailCode": "+248",
+    "timeZoneDisplay": "(GMT +4)",
+    "timeZone": "Indian/Mahe"
+  },
+  {
+    "currencyCode": "SLL",
+    "countryName": "Sierra Leone",
+    "countryCode": "SL",
+    "currencySymbol": "Le",
+    "dailCode": "+232",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Freetown"
+  },
+  {
+    "currencyCode": "SBD",
+    "countryName": "Solomon Islands",
+    "countryCode": "SB",
+    "currencySymbol": "$",
+    "dailCode": "+677",
+    "timeZoneDisplay": "(GMT +11)",
+    "timeZone": "Pacific/Guadalcanal"
+  },
+  {
+    "currencyCode": "SOS",
+    "countryName": "Somalia",
+    "countryCode": "SO",
+    "currencySymbol": "Sh",
+    "dailCode": "+252",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Mogadishu"
+  },
+  {
+    "currencyCode": "ZAR",
+    "countryName": "South Africa",
+    "countryCode": "ZA",
+    "currencySymbol": "R",
+    "dailCode": "+27",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Africa/Johannesburg"
+  },
+  {
+    "currencyCode": "KRW",
+    "countryName": "South Korea",
+    "countryCode": "KR",
+    "currencySymbol": "₩",
+    "dailCode": "+82",
+    "timeZoneDisplay": "(GMT +9)",
+    "timeZone": "Asia/Seoul"
+  },
+  {
+    "currencyCode": "LKR",
+    "countryName": "Sri Lanka",
+    "countryCode": "LK",
+    "currencySymbol": "Rs",
+    "dailCode": "+94",
+    "timeZoneDisplay": "(GMT +5:30)",
+    "timeZone": "Asia/Colombo"
+  },
+  {
+    "currencyCode": "BND",
+    "countryName": "Sultanate of Brunei",
+    "countryCode": "BN",
+    "currencySymbol": "$",
+    "dailCode": "+673",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Brunei"
+  },
+  {
+    "currencyCode": "SRD",
+    "countryName": "Suriname",
+    "countryCode": "SR",
+    "currencySymbol": "$",
+    "dailCode": "+597",
+    "timeZoneDisplay": "(GMT -3)",
+    "timeZone": "America/Paramaribo"
+  },
+  {
+    "currencyCode": "SEK",
+    "countryName": "Sweden",
+    "countryCode": "SE",
+    "currencySymbol": "kr",
+    "dailCode": "+46",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Stockholm"
+  },
+  {
+    "currencyCode": "CHF",
+    "countryName": "Switzerland",
+    "countryCode": "CH",
+    "currencySymbol": "Fr",
+    "dailCode": "+41",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Zurich"
+  },
+  {
+    "currencyCode": "SYP",
+    "countryName": "Syria",
+    "countryCode": "SY",
+    "currencySymbol": "£",
+    "dailCode": "+963",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Asia/Damascus"
+  },
+  {
+    "currencyCode": "STD",
+    "countryName": "São Tomé and Príncipe",
+    "countryCode": "ST",
+    "currencySymbol": "Db",
+    "dailCode": "+239",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Sao_Tome"
+  },
+  {
+    "currencyCode": "TWD",
+    "countryName": "Taiwan",
+    "countryCode": "TW",
+    "currencySymbol": "$",
+    "dailCode": "+886",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Taipei"
+  },
+  {
+    "currencyCode": "TJS",
+    "countryName": "Tajikistan",
+    "countryCode": "TJ",
+    "currencySymbol": "ЅМ",
+    "dailCode": "+992",
+    "timeZoneDisplay": "(GMT +5)",
+    "timeZone": "Asia/Dushanbe"
+  },
+  {
+    "currencyCode": "TZS",
+    "countryName": "Tanzania",
+    "countryCode": "TZ",
+    "currencySymbol": "Sh",
+    "dailCode": "+255",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Dar_es_Salaam"
+  },
+  {
+    "currencyCode": "TOP",
+    "countryName": "Tonga",
+    "countryCode": "TO",
+    "currencySymbol": "T$",
+    "dailCode": "+676",
+    "timeZoneDisplay": "(GMT +13)",
+    "timeZone": "Pacific/Tongatapu"
+  },
+  {
+    "currencyCode": "TTD",
+    "countryName": "Trinidad and Tobago",
+    "countryCode": "TT",
+    "currencySymbol": "$",
+    "dailCode": "+1868",
+    "timeZoneDisplay": "(GMT +13)",
+    "timeZone": "America/Port_of_Spain"
+  },
+  {
+    "currencyCode": "TND",
+    "countryName": "Tunisia",
+    "countryCode": "TN",
+    "currencySymbol": "د.ت",
+    "dailCode": "+216",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Tunis"
+  },
+  {
+    "currencyCode": "TRY",
+    "countryName": "Turkey",
+    "countryCode": "TR",
+    "currencySymbol": "₺",
+    "dailCode": "+90",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Europe/Istanbul"
+  },
+  {
+    "currencyCode": "TMT",
+    "countryName": "Turkmenistan",
+    "countryCode": "TM",
+    "currencySymbol": "m",
+    "dailCode": "+993",
+    "timeZoneDisplay": "(GMT +5)",
+    "timeZone": "Asia/Ashgabat"
+  },
+  {
+    "currencyCode": "UGX",
+    "countryName": "Uganda",
+    "countryCode": "UG",
+    "currencySymbol": "Sh",
+    "dailCode": "+256",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Africa/Kampala"
+  },
+  {
+    "currencyCode": "UAH",
+    "countryName": "Ukraine",
+    "countryCode": "UA",
+    "currencySymbol": "₴",
+    "dailCode": "+380",
+    "timeZoneDisplay": "(GMT +2)",
+    "timeZone": "Europe/Kiev"
+  },
+  {
+    "currencyCode": "AED",
+    "countryName": "United Arab Emirates",
+    "countryCode": "AE",
+    "currencySymbol": "د.إ",
+    "dailCode": "+971",
+    "timeZoneDisplay": "(GMT +4)",
+    "timeZone": "Asia/Dubai"
+  },
+  {
+    "currencyCode": "USD",
+    "countryName": "United States",
+    "countryCode": "US",
+    "currencySymbol": "$",
+    "dailCode": "+1",
+    "timeZoneDisplay": "(GMT -6)",
+    "timeZone": "America/New_York"
+  },
+  {
+    "currencyCode": "UYU",
+    "countryName": "Uruguay",
+    "countryCode": "UY",
+    "currencySymbol": "$",
+    "dailCode": "+598",
+    "timeZoneDisplay": "(GMT -3)",
+    "timeZone": "America/Montevideo"
+  },
+  {
+    "currencyCode": "UZS",
+    "countryName": "Uzbekistan",
+    "countryCode": "UZ",
+    "currencySymbol": "so'm",
+    "dailCode": "+998",
+    "timeZoneDisplay": "(GMT +5)",
+    "timeZone": "Asia/Samarkand"
+  },
+  {
+    "currencyCode": "VUV",
+    "countryName": "Vanuatu",
+    "countryCode": "VU",
+    "currencySymbol": "Vt",
+    "dailCode": "+678",
+    "timeZoneDisplay": "(GMT +11)",
+    "timeZone": "Pacific/Efate"
+  },
+  {
+    "currencyCode": "VEF",
+    "countryName": "Venezuela",
+    "countryCode": "VE",
+    "currencySymbol": "Bs F",
+    "dailCode": "+58",
+    "timeZoneDisplay": "(GMT -4:30)",
+    "timeZone": "America/Caracas"
+  },
+  {
+    "currencyCode": "YER",
+    "countryName": "Yemen",
+    "countryCode": "YE",
+    "currencySymbol": "﷼",
+    "dailCode": "+967",
+    "timeZoneDisplay": "(GMT +3)",
+    "timeZone": "Asia/Aden"
+  },
+  {
+    "currencyCode": "ZMW",
+    "countryName": "Zambia",
+    "countryCode": "ZM",
+    "currencySymbol": "ZK",
+    "dailCode": "+260",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Africa/Lusaka"
+  },
+  {
+    "currencyCode": "GBP",
+    "countryName": "United Kingdom",
+    "countryCode": "GB",
+    "currencySymbol": "£",
+    "dailCode": "+44",
+    "timeZoneDisplay": "(GMT)",
+    "timeZone": "Europe/London"
+  },
+  {
+    "currencyCode": "EUR",
+    "countryName": "Germany",
+    "countryCode": "DE",
+    "currencySymbol": "€",
+    "dailCode": "+49",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Berlin"
+  }
+]

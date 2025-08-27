@@ -5,8 +5,8 @@ import { Checkbox, Row, Col, Input, Space, Select, Tag } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import Icon from "@/components/Icon";
+import EquipmentCard from "@/components/EquipmentCard";
 import CardListing from "@/components/CardListing";
-import CompanyCard from "@/components/CompanyCard";
 
 const data = [
   {
@@ -47,12 +47,12 @@ const data = [
   },
 ];
 
-const CompanyListPage = () => {
+const EquipmentListPage = () => {
   return (
     <PublicLayout>
       <PageHeadingBanner
-        heading="Companies"
-        currentPageTitle="List of companies"
+        heading="Equipment"
+        currentPageTitle="List of equipments"
       />
       <section className="section-padding small">
         <div className="container">
@@ -193,7 +193,7 @@ const CompanyListPage = () => {
               </Row>
               <CardListing
                 data={data}
-                CardComponent={CompanyCard}
+                CardComponent={EquipmentCard}
                 // loading={loading}
                 // onPageChange={loadCompanies}
               />
@@ -205,4 +205,4 @@ const CompanyListPage = () => {
   );
 };
 
-export default CompanyListPage;
+export default EquipmentListPage;

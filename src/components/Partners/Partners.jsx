@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import { Tabs, Divider, Carousel } from "antd";
 import Image from "next/image";
@@ -104,43 +105,70 @@ const settings = {
   ],
 };
 
+// Slider Element
+const MarqueeSlider = ({
+  direction = "left",
+  speed = 20,
+  data = ["1", "1", "1", "1", "1", "1"],
+}) => {
+  return (
+    <div className="marq-brand">
+      <div
+        className="slider-box"
+        style={{
+          animationDirection: direction === "left" ? "normal" : "reverse",
+          animationDuration: `${speed}s`,
+        }}
+      >
+        {/* repeat items twice for seamless loop */}
+        {_map(data.concat(data), (item, idx) => (
+          <div className="slider-box-item" key={idx}>
+            <Image
+              src={`/assets/images/0${item}.png`}
+              alt="My Logo"
+              width={140}
+              height={40}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Partners = () => {
   // Render title
   const renderLabel = (title) => {
     return (
-      <div className="row g-0" key={title}>
-        <div className="col-2">
-          <Icon name="dataset" color="#87b2df" />
-        </div>
-        <div className="col-10">
-          <span className="C-heading size-xs bold color-dark font-family-primary mb-0 dont-break">
-            {title}
-          </span>
-        </div>
-      </div>
+      <span
+        className="C-heading size-xs semiBold color-dark font-family-primary mb-0 dont-break"
+        key={title}
+      >
+        {title}
+      </span>
     );
   };
 
   // Render Partners
   const renderLogoes = (title) => {
     return (
-      <div className="row g-4">
+      <div className="row g-0">
         {_map(
           _find(data, (item) => item.title === title)?.list,
           (item, index) => (
-            <div className="col-6 col-lg-4 col-xl-3" key={index}>
+            <div className="col-6 col-lg-4 col-xl-4" key={index}>
               <div className="brand-logo">
                 <div className="logo">
                   <Image
                     src="/assets/images/01.png"
                     alt={item}
-                    width={200}
-                    height={60}
+                    width={160}
+                    height={40}
                   />
                 </div>
                 <p
-                  className="C-heading size-xs extraBold color-dark mb-0 dont-break"
-                  style={{ height: "60px" }}
+                  className="C-heading size-6 font-family-primary semiBold mb-0 dont-break"
+                  style={{ height: "40px" }}
                 >
                   {item}
                 </p>
@@ -155,18 +183,18 @@ const Partners = () => {
   return (
     <div className="C-partners section-padding pb-0">
       <div className="container">
-        <div className="section-title mb-4 text-center">
-          <div className="sub-title">
+        <div className="section-title text-center mb-3">
+          <div className="sub-title gradient-wrapper">
             <span>PARTNERS</span>
           </div>
-          <h2 className="C-heading size-4 extraBold color-dark">
+          <h2 className="C-heading size-4 extraBold gradient-text">
             Discover Top Maritime Services and Equipment
           </h2>
         </div>
         <div className="mt-4 pt-3 mb-5">
           <Tabs
             tabPosition={"left"}
-            items={data.map((category) => {
+            items={_map(data, (category) => {
               return {
                 label: renderLabel(category?.title),
                 key: category?.id,
@@ -174,7 +202,6 @@ const Partners = () => {
               };
             })}
             className="brand-tabs"
-            style={{ height: "auto", maxHeight: "400px" }}
           />
         </div>
 
@@ -184,62 +211,12 @@ const Partners = () => {
             Newly Onboarded Companies
           </span>
         </Divider>
-        <Carousel {...settings} className="swiper-wrapper">
-          <div className="brand-logo-slider">
-            <Image
-              src="/assets/images/01.png"
-              alt="My Logo"
-              width={200}
-              height={60}
-            />
-          </div>
-
-          <div className="brand-logo-slider">
-            <Image
-              src="/assets/images/01.png"
-              alt="My Logo"
-              width={200}
-              height={60}
-            />
-          </div>
-
-          <div className="brand-logo-slider">
-            <Image
-              src="/assets/images/01.png"
-              alt="My Logo"
-              width={200}
-              height={60}
-            />
-          </div>
-
-          <div className="brand-logo-slider">
-            <Image
-              src="/assets/images/01.png"
-              alt="My Logo"
-              width={200}
-              height={60}
-            />
-          </div>
-
-          <div className="brand-logo-slider">
-            <Image
-              src="/assets/images/01.png"
-              alt="My Logo"
-              width={200}
-              height={60}
-            />
-          </div>
-
-          <div className="brand-logo-slider">
-            <Image
-              src="/assets/images/01.png"
-              alt="My Logo"
-              width={200}
-              height={60}
-            />
-          </div>
-        </Carousel>
       </div>
+
+      <div className="mb-2">
+        <MarqueeSlider direction="left" speed={35} />
+      </div>
+      <MarqueeSlider direction="right" speed={35} />
     </div>
   );
 };

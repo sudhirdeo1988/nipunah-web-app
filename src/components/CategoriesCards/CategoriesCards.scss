@@ -1,30 +1,72 @@
 //
 
 .C-card {
+  padding: 0;
   ul {
     display: flex;
     flex-direction: column;
     list-style: none;
-    gap: 8px;
+    gap: 12px;
     li {
       display: block;
       position: relative;
-      padding-left: 12px;
-      & > .C-heading {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
+      padding-left: 20px;
       &::before {
-        background-color: $secondary-color;
+        color: $primary-color;
         position: absolute;
-        content: "";
-        top: 8px;
+        font-family: "MaterialSymbolsRounded";
+        content: "\e5ca";
+        top: 0;
         left: 0;
-        height: 6px;
-        width: 6px;
-        @include rounded-corners(100px);
+        line-height: normal;
+        font-size: 1rem;
       }
     }
+  }
+}
+
+.cardCount {
+  .g-icon {
+    position: absolute;
+    right: -20px;
+    top: -30px;
+    font-size: 4rem;
+    font-weight: 900;
+    color: rgba(0, 0, 0, 0.05);
+    z-index: 0;
+    line-height: normal;
+  }
+}
+
+.openCardRow {
+  margin: 42px 0;
+  .openCardCol {
+    border-top: 1px solid #efecfd; /* default border */
+    border-left: 1px solid #efecfd;
+    padding: 2rem 3rem;
+  }
+  & > .openCardCol:nth-child(-n + 3) {
+    border-top: none;
+  }
+}
+/* remove left border for first col of each row */
+@media (min-width: 1200px) {
+  /* xl breakpoint - 3 per row */
+  .openCardRow > .openCardCol:nth-child(3n + 1) {
+    border-left: none;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+  /* md breakpoint - 3 per row */
+  .openCardRow > .openCardCol:nth-child(3n + 1) {
+    border-left: none;
+  }
+}
+
+@media (max-width: 767.98px) {
+  /* sm - 2 per row */
+  .openCardRow > .openCardCol:nth-child(2n + 1) {
+    border-left: none;
   }
 }

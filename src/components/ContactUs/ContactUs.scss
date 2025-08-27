@@ -3,23 +3,6 @@
 .c-contactUs {
   position: relative;
 
-  .shape-1 {
-    position: absolute;
-    bottom: 0;
-    right: -5%;
-    opacity: 8%;
-    z-index: -1;
-  }
-
-  .shape-2 {
-    position: absolute;
-    top: 0;
-    left: -8%;
-    opacity: 8%;
-    z-index: -1;
-    rotate: 250deg;
-  }
-
   .contact-us-content {
     .infu-box {
       padding-bottom: 30px;
@@ -88,9 +71,9 @@
         border: none;
         padding: 10px 22px;
         color: $fontColor;
-        background-color: rgb(245, 245, 245);
+        background-color: $highlightColor;
         font-weight: 500;
-        border-radius: 4px;
+        @include rounded-corners(4px);
 
         @include breakpoint(max-lg) {
           font-size: 15px;
@@ -109,7 +92,7 @@
         width: 100%;
         outline: none;
         color: $fontColor;
-        background-color: rgb(245, 245, 245);
+        background-color: $highlightColor;
         font-weight: 500;
         border: none;
         border-radius: 4px;

@@ -1,18 +1,19 @@
-import { Barlow, Quicksand } from "next/font/google";
+import { Roboto, Montserrat } from "next/font/google";
 import { AuthProvider } from "@/utilities/AuthContext";
 import "@/styles/global.scss";
 
-export const barlow = Barlow({
-  variable: "--font-barlow",
+// ✅ Roboto
+export const roboto = Roboto({
+  variable: "--font-roboto",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
-export const quicksand = Quicksand({
-  variable: "--font-quicksand",
+export const montserrat = Montserrat({
+  variable: "--font-montserrat",
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -24,7 +25,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${barlow.variable} ${quicksand.variable}`}>
+      <body className={`${roboto.variable} ${montserrat.variable}`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

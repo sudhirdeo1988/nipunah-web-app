@@ -1,6 +1,5 @@
 import React from "react";
 import Icon from "components/Icon/Icon";
-import { Space, Carousel } from "antd";
 import { map as _map, take as _take } from "lodash-es";
 import "./BannerCards.scss";
 
@@ -53,107 +52,33 @@ const BannerCards = () => {
       icon: "settings",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
-    {
-      id: 7,
-      title: "Digital Procurement Tools",
-      subTitle:
-        "Simplify sourcing, reduce procurement time, and boost efficiency across all maritime transactions.",
-      icon: "settings",
-      // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
-    },
-    {
-      id: 8,
-      title: "Sustainable Growth Engine",
-      subTitle:
-        "Expand your digital presence and partnerships while contributing to a greener maritime future.",
-      icon: "settings",
-      // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
-    },
   ];
-
-  const settings = {
-    dots: true,
-    infinite: true,
-    speed: 500,
-    autoplay: true,
-    slidesToShow: 4,
-    slidesToScroll: 1,
-    responsive: [
-      {
-        breakpoint: 1400,
-        settings: {
-          slidesToShow: 4,
-        },
-      },
-      {
-        breakpoint: 1200,
-        settings: {
-          slidesToShow: 3,
-        },
-      },
-      {
-        breakpoint: 920,
-        settings: {
-          slidesToShow: 2,
-        },
-      },
-      {
-        breakpoint: 760,
-        settings: {
-          slidesToShow: 2,
-        },
-      },
-      {
-        breakpoint: 560,
-        settings: {
-          slidesToShow: 1,
-        },
-      },
-      {
-        breakpoint: 480,
-        settings: {
-          slidesToShow: 1,
-        },
-      },
-    ],
-  };
 
   return (
     <section className="c-bannerCards">
-      <div className="container">
-        <Carousel {...settings}>
-          {_map(data, (item, index) => {
-            return (
-              <div className="single-feature-item" key={index}>
-                <div className="icon">
+      <div className="row align-items-stretch grid-border border-bottom border-f5">
+        {_map(data, (item, index) => {
+          return (
+            <div
+              className={`col-lg-4 col-sm-6 col-xs-12 col-padding  ${
+                index % 2 !== 0 ? "bg-l" : "bg-d"
+              }`}
+              key={index}
+            >
+              <div className="d-flex flex-column gap-3 single-card-item">
+                <div className="logo">
                   <Icon name={item?.icon || "mimo"} />
                 </div>
-                <h4 className="C-heading size-6 dont-break is- mgb-0 color-dark font-family-primary">
+                <div className="C-heading size-6 bold color-dark mb-0">
                   {item?.title}
-                </h4>
-                <p className="C-heading size-xs dont-break is-animated mb-3 font-family-primary">
+                </div>
+                <div className="C-heading size-6 mb-0 info">
                   {item?.subTitle}
-                </p>
-                <div className="d-flex flex-column gap-3">
-                  {_map(_take(item?.list, 3), (word, index) => {
-                    return (
-                      <Space size={6} key={index}>
-                        <Icon
-                          name="check_circle"
-                          className="checkIcon"
-                          isFilled
-                        />
-                        <span className="C-heading size-xs bold mgb-0">
-                          {word}
-                        </span>
-                      </Space>
-                    );
-                  })}
                 </div>
               </div>
-            );
-          })}
-        </Carousel>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
