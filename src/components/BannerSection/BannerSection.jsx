@@ -16,7 +16,7 @@ const BannerSection = () => {
                 <h1 className="color-dark dont-break extraBold gradient-text">
                   List. Connect. Grow
                 </h1>
-                <p className="C-heading size-6 mb-3 dont-break ">
+                <p className="C-heading size-5 mb-3 dont-break ">
                   Be seen by the right people. Expand your reach. <br /> Build
                   trusted global partnerships.
                 </p>
@@ -32,7 +32,7 @@ const BannerSection = () => {
                   </div>
                   <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12">
                     <Select
-                      placeholder="Select Category"
+                      placeholder="Select Section"
                       variant="borderless"
                       options={[
                         { value: "Companies", label: "Companies" },
@@ -40,7 +40,7 @@ const BannerSection = () => {
                         { value: "Experts", label: "Experts" },
                       ]}
                       className="selectInSearch"
-                      defaultValue={"Companies"}
+                      // defaultValue={"Companies"}
                       suffixIcon={<Icon name="keyboard_arrow_down" />}
                     />
                   </div>
@@ -48,7 +48,7 @@ const BannerSection = () => {
                     <Select
                       showSearch
                       optionFilterProp="label"
-                      placeholder="Select Country"
+                      placeholder="All locations"
                       variant="borderless"
                       options={_map(CountryDetails, (country) => {
                         return {
@@ -58,7 +58,7 @@ const BannerSection = () => {
                       })}
                       suffixIcon={<Icon name="keyboard_arrow_down" />}
                       className="selectInSearch"
-                      defaultValue={"India"}
+                      // defaultValue={"India"}
                     />
                   </div>
                   <div className="col-lg-2 col-md-2 col-sm-6 col-xs-12 text-center">
@@ -66,7 +66,7 @@ const BannerSection = () => {
                   </div>
                 </div>
 
-                <p className="C-heading size-6 color-dark mb-0 bold dont-break ">
+                <p className="C-heading size-5 color-dark mb-0 bold dont-break ">
                   Join Nipunah.com — grow your maritime network, the smart way.
                 </p>
               </div>

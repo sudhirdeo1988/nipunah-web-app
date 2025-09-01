@@ -2,7 +2,7 @@
 import React from "react";
 import { CaretRightOutlined } from "@ant-design/icons";
 import { Space } from "antd";
-import Icon from "../Icon";
+
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -64,19 +64,8 @@ const Footer = () => {
                     dredging firms, ports, offshore service providers, and
                     marine tech companies.
                   </p>
-                  <h5 className="C-heading size-xs semiBold mb-1 bold">
-                    Subscribe Now
-                  </h5>
-                  <div className="footer-input border-radius-none">
-                    <input type="email" id="email2" placeholder="Your Email" />
-                    <button
-                      className="newsletter-btn border-radius-none"
-                      type="submit"
-                    >
-                      <Icon name="send" color="#ffffff" />
-                    </button>
-                  </div>
-                  <div className="social-icon d-flex align-items-center">
+
+                  <div className="social-icon d-flex align-items-center mt-3">
                     <button className="C-settingButton is-clean ">
                       <i className="bi bi-facebook color-light"></i>
                     </button>
@@ -93,7 +82,7 @@ const Footer = () => {
                 </div>
               </div>
             </div>
-            <div className="col-xl-2 col-lg-6">
+            <div className="col-xl-4 col-lg-6">
               <div className="single-footer-widget ms-xxl-2">
                 <h4 className="C-heading size-5 extraBold color-dark mb-3">
                   Useful Links
@@ -119,7 +108,7 @@ const Footer = () => {
               </div>
             </div>
             <div
-              className="col-xl-3 col-lg-6 wow fadeInUp"
+              className="col-xl-4 col-lg-6 wow fadeInUp"
               data-wow-delay="600ms"
             >
               <div className="single-footer-widget ms-xxl-4 ps-xxl-3">
@@ -176,53 +165,6 @@ const Footer = () => {
                     </Link>
                   </li>
                 </ul>
-              </div>
-            </div>
-            <div
-              className="col-xl-3 col-lg-6 wow fadeInUp"
-              data-wow-delay="800ms"
-            >
-              <div className="single-footer-widget ms-xxl-3">
-                <h4 className="C-heading size-5 extraBold color-dark mb-3">
-                  Contact Us
-                </h4>
-                <div className="footer-content">
-                  <div className="contact-info-area">
-                    <div className="contact">
-                      <Icon name="mail" />
-                      <div className="contact-infu">
-                        <span className="C-heading size-xs semiBold mb-0 color-light">
-                          Mail Us:
-                        </span>
-                        <h5 className="C-heading size-6 semiBold color-dark mb-0">
-                          test@gmail.com
-                        </h5>
-                      </div>
-                    </div>
-                    <div className="contact">
-                      <Icon name="location_on" />
-                      <div className="contact-infu">
-                        <span className="C-heading size-xs semiBold mb-0 color-light">
-                          Address:
-                        </span>
-                        <h5 className="C-heading size-xs semiBold color-dark mb-0">
-                          Lorem Ipsum is simply dummy text, of the printing and
-                        </h5>
-                      </div>
-                    </div>
-                    <div className="contact">
-                      <Icon name="call" />
-                      <div className="contact-infu">
-                        <span className="C-heading size-xs semiBold mb-0 color-light">
-                          Contact:
-                        </span>
-                        <h5 className="C-heading size-6 semiBold color-dark mb-0">
-                          +91 009 494 094
-                        </h5>
-                      </div>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
           </div>

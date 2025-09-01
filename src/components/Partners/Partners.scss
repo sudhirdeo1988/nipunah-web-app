@@ -19,6 +19,60 @@
   }
 }
 
+.nestedAccordianTabs {
+  margin-bottom: 42px;
+  .g-icon {
+    font-size: 2rem !important;
+  }
+  .ant-collapse {
+    background-color: transparent;
+    &.active {
+      .ant-collapse-header {
+        background-color: $highlightColor;
+        border-right-color: $primary-color;
+      }
+    }
+    .ant-collapse-content-box {
+      padding: 0 !important;
+    }
+  }
+  .ant-collapse-item {
+    .ant-collapse-header {
+      align-items: center;
+      background-color: transparent;
+      border-right: 2px solid transparent;
+      border-bottom: 1px solid $border-color;
+      padding: 0 !important;
+      margin: 0 !important;
+      white-space: normal;
+
+      .ant-collapse-header-text,
+      .ant-collapse-expand-icon {
+        padding: 12px 0 12px 12px;
+      }
+      .ant-collapse-expand-icon {
+        height: 40px;
+      }
+    }
+  }
+  .navButton {
+    background-color: transparent;
+    border: 0;
+    border-right: 3px solid transparent;
+    border-bottom: 1px solid $border-color;
+    display: block;
+    padding: 12px;
+    margin: 0 !important;
+    text-align: left;
+    white-space: normal;
+    width: 100%;
+    &.active {
+      background-color: $highlightColor;
+      border-right-color: $primary-color;
+    }
+  }
+}
+
 .brand-logo {
   border: 1px solid $border-color;
   display: grid;

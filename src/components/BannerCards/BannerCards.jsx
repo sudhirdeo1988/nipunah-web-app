@@ -69,10 +69,10 @@ const BannerCards = () => {
                 <div className="logo">
                   <Icon name={item?.icon || "mimo"} />
                 </div>
-                <div className="C-heading size-6 bold color-dark mb-0">
+                <div className="C-heading size-5 bold color-dark mb-0">
                   {item?.title}
                 </div>
-                <div className="C-heading size-6 mb-0 info">
+                <div className="C-heading size-6 color-dark mb-0 info">
                   {item?.subTitle}
                 </div>
               </div>

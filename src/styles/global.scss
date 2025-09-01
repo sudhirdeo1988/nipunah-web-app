@@ -99,53 +99,6 @@ body {
 
 // About
 
-.C-about-wrapper {
-  .about-images {
-    position: relative;
-  }
-
-  .about-images {
-    position: relative;
-    left: 130px;
-
-    .image-1 {
-      width: 509px;
-      height: 660px;
-      position: relative;
-      z-index: 1;
-
-      img {
-        @include imgw;
-        object-fit: cover;
-      }
-    }
-
-    .image-2 {
-      width: 293px;
-      height: 293px;
-      position: absolute;
-      right: 14%;
-      bottom: -40px;
-      z-index: 2;
-
-      img {
-        @include imgw;
-        border-radius: 50%;
-        object-fit: cover;
-      }
-    }
-    .shape-2 {
-      position: absolute;
-      bottom: -60px;
-      left: -130px;
-      opacity: 28%;
-      z-index: 0;
-      width: 602px;
-      height: 602px;
-    }
-  }
-}
-
 .coloredSection {
   background: rgba(0, 85, 255, 0.01);
   position: relative;
@@ -271,32 +224,6 @@ body {
   }
 }
 
-.c-cardsWrapper {
-  background-color: #f3f8ff;
-  position: relative;
-
-  .shape-1 {
-    position: absolute;
-    top: 50px;
-    left: 60px;
-    opacity: 5%;
-  }
-
-  .shape-2 {
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    opacity: 22%;
-  }
-
-  .slick-slide > div {
-    margin: 0 12px;
-  }
-  .ant-carousel .slick-dots-bottom {
-    bottom: -30px;
-  }
-}
-
 .signle-process-item {
   position: relative;
   text-align: center;
@@ -399,13 +326,6 @@ body {
   }
 }
 
-.cta-section {
-  width: 100%;
-  position: relative;
-  padding: 60px 70px 60px 110px;
-  background: linear-gradient(84deg, $primary-color 0%, $secondary-color 100%);
-  @include rounded-corners(20px);
-}
 .sidebar-widget {
   background-color: #f3f8ff;
   box-sizing: border-box;
@@ -416,4 +336,8 @@ body {
 
 .col-padding {
   padding: 3rem;
+}
+
+.pattern-3 {
+  background: url("/assets/images/pattern-3.webp") right center no-repeat;
 }

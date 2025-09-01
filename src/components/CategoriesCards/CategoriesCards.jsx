@@ -97,14 +97,14 @@ const CategoriesCards = () => {
                     <span className="cardCount">
                       <Icon name={item?.icon} isFilled />
                     </span>
-                    <h3 className="C-heading size-6 bold color-dark mb-3">
+                    <h3 className="C-heading size-6 bold color-dark mb-3 font-family-primary">
                       {item?.title}
                     </h3>
                     <ul>
                       {_map(item?.list, (listItem, listIndex) => {
                         return (
                           <li key={listIndex}>
-                            <span className="C-heading size-xs semiBold color-light mb-0 ">
+                            <span className="C-heading size-6 semiBold color-light mb-0 ">
                               {listItem}
                             </span>
                           </li>
