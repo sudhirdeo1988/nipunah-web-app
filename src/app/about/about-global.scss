@@ -80,29 +80,96 @@
 }
 
 .countCircle {
+  background-color: $third-color;
   display: grid;
   border: 1px solid $border-color;
   place-items: center;
   position: relative;
   font-size: 1.4rem;
   font-weight: 900;
-  color: $third-color;
+  color: $white;
   height: 60px !important;
   width: 60px !important;
-  background-color: $white;
   z-index: 1;
   @include rounded-corners(100%);
-  @include box-shadow(0 10px 10px 0 rgba(0, 0, 0, 0.1));
-  &.bordered {
-    &::before {
-      height: 100%;
-      position: absolute;
-      top: 100%;
-      left: calc(50% - 1px);
-      width: 1px;
-      content: "";
-      background-color: $primary-color;
-      z-index: 0;
+}
+
+.process-loader {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px; // space between cards
+  .process-card {
+    align-items: center;
+    background-color: $white;
+    border: 1px solid $border-color;
+    box-sizing: border-box;
+    flex: 1 1 calc(20% - 16px); // default: 5 cards per row (>1200px)
+    min-width: 0; // allows shrinking
+    padding: 1rem;
+    @include rounded-corners(8px);
+    @include box-shadow(0 0 10px rgba(0, 0, 0, 0.08));
+  }
+}
+
+/* <= 1200px → 4 cards */
+@media (max-width: 1200px) {
+  .process-loader {
+    .process-card {
+      flex: 1 1 calc(25% - 16px);
+    }
+  }
+}
+
+/* < 960px → 3 cards */
+@media (max-width: 960px) {
+  .process-loader {
+    .process-card {
+      flex: 1 1 calc(33.333% - 16px);
+    }
+  }
+}
+
+/* <= 768px → 2 cards */
+@media (max-width: 768px) {
+  .process-loader {
+    .process-card {
+      flex: 1 1 calc(50% - 16px);
+    }
+  }
+}
+
+/* < 480px (or smaller) → 1 card */
+@media (max-width: 480px) {
+  .process-loader {
+    .process-card {
+      flex: 1 1 100%;
+    }
+  }
+}
+
+.sliderCard {
+  background-color: $white;
+  border: 0.5px solid $border-color;
+  display: flex !important;
+
+  align-items: center;
+  position: relative;
+  padding: 16px 16px 16px 72px;
+  height: 80px;
+
+  .cardIcon {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 100%;
+    background-color: $highlightColor;
+    left: 0;
+    top: 0;
+    .g-icon {
+      color: $black;
+      font-size: 2.4rem;
     }
   }
 }

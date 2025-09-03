@@ -8,6 +8,7 @@ import { map as _map } from "lodash-es";
 import Image from "next/image";
 import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
 import "./about-global.scss";
+import { Carousel, Divider, Space } from "antd";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 50 },
@@ -77,7 +78,7 @@ const AboutPage = () => {
                 />
               </div>
               <div
-                className="col-md-8 col-sm-6 cl-xs-12 p-4"
+                className="col-md-8 col-sm-6 col-xs-12"
                 style={{ position: "relative" }}
               >
                 <div className="position-relative" style={{ zIndex: "1" }}>
@@ -99,11 +100,11 @@ const AboutPage = () => {
                     gain visibility, and build meaningful partnerships across
                     the globe.
                   </p>
-                  <p className="C-heading size-6 mb-1 bold color-dark">
+                  <p className="C-heading size-6 mb-1 extraBold color-dark">
                     We help maritime businesses:
                   </p>
 
-                  <div className="C-bulletList mb-0">
+                  <div className="C-bulletList mb-3">
                     <ul>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
@@ -121,6 +122,44 @@ const AboutPage = () => {
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
                           Support sustainable and transparent supply chains
+                        </span>
+                      </li>
+                    </ul>
+                  </div>
+                  <p className="C-heading size-6 mb-1 extraBold color-dark">
+                    What makes us unique
+                  </p>
+                  <div className="C-bulletList mb-0">
+                    <ul>
+                      <li>
+                        <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                          Built exclusively for the maritime and ocean economy
+                        </span>
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                          All profiles are verified for credibility and trust
+                        </span>
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                          Smart filters, tags, and location-based search for
+                          easy discovery
+                        </span>
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                          Live 24/7, 365 days — your business is always working
+                        </span>
+                      </li>
+                      <li>
+                        <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
+                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                          Driven by visibility, trust, and global growth
                         </span>
                       </li>
                     </ul>
@@ -253,184 +292,178 @@ const AboutPage = () => {
         variants={fadeInUp}
       >
         <section className="section-padding pattern-3">
-          <div className="container">
-            <div className="row">
-              <div className="col-md-4 col-sm-6 col-xs-12">
-                <h2 className="C-heading size-5 extraBold gradient-text text-center mb-4">
-                  What You Can Do on Nipunah.com
-                </h2>
-                <div className="row align-items-center py-3">
-                  <div className="col-2">
-                    <div className="countCircle bordered">01</div>
-                  </div>
-                  <div className="col-9">
-                    <span className="C-heading size-6 extraBold color-dark mb-1">
-                      List your company
-                    </span>
-                    <span className="C-heading size-xs semiBold mb-0">
-                      List your company and showcase your services
-                    </span>
-                  </div>
-                </div>
-                <div className="row align-items-center py-3">
-                  <div className="col-2">
-                    <div className="countCircle bordered">02</div>
-                  </div>
-                  <div className="col-9">
-                    <span className="C-heading size-6 extraBold color-dark mb-1">
-                      Highlight certifications
-                    </span>
-                    <span className="C-heading size-6 mb-0">
-                      Highlight certifications, projects, and areas of expertise
-                    </span>
-                  </div>
-                </div>
-                <div className="row align-items-center py-3">
-                  <div className="col-2">
-                    <div className="countCircle bordered">03</div>
-                  </div>
-                  <div className="col-10">
-                    <span className="C-heading size-6 extraBold color-dark mb-1">
-                      Receive direct inquiries
-                    </span>
-                    <span className="C-heading size-6 mb-0">
-                      Receive direct inquiries from clients, collaborators, and
-                      partners
-                    </span>
-                  </div>
-                </div>
-                <div className="row align-items-center py-3">
-                  <div className="col-2">
-                    <div className="countCircle bordered">04</div>
-                  </div>
-                  <div className="col-10">
-                    <span className="C-heading size-6 extraBold color-dark mb-1">
-                      Discover new suppliers
-                    </span>
-                    <span className="C-heading size-6 mb-0">
-                      Discover new suppliers or subcontractors using smart
-                      filters and geo-location
-                    </span>
-                  </div>
-                </div>
-                <div className="row align-items-center py-3">
-                  <div className="col-2">
-                    <div className="countCircle">05</div>
-                  </div>
-                  <div className="col-10">
-                    <span className="C-heading size-6 extraBold color-dark mb-1">
-                      Stay visible 24/7
-                    </span>
-                    <span className="C-heading size-6 mb-0">
-                      Stay visible 24/7 with a profile that works year-round —
-                      anywhere in the world
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4 col-sm-6 col-xs-12">
-                <h2 className="C-heading size-5 extraBold gradient-text mb-4">
-                  Who We Serve
-                </h2>
-                <span className="C-heading size-6 mb-3">
-                  Nipunah.com supports every part of the maritime value chain.
-                  Our platform is built for:
+          <div className="container ">
+            <h2 className="C-heading size-4 extraBold gradient-text text-center mb-5">
+              What You Can Do on Nipunah.com
+            </h2>
+            <div className="process-loader mb-5">
+              <div className="process-card d-flex flex-column">
+                <div className="countCircle bordered mb-3">01</div>
+                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                  List your company
                 </span>
-                <div className="C-bulletList">
-                  <ul>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Shipping & logistics companies
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Dredging contractors & marine service providers
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Port & terminal operators
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Offshore energy & renewables firms
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Shipbuilders & marine equipment suppliers
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Marine tech developers & innovators
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Training institutions & regulatory bodies
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Ocean tourism operators & government agencies
-                      </span>
-                    </li>
-                  </ul>
-                </div>
+                <span className="C-heading size-xs semiBold mb-0 text-center">
+                  List your company and showcase your services
+                </span>
               </div>
-              <div className="col-md-4 col-sm-6 col-xs-12">
-                <h2 className="C-heading size-5 extraBold mb-4 gradient-text">
-                  What makes us unique
-                </h2>
 
-                <div className="C-bulletList mb-0">
-                  <ul>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Built exclusively for the maritime and ocean economy
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        All profiles are verified for credibility and trust
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Smart filters, tags, and location-based search for easy
-                        discovery
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Live 24/7, 365 days — your business is always working
-                      </span>
-                    </li>
-                    <li>
-                      <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                      <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
-                        Driven by visibility, trust, and global growth
-                      </span>
-                    </li>
-                  </ul>
-                </div>
+              <div className="process-card d-flex flex-column">
+                <div className="countCircle bordered mb-3 text-center">02</div>
+                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                  Highlight certifications
+                </span>
+                <span className="C-heading size-xs semiBold mb-0">
+                  Highlight certifications, projects, and areas of expertise
+                </span>
+              </div>
+
+              <div className="process-card d-flex flex-column">
+                <div className="countCircle bordered mb-3">03</div>
+                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                  Receive direct inquiries
+                </span>
+                <span className="C-heading size-xs semiBold mb-0 text-center">
+                  Receive direct inquiries from clients, collaborators, and
+                  partners
+                </span>
+              </div>
+
+              <div className="process-card d-flex flex-column">
+                <div className="countCircle bordered mb-3">04</div>
+                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                  Discover new suppliers
+                </span>
+                <span className="C-heading size-xs semiBold mb-0 text-center">
+                  Discover new suppliers or subcontractors using smart filters
+                  and geo-location
+                </span>
+              </div>
+
+              <div className="process-card d-flex flex-column">
+                <div className="countCircle bordered mb-3">05</div>
+                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                  Stay visible 24/7
+                </span>
+                <span className="C-heading size-xs semiBold mb-0 text-center">
+                  Stay visible 24/7 with a profile that works year-round —
+                  anywhere in the world
+                </span>
               </div>
             </div>
+
+            <h2 className="C-heading size-5 extraBold gradient-text mb-2 text-center">
+              Who We Serve
+            </h2>
+            <span className="C-heading size-6 mb-4 text-center">
+              Nipunah.com supports every part of the maritime value chain. Our
+              platform is built for:
+            </span>
+            <Carousel
+              autoplay
+              autoplaySpeed={4000}
+              slidesToScroll={1}
+              slidesToShow={3} // default (lg)
+              draggable
+              infinite={true}
+              dots
+              responsive={[
+                {
+                  breakpoint: 1024, // md
+                  settings: {
+                    slidesToShow: 2,
+                    slidesToScroll: 1,
+                  },
+                },
+                {
+                  breakpoint: 768, // sm
+                  settings: {
+                    slidesToShow: 1,
+                    slidesToScroll: 1,
+                  },
+                },
+              ]}
+            >
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="local_shipping" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Shipping & logistics companies
+                  </span>
+                </div>
+              </div>
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="directions_boat" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Dredging contractors & marine service providers
+                  </span>
+                </div>
+              </div>
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="anchor" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Port & terminal operators
+                  </span>
+                </div>
+              </div>
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="energy_savings_leaf" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Offshore energy & renewables firms
+                  </span>
+                </div>
+              </div>
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="anchor" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Shipbuilders & marine equipment suppliers
+                  </span>
+                </div>
+              </div>
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="engineering" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Marine tech developers & innovators
+                  </span>
+                </div>
+              </div>
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="model_training" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Training institutions & regulatory bodies
+                  </span>
+                </div>
+              </div>
+              <div className="sliderCard">
+                <div className="cardIcon">
+                  <Icon name="directions_boat" />
+                </div>
+                <div className="cardContent d-flex align-items-center">
+                  <span className="C-heading size-6 bold mb-0">
+                    Ocean tourism operators & government agencies
+                  </span>
+                </div>
+              </div>
+            </Carousel>
           </div>
         </section>
       </motion.div>

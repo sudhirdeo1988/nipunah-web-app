@@ -1,10 +1,12 @@
 .companyCard {
-  background: #fbfbfb;
+  background: $white;
   border: 1px solid #ecedf2;
   padding: 1rem;
   position: relative;
   width: 100%;
   @include rounded-corners(10px);
+  @include box-shadow(0 1px 4px rgba(24, 26, 32, 0.07));
+  @include transition(all ease 0.3s);
   .profile {
     background-color: $secondary-color;
     height: 42px;
@@ -13,7 +15,7 @@
   }
 
   &:hover {
-    border-color: $secondary-color;
+    background-color: #fbfbfb;
     cursor: pointer;
   }
 }
