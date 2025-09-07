@@ -441,6 +441,10 @@
     font-size: 0.85rem;
     line-height: 1.3rem;
   }
+  &.size-xss {
+    font-size: 0.78rem;
+    line-height: 1rem;
+  }
 
   &.notify-color {
     padding-left: 16px;
@@ -939,27 +943,25 @@
 
 .C-tag {
   background: color.scale($page-bg-color, $lightness: -5%);
-  border: 1px solid color.scale($page-bg-color, $lightness: -15%) !important;
   box-sizing: border-box;
   color: $font-color !important;
-  font-size: 0.8rem !important;
-  height: 24px !important;
-  line-height: 1rem !important;
+  font-size: 0.9rem !important;
+  font-weight: 500;
+  min-height: 24px !important;
+  line-height: 1.1rem !important;
   margin: 0 !important;
   min-width: 36px;
-  max-width: 200px;
-  padding: 4px 8px !important;
+  max-width: 300px;
+  padding: 6px 10px !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 
-  .g-icon {
-    font-size: 1.15rem !important;
-    margin-left: -2px;
+  .anticon {
+    margin-left: 6px !important;
   }
 
   &.rounded {
-    padding: 4px 10px !important;
     @include rounded-corners(100px);
   }
 
@@ -1004,23 +1006,6 @@
   }
   &.is-disabled {
     cursor: not-allowed;
-  }
-
-  &.with-image {
-    display: inline-block !important;
-    max-width: calc(200px - 18px);
-    position: relative;
-    padding-left: 28px !important;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    img {
-      position: absolute;
-      left: 6px;
-      top: 2px;
-      height: 18px;
-      width: 18px;
-    }
   }
 }
 
@@ -1526,6 +1511,85 @@
       object-fit: cover;
       width: 100%;
     }
+  }
+}
+
+/* -------------------------------------
+                                  🍔 Components - Listing Card
+                              ------------------------------------- */
+.companyCard {
+  background: $white;
+  border: 1px solid $border-color;
+  padding: 1.2rem;
+  position: relative;
+  width: 100%;
+  font-family: $primary-font;
+  @include rounded-corners(4px);
+  @include box-shadow(0 1px 4px rgba(24, 26, 32, 0.07));
+  @include transition(all ease 0.3s);
+  .profileWrapper {
+    border: 1px solid $border-color;
+    background-color: $white;
+    display: inline-grid;
+    place-items: center;
+    height: 50px !important;
+    width: 50px !important;
+    padding: 4px;
+    @include rounded-corners(4px);
+  }
+
+  &:hover {
+    border-color: $primary-color;
+    cursor: pointer;
+  }
+  .isPriority {
+    position: absolute;
+    top: -4px;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    font-size: 1.4rem;
+    color: $primary-color;
+  }
+
+  &.type-2 {
+    padding: 0;
+    img {
+      @include rounded-corners(4px 0 0 4px);
+    }
+    .overlayTag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: rgba(0, 0, 0, 0.4);
+      padding: 2px 8px;
+      font-size: 0.8rem;
+      line-height: normal;
+      font-weight: 600;
+      color: $white;
+      @include rounded-corners(4px);
+    }
+  }
+}
+
+.notifi-icon {
+  font-size: 1rem !important;
+  padding: 1px;
+  @include rounded-corners(50%);
+  &.type-1 {
+    background: #ff980026;
+    box-shadow: 0 0 0 2px #ff980040;
+    color: #ff9800;
+  }
+  &.type-2 {
+    background: #4caf5026;
+    box-shadow: 0 0 0 2px #4caf5040;
+    color: #0b8260;
+  }
+  &.type-3 {
+    background: #e6275626;
+    box-shadow: 0 0 0 2px #e6275640;
+    color: #e62756;
   }
 }
 
