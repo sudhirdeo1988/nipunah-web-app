@@ -3,9 +3,12 @@ import { Col, Row, Space, Tag } from "antd";
 import Icon from "../Icon";
 import { isEmpty as _isEmpty, map as _map } from "lodash-es";
 import Image from "next/image";
+import { ROUTES } from "@/constants/routes";
+import { useRouter } from "next/navigation";
 import "./CompanyCard.scss";
 
 const CompanyCard = ({ data }) => {
+  const router = useRouter();
   return (
     <div className="companyCard">
       {data?.isPriority && (
@@ -13,7 +16,7 @@ const CompanyCard = ({ data }) => {
       )}
       <div className="row mb-1">
         <div className="col-10">
-          <h2 className="C-heading size-xs extraBold color-dark mb-1">
+          <h2 className="C-heading size-6 extraBold color-dark mb-1">
             {data?.name}
           </h2>
           {!_isEmpty(data?.description) && (
@@ -68,7 +71,10 @@ const CompanyCard = ({ data }) => {
             ))}
         </div>
         <div className="col-4 text-right">
-          <button className="C-button small is-link p-0 bold">
+          <button
+            className="C-button small is-link p-0 bold"
+            onClick={() => router.push(`${ROUTES?.PUBLIC?.COMPANIES}/123`)}
+          >
             View Details
           </button>
         </div>

@@ -100,6 +100,9 @@ const CompanyListPage = () => {
       />
       <section className="section-padding small white-gradient-bg2">
         <div className="container">
+          <h3 className="C-heading size-5 color-light extraBold mb-3">
+            Top shipping companies in india
+          </h3>
           <div className="row">
             {/* Main Content */}
             <div className="col-12">

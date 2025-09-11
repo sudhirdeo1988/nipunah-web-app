@@ -6,7 +6,7 @@ export const ROUTES = {
     ABOUT: "/about",
     CONTACT: "/contact",
     EXPERTS: "/experts",
-    COMPANIES: "/companies",
+    COMPANIES: "/company",
     EQUIPMENT: "/equipment",
   },
   AUTH: {

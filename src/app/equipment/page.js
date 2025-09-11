@@ -17,7 +17,7 @@ const data = [
     logo: "",
     type: "Logistics",
     model: "XYZ-123",
-    category: ["Product Development"],
+    category: "Shipping",
     createdOn: "2023",
     availableFor: "Sale",
     createdBy: "",
@@ -38,7 +38,7 @@ const data = [
     logo: "",
     type: "Logistics",
     model: "XYZ-123",
-    category: ["Product Development"],
+    category: "Marine",
     createdOn: "2023",
     availableFor: "Lease",
     createdBy: "",
@@ -59,7 +59,7 @@ const data = [
     logo: "",
     type: "Ship Building",
     model: "XYZ-123",
-    category: ["Product Development"],
+    category: "Shipping",
     createdOn: "2023",
     availableFor: "Lease",
     createdBy: "",
@@ -80,7 +80,7 @@ const data = [
     logo: "",
     type: "Ship Building",
     model: "XYZ-123",
-    category: ["Product Development"],
+    category: "Engineering",
     createdOn: "2023",
     availableFor: "Rental",
     createdBy: "",
@@ -111,6 +111,9 @@ const EquipmentListPage = () => {
       />
       <section className="section-padding small white-gradient-bg2">
         <div className="container">
+          <h3 className="C-heading size-5 color-light extraBold mb-3">
+            Top categories in marine Engineering
+          </h3>
           <div className="row">
             {/* Main Content */}
             <div className="col-12">

@@ -2,12 +2,13 @@ import React from "react";
 import { map as _map } from "lodash-es";
 import "./CategoriesCards.scss";
 import Icon from "../Icon";
+import Image from "next/image";
 
 const data = [
   {
     title: "Shipping",
     id: 1,
-    icon: "local_shipping",
+    icon: "shipping",
     list: [
       "Shipping Companies / Vessel Operators",
       "Ship Management Companies",
@@ -18,7 +19,7 @@ const data = [
   {
     title: "Dredging",
     id: 2,
-    icon: "forklift",
+    icon: "dredging",
     list: [
       "Dredging Contractors",
       "Dredging Equipment Manufacturers",
@@ -29,7 +30,7 @@ const data = [
   {
     title: "Ship building & Marine Engineering",
     id: 3,
-    icon: "directions_boat",
+    icon: "ship-building",
     list: [
       "Shipbuilders & Shipyards",
       "Marine Equipment & Engine Manufacturers",
@@ -40,7 +41,7 @@ const data = [
   {
     title: "Navigation & Communication",
     id: 4,
-    icon: "explore",
+    icon: "navigation",
     list: [
       "Navigation Systems (GPS, ECDIS, Radar, AIS, etc.)",
       "Communication Systems (VHF, GMDSS, INMARSAT)",
@@ -51,7 +52,7 @@ const data = [
   {
     title: "Regulatory, Compliance & Safety",
     id: 5,
-    icon: "assured_workload",
+    icon: "regulatory",
     list: [
       "Maritime Regulatory Bodies (IMO, Flag States)",
       "Classification Societies",
@@ -62,7 +63,7 @@ const data = [
   {
     title: "Education, Training & Research",
     id: 6,
-    icon: "school",
+    icon: "education",
     list: [
       "Maritime Training Institutes & Academies",
       "Marine Simulation Centers",
@@ -95,7 +96,12 @@ const CategoriesCards = () => {
                 >
                   <div className="C-card">
                     <span className="cardCount">
-                      <Icon name={item?.icon} isFilled />
+                      <Image
+                        src={`/assets/images/categoryLogo/${item?.icon}.png`}
+                        alt="My Logo"
+                        width={60}
+                        height={60}
+                      />
                     </span>
                     <h3 className="C-heading size-6 bold color-dark mb-3 font-family-primary">
                       {item?.title}
