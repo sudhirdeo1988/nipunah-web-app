@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { Col, Row, Space, Tag } from "antd";
 import Icon from "../Icon";

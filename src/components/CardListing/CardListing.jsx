@@ -8,6 +8,7 @@ const CardListing = ({
   pageSize = 10,
   loading = false,
   onPageChange,
+  size,
 }) => {
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -43,12 +44,12 @@ const CardListing = ({
       }}
       grid={{
         gutter: 16,
-        xs: 1,
-        sm: 1,
-        md: 2,
-        lg: 2,
-        xl: 2,
-        xxl: 2,
+        xs: size?.xs || 1,
+        sm: size?.sm || 1,
+        md: size?.md || 2,
+        lg: size?.lg || 2,
+        xl: size?.xl || 2,
+        xxl: size?.xxl || 2,
       }}
     />
   );
