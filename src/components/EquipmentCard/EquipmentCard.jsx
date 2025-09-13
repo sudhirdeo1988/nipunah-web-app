@@ -18,7 +18,7 @@ const EquipmentCard = ({ data }) => {
         <div className="col-md-4 col-sm-5 col-xs-12 position-relative">
           <span className="overlayTag">{data?.availableFor}</span>
           <Image
-            src="/assets/images/product-dummy.png"
+            src="/assets/images/equipment_1.jpg"
             alt="My Logo"
             width={220}
             height={160}
