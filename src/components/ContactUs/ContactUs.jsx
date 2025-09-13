@@ -3,72 +3,74 @@ import Icon from "components/Icon/Icon";
 import { Space } from "antd";
 import "./ContactUs.scss";
 
-const ContactUs = () => {
+const ContactUs = ({ hideInfo }) => {
   return (
-    <section className="c-contactUs section-padding">
+    <section className={`c-contactUs ${hideInfo ? "" : "section-padding"}`}>
       <div className="container">
         <div className="row">
-          <div className="col-xl-6 col-lg-6 col-md-12 mt-4">
-            <div className="section-title text-left mb-3">
-              <div className="sub-title gradient-wrapper">
-                <span>CONTACT US</span>
+          {!hideInfo && (
+            <div className="col-xl-6 col-lg-6 col-md-12 mt-4">
+              <div className="section-title text-left mb-3">
+                <div className="sub-title gradient-wrapper">
+                  <span>CONTACT US</span>
+                </div>
+                <h2 className="C-heading size-4 extraBold gradient-text">
+                  To Make Requests for <br />
+                  Further Information, <br />
+                  Contact Us
+                </h2>
               </div>
-              <h2 className="C-heading size-4 extraBold gradient-text">
-                To Make Requests for <br />
-                Further Information, <br />
-                Contact Us
-              </h2>
+              <div className="contact-us-content pt-4 mt-3">
+                <div className="infu-box d-flex align-items-center">
+                  <Space size={12}>
+                    <div className="icon">
+                      <Icon name="add_call" style={{ color: "#1890ff" }} />
+                    </div>
+                    <div className="infu">
+                      <span className="C-heading size-xs semiBold mb-2">
+                        Call Us
+                      </span>
+                      <h3 className="C-heading size-6 semiBold color-dark mb-0">
+                        +69 009 494 094
+                      </h3>
+                    </div>
+                  </Space>
+                </div>
+                <div className="infu-box d-flex align-items-center">
+                  <Space size={12}>
+                    <div className="icon">
+                      <Icon name="distance" style={{ color: "#1890ff" }} />
+                    </div>
+                    <div className="infu">
+                      <span className="C-heading size-xs semiBold mb-2">
+                        Our Location
+                      </span>
+                      <h3 className="C-heading size-6 semiBold color-dark mb-0">
+                        Lorem Ipsum is simply dummy text, <br /> of the printing
+                        and
+                      </h3>
+                    </div>
+                  </Space>
+                </div>
+                <div className="infu-box d-flex align-items-center">
+                  <Space size={12}>
+                    <div className="icon">
+                      <Icon name="mail" style={{ color: "#1890ff" }} />
+                    </div>
+                    <div className="infu">
+                      <span className="C-heading size-xs semiBold mb-2">
+                        Mail Us
+                      </span>
+                      <h3 className="C-heading size-6 semiBold color-dark mb-0">
+                        test@gmail.com
+                      </h3>
+                    </div>
+                  </Space>
+                </div>
+              </div>
             </div>
-            <div className="contact-us-content pt-4 mt-3">
-              <div className="infu-box d-flex align-items-center">
-                <Space size={12}>
-                  <div className="icon">
-                    <Icon name="add_call" style={{ color: "#1890ff" }} />
-                  </div>
-                  <div className="infu">
-                    <span className="C-heading size-xs semiBold mb-2">
-                      Call Us
-                    </span>
-                    <h3 className="C-heading size-6 semiBold color-dark mb-0">
-                      +69 009 494 094
-                    </h3>
-                  </div>
-                </Space>
-              </div>
-              <div className="infu-box d-flex align-items-center">
-                <Space size={12}>
-                  <div className="icon">
-                    <Icon name="distance" style={{ color: "#1890ff" }} />
-                  </div>
-                  <div className="infu">
-                    <span className="C-heading size-xs semiBold mb-2">
-                      Our Location
-                    </span>
-                    <h3 className="C-heading size-6 semiBold color-dark mb-0">
-                      Lorem Ipsum is simply dummy text, <br /> of the printing
-                      and
-                    </h3>
-                  </div>
-                </Space>
-              </div>
-              <div className="infu-box d-flex align-items-center">
-                <Space size={12}>
-                  <div className="icon">
-                    <Icon name="mail" style={{ color: "#1890ff" }} />
-                  </div>
-                  <div className="infu">
-                    <span className="C-heading size-xs semiBold mb-2">
-                      Mail Us
-                    </span>
-                    <h3 className="C-heading size-6 semiBold color-dark mb-0">
-                      test@gmail.com
-                    </h3>
-                  </div>
-                </Space>
-              </div>
-            </div>
-          </div>
-          <div className="col-xl-6 col-lg-6 col-md-12">
+          )}
+          <div className={`${!hideInfo ? "col-xl-6 col-lg-6" : ""} col-md-12`}>
             <div className="contact-right mt-4 mt-md-0">
               <h3 className="C-heading size-5 extraBold color-dark text-center mb-4">
                 Send Your Message!
