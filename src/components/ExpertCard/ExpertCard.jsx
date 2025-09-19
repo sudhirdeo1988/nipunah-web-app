@@ -1,27 +1,13 @@
 import React from "react";
-import {
-  EditOutlined,
-  EllipsisOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
-import { Card } from "antd";
-import Image from "next/image";
+
+import { Avatar, Card, Space } from "antd";
+import Icon from "../Icon";
 const { Meta } = Card;
 
 const ExpertCard = () => {
   return (
-    <>
+    <div classNames="customCard">
       <Card
-        size="small"
-        cover={
-          <Image
-            src="/assets/images/demo-expert-2.webp"
-            alt="My Logo"
-            width={180}
-            height={200}
-            class="img-thumbnail"
-          />
-        }
         actions={[
           <button className="C-settingButton small">
             <i className="bi bi-facebook color-light"></i>
@@ -38,19 +24,37 @@ const ExpertCard = () => {
         ]}
       >
         <Meta
+          avatar={
+            <Avatar
+              size={44}
+              src="https://api.dicebear.com/7.x/miniavs/svg?seed=8"
+              className="border"
+            />
+          }
           title={
             <span className="C-heading size-6 color-primary bold mb-0">
               Expert Name
             </span>
           }
           description={
-            <span className="C-heading size-xs mb-0">
-              This is the description
-            </span>
+            <>
+              <span className="C-heading size-xs mb-2 semiBold">
+                <Space>
+                  <Icon name="account_circle" size="small" isFilled />
+                  Account Manager - 12 years
+                </Space>
+              </span>
+              <span className="C-heading size-xs mb-0">
+                <Space>
+                  <Icon name="location_on" size="small" isFilled />
+                  London, UK
+                </Space>
+              </span>
+            </>
           }
         />
       </Card>
-    </>
+    </div>
   );
 };
 

@@ -15,16 +15,17 @@ const EquipmentCard = ({ data }) => {
         <Icon name="bookmark" className="isPriority" isFilled />
       )}
       <div className="row g-0">
-        <div className="col-md-4 col-sm-5 col-xs-12 position-relative">
+        <div className="col-md-3 col-sm-5 col-xs-12 position-relative">
           <span className="overlayTag">{data?.availableFor}</span>
           <Image
             src="/assets/images/equipment_1.jpg"
             alt="My Logo"
             width={220}
-            height={160}
+            height={152}
+            style={{ width: "100%" }}
           />
         </div>
-        <div className="col-md-8 col-sm-7 col-xs-12 p-3">
+        <div className="col-md-9 col-sm-7 col-xs-12 p-3">
           <h2 className="C-heading size-6 extraBold color-dark mb-1">
             {data?.name}
           </h2>
@@ -39,6 +40,15 @@ const EquipmentCard = ({ data }) => {
               }}
             />
             Year: <strong>{data?.createdOn}</strong>
+            <Divider
+              type="vertical"
+              style={{
+                backgroundColor: "#b1b1b1",
+                width: "2px",
+                margin: "0 12px",
+              }}
+            />
+            Model: <strong>ABC-{data?.createdOn}</strong>
           </span>
           {!_isEmpty(data?.description) && (
             <span className="C-heading size-xs dont-break my-3 color-light text-truncate">
@@ -47,13 +57,21 @@ const EquipmentCard = ({ data }) => {
           )}
 
           <Row gutter={24} className="mb-0">
-            <Col xs={8}>
+            <Col xs={6}>
               <Space align="center" size={6}>
                 <Icon name="settings" className="notifi-icon type-3" />
                 <span className="C-heading size-xs mb-0">{data?.category}</span>
               </Space>
             </Col>
-            <Col xs={8}>
+            <Col xs={6}>
+              <Space align="center" size={6}>
+                <Icon name="location_on" className="notifi-icon type-2" />
+                <span className="C-heading size-xs mb-0">
+                  {data?.location?.state}, {data?.location?.country}
+                </span>
+              </Space>
+            </Col>
+            <Col xs={6}>
               <Space align="center" size={6}>
                 <Icon name="location_on" className="notifi-icon type-2" />
                 <span className="C-heading size-xs mb-0">
@@ -62,12 +80,12 @@ const EquipmentCard = ({ data }) => {
               </Space>
             </Col>
 
-            <Col xs={8} className="text-right">
+            <Col xs={6} className="text-right">
               <button
                 className="C-button small is-link p-0 bold"
                 onClick={() => router.push(`${ROUTES?.PUBLIC?.EQUIPMENT}/123`)}
               >
-                Enquiry
+                View Details
               </button>
             </Col>
           </Row>

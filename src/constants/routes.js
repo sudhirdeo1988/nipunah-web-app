@@ -8,11 +8,9 @@ export const ROUTES = {
     EXPERTS: "/experts",
     COMPANIES: "/company",
     EQUIPMENT: "/equipment",
-  },
-  AUTH: {
-    LOGIN: "/auth/login",
-    SIGNUP: "/auth/signup",
-    FORGOT_PASSWORD: "/auth/forgot-password",
+    LOGIN: "/login",
+    SIGNUP: "/signup",
+    FORGOT_PASSWORD: "/forgot-password",
   },
   PRIVATE: {
     DASHBOARD: "/app/dashboard",

@@ -1,7 +1,7 @@
 "use client"; // ✅ Required for interactive Ant Design components in App Router
 
-import React, { useState } from "react";
-import { Checkbox, Row, Col, Drawer, Space, Tag, Input } from "antd";
+import React from "react";
+import { Checkbox, Row, Col, Tag, Input } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import Icon from "@/components/Icon";
@@ -95,14 +95,127 @@ const data = [
   },
 ];
 
+const EquipmentsFilter = () => {
+  return (
+    <>
+      <div className="p-2 mb-3">
+        <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
+          Segments
+        </span>
+        <Checkbox.Group style={{ width: "100%" }}>
+          <Row gutter={[8, 8]}>
+            <Col span={24}>
+              <Checkbox value="A1">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A2">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A3">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A4">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+          </Row>
+        </Checkbox.Group>
+      </div>
+
+      <div className="p-2 mb-3">
+        <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
+          Categories
+        </span>
+        <Checkbox.Group style={{ width: "100%" }}>
+          <Row gutter={[8, 8]}>
+            <Col span={24}>
+              <Checkbox value="A1">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A2">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A3">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A4">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+          </Row>
+        </Checkbox.Group>
+      </div>
+
+      <div className="p-2 mb-3">
+        <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
+          Country
+        </span>
+        <Checkbox.Group style={{ width: "100%" }}>
+          <Row gutter={[8, 8]}>
+            <Col span={24}>
+              <Checkbox value="A1">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A2">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A3">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+            <Col span={24}>
+              <Checkbox value="A4">
+                <span className="C-heading size-xs semiBold mb-0">
+                  Product Development
+                </span>
+              </Checkbox>
+            </Col>
+          </Row>
+        </Checkbox.Group>
+      </div>
+    </>
+  );
+};
+
 const EquipmentListPage = () => {
-  const [open, setOpen] = useState(false);
-  const showDrawer = () => {
-    setOpen(true);
-  };
-  const onClose = () => {
-    setOpen(false);
-  };
   return (
     <PublicLayout>
       <PageHeadingBanner
@@ -114,26 +227,20 @@ const EquipmentListPage = () => {
           <h3 className="C-heading size-5 color-light extraBold mb-3">
             Top categories in marine Engineering
           </h3>
-          <div className="row">
+          <div className="row g-3">
+            <div className="col-3">
+              <div className="p-3 bg-light h-100">
+                <EquipmentsFilter />
+              </div>
+            </div>
             {/* Main Content */}
-            <div className="col-12">
+            <div className="col-9">
               <div className="v-filter">
                 <div className="row align-items-center">
                   <div className="col-md-3 col-sm-4">
-                    <Space align="center" size={12}>
-                      <button
-                        className="C-button is-filled"
-                        onClick={showDrawer}
-                      >
-                        <Space>
-                          <Icon name="filter_list" color="#ffffff" />
-                          Filters (2)
-                        </Space>
-                      </button>
-                      <span className="C-heading size-xs semiBold mb-0">
-                        <strong>12</strong> Companies
-                      </span>
-                    </Space>
+                    <span className="C-heading size-xs semiBold mb-0">
+                      <strong>12</strong> Equipments
+                    </span>
                   </div>
                   <div className="col-md-7 col-sm-4">
                     <div className="C-tagList">
@@ -158,6 +265,7 @@ const EquipmentListPage = () => {
               <CardListing
                 data={data}
                 CardComponent={EquipmentCard}
+                size={{ xxl: 1, xl: 1, lg: 1, md: 1, sm: 1, xs: 1 }}
                 // loading={loading}
                 // onPageChange={loadCompanies}
               />
@@ -165,89 +273,6 @@ const EquipmentListPage = () => {
           </div>
         </div>
       </section>
-      <Drawer
-        title="Filter Equipments"
-        placement={"left"}
-        onClose={onClose}
-        open={open}
-        key={"left"}
-      >
-        <div className="sidebar-widget">
-          <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
-            Segments
-          </span>
-          <Checkbox.Group style={{ width: "100%" }}>
-            <Row gutter={[8, 8]}>
-              <Col span={24}>
-                <Checkbox value="A1">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-              <Col span={24}>
-                <Checkbox value="A2">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-              <Col span={24}>
-                <Checkbox value="A3">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-              <Col span={24}>
-                <Checkbox value="A4">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-            </Row>
-          </Checkbox.Group>
-        </div>
-
-        <div className="sidebar-widget">
-          <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
-            Categories
-          </span>
-          <Checkbox.Group style={{ width: "100%" }}>
-            <Row gutter={[8, 8]}>
-              <Col span={24}>
-                <Checkbox value="A1">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-              <Col span={24}>
-                <Checkbox value="A2">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-              <Col span={24}>
-                <Checkbox value="A3">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-              <Col span={24}>
-                <Checkbox value="A4">
-                  <span className="C-heading size-xs semiBold mb-0">
-                    Product Development
-                  </span>
-                </Checkbox>
-              </Col>
-            </Row>
-          </Checkbox.Group>
-        </div>
-      </Drawer>
     </PublicLayout>
   );
 };

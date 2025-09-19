@@ -117,7 +117,7 @@ const Footer = () => {
                 </h4>
                 <ul className="list-area">
                   <li>
-                    <Link href={ROUTES.AUTH.LOGIN} className="foolterNavLink">
+                    <Link href={ROUTES.PUBLIC.LOGIN} className="foolterNavLink">
                       <Space size={4}>
                         <CaretRightOutlined />
                         Privacy Policy
@@ -125,7 +125,7 @@ const Footer = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link href={ROUTES.AUTH.LOGIN} className="foolterNavLink">
+                    <Link href={ROUTES.PUBLIC.LOGIN} className="foolterNavLink">
                       <Space size={4}>
                         <CaretRightOutlined />
                         Terms of Service
@@ -133,7 +133,7 @@ const Footer = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link href={ROUTES.AUTH.LOGIN} className="foolterNavLink">
+                    <Link href={ROUTES.PUBLIC.LOGIN} className="foolterNavLink">
                       <Space size={4}>
                         <CaretRightOutlined />
                         Refund Policy
@@ -141,7 +141,7 @@ const Footer = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link href={ROUTES.AUTH.LOGIN} className="foolterNavLink">
+                    <Link href={ROUTES.PUBLIC.LOGIN} className="foolterNavLink">
                       <Space size={4}>
                         <CaretRightOutlined />
                         Legal Disclaimers
@@ -149,7 +149,7 @@ const Footer = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link href={ROUTES.AUTH.LOGIN} className="foolterNavLink">
+                    <Link href={ROUTES.PUBLIC.LOGIN} className="foolterNavLink">
                       <Space size={4}>
                         <CaretRightOutlined />
                         Help & Support
@@ -157,7 +157,7 @@ const Footer = () => {
                     </Link>
                   </li>
                   <li>
-                    <Link href={ROUTES.AUTH.LOGIN} className="foolterNavLink">
+                    <Link href={ROUTES.PUBLIC.LOGIN} className="foolterNavLink">
                       <Space size={4}>
                         <CaretRightOutlined />
                         Maritime Glossary

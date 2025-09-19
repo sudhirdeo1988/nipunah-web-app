@@ -2,11 +2,11 @@ import React from "react";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 
-const PublicLayout = ({ children }) => {
+const PublicLayout = ({ children, hasBgImage }) => {
   return (
-    <div className="page-wrapper">
+    <div className={`page-wrapper ${hasBgImage ? "customImage" : ""}`}>
       <Header />
-      <main>{children}</main>
+      <main className="page-wrapper-body">{children}</main>
       <Footer />
     </div>
   );

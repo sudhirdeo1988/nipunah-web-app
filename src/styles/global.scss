@@ -39,6 +39,7 @@ ul {
   padding: 0;
 }
 body {
+  min-height: 100vh;
   overflow-y: auto;
   height: auto !important;
 
@@ -71,6 +72,8 @@ body {
 
 .section-padding {
   padding: 120px 0;
+  position: relative;
+  z-index: 2;
 
   &.small {
     padding: 40px 0;
@@ -86,11 +89,34 @@ body {
 }
 
 .page-wrapper {
+  display: flex;
+  flex-direction: column;
   position: relative;
   margin: 0 auto;
   width: 100%;
   min-width: 300px;
   overflow: hidden;
+  min-height: 100vh;
+  .page-wrapper-body {
+    flex-grow: 1;
+  }
+
+  &.customImage {
+    position: relative;
+    &::after {
+      background-image: url(/assets/images/bg-banner.svg);
+      background-repeat: no-repeat;
+      background-position: bottom center;
+      background-size: cover;
+      content: "";
+      min-height: 350px;
+      position: absolute;
+      z-index: 0;
+      width: 100%;
+      top: 0;
+      right: 0;
+    }
+  }
 }
 
 .container {
@@ -324,15 +350,6 @@ body {
       transform: translateX(0px);
     }
   }
-}
-
-.sidebar-widget {
-  background-color: $white;
-  border-bottom: 1px solid $border-color;
-  box-sizing: border-box;
-  padding: 12px;
-  margin-bottom: 16px;
-  @include rounded-corners(4px);
 }
 
 .col-padding {

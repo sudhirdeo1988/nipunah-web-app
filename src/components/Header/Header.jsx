@@ -59,7 +59,7 @@ const Header = () => {
                       </li>
                     ))}
                     <li>
-                      <Link href={ROUTES.AUTH.LOGIN}>
+                      <Link href={ROUTES.PUBLIC.LOGIN}>
                         <button className="C-button is-filled">
                           Login/Get Listed
                         </button>
