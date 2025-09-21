@@ -242,7 +242,7 @@ const EquipmentListPage = () => {
                       <strong>12</strong> Equipments
                     </span>
                   </div>
-                  <div className="col-md-7 col-sm-4">
+                  <div className="col-md-6 col-sm-4">
                     <div className="C-tagList">
                       <ul>
                         <li>
@@ -253,7 +253,7 @@ const EquipmentListPage = () => {
                       </ul>
                     </div>
                   </div>
-                  <div className="col-md-2 col-sm-4 text-right">
+                  <div className="col-md-3 col-sm-4 text-right">
                     <Input
                       placeholder="Search Equipment"
                       prefix={<Icon name="search" />}
@@ -265,7 +265,7 @@ const EquipmentListPage = () => {
               <CardListing
                 data={data}
                 CardComponent={EquipmentCard}
-                size={{ xxl: 1, xl: 1, lg: 1, md: 1, sm: 1, xs: 1 }}
+                size={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
                 // loading={loading}
                 // onPageChange={loadCompanies}
               />

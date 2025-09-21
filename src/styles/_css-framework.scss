@@ -1373,7 +1373,6 @@
 .companyCard {
   background: $white;
   border: 1px solid $border-color;
-  padding: 1.2rem;
   position: relative;
   width: 100%;
   font-family: $primary-font;
@@ -1382,10 +1381,12 @@
   @include transition(all ease 0.3s);
   .profileWrapper {
     background-color: $white;
-    display: inline-grid;
-    place-items: center;
-    height: 60px !important;
+    max-height: 100px !important;
     width: 100% !important;
+  }
+
+  &.bg-color {
+    background-color: #fbfbfb;
   }
 
   &:hover {
@@ -1393,13 +1394,14 @@
     cursor: pointer;
   }
   .isPriority {
+    color: $primary-color !important;
+    font-size: 1.2rem !important;
+    height: 20px;
+    left: 0;
     position: absolute;
     top: -4px;
-    left: 0;
-    height: 20px;
     width: 20px;
-    font-size: 1.4rem;
-    color: $primary-color;
+    z-index: 2;
   }
 
   &.type-2 {
@@ -1411,7 +1413,7 @@
       position: absolute;
       top: 10px;
       left: 10px;
-      background-color: rgba(0, 0, 0, 0.4);
+      background-color: rgba(0, 0, 0, 0.6);
       padding: 2px 8px;
       font-size: 0.8rem;
       line-height: normal;
@@ -1440,13 +1442,6 @@
     background: #e6275626;
     box-shadow: 0 0 0 2px #e6275640;
     color: #e62756;
-  }
-}
-
-.customCard {
-  .ant-card-body {
-    background-color: #f8f8f8 !important;
-    @include rounded-corners(0);
   }
 }
 

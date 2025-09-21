@@ -100,6 +100,24 @@ const data = [
     isApplied: false,
     isPaid: false,
   },
+  {
+    id: 27,
+    name: "Company Name Here",
+    description:
+      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
+    logo: "",
+    segment: "Logistics",
+    category: ["Product Development"],
+    createdOn: "1 month ago",
+    createdBy: "",
+    location: {
+      state: "London",
+      country: "UK",
+      address: "",
+    },
+    isApplied: false,
+    isPaid: false,
+  },
 ];
 
 const ExpertsFilter = () => {
@@ -280,7 +298,7 @@ const ExpertsPage = () => {
                   CardComponent={ExpertCard}
                   // loading={loading}
                   // onPageChange={loadCompanies}
-                  size={{ xxl: 3, xl: 3, lg: 3, md: 2, sm: 2, xs: 1 }}
+                  size={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
                 />
               </div>
             </div>

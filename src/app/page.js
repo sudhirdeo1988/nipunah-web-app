@@ -67,7 +67,7 @@ export default function Home() {
         <Partners />
       </motion.div>
 
-      <motion.div
+      {/* <motion.div
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true }}
@@ -75,7 +75,7 @@ export default function Home() {
         variants={fadeInUp}
       >
         <ContactUs />
-      </motion.div>
+      </motion.div> */}
     </PublicLayout>
   );
 }

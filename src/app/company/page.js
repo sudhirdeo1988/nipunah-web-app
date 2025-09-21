@@ -231,7 +231,7 @@ const CompanyListPage = () => {
                       <strong>12</strong> Companies
                     </span>
                   </div>
-                  <div className="col-md-7 col-sm-4">
+                  <div className="col-md-6 col-sm-4">
                     <div className="C-tagList">
                       <ul>
                         <li>
@@ -247,7 +247,7 @@ const CompanyListPage = () => {
                       </ul>
                     </div>
                   </div>
-                  <div className="col-md-2 col-sm-4 text-right">
+                  <div className="col-md-3 col-sm-4 text-right">
                     <Input
                       placeholder="Search Company"
                       prefix={<Icon name="search" />}

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 const CardListing = ({
   data,
   CardComponent,
-  pageSize = 10,
+  pageSize = 20,
   loading = false,
   onPageChange,
   size,
@@ -41,6 +41,7 @@ const CardListing = ({
         pageSize,
         hideOnSinglePage: false,
         showSizeChanger: true,
+        defaultPageSize: pageSize || 20,
       }}
       grid={{
         gutter: 16,

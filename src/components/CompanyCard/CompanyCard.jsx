@@ -12,15 +12,15 @@ import "./CompanyCard.scss";
 const CompanyCard = ({ data }) => {
   const router = useRouter();
   return (
-    <div className="companyCard">
+    <div className="companyCard p-0">
       {data?.isPriority && (
         <Icon name="bookmark" className="isPriority" isFilled />
       )}
-      <div className="row g-3 mb-3 align-items-center">
-        <div className="col-3 text-right">
-          <div className="profileWrapper">
+      <div className="row g-0">
+        <div className="col-md-3 col-sm-5 col-xs-12 position-relative">
+          <div className="profileWrapper px-2 py-3">
             <Image
-              src="/assets/images/logo.png"
+              src="/assets/images/black-logo.png"
               alt="My Logo"
               width={70}
               height={50}
@@ -29,11 +29,11 @@ const CompanyCard = ({ data }) => {
             />
           </div>
         </div>
-        <div className="col-9">
+        <div className="col-md-9 col-sm-7 col-xs-12 p-3 pb-0">
           <h2 className="C-heading size-6 extraBold color-dark mb-1">
             {data?.name}
           </h2>
-          <Row gutter={24} className="mb-1">
+          <Row gutter={24} className="mb-2">
             {!_isEmpty(data?.segment) && (
               <Col align="center">
                 <Space align="center" size={4}>
@@ -44,7 +44,6 @@ const CompanyCard = ({ data }) => {
                 </Space>
               </Col>
             )}
-
             <Col>
               <Space align="center" size={6}>
                 <Icon name="location_on" className="notifi-icon type-2" />
@@ -63,26 +62,28 @@ const CompanyCard = ({ data }) => {
             </Col>
           </Row>
         </div>
-      </div>
-      {!_isEmpty(data?.description) && (
-        <span className="C-heading size-xs dont-break mb-2 color-light text-truncate">
-          {data?.description}
-        </span>
-      )}
-      <div className="row">
-        <div className="col-8">
-          {!_isEmpty(data?.category) &&
-            _map(data?.category, (category) => (
-              <Tag key={category}>{category}</Tag>
-            ))}
-        </div>
-        <div className="col-4 text-right">
-          <button
-            className="C-button small is-link p-0 bold"
-            onClick={() => router.push(`${ROUTES?.PUBLIC?.COMPANIES}/123`)}
-          >
-            View Profile
-          </button>
+        <div className="p-3">
+          {!_isEmpty(data?.description) && (
+            <span className="C-heading size-xs dont-break mb-3 color-light text-truncate">
+              {data?.description}
+            </span>
+          )}
+          <div className="row">
+            <div className="col-8">
+              {!_isEmpty(data?.category) &&
+                _map(data?.category, (category) => (
+                  <Tag key={category}>{category}</Tag>
+                ))}
+            </div>
+            <div className="col-4 text-right">
+              <button
+                className="C-button small is-link p-0 bold"
+                onClick={() => router.push(`${ROUTES?.PUBLIC?.COMPANIES}/123`)}
+              >
+                View Profile
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
