@@ -24,7 +24,7 @@ const ContactPage = () => {
           heading="Contact Us"
           currentPageTitle="List of companies"
         />
-        <section className="section-padding">
+        <section className="section-padding small">
           <div className="container">
             <div className="row">
               <div className="col-md-4 col-sm-12">
