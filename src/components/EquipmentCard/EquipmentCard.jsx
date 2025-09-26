@@ -23,7 +23,7 @@ const EquipmentCard = ({ data }) => {
             width={160}
             height={120}
             style={{ width: "100%" }}
-            class="img-thumbnail border-0 rounded-2"
+            class="img-thumbnail border-0 rounded-2 equipementImage"
           />
         </div>
         <div className="col-md-9 col-sm-7 col-xs-12 p-3">

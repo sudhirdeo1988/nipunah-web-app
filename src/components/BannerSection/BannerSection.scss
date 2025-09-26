@@ -105,22 +105,45 @@
     }
   }
 }
-@media (max-width: 767px) {
+@media (max-width: 920px) {
   .c-topBanner {
+    min-height: auto;
     .hero-content {
       padding: 20px 0;
     }
   }
   .searchContainer {
     .searchInput {
+      background-color: $white;
+      border: 1px solid $border-color;
+      margin-bottom: 24px;
       .ant-input {
-        font-size: 1.4rem;
-        line-height: 1.6rem;
+        font-size: 1.1rem;
+        line-height: 1.4rem;
       }
       .ant-input-prefix {
         padding: 12px;
         .g-icon {
           font-size: 1.4rem;
+        }
+      }
+    }
+
+    .selectInSearch {
+      margin-bottom: 24px;
+      &.ant-select {
+        background-color: $white;
+        border: 1px solid $border-color;
+        height: auto;
+        @include rounded-corners(8px);
+        .ant-select-selector {
+          padding: 8px;
+        }
+        .ant-select-selection-item {
+          text-align: left;
+        }
+        .ant-select-selection-placeholder {
+          text-align: left;
         }
       }
     }

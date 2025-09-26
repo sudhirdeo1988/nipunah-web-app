@@ -1,7 +1,7 @@
 "use client"; // ✅ Required for interactive Ant Design components in App Router
 
 import React, { useState } from "react";
-import { Checkbox, Row, Col, Input, Tag, Drawer } from "antd";
+import { Checkbox, Row, Col, Input, Tag, Drawer, Space } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import Icon from "@/components/Icon";
@@ -205,6 +205,7 @@ const CompanyFilter = () => {
 };
 
 const CompanyListPage = () => {
+  const [openFilterSidebar, setOpenFilterSidebar] = useState(false);
   return (
     <PublicLayout>
       <PageHeadingBanner
@@ -217,13 +218,13 @@ const CompanyListPage = () => {
             Top shipping companies in india
           </h3>
           <div className="row g-3">
-            <div className="col-3">
+            <div className="col-3 d-none d-md-block">
               <div className="p-3 bg-light h-100">
                 <CompanyFilter isSideBar />
               </div>
             </div>
             {/* Main Content */}
-            <div className="col-9">
+            <div className="col-12 col-md-9">
               <div className="v-filter">
                 <div className="row align-items-center">
                   <div className="col-md-3 col-sm-4">
@@ -265,6 +266,21 @@ const CompanyListPage = () => {
             </div>
           </div>
         </div>
+        <button
+          className="C-settingButton d-block d-md-none floatingFilterButton"
+          onClick={() => setOpenFilterSidebar(true)}
+        >
+          <Icon name="filter_alt" />
+        </button>
+        <Drawer
+          title="Filter"
+          placement={"left"}
+          onClose={() => setOpenFilterSidebar(false)}
+          open={openFilterSidebar}
+          key={"left"}
+        >
+          <CompanyFilter isSideBar />
+        </Drawer>
       </section>
     </PublicLayout>
   );

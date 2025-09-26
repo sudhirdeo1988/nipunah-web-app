@@ -1,7 +1,7 @@
 "use client"; // ✅ Required for interactive Ant Design components in App Router
 
-import React from "react";
-import { Checkbox, Row, Col, Tag, Input } from "antd";
+import React, { useState } from "react";
+import { Checkbox, Row, Col, Tag, Input, Drawer } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import Icon from "@/components/Icon";
@@ -216,11 +216,12 @@ const EquipmentsFilter = () => {
 };
 
 const EquipmentListPage = () => {
+  const [openFilterSidebar, setOpenFilterSidebar] = useState(false);
   return (
     <PublicLayout>
       <PageHeadingBanner
-        heading="Companies"
-        currentPageTitle="List of companies"
+        heading="Equipments"
+        currentPageTitle="List of Equipments"
       />
       <section className="section-padding small white-gradient-bg2">
         <div className="container">
@@ -228,13 +229,13 @@ const EquipmentListPage = () => {
             Top categories in marine Engineering
           </h3>
           <div className="row g-3">
-            <div className="col-3">
+            <div className="col-3 d-none d-md-block">
               <div className="p-3 bg-light h-100">
                 <EquipmentsFilter />
               </div>
             </div>
             {/* Main Content */}
-            <div className="col-9">
+            <div className="col-12 col-md-9">
               <div className="v-filter">
                 <div className="row align-items-center">
                   <div className="col-md-3 col-sm-4">
@@ -272,6 +273,22 @@ const EquipmentListPage = () => {
             </div>
           </div>
         </div>
+
+        <button
+          className="C-settingButton d-block d-md-none floatingFilterButton"
+          onClick={() => setOpenFilterSidebar(true)}
+        >
+          <Icon name="filter_alt" />
+        </button>
+        <Drawer
+          title="Filter"
+          placement={"left"}
+          onClose={() => setOpenFilterSidebar(false)}
+          open={openFilterSidebar}
+          key={"left"}
+        >
+          <EquipmentsFilter isSideBar />
+        </Drawer>
       </section>
     </PublicLayout>
   );

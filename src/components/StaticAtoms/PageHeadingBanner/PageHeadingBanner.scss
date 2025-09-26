@@ -4,3 +4,9 @@
   position: relative;
   padding: 120px 0 60px;
 }
+
+@media (max-width: 920px) {
+  .breadcrumb-wrapper {
+    padding: 40px 0;
+  }
+}

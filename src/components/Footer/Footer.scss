@@ -53,3 +53,13 @@
   background-color: $third-color;
   padding: 10px 0;
 }
+
+@media (max-width: 920px) {
+  .footer-wrapper {
+    padding-top: 70px;
+    margin-top: 44px;
+    .footer-widgets-1 {
+      padding: 0;
+    }
+  }
+}

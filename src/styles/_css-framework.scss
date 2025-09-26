@@ -1424,6 +1424,17 @@
   }
 }
 
+@media (max-width: 920px) {
+  .companyCard {
+    .profileWrapper {
+      img {
+        width: auto !important;
+        height: 50px !important;
+      }
+    }
+  }
+}
+
 .notifi-icon {
   font-size: 1rem !important;
   padding: 1px;
@@ -1663,4 +1674,10 @@
   /* Optional for Firefox */
   background-clip: text;
   color: transparent;
+}
+
+.floatingFilterButton {
+  position: fixed;
+  top: 180px;
+  left: 0;
 }

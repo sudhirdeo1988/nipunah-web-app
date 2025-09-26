@@ -141,3 +141,13 @@
     font-size: 1rem;
   }
 }
+
+@media (max-width: 920px) {
+  .brand-logo {
+    padding: 1rem;
+    .C-heading {
+      font-size: 0.8rem;
+      line-height: 1.2rem;
+    }
+  }
+}

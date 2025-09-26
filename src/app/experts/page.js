@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
-import { Checkbox, Row, Col, Input, Tag } from "antd";
+import React, { useState } from "react";
+import { Checkbox, Row, Col, Input, Tag, Drawer } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import Icon from "@/components/Icon";
@@ -241,6 +241,7 @@ const ExpertsFilter = () => {
 };
 
 const ExpertsPage = () => {
+  const [openFilterSidebar, setOpenFilterSidebar] = useState(false);
   return (
     <>
       <PublicLayout>
@@ -254,13 +255,13 @@ const ExpertsPage = () => {
               Top experts in india
             </h3>
             <div className="row">
-              <div className="col-3">
+              <div className="col-3 d-none d-md-block">
                 <div className="p-3 bg-light h-100">
                   <ExpertsFilter />
                 </div>
               </div>
               {/* Main Content */}
-              <div className="col-9">
+              <div className="col-12 col-md-9">
                 <div className="v-filter">
                   <div className="row align-items-center">
                     <div className="col-md-3 col-sm-4">
@@ -303,6 +304,21 @@ const ExpertsPage = () => {
               </div>
             </div>
           </div>
+          <button
+            className="C-settingButton d-block d-md-none floatingFilterButton"
+            onClick={() => setOpenFilterSidebar(true)}
+          >
+            <Icon name="filter_alt" />
+          </button>
+          <Drawer
+            title="Filter"
+            placement={"left"}
+            onClose={() => setOpenFilterSidebar(false)}
+            open={openFilterSidebar}
+            key={"left"}
+          >
+            <ExpertsFilter isSideBar />
+          </Drawer>
         </section>
       </PublicLayout>
     </>

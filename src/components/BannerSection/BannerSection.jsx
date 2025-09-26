@@ -12,7 +12,7 @@ const BannerSection = () => {
         <div className="row">
           <div className="col-12">
             <div className="hero-content text-center">
-              <div className="w-75 mx-auto">
+              <div className="w-md-75 w-sm-100 mx-auto">
                 <h1 className="color-dark dont-break extraBold gradient-text">
                   List. Connect. Grow
                 </h1>

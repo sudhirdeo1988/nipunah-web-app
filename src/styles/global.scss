@@ -119,6 +119,13 @@ body {
   }
 }
 
+@media (max-width: 920px) {
+  .page-wrapper {
+    padding-top: 60px;
+    position: relative;
+  }
+}
+
 .container {
   max-width: 1344px;
 }

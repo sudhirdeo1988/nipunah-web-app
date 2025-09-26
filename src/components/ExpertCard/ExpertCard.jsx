@@ -7,7 +7,7 @@ const ExpertCard = () => {
     <>
       <div className="companyCard p-0">
         <div className="row g-0">
-          <div className="col-md-2 col-sm-5 col-xs-12 text-center py-3">
+          <div className="col-md-2 col-2 text-center py-3">
             <Avatar
               size={54}
               src="https://api.dicebear.com/7.x/miniavs/svg?seed=8"
@@ -15,7 +15,7 @@ const ExpertCard = () => {
               shape="square"
             />
           </div>
-          <div className="col-md-10 col-sm-7 col-xs-12 px-2 py-3">
+          <div className="col-md-10 col-10 py-3">
             <h2 className="C-heading size-6 extraBold color-dark mb-1">
               Expert Name
             </h2>
