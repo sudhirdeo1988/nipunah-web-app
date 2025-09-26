@@ -92,7 +92,7 @@ const SubscriptionPage = () => {
                               {planCard?.plan_name}
                             </h3>
                             {planCard?.most_popular && (
-                              <span class="badge bg-secondary color-white p-2 px-3 rounded-pill">
+                              <span className="badge bg-secondary color-white p-2 px-3 rounded-pill">
                                 Most Popular 🔥
                               </span>
                             )}
