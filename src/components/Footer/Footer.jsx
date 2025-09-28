@@ -21,70 +21,49 @@ const Footer = () => {
     { label: "Contact", href: ROUTES.PUBLIC.CONTACT },
   ];
   return (
-    <footer className="footer-wrapper">
-      <div className="shape-divider">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 1280 140"
-          preserveAspectRatio="none"
-        >
-          <path
-            className="shape-divider-fill"
-            d="M0 51.76c36.21-2.25 77.57-3.58 126.42-3.58 320 0 320 57 640 57 271.15 0 312.58-40.91 513.58-53.4V0H0z"
-            opacity="0.3"
-          ></path>
-          <path
-            className="shape-divider-fill"
-            d="M0 24.31c43.46-5.69 94.56-9.25 158.42-9.25 320 0 320 89.24 640 89.24 256.13 0 307.28-57.16 481.58-80V0H0z"
-            opacity="0.5"
-          ></path>
-          <path
-            className="shape-divider-fill"
-            d="M0 0v3.4C28.2 1.6 59.4.59 94.42.59c320 0 320 84.3 640 84.3 285 0 316.17-66.85 545.58-81.49V0z"
-          ></path>
-        </svg>
-      </div>
+    <footer className="footer-wrapper bg-dark pt-3">
       <div className="container">
         <div className="footer-widgets-1">
           <div className="row g-5">
-            <div className="col-xl-4 col-lg-6">
+            <div className="col-xl-5 col-lg-6">
               <div className="single-footer-widget me-xxl-5 pe-xxl-4">
                 <div className="widget-head mb-3">
                   <Image
                     src="/assets/images/logo.png"
                     alt="My Logo"
                     width={180}
-                    height={60}
+                    height={70}
+                    className="p-2 bg-white rounded"
                   />
                 </div>
                 <div className="footer-content">
-                  <p className="C-heading size-xs color-dark mb-3 semiBold">
+                  <p className="C-heading size-6 color-white mb-3 semiBold">
                     Nipunah.com is the world's first integrated digital platform
                     for the maritime and ocean economy — connecting shipowners,
                     dredging firms, ports, offshore service providers, and
                     marine tech companies.
                   </p>
 
-                  <div className="social-icon d-flex align-items-center mt-3">
-                    <button className="C-settingButton is-clean ">
-                      <i className="bi bi-facebook color-light"></i>
+                  <div className="social-icon d-flex align-items-center mt-3 gap-2">
+                    <button className="C-settingButton rounded">
+                      <i className="bi bi-facebook color-dark"></i>
                     </button>
-                    <button className="C-settingButton is-clean">
-                      <i className="bi bi-linkedin color-light"></i>
+                    <button className="C-settingButton rounded">
+                      <i className="bi bi-linkedin color-dark"></i>
                     </button>
-                    <button className="C-settingButton is-clean">
-                      <i className="bi bi-twitter color-light"></i>
+                    <button className="C-settingButton rounded">
+                      <i className="bi bi-twitter color-dark"></i>
                     </button>
-                    <button className="C-settingButton is-clean">
-                      <i className="bi bi-instagram color-light"></i>
+                    <button className="C-settingButton rounded">
+                      <i className="bi bi-instagram color-dark"></i>
                     </button>
                   </div>
                 </div>
               </div>
             </div>
-            <div className="col-xl-4 col-lg-6">
+            <div className="col-xl-3 col-lg-6">
               <div className="single-footer-widget ms-xxl-2">
-                <h4 className="C-heading size-5 extraBold color-dark mb-3">
+                <h4 className="C-heading size-5 bold color-white mb-3 font-family-creative">
                   Useful Links
                 </h4>
 
@@ -112,7 +91,7 @@ const Footer = () => {
               data-wow-delay="600ms"
             >
               <div className="single-footer-widget ms-xxl-4 ps-xxl-3">
-                <h4 className="C-heading size-5 extraBold color-dark mb-3">
+                <h4 className="C-heading size-5 bold color-white mb-3 font-family-creative">
                   Useful Links
                 </h4>
                 <ul className="list-area">

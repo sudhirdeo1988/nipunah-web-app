@@ -21,7 +21,7 @@
 
 body,
 html {
-  background: $white !important;
+  background: #f8f8f8 !important;
   font-display: swap;
   font-family: $primary-font !important;
   font-weight: 400;
@@ -97,6 +97,9 @@ body {
   min-width: 300px;
   overflow: hidden;
   min-height: 100vh;
+
+  //
+  padding-top: 76px;
   .page-wrapper-body {
     flex-grow: 1;
   }

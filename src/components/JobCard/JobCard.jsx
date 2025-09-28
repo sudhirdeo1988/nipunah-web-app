@@ -1,0 +1,85 @@
+import React from "react";
+import "./JobCard.scss";
+import Icon from "../Icon";
+import { Space, Tag } from "antd";
+import Image from "next/image";
+
+const JobCard = () => {
+  return (
+    <div className="bg-white p-3 shadow-sm rounded">
+      <div className="row g-3 align-items-center">
+        <div className="col-md-3 d-none d-md-block">
+          <div className="border p-3 rounded bg-light">
+            <Image
+              src="/assets/images/logo.png"
+              alt="My Logo"
+              width={70}
+              height={50}
+              className="img-fluid"
+              style={{ width: "100%" }}
+            />
+          </div>
+        </div>
+        <div className="col-md-9 col-sm-12">
+          <h4 className="C-heading size-6 color-light mb-0 semiBold font-family-creative">
+            Company Name
+          </h4>
+          <h3 className="C-heading size-5 mb-1 bold font-family-creative color-primary text-truncate">
+            Senior Marine Engineer
+          </h3>
+          <h3 className="C-heading size-6 color-light mb-3 font-family-creative  text-truncate">
+            Lorem Ipsum is simply dummy text of the printing and typesetting
+            industry.
+          </h3>
+
+          <div className="d-flex flex-row gap-3 align-items-center mb-4">
+            <div>
+              <Space size={4}>
+                <Icon name="location_on" />
+                <span className="C-heading size-xss color-light mb-0">
+                  Chennai, India
+                </span>
+              </Space>
+            </div>
+            <div>
+              <Space size={4}>
+                <Icon name="bookmark_check" />
+                <span className="C-heading size-xss color-light mb-0">
+                  Full Time
+                </span>
+              </Space>
+            </div>
+            <div>
+              <Space size={4}>
+                <Icon name="nest_clock_farsight_analog" />
+                <span className="C-heading size-xss color-light mb-0">
+                  11 months ago
+                </span>
+              </Space>
+            </div>
+          </div>
+
+          <div className="row align-items-center">
+            <div className="col-8">
+              <Space wrap size={4}>
+                <Tag color="blue" className="py-1 px-2 rounded-pill">
+                  volcano
+                </Tag>
+                <Tag color="blue" className="py-1 px-2 rounded-pill">
+                  volcano
+                </Tag>
+              </Space>
+            </div>
+            <div className="col-4 text-right">
+              <button className="C-button is-link p-0 small bold">
+                View Details
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default JobCard;

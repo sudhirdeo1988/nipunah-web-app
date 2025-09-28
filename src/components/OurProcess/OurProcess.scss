@@ -1,103 +1,23 @@
-//
-
 .c-ourProcess {
-  margin: 0 24px;
-  background-color: #f6f5fb;
   position: relative;
-  @include rounded-corners(20px);
 
-  .process-items {
-    grid-template-columns: auto auto auto;
-    padding-top: 70px;
-
-    @include breakpoint(max-xxl) {
-      grid-template-columns: auto auto auto;
-      gap: 30px;
-      justify-content: center !important;
-    }
-
-    @include breakpoint(max-xl) {
-      .single-process-item {
-        width: auto !important;
-      }
-    }
-
-    @include breakpoint(max-lg) {
-      grid-template-columns: auto;
-    }
-
-    .single-process-item {
-      position: relative;
-      z-index: 1;
-      width: 372px;
-
-      .icon {
-        width: 56px;
-        height: 56px;
-        @include icon;
-        background: linear-gradient(
-          84deg,
-          $primary-color 0%,
-          $secondary-color 100%
-        );
-        font-size: 20px;
-        font-weight: 700;
-        color: $white;
-        position: absolute;
-        top: 25px;
-        left: 10px;
-        z-index: 1;
-      }
-
-      &:nth-child(2) {
-        .icon {
-          top: 5px;
-          left: 15px;
-        }
-      }
-
-      @include breakpoint(max-lg) {
-        width: 100%;
-      }
-
-      .image {
-        mask: url('data:image/svg+xml;utf8,<svg viewBox="0 0 372 333" xmlns="http://www.w3.org/2000/svg"><path d="M0 75.1761C0 68.9789 2.87287 63.1318 7.77841 59.3447L79.2515 4.16861C82.7523 1.46598 87.0503 0 91.473 0H352C363.046 0 372 8.95431 372 20V312.34C372 323.385 363.046 332.34 352 332.34H20C8.95431 332.34 0 323.385 0 312.34V75.1761Z" /></svg>');
-        @include mask;
-        height: 332px;
-        mask-size: cover;
-
-        img {
-          @include imgw;
-          object-fit: cover;
-        }
-      }
-    }
-  }
-}
-.process-items-card {
-  position: relative;
-  &::before {
-    position: absolute;
-    top: 36px;
-    left: 0;
-    height: 1px;
-    width: calc(100% + 40px);
-    background-color: $secondary-color;
-    content: "";
-    z-index: 0;
-  }
-  .image {
-    background-color: $white;
-    display: grid;
+  .process-items-card {
     position: relative;
-    place-items: center;
-    height: 70px;
-    width: 70px;
-    @include rounded-corners(100px);
 
-    .g-icon {
-      color: $primary-color;
-      font-size: 2.4rem;
+    .arrow {
+      border: 6px solid #f4f4f4;
+      display: grid;
+      place-items: center;
+      position: absolute;
+      top: calc(50% - 27px);
+      right: -27px;
+      height: 54px;
+      width: 54px;
+      z-index: 2;
+      .g-icon {
+        color: $primary-color;
+        font-size: 2rem;
+      }
     }
   }
 }

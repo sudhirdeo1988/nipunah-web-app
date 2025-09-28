@@ -1428,8 +1428,9 @@
   .companyCard {
     .profileWrapper {
       img {
+        padding: 10px 0 0;
         width: auto !important;
-        height: 50px !important;
+        height: 44px !important;
       }
     }
   }
@@ -1454,6 +1455,42 @@
     box-shadow: 0 0 0 2px #e6275640;
     color: #e62756;
   }
+}
+
+/* -------------------------------------
+                                  🍔 Components - Image with pattern
+                              ------------------------------------- */
+
+.image-with-pattern {
+  place-items: center;
+  width: 110px;
+  height: 110px;
+  margin: 0 auto;
+  display: grid;
+  position: relative;
+  &:before {
+    content: "";
+    z-index: 0;
+    background: url(/assets/images/shape-3.png) center no-repeat;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: -10px;
+    right: -30px;
+  }
+
+  .g-icon {
+    color: $primary-color !important;
+    font-size: 4rem !important;
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.dotted-map-bg {
+  background-image: url("/assets/images/dotted-map.png");
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
 /* -------------------------------------
@@ -1577,6 +1614,9 @@
 .background-highlight {
   background-color: $highlightColor;
 }
+.background-gray-light {
+  background-color: $gray-bg;
+}
 
 .is-truncated {
   padding-right: 10px;
@@ -1595,6 +1635,9 @@
 }
 .font-family-secondary {
   font-family: $secondary-font !important;
+}
+.font-family-creative {
+  font-family: $creative-font !important;
 }
 
 .bg-cover {

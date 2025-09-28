@@ -26,21 +26,32 @@
 }
 
 .cardCount {
-  img {
-    position: absolute;
-    right: -20px;
-    top: -30px;
+  place-items: center;
+  width: 110px;
+  height: 110px;
+  display: grid;
+  position: relative;
+  &:before {
+    content: "";
     z-index: 0;
-    opacity: 0.2;
+    background: rgba(255, 255, 255, 0.1);
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: -10px;
+    right: -30px;
+    border-radius: 45% 55% 55% 45% / 55% 45% 55% 45%;
+  }
+  img {
+    filter: brightness(0) invert(1);
   }
 }
 
 .openCardRow {
   margin: 42px 0;
   .openCardCol {
-    border-top: 1px solid #efecfd; /* default border */
-    border-left: 1px solid #efecfd;
-    padding: 2rem 3rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* default border */
+    border-left: 1px solid rgba(255, 255, 255, 0.1);
   }
   & > .openCardCol:nth-child(-n + 3) {
     border-top: none;

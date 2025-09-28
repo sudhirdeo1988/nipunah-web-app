@@ -10,14 +10,14 @@ const BannerCards = () => {
       title: "Global Maritime Visibility",
       subTitle:
         "Join the fastest-growing digital network for marine suppliers, contractors, and consultants worldwide.",
-      icon: "globe",
+      icon: "public",
     },
     {
       id: 2,
       title: "Showcase Your Expertise",
       subTitle:
         "Highlight services, certifications, past projects, equipment, products, and business strengths effectively.",
-      icon: "verified_user",
+      icon: "person_raised_hand",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
@@ -25,7 +25,7 @@ const BannerCards = () => {
       title: "Build Brand Trust",
       subTitle:
         "Verified badges and client reviews boost your credibility and promote secure partnerships.",
-      icon: "mimo",
+      icon: "handshake",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
@@ -33,7 +33,7 @@ const BannerCards = () => {
       title: "Generate Quality Leads",
       subTitle:
         "Receive direct inquiries and collaboration offers from global maritime clients and partners.",
-      icon: "settings",
+      icon: "approval_delegation",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
@@ -41,7 +41,7 @@ const BannerCards = () => {
       title: "Complete Industry Coverage",
       subTitle:
         "Connect with all maritime sectors—from shipbuilding to tourism—on one comprehensive platform.",
-      icon: "settings",
+      icon: "encrypted_add_circle",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
@@ -49,36 +49,36 @@ const BannerCards = () => {
       title: "Smart Search Filters",
       subTitle:
         "Let buyers find you easily by service type, sector, or global location.",
-      icon: "settings",
+      icon: "search_check_2",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
   ];
 
   return (
-    <section className="c-bannerCards">
-      <div className="row align-items-stretch grid-border border-bottom border-f5">
-        {_map(data, (item, index) => {
-          return (
-            <div
-              className={`col-lg-4 col-sm-6 col-xs-12 col-padding  ${
-                index % 2 !== 0 ? "bg-l" : "bg-d"
-              }`}
-              key={index}
-            >
-              <div className="d-flex flex-column gap-3 single-card-item">
-                <div className="logo">
-                  <Icon name={item?.icon || "mimo"} />
-                </div>
-                <div className="C-heading size-5 bold color-dark mb-0">
-                  {item?.title}
-                </div>
-                <div className="C-heading size-6 color-dark mb-0 info">
-                  {item?.subTitle}
+    <section className="c-bannerCards section-padding small pt-0">
+      <div className="container">
+        <div className="row g-1">
+          {_map(data, (item, index) => {
+            return (
+              <div className={`col-lg-4 col-sm-6 col-xs-12 h-100`} key={index}>
+                <div
+                  className="shadow-sm p-4 bg-white rounded text-center"
+                  key={index}
+                >
+                  <div className="image-with-pattern">
+                    <Icon name={item?.icon || "mimo"} />
+                  </div>
+                  <div className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
+                    {item?.title}
+                  </div>
+                  <div className="C-heading size-6 mb-0 info">
+                    {item?.subTitle}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </section>
   );

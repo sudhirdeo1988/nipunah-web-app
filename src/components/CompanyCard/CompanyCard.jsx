@@ -20,7 +20,7 @@ const CompanyCard = ({ data }) => {
         <div className="col-md-3 col-sm-5 col-xs-12 position-relative">
           <div className="profileWrapper px-2 py-md-3">
             <Image
-              src="/assets/images/black-logo.png"
+              src="/assets/images/logo.png"
               alt="My Logo"
               width={70}
               height={50}

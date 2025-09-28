@@ -75,13 +75,13 @@ const data = [
 
 const CategoriesCards = () => {
   return (
-    <section className="section-padding">
+    <section className="section-padding bg-dark small">
       <div className="container">
         <div className="section-title text-center mb-3">
           <div className="sub-title gradient-wrapper">
             <span>CATEGORIES</span>
           </div>
-          <h2 className="C-heading size-4 extraBold gradient-text">
+          <h2 className="C-heading size-3 extraBold color-white font-family-creative">
             Explore by Category
           </h2>
         </div>
@@ -91,10 +91,10 @@ const CategoriesCards = () => {
             {_map(data, (item) => {
               return (
                 <div
-                  className="col-xl-4 col-md-4 col-sm-2 col-xs-1 openCardCol"
+                  className="col-xl-4 col-md-4 col-sm-2 col-xs-1 openCardCol p-4"
                   key={item?.id}
                 >
-                  <div className="C-card">
+                  <div className="C-card bg-dark">
                     <span className="cardCount">
                       <Image
                         src={`/assets/images/categoryLogo/${item?.icon}.png`}
@@ -103,14 +103,14 @@ const CategoriesCards = () => {
                         height={60}
                       />
                     </span>
-                    <h3 className="C-heading size-6 bold color-dark mb-3 font-family-primary">
+                    <h3 className="C-heading size-5 bold color-white mb-3 font-family-creative">
                       {item?.title}
                     </h3>
                     <ul>
                       {_map(item?.list, (listItem, listIndex) => {
                         return (
                           <li key={listIndex}>
-                            <span className="C-heading size-6 semiBold color-light mb-0 ">
+                            <span className="C-heading size-6 semiBold color-light mb-0">
                               {listItem}
                             </span>
                           </li>

@@ -6,6 +6,7 @@ import CategoriesCards from "@/components/CategoriesCards";
 import ContactUs from "@/components/ContactUs";
 import OurProcess from "@/components/OurProcess";
 import Partners from "@/components/Partners";
+import TopJobsSection from "@/components/TopJobsSection";
 import PublicLayout from "@/layout/PublicLayout";
 import { motion } from "framer-motion";
 
@@ -65,6 +66,16 @@ export default function Home() {
         variants={fadeInUp}
       >
         <Partners />
+      </motion.div>
+
+      <motion.div
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        transition={{ duration: 0.8, delay: 1.0 }}
+        variants={fadeInUp}
+      >
+        <TopJobsSection />
       </motion.div>
 
       {/* <motion.div

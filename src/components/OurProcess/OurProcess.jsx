@@ -10,19 +10,23 @@ const OurProcess = () => {
           <div className="sub-title gradient-wrapper">
             <span>WORKING PROCESS</span>
           </div>
-          <h2 className="C-heading size-5 color-white extraBold color-dark pb-3">
-            We ensure transparency, real-time updates, and quality control at
-            every stage.
+          <h2 className="C-heading size-4 color-white extraBold color-dark pb-3 font-family-creative">
+            We ensure transparency, real-time updates,
+            <br /> and quality control at every stage.
           </h2>
         </div>
-        <div className="row">
-          <div className="col-lg-3 col-sm-6 col-xs-12 align-items-center">
-            <div className="d-flex flex-column gap-4 process-items-card align-items-center">
-              <div className="image border">
-                <Icon name="format_list_numbered" />
+
+        <div className="row g-1">
+          <div className="col-lg-4 col-sm-6 col-xs-12">
+            <div className="process-items-card shadow-sm p-5 bg-white rounded text-center">
+              <div className="arrow rounded-circle bg-white">
+                <Icon name="keyboard_double_arrow_right" />
+              </div>
+              <div className="image-with-pattern">
+                <Icon name="list_alt" />
               </div>
               <div className="text-center">
-                <h4 className="C-heading size-6 bold mb-3 color-dark">
+                <h4 className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
                   List Company
                 </h4>
                 <p className="C-heading size-6 mb-0">
@@ -32,13 +36,16 @@ const OurProcess = () => {
               </div>
             </div>
           </div>
-          <div className="col-lg-3 col-sm-6 col-xs-12 align-items-center">
-            <div className="d-flex flex-column  gap-4 process-items-card align-items-center">
-              <div className="image border">
-                <Icon name="beenhere" />
+          <div className="col-lg-4 col-sm-6 col-xs-12">
+            <div className="process-items-card shadow-sm p-5 bg-white rounded text-center">
+              <div className="arrow rounded-circle bg-white">
+                <Icon name="keyboard_double_arrow_right" />
+              </div>
+              <div className="image-with-pattern">
+                <Icon name="admin_panel_settings" />
               </div>
               <div className="text-center">
-                <h4 className="C-heading size-6 bold mb-3 color-dark">
+                <h4 className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
                   Get Verified
                 </h4>
                 <p className="C-heading size-6 mb-0">
@@ -48,34 +55,18 @@ const OurProcess = () => {
               </div>
             </div>
           </div>
-          <div className="col-lg-3 col-sm-6 col-xs-12 align-items-center">
-            <div className="d-flex flex-column gap-4 process-items-card align-items-center">
-              <div className="image border">
+          <div className="col-lg-4 col-sm-6 col-xs-12">
+            <div className="process-items-card shadow-sm p-5 bg-white rounded text-center">
+              <div className="image-with-pattern">
                 <Icon name="person_search" />
               </div>
               <div className="text-center">
-                <h4 className="C-heading size-6 bold mb-3 color-dark">
+                <h4 className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
                   Be Discovered Globally
                 </h4>
                 <p className="C-heading size-6 mb-0">
                   Increase visibility, attract leads, and showcase your company
                   worldwide.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="col-lg-3 col-sm-6 col-xs-12 align-items-center">
-            <div className="d-flex flex-column gap-4 process-items-card align-items-center">
-              <div className="image border">
-                <Icon name="person_check" />
-              </div>
-              <div className="text-center">
-                <h4 className="C-heading size-6 bold mb-3 color-dark">
-                  List Company
-                </h4>
-                <p className="C-heading size-6 mb-0">
-                  Create your profile and add services, equipment, and products
-                  offered.
                 </p>
               </div>
             </div>

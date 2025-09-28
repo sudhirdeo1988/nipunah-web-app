@@ -1,0 +1,30 @@
+.c-headerBeta {
+  background-color: RGBA(255, 255, 255, 0.9);
+  box-sizing: border-box;
+  top: 0;
+  left: 0;
+  position: fixed;
+  padding: 12px 0;
+  height: 76px;
+  width: 100%;
+  z-index: 99;
+  @include box-shadow(0 0 10px 0 rgba(0, 0, 0, 0.2));
+
+  .headerNav {
+    .navLink {
+      padding: 10px;
+      color: $font-color;
+      text-decoration: none;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      font: 600 0.85rem / 1.1rem $secondary-font;
+      @include transition(all ease 0.3s);
+      @include rounded-corners(4px);
+      &:hover,
+      &.active {
+        background-color: $primary-color;
+        color: $white;
+      }
+    }
+  }
+}

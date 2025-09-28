@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Divider, Collapse } from "antd";
+import { Divider, Collapse, Select } from "antd";
 import Image from "next/image";
 import {
   map as _map,
@@ -125,21 +125,21 @@ const Partners = () => {
     if (!selectedCategory) return <p>Please select a category</p>;
 
     return (
-      <div className="row g-0">
+      <div className="row g-3">
         {_map(selectedCategory.list, (item, idx) => (
           <div className="col-6 col-lg-4 col-xl-4" key={idx}>
-            <div className="brand-logo">
-              <div className="logo">
+            <div className="bg-white rounded shadow-sm text-center">
+              <div className="py-4 border-bottom">
                 <Image
-                  src="/assets/images/01.png"
+                  src="/assets/images/logo.png"
                   alt={item}
-                  width={160}
-                  height={40}
+                  width={150}
+                  height={50}
                 />
               </div>
               <p
-                className="C-heading size-6 semiBold mb-0 dont-break"
-                style={{ height: 40 }}
+                className="C-heading size-6 semiBold mb-0 dont-break p-3 font-family-creative"
+                style={{ height: 80 }}
               >
                 {item}
               </p>
@@ -151,107 +151,112 @@ const Partners = () => {
   }, [selectedCategory]);
 
   return (
-    <div className="C-partners section-padding pb-0">
-      <div className="container">
-        {/* ✅ Section Header */}
-        <div className="section-title text-center mb-3">
-          <div className="sub-title gradient-wrapper">
-            <span>PARTNERS</span>
+    <>
+      <div className="section-padding background-gray-light dotted-map-bg">
+        <div className="container">
+          {/* ✅ Section Header */}
+          <div className="section-title text-center mb-4">
+            <div className="sub-title gradient-wrapper">
+              <span>PARTNERS</span>
+            </div>
+            <h2 className="C-heading size-4 extraBold color-dark font-family-creative">
+              Discover top maritime companies
+            </h2>
           </div>
-          <h2 className="C-heading size-4 extraBold gradient-text">
-            Discover top maritime companies
-          </h2>
-        </div>
 
-        {/* ✅ Sidebar + Content */}
-        <div className="nestedAccordianTabs">
-          <div className="row g-0">
-            {/* ✅ Sidebar */}
-            <div className="col-lg-3 col-md-4 col-sm-5 col-xs-12 border-end ">
-              {_map(data, (category) =>
-                !_isEmpty(category?.children) ? (
-                  <Collapse
-                    accordion
-                    bordered={false}
-                    key={category.id}
-                    expandIconPosition="end"
-                    className={`${
-                      activeCategory?.id === category.id ? "active" : ""
-                    }`}
-                    expandIcon={({ isActive }) => (
-                      <Icon
-                        name={isActive ? "arrow_drop_down" : "arrow_right"}
-                      />
-                    )}
-                  >
-                    <Panel
+          {/* ✅ Sidebar + Content */}
+          <div className="nestedAccordianTabs">
+            <div className="row g-4">
+              {/* ✅ Sidebar */}
+              <div className="col-lg-3 col-md-4 col-sm-5 col-xs-12 p-2 bg-white rounded shadow-sm">
+                {_map(data, (category) =>
+                  !_isEmpty(category?.children) ? (
+                    <Collapse
+                      accordion
+                      bordered={false}
                       key={category.id}
-                      header={
-                        <div
-                          className={`C-heading size-6 semiBold color-dark font-family-primary mb-0 dont-break ${
-                            activeCategory?.id === category.id ? "active" : ""
-                          }`}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onSelectCategory(category);
-                          }}
-                        >
-                          {category.title}
-                        </div>
-                      }
+                      expandIconPosition="end"
+                      className={`${
+                        activeCategory?.id === category.id ? "active" : ""
+                      }`}
+                      expandIcon={({ isActive }) => (
+                        <Icon
+                          name={isActive ? "arrow_drop_down" : "arrow_right"}
+                        />
+                      )}
                     >
-                      {_map(category.children, (child) => (
-                        <button
-                          className={`navButton ${
-                            activeCategory?.id === child.id ? "active" : ""
-                          }`}
-                          onClick={() => onSelectCategory(child)}
-                          key={child.id}
-                        >
-                          <span
-                            className={`C-heading size-xs semiBold color-dark font-family-primary mb-0 dont-break ps-2`}
+                      <Panel
+                        key={category.id}
+                        header={
+                          <div
+                            className={`C-heading size-6 semiBold color-dark font-family-creative mb-0 dont-break ${
+                              activeCategory?.id === category.id ? "active" : ""
+                            }`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onSelectCategory(category);
+                            }}
                           >
-                            {child.title}
-                          </span>
-                        </button>
-                      ))}
-                    </Panel>
-                  </Collapse>
-                ) : (
-                  <button
-                    key={category.id}
-                    onClick={() => onSelectCategory(category)}
-                    className={`navButton ${
-                      activeCategory?.id === category.id ? "active" : ""
-                    }`}
-                  >
-                    <span className="C-heading size-6 semiBold color-dark font-family-primary mb-0 dont-break">
-                      {category.title}
-                    </span>
-                  </button>
-                )
-              )}
-            </div>
+                            {category.title}
+                          </div>
+                        }
+                      >
+                        {_map(category.children, (child) => (
+                          <button
+                            className={`navButton ${
+                              activeCategory?.id === child.id ? "active" : ""
+                            }`}
+                            onClick={() => onSelectCategory(child)}
+                            key={child.id}
+                          >
+                            <span
+                              className={`C-heading size-xs semiBold color-dark font-family-creative mb-0 dont-break ps-2`}
+                            >
+                              {child.title}
+                            </span>
+                          </button>
+                        ))}
+                      </Panel>
+                    </Collapse>
+                  ) : (
+                    <button
+                      key={category.id}
+                      onClick={() => onSelectCategory(category)}
+                      className={`navButton ${
+                        activeCategory?.id === category.id ? "active" : ""
+                      }`}
+                    >
+                      <span className="C-heading size-6 semiBold color-dark font-family-creative mb-0 dont-break">
+                        {category.title}
+                      </span>
+                    </button>
+                  )
+                )}
+              </div>
 
-            {/* ✅ Content */}
-            <div className="col-lg-9 col-md-8 col-sm-7 col-xs-12">
-              {renderLogos()}
+              {/* ✅ Content */}
+              <div className="col-lg-9 col-md-8 col-sm-7 col-xs-12">
+                {renderLogos()}
+              </div>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ✅ Logo Slider */}
-        <Divider>
-          <span className="C-heading size-5 extraBold">
-            Newly Onboarded Companies
-          </span>
-        </Divider>
-      </div>
-      <div className="mb-2">
-        <MarqueeSlider direction="left" speed={35} />
-      </div>
-      <MarqueeSlider direction="right" speed={35} />
-    </div>
+      {/* <div className="section-padding ">
+        <div className="container">
+          <Divider>
+            <span className="C-heading size-5 extraBold">
+              Newly Onboarded Companies
+            </span>
+          </Divider>
+          <div className="mb-2">
+            <MarqueeSlider direction="left" speed={35} />
+          </div>
+          <MarqueeSlider direction="right" speed={35} />
+        </div>
+      </div> */}
+    </>
   );
 };
 

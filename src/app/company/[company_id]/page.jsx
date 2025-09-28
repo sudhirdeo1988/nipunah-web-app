@@ -42,7 +42,7 @@ const AboutCompany = () => {
         <div className="col-md-4 col-sm-6 col-xs-12 ">
           <div className="p-3 border rounded-3 mb-3 text-center">
             <Image
-              src="/assets/images/black-logo.png"
+              src="/assets/images/logo.png"
               alt="My Logo"
               width={180}
               height={60}
@@ -53,7 +53,7 @@ const AboutCompany = () => {
         <div className="col-md-4 col-sm-6 col-xs-12">
           <div className="p-3 border rounded-3 mb-3">
             <Image
-              src="/assets/images/black-logo.png"
+              src="/assets/images/logo.png"
               alt="My Logo"
               width={180}
               height={60}
@@ -64,7 +64,7 @@ const AboutCompany = () => {
         <div className="col-md-4 col-sm-6 col-xs-12">
           <div className="p-3 border rounded-3 mb-3">
             <Image
-              src="/assets/images/black-logo.png"
+              src="/assets/images/logo.png"
               alt="My Logo"
               width={180}
               height={60}
@@ -75,7 +75,7 @@ const AboutCompany = () => {
         <div className="col-md-4 col-sm-6 col-xs-12">
           <div className="p-3 border rounded-3 mb-3">
             <Image
-              src="/assets/images/black-logo.png"
+              src="/assets/images/logo.png"
               alt="My Logo"
               width={180}
               height={60}
@@ -652,7 +652,7 @@ const CompanyDetails = () => {
                 <div class="d-flex gap-3 mb-4">
                   <div className="p-3 border rounded-3 mb-3">
                     <Image
-                      src="/assets/images/black-logo.png"
+                      src="/assets/images/logo.png"
                       alt="My Logo"
                       width={160}
                       height={50}

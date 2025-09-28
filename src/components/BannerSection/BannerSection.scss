@@ -3,37 +3,39 @@
 .c-topBanner {
   background-color: #f8f9fa;
   position: relative;
-  min-height: 100vh;
+  min-height: calc(100vh - 72px);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: url("/assets/images/3.jpg") bottom no-repeat;
-  background-size: cover;
+  // background: url("/assets/images/3.jpg") bottom no-repeat;
+  // background-size: cover;
 
-  &::before {
-    content: "";
-    position: absolute;
-    display: block;
-    top: 20%;
-    left: 100%;
-    width: 110%;
-    height: 100%;
-    background-size: 12px 12px;
-    background-position: center;
-    transform: translate(-50%, -50%);
-    background-image: radial-gradient(rgba(0, 0, 0, 0.2) 14%, transparent 14%);
-    -webkit-mask-image: radial-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 75%);
-    mask-image: radial-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 75%);
-    z-index: 0;
-  }
+  // &::before {
+  //   content: "";
+  //   position: absolute;
+  //   display: block;
+  //   top: 20%;
+  //   left: 100%;
+  //   width: 110%;
+  //   height: 100%;
+  //   background-size: 12px 12px;
+  //   background-position: center;
+  //   transform: translate(-50%, -50%);
+  //   background-image: radial-gradient(rgba(0, 0, 0, 0.2) 14%, transparent 14%);
+  //   -webkit-mask-image: radial-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 75%);
+  //   mask-image: radial-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 75%);
+  //   z-index: 0;
+  // }
 
   .hero-content {
+    position: relative;
+    z-index: 2;
     @include breakpoint(max-xl) {
       padding-bottom: 0;
     }
 
     h1 {
-      font-size: 2.4rem;
+      font-size: 3rem;
       font-weight: 600;
       line-height: 3.2rem;
       margin-bottom: 24px;
@@ -48,24 +50,39 @@
       }
     }
   }
+
+  &::after {
+    background-color: #ecedf2;
+    position: absolute;
+    height: calc(100% - 120px);
+    width: 80%;
+    top: 60px;
+    left: 0;
+    content: "";
+    z-index: 0;
+    @include rounded-corners(0 60px 60px 0);
+  }
 }
 
 .searchContainer {
+  background-color: $white;
+  border: 1px solid #ecedf2;
   margin: 24px auto;
-  padding: 18px 0;
+  padding: 8px 0;
   width: 100%;
+  @include box-shadow(0 7px 18px rgba(64, 79, 104, 0.05));
   @include rounded-corners(10px);
 
   & > div:not(:last-child) {
     position: relative;
     &::after {
       position: absolute;
-      top: calc(50% - 10px);
+      top: 10%;
       right: 0;
-      height: 20px;
+      height: 80%;
       content: "";
-      width: 2px;
-      background-color: $secondary-color;
+      width: 1px;
+      background-color: $border-color;
     }
   }
 
@@ -74,11 +91,21 @@
 
     &.ant-select {
       width: 100%;
+      .ant-select-selector {
+        padding: 0;
+      }
+      .ant-select-prefix {
+        .g-icon {
+          color: $font-color-light;
+          font-size: 2rem;
+        }
+      }
       .ant-select-selection-item {
-        font: 400 1.1rem/1.2rem $primary-font;
+        font: 500 0.95rem/1rem $primary-font;
       }
       .ant-select-selection-placeholder {
-        font: 500 1rem/1.1rem $primary-font;
+        color: $font-color-light;
+        font: 500 0.95rem/1rem $primary-font;
       }
     }
   }
@@ -90,17 +117,16 @@
     @include box-shadow(none);
 
     .ant-input {
-      font: 400 1.1rem/1.2rem $primary-font;
+      font: 500 0.95rem/1rem $primary-font;
       &::placeholder {
         color: $font-color-light;
       }
     }
 
     .ant-input-prefix {
-      padding: 0 4px;
       .g-icon {
-        color: $secondary-color;
-        font-size: 2rem;
+        color: $font-color-light;
+        font-size: 1.8rem;
       }
     }
   }
@@ -147,5 +173,36 @@
         }
       }
     }
+  }
+}
+
+.bannerImage {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  min-height: 400px;
+  min-width: 400px;
+  img {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 2;
+    top: 0;
+    right: -20px;
+  }
+
+  .content-1,
+  .content-2 {
+    position: absolute;
+    top: 40px;
+    left: -40px;
+    width: 200px;
+    z-index: 2;
+  }
+  .content-2 {
+    top: auto;
+    bottom: 40px;
+    left: auto;
+    right: -40px;
   }
 }

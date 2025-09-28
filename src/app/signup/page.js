@@ -18,6 +18,7 @@ import {
 } from "antd";
 import Icon from "@/components/Icon";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 
 const { TextArea } = Input;
 
@@ -72,37 +73,36 @@ const SignUpPage = () => {
   }, [isLoggedIn]);
 
   return (
-    <PublicLayout hasBgImage>
-      <section className="section-padding">
+    <PublicLayout>
+      <PageHeadingBanner
+        heading="Register a company"
+        currentPageTitle="List of Equipments"
+      />
+      <section className="section-padding small">
         <div className="container">
           <div className="row justify-content-center">
-            <div className="col-xl-8 col-md-10 col-sm-12">
+            <div className="col-xl-10 col-md-12 col-sm-12">
               <div className="bg-white shadow p-4 mt-4 rounded-3">
-                <h3 className="C-heading size-5 extraBold mb-1 color-dark">
-                  Register a company
-                </h3>
-                <span className="C-heading size-6 color-light mb-3">
-                  Lorem Ipsum is simply dummy text of the printing and
-                  typesetting industry. Lorem Ipsum has been the industry's
-                  standard dummy text ever since the 1500s
-                </span>
                 <Form
                   name="layout-multiple-horizontal"
                   form={form}
                   layout="vertical"
                   autoComplete="off"
                 >
-                  <h4 className="C-heading size-xs extraBold color-dark mb-0">
-                    Company Details
-                  </h4>
                   <Divider
                     style={{
-                      backgroundColor: "#e1e1e1ff",
-                      margin: "10px 0",
+                      borderColor: "#e1e1e1ff",
+                      marginBottom: "24px",
                     }}
-                  />
+                    orientation="left"
+                    orientationMargin="0"
+                  >
+                    <h4 className="C-heading size-xs extraBold color-dark mb-0">
+                      Company Details
+                    </h4>
+                  </Divider>
                   <div className="row g-3 mb-4">
-                    <div className="col-sm-6 col-xs-12">
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
                           <span className="C-heading size-xss color-light mb-0">
@@ -122,7 +122,7 @@ const SignUpPage = () => {
                         <Input placeholder="input placeholder" size="large" />
                       </Form.Item>
                     </div>
-                    <div className="col-sm-6 col-xs-12">
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
                           <span className="C-heading size-xss color-light mb-0">
@@ -141,7 +141,111 @@ const SignUpPage = () => {
                         <Input placeholder="input placeholder" size="large" />
                       </Form.Item>
                     </div>
-                    <div className="col-sm-6 col-xs-12">
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
+                      <Form.Item
+                        label={
+                          <span className="C-heading size-xss color-light mb-0">
+                            Company found year
+                          </span>
+                        }
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter company title.",
+                          },
+                        ]}
+                        required
+                        className="mb-0"
+                      >
+                        <DatePicker
+                          onChange={onChangeFoundYear}
+                          picker="year"
+                          className="w-100"
+                          size="large"
+                        />
+                      </Form.Item>
+                    </div>
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
+                      <Form.Item
+                        label={
+                          <span className="C-heading size-xss color-light mb-0">
+                            Website URL
+                          </span>
+                        }
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter company website URL.",
+                          },
+                        ]}
+                        required
+                        className="mb-0"
+                      >
+                        <Input placeholder="Turnover" size="large" />
+                      </Form.Item>
+                    </div>
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
+                      <Form.Item
+                        label={
+                          <span className="C-heading size-xss color-light mb-0">
+                            Phone Number
+                          </span>
+                        }
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter company Phone Number.",
+                          },
+                        ]}
+                        required
+                        className="mb-0"
+                      >
+                        <Input placeholder="Phone Number" size="large" />
+                      </Form.Item>
+                    </div>
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
+                      <Form.Item
+                        label={
+                          <span className="C-heading size-xss color-light mb-0">
+                            Contact Email
+                          </span>
+                        }
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter company Contact Email.",
+                          },
+                        ]}
+                        required
+                        className="mb-0"
+                      >
+                        <Input placeholder="Contact Email" size="large" />
+                      </Form.Item>
+                    </div>
+                    <div className="col-xl-8 col-md-8 col-sm-12 col-xs-12">
+                      <Form.Item
+                        label={
+                          <span className="C-heading size-xss color-light mb-0">
+                            About company
+                          </span>
+                        }
+                        rules={[
+                          {
+                            required: true,
+                            message: "Please enter company title.",
+                          },
+                        ]}
+                        required
+                        className="mb-0"
+                      >
+                        <TextArea
+                          rows={3}
+                          placeholder="About company"
+                          maxLength={6}
+                        />
+                      </Form.Item>
+                    </div>
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
                           <span className="C-heading size-xss color-light mb-0">
@@ -168,63 +272,21 @@ const SignUpPage = () => {
                         </Upload>
                       </Form.Item>
                     </div>
-                    <div className="col-sm-6 col-xs-12">
-                      <Form.Item
-                        label={
-                          <span className="C-heading size-xss color-light mb-0">
-                            Company found year
-                          </span>
-                        }
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter company title.",
-                          },
-                        ]}
-                        required
-                        className="mb-0"
-                      >
-                        <DatePicker
-                          onChange={onChangeFoundYear}
-                          picker="year"
-                          className="w-100"
-                          size="large"
-                        />
-                      </Form.Item>
-                    </div>
-                    <div className="col-sm-12 col-xs-12">
-                      <Form.Item
-                        label={
-                          <span className="C-heading size-xss color-light mb-0">
-                            About company
-                          </span>
-                        }
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter company title.",
-                          },
-                        ]}
-                        required
-                        className="mb-0"
-                      >
-                        <TextArea
-                          rows={3}
-                          placeholder="About company"
-                          maxLength={6}
-                        />
-                      </Form.Item>
-                    </div>
                   </div>
-                  <h4 className="C-heading size-xs extraBold color-dark mb-0">
-                    Company Categories
-                  </h4>
+
                   <Divider
                     style={{
-                      backgroundColor: "#e1e1e1ff",
-                      margin: "10px 0",
+                      borderColor: "#e1e1e1ff",
+                      marginBottom: "24px",
                     }}
-                  />
+                    orientation="left"
+                    orientationMargin="0"
+                  >
+                    <h4 className="C-heading size-xs extraBold color-dark mb-0">
+                      Company Categories
+                    </h4>
+                  </Divider>
+
                   <div className="row align-items-center g-3">
                     <Form.List name="categories">
                       {(fields, { add, remove }) => (
@@ -346,17 +408,22 @@ const SignUpPage = () => {
                       )}
                     </Form.List>
                   </div>
-                  <h4 className="C-heading size-xs extraBold color-dark mb-0">
-                    Company Details
-                  </h4>
+
                   <Divider
                     style={{
-                      backgroundColor: "#e1e1e1ff",
-                      margin: "10px 0",
+                      borderColor: "#e1e1e1ff",
+                      marginBottom: "24px",
                     }}
-                  />
+                    orientation="left"
+                    orientationMargin="0"
+                  >
+                    <h4 className="C-heading size-xs extraBold color-dark mb-0">
+                      Company Details
+                    </h4>
+                  </Divider>
+
                   <div className="row g-3 mb-4">
-                    <div className="col-sm-6 col-xs-12">
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
                           <span className="C-heading size-xss color-light mb-0">
@@ -368,7 +435,7 @@ const SignUpPage = () => {
                         <Input placeholder="Employees Count" size="large" />
                       </Form.Item>
                     </div>
-                    <div className="col-sm-6 col-xs-12">
+                    <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
                           <span className="C-heading size-xss color-light mb-0">
@@ -379,63 +446,6 @@ const SignUpPage = () => {
                         tooltip="As per Company Registration Certificate"
                       >
                         <Input placeholder="Turnover" size="large" />
-                      </Form.Item>
-                    </div>
-                    <div className="col-sm-6 col-xs-12">
-                      <Form.Item
-                        label={
-                          <span className="C-heading size-xss color-light mb-0">
-                            Website URL
-                          </span>
-                        }
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter company website URL.",
-                          },
-                        ]}
-                        required
-                        className="mb-0"
-                      >
-                        <Input placeholder="Turnover" size="large" />
-                      </Form.Item>
-                    </div>
-                    <div className="col-sm-6 col-xs-12">
-                      <Form.Item
-                        label={
-                          <span className="C-heading size-xss color-light mb-0">
-                            Phone Number
-                          </span>
-                        }
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter company Phone Number.",
-                          },
-                        ]}
-                        required
-                        className="mb-0"
-                      >
-                        <Input placeholder="Phone Number" size="large" />
-                      </Form.Item>
-                    </div>
-                    <div className="col-sm-6 col-xs-12">
-                      <Form.Item
-                        label={
-                          <span className="C-heading size-xss color-light mb-0">
-                            Contact Email
-                          </span>
-                        }
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please enter company Contact Email.",
-                          },
-                        ]}
-                        required
-                        className="mb-0"
-                      >
-                        <Input placeholder="Contact Email" size="large" />
                       </Form.Item>
                     </div>
                   </div>

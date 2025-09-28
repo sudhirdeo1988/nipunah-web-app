@@ -1,4 +1,4 @@
-import { Roboto, Montserrat } from "next/font/google";
+import { Roboto, Montserrat, Jost } from "next/font/google";
 import { AuthProvider } from "@/utilities/AuthContext";
 import "@/styles/global.scss";
 
@@ -16,6 +16,12 @@ export const montserrat = Montserrat({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
 });
+export const jost = Jost({
+  variable: "--font-jost",
+  subsets: ["latin"],
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
+  display: "swap",
+});
 
 export const metadata = {
   title: "Nipunah",
@@ -25,7 +31,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className={`${roboto.variable} ${montserrat.variable}`}>
+      <body
+        className={`${roboto.variable} ${montserrat.variable} ${jost.variable}`}
+      >
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

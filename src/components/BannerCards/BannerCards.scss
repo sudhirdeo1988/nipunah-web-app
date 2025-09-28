@@ -2,27 +2,7 @@
 
 .c-bannerCards {
   position: relative;
-
-  .single-card-item {
-    .logo {
-      display: grid;
-      place-items: center;
-      height: 60px;
-      width: 60px;
-      .g-icon {
-        color: $secondary-color;
-        font-size: 4rem;
-      }
-    }
-    .info {
-      height: 74px;
-    }
+  .info {
+    height: 74px;
   }
-}
-
-.bg-l {
-  background-color: $white;
-}
-.bg-d {
-  background-color: #f6f5fb;
 }
