@@ -124,7 +124,7 @@ body {
 
 @media (max-width: 920px) {
   .page-wrapper {
-    padding-top: 60px;
+    padding-top: 76px;
     position: relative;
   }
 }
@@ -368,11 +368,4 @@ body {
 
 .pattern-3 {
   background: url("/assets/images/pattern-3.webp") right center no-repeat;
-}
-.v-filter {
-  background-color: $white;
-  border: 1px solid $border-color;
-  padding: 12px;
-  margin-bottom: 24px;
-  @include rounded-corners(8px);
 }

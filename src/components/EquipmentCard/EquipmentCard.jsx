@@ -1,70 +1,73 @@
 import React from "react";
-import { Col, Divider, Row, Space } from "antd";
+import { Space, Tag, Badge } from "antd";
 import Icon from "../Icon";
 import { isEmpty as _isEmpty, map as _map } from "lodash-es";
 import Image from "next/image";
 import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
-import "./EquipmentCard.scss";
 
-const EquipmentCard = ({ data }) => {
+const EquipmentCard = () => {
   const router = useRouter();
   return (
-    <div className="companyCard type-2">
-      {data?.isPriority && (
-        <Icon name="bookmark" className="isPriority" isFilled />
-      )}
-      <div className="row g-0 align-items-center">
-        <div className="col-md-3 col-sm-5 col-xs-12 position-relative">
-          <span className="overlayTag">{data?.availableFor}</span>
-          <Image
-            src="/assets/images/equipment_1.jpg"
-            alt="My Logo"
-            width={160}
-            height={120}
-            style={{ width: "100%" }}
-            class="img-thumbnail border-0 rounded-2 equipementImage"
-          />
-        </div>
-        <div className="col-md-9 col-sm-7 col-xs-12 p-3">
-          <h2 className="C-heading size-6 extraBold color-dark mb-1">
-            {data?.name}
-          </h2>
-          <span className="C-heading size-xss dont-break mb-2 color-light semiBold">
-            Type: <strong>{data?.type}</strong>
-            <Divider
-              type="vertical"
-              style={{
-                backgroundColor: "#b1b1b1",
-                width: "2px",
-                margin: "0 12px",
-              }}
+    <div className="bg-white p-2 shadow-sm rounded">
+      <div className="row g-3 align-items-center">
+        <div className="col-md-3 d-none d-md-block">
+          <Badge.Ribbon text="Rent" color="red" style={{ right: "-4px" }}>
+            <Image
+              src="/assets/images/equipment_1.jpg"
+              alt="My Logo"
+              width={160}
+              height={120}
+              style={{ width: "100%", height: "100%" }}
+              className="rounded p-1"
             />
-            Year: <strong>{data?.createdOn}</strong>
-          </span>
-          {!_isEmpty(data?.description) && (
-            <span className="C-heading size-xs dont-break mb-3 color-light text-truncate">
-              {data?.description}
-            </span>
-          )}
+          </Badge.Ribbon>
+        </div>
+        <div className="col-md-9 col-sm-12 px-2">
+          <h3 className="C-heading size-5 mb-1 bold font-family-creative color-primary text-truncate">
+            Equipment Name Here
+          </h3>
+          <h3 className="C-heading size-6 color-light mb-3 font-family-creative  text-truncate">
+            Lorem Ipsum is simply dummy text of the printing and typesetting
+            industry.
+          </h3>
 
-          <Row gutter={24} className="mb-0">
-            <Col xs={16}>
-              <Space align="center" size={6}>
-                <Icon name="settings" className="notifi-icon type-3" />
-                <span className="C-heading size-xs mb-0">{data?.category}</span>
+          <div className="d-flex flex-row gap-3 align-items-center mb-3">
+            <div>
+              <Space size={4}>
+                <Icon name="location_on" />
+                <span className="C-heading size-xs color-light mb-0">
+                  Type: <strong>Ship Building</strong>
+                </span>
               </Space>
-            </Col>
+            </div>
+            <div>
+              <Space size={4}>
+                <Icon name="nest_clock_farsight_analog" />
+                <span className="C-heading size-xs color-light mb-0">
+                  Year:<strong>2023</strong>
+                </span>
+              </Space>
+            </div>
+          </div>
 
-            <Col xs={8} className="text-right">
+          <div className="row align-items-center">
+            <div className="col-8">
+              <Space wrap size={4}>
+                <Tag color="gold" className="rounded">
+                  Shipping
+                </Tag>
+              </Space>
+            </div>
+            <div className="col-4 text-right">
               <button
-                className="C-button small is-link p-0 bold"
-                onClick={() => router.push(`${ROUTES?.PUBLIC?.EQUIPMENT}/123`)}
+                className="C-button is-link p-0 small bold"
+                onClick={() => router.push(`${ROUTES?.PUBLIC?.COMPANIES}/123`)}
               >
                 View Details
               </button>
-            </Col>
-          </Row>
+            </div>
+          </div>
         </div>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import React from "react";
-import "./JobCard.scss";
 import Icon from "../Icon";
 import { Space, Tag } from "antd";
 import Image from "next/image";
+import "./JobCard.scss";
 
 const JobCard = () => {
   return (
@@ -21,22 +21,22 @@ const JobCard = () => {
           </div>
         </div>
         <div className="col-md-9 col-sm-12">
-          <h4 className="C-heading size-6 color-light mb-0 semiBold font-family-creative">
+          <h4 className="C-heading size-xs color-light mb-0 semiBold">
             Company Name
           </h4>
           <h3 className="C-heading size-5 mb-1 bold font-family-creative color-primary text-truncate">
             Senior Marine Engineer
           </h3>
-          <h3 className="C-heading size-6 color-light mb-3 font-family-creative  text-truncate">
+          <h3 className="C-heading size-xs color-light mb-3 text-truncate">
             Lorem Ipsum is simply dummy text of the printing and typesetting
             industry.
           </h3>
 
-          <div className="d-flex flex-row gap-3 align-items-center mb-4">
+          <div className="d-flex flex-row gap-3 align-items-center mb-3">
             <div>
               <Space size={4}>
                 <Icon name="location_on" />
-                <span className="C-heading size-xss color-light mb-0">
+                <span className="C-heading size-xs color-light mb-0">
                   Chennai, India
                 </span>
               </Space>
@@ -44,7 +44,7 @@ const JobCard = () => {
             <div>
               <Space size={4}>
                 <Icon name="bookmark_check" />
-                <span className="C-heading size-xss color-light mb-0">
+                <span className="C-heading size-xs color-light mb-0">
                   Full Time
                 </span>
               </Space>
@@ -52,7 +52,7 @@ const JobCard = () => {
             <div>
               <Space size={4}>
                 <Icon name="nest_clock_farsight_analog" />
-                <span className="C-heading size-xss color-light mb-0">
+                <span className="C-heading size-xs color-light mb-0">
                   11 months ago
                 </span>
               </Space>
@@ -62,11 +62,11 @@ const JobCard = () => {
           <div className="row align-items-center">
             <div className="col-8">
               <Space wrap size={4}>
-                <Tag color="blue" className="py-1 px-2 rounded-pill">
-                  volcano
+                <Tag color="blue" className="rounded">
+                  Lorem Ipsum
                 </Tag>
-                <Tag color="blue" className="py-1 px-2 rounded-pill">
-                  volcano
+                <Tag color="blue" className="rounded">
+                  Lorem Ipsum
                 </Tag>
               </Space>
             </div>

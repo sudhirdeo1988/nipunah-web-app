@@ -37,7 +37,7 @@ const Footer = () => {
                   />
                 </div>
                 <div className="footer-content">
-                  <p className="C-heading size-6 color-white mb-3 semiBold">
+                  <p className="C-heading size-6 color-white mb-3">
                     Nipunah.com is the world's first integrated digital platform
                     for the maritime and ocean economy — connecting shipowners,
                     dredging firms, ports, offshore service providers, and
@@ -72,7 +72,7 @@ const Footer = () => {
                     <li key={label}>
                       <Link
                         href={href}
-                        className={`foolterNavLink ${
+                        className={`foolterNavLink C-heading size-6 ${
                           pathname === href ? "active" : ""
                         }`}
                       >

@@ -1,24 +1,20 @@
 "use client";
 
 import React from "react";
-import { Col, Row, Space, Tag } from "antd";
+import { Space, Tag } from "antd";
 import Icon from "../Icon";
 import { isEmpty as _isEmpty, map as _map } from "lodash-es";
 import Image from "next/image";
 import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
-import "./CompanyCard.scss";
 
-const CompanyCard = ({ data }) => {
+const CompanyCard = () => {
   const router = useRouter();
   return (
-    <div className="companyCard p-0">
-      {data?.isPriority && (
-        <Icon name="bookmark" className="isPriority" isFilled />
-      )}
-      <div className="row g-0">
-        <div className="col-md-3 col-sm-5 col-xs-12 position-relative">
-          <div className="profileWrapper px-2 py-md-3">
+    <div className="bg-white p-3 shadow-sm rounded">
+      <div className="row g-3 align-items-center">
+        <div className="col-md-3 d-none d-md-block">
+          <div className="border p-3 rounded bg-light">
             <Image
               src="/assets/images/logo.png"
               alt="My Logo"
@@ -29,58 +25,56 @@ const CompanyCard = ({ data }) => {
             />
           </div>
         </div>
-        <div className="col-md-9 col-sm-7 col-xs-12 p-3 pb-0">
-          <h2 className="C-heading size-6 extraBold color-dark mb-1">
-            {data?.name}
-          </h2>
-          <Row gutter={24} className="mb-2">
-            {!_isEmpty(data?.segment) && (
-              <Col align="center">
-                <Space align="center" size={4}>
-                  <Icon name="card_travel" className="notifi-icon type-1" />
-                  <span className="C-heading size-xs mb-0 color-light">
-                    {data?.segment}
-                  </span>
-                </Space>
-              </Col>
-            )}
-            <Col>
-              <Space align="center" size={6}>
-                <Icon name="location_on" className="notifi-icon type-2" />
-                <span className="C-heading size-xs mb-0">
-                  {data?.location?.state}, {data?.location?.country}
+        <div className="col-md-9 col-sm-12">
+          <h3 className="C-heading size-5 mb-1 bold font-family-creative color-primary text-truncate">
+            Company name here
+          </h3>
+          <h3 className="C-heading size-6 color-light mb-3 font-family-creative  text-truncate">
+            Lorem Ipsum is simply dummy text of the printing and typesetting
+            industry.
+          </h3>
+
+          <div className="d-flex flex-row gap-3 align-items-center mb-3">
+            <div>
+              <Space size={4}>
+                <Icon name="location_on" />
+                <span className="C-heading size-xs color-light mb-0">
+                  Chennai, India
                 </span>
               </Space>
-            </Col>
-            <Col>
-              <Space align="center" size={6}>
-                <Icon name="alarm" className="notifi-icon type-3" />
-                <span className="C-heading size-xs mb-0">
-                  {data?.createdOn}
+            </div>
+            <div>
+              <Space size={4}>
+                <Icon name="bookmark_check" />
+                <span className="C-heading size-xs color-light mb-0">
+                  Full Time
                 </span>
               </Space>
-            </Col>
-          </Row>
-        </div>
-        <div className="p-3">
-          {!_isEmpty(data?.description) && (
-            <span className="C-heading size-xs dont-break mb-3 color-light text-truncate">
-              {data?.description}
-            </span>
-          )}
-          <div className="row">
+            </div>
+            <div>
+              <Space size={4}>
+                <Icon name="nest_clock_farsight_analog" />
+                <span className="C-heading size-xs color-light mb-0">
+                  11 months ago
+                </span>
+              </Space>
+            </div>
+          </div>
+
+          <div className="row align-items-center">
             <div className="col-8">
-              {!_isEmpty(data?.category) &&
-                _map(data?.category, (category) => (
-                  <Tag key={category}>{category}</Tag>
-                ))}
+              <Space wrap size={4}>
+                <Tag color="gold" className="rounded">
+                  Marine Engineering
+                </Tag>
+              </Space>
             </div>
             <div className="col-4 text-right">
               <button
-                className="C-button small is-link p-0 bold"
+                className="C-button is-link p-0 small bold"
                 onClick={() => router.push(`${ROUTES?.PUBLIC?.COMPANIES}/123`)}
               >
-                View Profile
+                View Details
               </button>
             </div>
           </div>

@@ -1,0 +1,114 @@
+// Search container
+.searchContainer {
+  background-color: $white;
+  border: 1px solid #ecedf2;
+  margin: 24px auto;
+  padding: 8px 0;
+  width: 100%;
+  @include rounded-corners(10px);
+
+  &.inListingPage {
+    position: relative;
+    margin-top: -30px;
+  }
+
+  & > div:not(:last-child) {
+    position: relative;
+    &::after {
+      position: absolute;
+      top: 10%;
+      right: 0;
+      height: 80%;
+      content: "";
+      width: 1px;
+      background-color: $border-color;
+    }
+  }
+
+  .selectInSearch {
+    position: relative;
+
+    &.ant-select {
+      width: 100%;
+      .ant-select-selector {
+        padding: 0;
+      }
+      .ant-select-prefix {
+        .g-icon {
+          color: $font-color-light;
+          font-size: 2rem;
+        }
+      }
+      .ant-select-selection-item {
+        font: 500 0.95rem/1rem $creative-font;
+      }
+      .ant-select-selection-placeholder {
+        color: $font-color-light;
+        font: 500 0.95rem/1rem $creative-font;
+      }
+    }
+  }
+
+  .searchInput {
+    background-color: transparent;
+    border: 0;
+    padding: 0;
+    @include box-shadow(none);
+
+    .ant-input {
+      font: 500 0.95rem/1rem $creative-font;
+      &::placeholder {
+        color: $font-color-light;
+      }
+    }
+
+    .ant-input-prefix {
+      .g-icon {
+        color: $font-color-light;
+        font-size: 1.8rem;
+      }
+    }
+  }
+}
+@media (max-width: 920px) {
+  .c-topBanner {
+    min-height: auto;
+    .hero-content {
+      padding: 20px 0;
+    }
+  }
+  .searchContainer {
+    .searchInput {
+      background-color: $white;
+      border: 1px solid $border-color;
+      .ant-input {
+        font-size: 1.1rem;
+        line-height: 1.4rem;
+      }
+      .ant-input-prefix {
+        padding: 12px;
+        .g-icon {
+          font-size: 1.4rem;
+        }
+      }
+    }
+
+    .selectInSearch {
+      &.ant-select {
+        background-color: $white;
+        border: 1px solid $border-color;
+        height: auto;
+        @include rounded-corners(8px);
+        .ant-select-selector {
+          padding: 8px;
+        }
+        .ant-select-selection-item {
+          text-align: left;
+        }
+        .ant-select-selection-placeholder {
+          text-align: left;
+        }
+      }
+    }
+  }
+}

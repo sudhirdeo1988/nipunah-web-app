@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import "./HeaderBeta.scss";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
+import { Drawer, Space } from "antd";
+import Icon from "../Icon";
 
 const navItems = [
   { label: "Home", href: ROUTES.PUBLIC.HOME },
@@ -16,6 +18,7 @@ const navItems = [
 
 const HeaderBeta = () => {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
   const onRenderMenuBar = () => {
     return (
       <>
@@ -39,27 +42,51 @@ const HeaderBeta = () => {
   };
 
   return (
-    <header className="c-headerBeta">
-      <div className="container">
-        <div className="row align-items-center">
-          <div className="col-xl-3 col-md-4 col-sm-12">
-            <Image
-              src="/assets/images/logo.png"
-              alt="My Logo"
-              width={170}
-              height={50}
-            />
-          </div>
-          <div className="col-xl-9 col-md-8 d-none d-md-block text-right">
-            <nav className="headerNav">
-              <ul className="gap-2 mb-0 align-items-center d-none d-sm-none d-md-flex justify-content-end">
-                {onRenderMenuBar()}
-              </ul>
-            </nav>
+    <>
+      <header className="c-headerBeta">
+        <div className="container">
+          <div className="row align-items-center">
+            <div className="col-xl-3 col-md-4 col-sm-12">
+              <Space>
+                <button
+                  className="C-settingButton is-clean d-sm-block d-md-none"
+                  onClick={() => setOpen(true)}
+                >
+                  <Icon name="menu" />
+                </button>
+                <Image
+                  src="/assets/images/logo.png"
+                  alt="My Logo"
+                  width={164}
+                  height={50}
+                />
+              </Space>
+            </div>
+            <div className="col-xl-9 col-md-8 d-none d-md-block text-right">
+              <nav className="headerNav">
+                <ul className="gap-2 mb-0 align-items-center d-none d-sm-none d-md-flex justify-content-end">
+                  {onRenderMenuBar()}
+                </ul>
+              </nav>
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+      <Drawer
+        title="Menu"
+        placement={"left"}
+        onClose={() => setOpen(false)}
+        open={open}
+        key={"left"}
+        closable
+      >
+        <nav className="nav-links forMobile">
+          <ul className="d-flex d-sm-flex d-md-none gap-4 mb-0 flex-column">
+            {onRenderMenuBar()}
+          </ul>
+        </nav>
+      </Drawer>
+    </>
   );
 };
 

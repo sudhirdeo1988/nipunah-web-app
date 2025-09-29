@@ -1,18 +1,19 @@
-import React from "react";
-import "./BannerSection.scss";
-import { Input, Select, Avatar } from "antd";
-
+import React, { lazy, Suspense } from "react";
+import { Avatar } from "antd";
 import { map as _map } from "lodash-es";
 import Icon from "../Icon";
-import CountryDetails from "@/utilities/CountryDetails.json";
 import Image from "next/image";
+
+import "./BannerSection.scss";
+
+const SearchContainer = lazy(() => import("../SearchContainer"));
 
 const BannerSection = () => {
   return (
     <section className="c-topBanner">
       <div className="container">
         <div className="row align-items-center">
-          <div className="col-sm-12 col-md-8 col-xl-8">
+          <div className="col-sm-12 col-md-12 col-lg-8 col-xl-8">
             <div className="hero-content text-left">
               <h1 className="color-dark dont-break extraBold font-family-creative">
                 List. Connect. Grow
@@ -26,54 +27,9 @@ const BannerSection = () => {
                 Join Nipunah.com — grow your maritime network, the smart way.
               </p>
 
-              <div className="searchContainer row align-items-center">
-                <div className="col-lg-4 col-md-4 col-sm-6 col-xs-12 p-3">
-                  <Input
-                    size="large"
-                    placeholder="Search"
-                    prefix={<Icon name="search" />}
-                    className="searchInput"
-                  />
-                </div>
-                <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 p-3">
-                  <Select
-                    placeholder="Select Section"
-                    variant="borderless"
-                    options={[
-                      { value: "Companies", label: "Companies" },
-                      { value: "Equipments", label: "Equipments" },
-                      { value: "Experts", label: "Experts" },
-                    ]}
-                    className="selectInSearch"
-                    // defaultValue={"Companies"}
-                    suffixIcon={<Icon name="keyboard_arrow_down" />}
-                    prefix={<Icon name="apps" />}
-                  />
-                </div>
-                <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 p-3">
-                  <Select
-                    showSearch
-                    optionFilterProp="label"
-                    placeholder="All locations"
-                    variant="borderless"
-                    options={_map(CountryDetails, (country) => {
-                      return {
-                        value: country?.countryName,
-                        label: country?.countryName,
-                      };
-                    })}
-                    suffixIcon={<Icon name="keyboard_arrow_down" />}
-                    prefix={<Icon name="location_on" />}
-                    className="selectInSearch"
-                    // defaultValue={"India"}
-                  />
-                </div>
-                <div className="col-lg-2 col-md-2 col-sm-6 col-xs-12 text-center">
-                  <button className="C-button is-filled w-100 p-3">
-                    Search
-                  </button>
-                </div>
-              </div>
+              <Suspense fallback={<></>}>
+                <SearchContainer />
+              </Suspense>
 
               <span className="C-heading size-xs">
                 <strong>Popular Searches:</strong>
@@ -86,7 +42,7 @@ const BannerSection = () => {
               </span>
             </div>
           </div>
-          <div className="col-sm-12 col-md-4 col-xl-4">
+          <div className="col-md-4 col-xl-4 d-lg-block d-none">
             <div className="bannerImage">
               <Image
                 src="/assets/images/dummy-banner.jpg"

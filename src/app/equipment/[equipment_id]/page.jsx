@@ -10,21 +10,21 @@ import React from "react";
 const AboutCompany = () => {
   return (
     <>
-      <p className="C-heading size-6 mb-4 font-family-primary semiBold">
+      <p className="C-heading size-6 mb-4 semiBold">
         Moody’s Corporation, often referred to as Moody’s, is an American
         business and financial services company. It is the holding company for
         Moody’s Investors Service (MIS), an American credit rating agency, and
         Moody’s Analytics (MA), an American provider of financial analysis
         software and services.
       </p>
-      <p className="C-heading size-6 mb-4 font-family-primary semiBold">
+      <p className="C-heading size-6 mb-4 semiBold">
         Moody’s Corporation, often referred to as Moody’s, is an American
         business and financial services company. It is the holding company for
         Moody’s Investors Service (MIS), an American credit rating agency, and
         Moody’s Analytics (MA), an American provider of financial analysis
         software and services.
       </p>
-      <p className="C-heading size-6 mb-3 font-family-primary semiBold">
+      <p className="C-heading size-6 mb-3 semiBold">
         Moody’s Corporation, often referred to as Moody’s, is an American
         business and financial services company. It is the holding company for
         Moody’s Investors Service (MIS), an American credit rating agency, and
@@ -121,13 +121,13 @@ const EquipmentDetails = () => {
             <div className="row">
               <div className="col-12">
                 {/* Logo and company title */}
-                <div class="d-flex gap-2 mb-4">
+                <div className="d-flex gap-2 mb-4">
                   <Image
                     src="/assets/images/equipment_2.jpg"
                     alt="My Logo"
                     width={260}
                     height={130}
-                    class="img-thumbnail img-fluid"
+                    className="img-thumbnail img-fluid"
                   />
                   <div className="flex-grow-1">
                     <h3 className="C-heading size-4 color-dark mb-2 extraBold">

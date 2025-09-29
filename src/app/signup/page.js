@@ -105,7 +105,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Company Name
                           </span>
                         }
@@ -125,7 +125,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Company Title
                           </span>
                         }
@@ -144,7 +144,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Company found year
                           </span>
                         }
@@ -168,7 +168,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Website URL
                           </span>
                         }
@@ -187,7 +187,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Phone Number
                           </span>
                         }
@@ -206,7 +206,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Contact Email
                           </span>
                         }
@@ -225,7 +225,7 @@ const SignUpPage = () => {
                     <div className="col-xl-8 col-md-8 col-sm-12 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             About company
                           </span>
                         }
@@ -248,7 +248,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Company Logo
                           </span>
                         }
@@ -426,7 +426,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Employees Count
                           </span>
                         }
@@ -438,7 +438,7 @@ const SignUpPage = () => {
                     <div className="col-xl-4 col-md-6 col-sm-6 col-xs-12">
                       <Form.Item
                         label={
-                          <span className="C-heading size-xss color-light mb-0">
+                          <span className="C-heading size-xs color-light mb-0">
                             Turnover
                           </span>
                         }

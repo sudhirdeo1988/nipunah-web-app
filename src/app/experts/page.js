@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
-import { Checkbox, Row, Col, Input, Tag, Drawer } from "antd";
+import React from "react";
+import { Tag, Space } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
-import Icon from "@/components/Icon";
 import CardListing from "@/components/CardListing";
 import ExpertCard from "@/components/ExpertCard";
+import SearchContainer from "@/components/SearchContainer";
 
 const data = [
   {
@@ -120,128 +120,7 @@ const data = [
   },
 ];
 
-const ExpertsFilter = () => {
-  return (
-    <>
-      <div className="p-2 mb-3">
-        <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
-          Segments
-        </span>
-        <Checkbox.Group style={{ width: "100%" }}>
-          <Row gutter={[8, 8]}>
-            <Col span={24}>
-              <Checkbox value="A1">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A2">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A3">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A4">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-          </Row>
-        </Checkbox.Group>
-      </div>
-
-      <div className="p-2 mb-3">
-        <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
-          Categories
-        </span>
-        <Checkbox.Group style={{ width: "100%" }}>
-          <Row gutter={[8, 8]}>
-            <Col span={24}>
-              <Checkbox value="A1">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A2">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A3">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A4">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-          </Row>
-        </Checkbox.Group>
-      </div>
-
-      <div className="p-2 mb-3">
-        <span className="C-heading size-xss extraBold mb-2 color-dark text-uppercase">
-          Country
-        </span>
-        <Checkbox.Group style={{ width: "100%" }}>
-          <Row gutter={[8, 8]}>
-            <Col span={24}>
-              <Checkbox value="A1">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A2">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A3">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-            <Col span={24}>
-              <Checkbox value="A4">
-                <span className="C-heading size-xs semiBold mb-0">
-                  Product Development
-                </span>
-              </Checkbox>
-            </Col>
-          </Row>
-        </Checkbox.Group>
-      </div>
-    </>
-  );
-};
-
 const ExpertsPage = () => {
-  const [openFilterSidebar, setOpenFilterSidebar] = useState(false);
   return (
     <>
       <PublicLayout>
@@ -249,51 +128,34 @@ const ExpertsPage = () => {
           heading="Experts"
           currentPageTitle="List of companies"
         />
-        <section className="section-padding small white-gradient-bg2">
+        <section className="section-padding small pt-0">
           <div className="container">
-            <h3 className="C-heading size-5 color-light extraBold mb-3">
-              Top experts in india
-            </h3>
-            <div className="row">
-              <div className="col-3 d-none d-md-block">
-                <div className="p-3 bg-light h-100">
-                  <ExpertsFilter />
-                </div>
-              </div>
-              {/* Main Content */}
-              <div className="col-12 col-md-9">
-                <div className="v-filter">
-                  <div className="row align-items-center">
-                    <div className="col-md-3 col-sm-4">
-                      <span className="C-heading size-xs semiBold mb-0">
-                        <strong>12</strong> experts
-                      </span>
-                    </div>
-                    <div className="col-md-6 col-sm-4">
-                      <div className="C-tagList">
-                        <ul>
-                          <li>
-                            <Tag closeIcon className="C-tag is-low">
-                              Marine engineers
-                            </Tag>
-                          </li>
-                          <li>
-                            <Tag closeIcon className="C-tag is-low">
-                              India
-                            </Tag>
-                          </li>
-                        </ul>
-                      </div>
-                    </div>
-                    <div className="col-md-3 col-sm-4 text-right">
-                      <Input
-                        placeholder="Search expert"
-                        prefix={<Icon name="search" />}
-                      />
-                    </div>
-                  </div>
-                </div>
+            <SearchContainer forListingPage />
 
+            <h3 className="C-heading size-4 bold mb-4 font-family-creative">
+              Top shipping experts in india
+            </h3>
+
+            <div className="row border-bottom pb-2 mb-3">
+              <div className="col-md-4 col-sm-12">
+                <span className="C-heading size-6 semiBold mb-0">
+                  <strong>12</strong> experts found
+                </span>
+              </div>
+              <div className="col-md-8 col-sm-12 text-right">
+                <Space>
+                  <Tag closeIcon className="C-tag is-low small">
+                    Top Product Development
+                  </Tag>
+                  <Tag closeIcon className="C-tag is-low small">
+                    Top Product Development
+                  </Tag>
+                </Space>
+              </div>
+            </div>
+            <div className="row">
+              {/* Main Content */}
+              <div className="col-12 col-md-12">
                 <CardListing
                   data={data}
                   CardComponent={ExpertCard}
@@ -304,21 +166,6 @@ const ExpertsPage = () => {
               </div>
             </div>
           </div>
-          <button
-            className="C-settingButton d-block d-md-none floatingFilterButton"
-            onClick={() => setOpenFilterSidebar(true)}
-          >
-            <Icon name="filter_alt" />
-          </button>
-          <Drawer
-            title="Filter"
-            placement={"left"}
-            onClose={() => setOpenFilterSidebar(false)}
-            open={openFilterSidebar}
-            key={"left"}
-          >
-            <ExpertsFilter isSideBar />
-          </Drawer>
         </section>
       </PublicLayout>
     </>

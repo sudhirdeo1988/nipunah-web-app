@@ -138,7 +138,7 @@ const Partners = () => {
                 />
               </div>
               <p
-                className="C-heading size-6 semiBold mb-0 dont-break p-3 font-family-creative"
+                className="C-heading size-sm semiBold mb-0 dont-break p-3 font-family-creative"
                 style={{ height: 80 }}
               >
                 {item}
@@ -189,7 +189,7 @@ const Partners = () => {
                         key={category.id}
                         header={
                           <div
-                            className={`C-heading size-6 semiBold color-dark font-family-creative mb-0 dont-break ${
+                            className={`C-heading size-6 color-dark font-family-creative mb-0 dont-break ${
                               activeCategory?.id === category.id ? "active" : ""
                             }`}
                             onClick={(e) => {
@@ -210,7 +210,7 @@ const Partners = () => {
                             key={child.id}
                           >
                             <span
-                              className={`C-heading size-xs semiBold color-dark font-family-creative mb-0 dont-break ps-2`}
+                              className={`C-heading size-xs color-dark font-family-creative mb-0 dont-break ps-2`}
                             >
                               {child.title}
                             </span>
@@ -226,7 +226,7 @@ const Partners = () => {
                         activeCategory?.id === category.id ? "active" : ""
                       }`}
                     >
-                      <span className="C-heading size-6 semiBold color-dark font-family-creative mb-0 dont-break">
+                      <span className="C-heading size-6 color-dark font-family-creative mb-0 dont-break">
                         {category.title}
                       </span>
                     </button>

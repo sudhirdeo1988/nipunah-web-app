@@ -73,7 +73,7 @@ const SubscriptionPage = () => {
         />
         <section className="section-padding">
           <div className="container">
-            <div className="row g-3">
+            <div className="row g-4">
               {_map(plans, (planCard) => {
                 return (
                   <div
@@ -81,8 +81,8 @@ const SubscriptionPage = () => {
                     key={planCard?.id}
                   >
                     <div
-                      className={`h-100 rounded-3 d-flex flex-column ${
-                        planCard?.most_popular ? "gradient-wrapper" : "border"
+                      className={`h-100 rounded-3 d-flex flex-column bg-white shadow ${
+                        planCard?.most_popular ? "gradient-wrapper" : ""
                       }`}
                     >
                       <div className="head p-3">
@@ -102,11 +102,11 @@ const SubscriptionPage = () => {
                           <h3 className="C-heading size-4 extraBold color-dark font-secondary mb-0">
                             {planCard?.currency} {planCard?.price}
                           </h3>
-                          <span className="C-heading size-xs color-light semiBold mb-0">
+                          <span className="C-heading size-6 color-light mb-0">
                             / {planCard?.frequency}
                           </span>
                         </Space>
-                        <span className="C-heading size-xs color-light semiBold mb-3">
+                        <span className="C-heading size-6 color-light mb-3">
                           {planCard?.description}
                         </span>
 
@@ -116,7 +116,7 @@ const SubscriptionPage = () => {
                       </div>
                       <div className="body p-3 pt-0">
                         <Divider orientation="left">
-                          <span className="C-heading size-xss color-light mb-0 text-uppercase bold">
+                          <span className="C-heading size-6 color-light mb-0 text-uppercase bold">
                             Features
                           </span>
                         </Divider>
@@ -135,7 +135,7 @@ const SubscriptionPage = () => {
                                   />
                                 }
                                 title={
-                                  <span className="C-heading size-xs color-light semiBold mb-0">
+                                  <span className="C-heading size-6 color-light mb-0">
                                     {item}
                                   </span>
                                 }

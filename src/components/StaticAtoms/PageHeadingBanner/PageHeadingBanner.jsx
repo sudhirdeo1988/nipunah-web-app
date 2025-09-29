@@ -7,7 +7,7 @@ const PageHeadingBanner = ({ heading }) => {
     <div className="breadcrumb-wrapper">
       <div className="container">
         <div className="page-heading">
-          <h1 className="C-heading size-4 extraBold gradient-text">
+          <h1 className="C-heading size-3 extraBold color-white font-family-creative">
             {heading}
           </h1>
         </div>

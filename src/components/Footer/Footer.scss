@@ -10,10 +10,7 @@
         margin-bottom: 12px;
 
         .foolterNavLink {
-          color: $font-color;
-          font-size: 0.9rem;
-          line-height: 1.1rem;
-          font-weight: 500;
+          color: $font-color-light;
           position: relative;
           @include transition(all ease 0.3s);
 

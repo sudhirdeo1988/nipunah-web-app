@@ -5,75 +5,85 @@ import Icon from "../Icon";
 const ExpertCard = () => {
   return (
     <>
-      <div className="companyCard p-0">
-        <div className="row g-0">
-          <div className="col-md-2 col-2 text-center py-3">
+      <div className="bg-white p-3 shadow-sm rounded">
+        <div className="row g-3">
+          <div className="col-md-2 d-none d-md-block">
             <Avatar
-              size={54}
+              size={64}
               src="https://api.dicebear.com/7.x/miniavs/svg?seed=8"
               className="border p-1"
               shape="square"
             />
           </div>
-          <div className="col-md-10 col-10 py-3">
-            <h2 className="C-heading size-6 extraBold color-dark mb-1">
-              Expert Name
-            </h2>
-            <div className="row mb-3">
-              <div className="col-5">
-                <Space align="center" size={6}>
-                  <Icon
-                    name="account_circle"
-                    size="small"
-                    className="notifi-icon type-1"
-                  />
-                  <span className="C-heading size-xss mb-0">
+          <div className="col-md-10 col-sm-12">
+            <h3 className="C-heading size-5 mb-1 bold font-family-creative color-primary text-truncate">
+              Expert name here
+            </h3>
+            <h3 className="C-heading size-6 color-light mb-2 font-family-creative  text-truncate">
+              Lorem Ipsum is simply dummy text of the printing and typesetting
+              industry.
+            </h3>
+
+            <div className="d-flex flex-row gap-3 align-items-center mb-2">
+              <div>
+                <Space size={4}>
+                  <Icon name="location_on" />
+                  <span className="C-heading size-xs color-light mb-0">
+                    London, UK
+                  </span>
+                </Space>
+              </div>
+              <div>
+                <Space size={4}>
+                  <Icon name="account_circle" />
+                  <span className="C-heading size-xs color-light mb-0">
                     Account Manager
                   </span>
                 </Space>
               </div>
-              <div className="col-5">
-                <Space align="center" size={6}>
-                  <Icon
-                    name="location_on"
-                    size="small"
-                    className="notifi-icon type-2"
-                  />
-                  <span className="C-heading size-xss mb-0">London, UK</span>
+              <div>
+                <Space size={4}>
+                  <Icon name="nest_clock_farsight_analog" />
+                  <span className="C-heading size-xs color-light mb-0">
+                    11 months ago
+                  </span>
                 </Space>
               </div>
             </div>
 
-            <span className="C-heading size-xs dont-break mb-0 color-light text-truncate">
-              Lorem Ipsum is simply dummy text of the printing and typesetti
-            </span>
-          </div>
-        </div>
-        <div className="py-2 px-3 border-top">
-          <div className="row g-0 align-items-center">
-            <div className="col-8">
-              <div className="social-icon d-flex align-items-center">
-                <button className="C-settingButton is-clean">
-                  <i
-                    className="bi bi-facebook"
-                    style={{ color: "#1877F2" }}
-                  ></i>
-                </button>
-                <button className="C-settingButton is-clean">
-                  <i
-                    className="bi bi-linkedin"
-                    style={{ color: "#0077B5" }}
-                  ></i>
-                </button>
-                <button className="C-settingButton is-clean">
-                  <i className="bi bi-twitter" style={{ color: "#000000" }}></i>
+            <div className="row align-items-center">
+              <div className="col-8">
+                <div className="social-icon d-flex align-items-center">
+                  <button className="C-settingButton is-clean small">
+                    <i
+                      className="bi bi-facebook"
+                      style={{ color: "#1877F2" }}
+                    ></i>
+                  </button>
+                  <button className="C-settingButton is-clean small">
+                    <i
+                      className="bi bi-linkedin"
+                      style={{ color: "#0077B5" }}
+                    ></i>
+                  </button>
+                  <button className="C-settingButton is-clean small">
+                    <i
+                      className="bi bi-twitter"
+                      style={{ color: "#000000" }}
+                    ></i>
+                  </button>
+                </div>
+              </div>
+              <div className="col-4 text-right">
+                <button
+                  className="C-button is-link p-0 small bold"
+                  onClick={() =>
+                    router.push(`${ROUTES?.PUBLIC?.COMPANIES}/123`)
+                  }
+                >
+                  View Profile
                 </button>
               </div>
-            </div>
-            <div className="col-4 text-right">
-              <button className="C-button small is-link p-0 bold">
-                View Profile
-              </button>
             </div>
           </div>
         </div>

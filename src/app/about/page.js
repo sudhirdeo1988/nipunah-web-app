@@ -64,7 +64,7 @@ const AboutPage = () => {
             transition={{ duration: 0.8 }}
             variants={fadeInUp}
           >
-            <h2 className="C-heading size-4 extraBold gradient-text text-center mb-5">
+            <h2 className="C-heading size-4 extraBold color-dark text-center mb-5 font-family-creative">
               A Smarter Way to Connect the Maritime World
             </h2>
             <div className="row mb-5">
@@ -74,7 +74,7 @@ const AboutPage = () => {
                   alt="My Logo"
                   width={180}
                   height={60}
-                  className="about-image"
+                  className="about-image img-thumbnail"
                 />
               </div>
               <div
@@ -82,25 +82,25 @@ const AboutPage = () => {
                 style={{ position: "relative" }}
               >
                 <div className="position-relative" style={{ zIndex: "1" }}>
-                  <span className="C-heading size-6 mb-3 semiBold">
+                  <span className="C-heading size-6 mb-3">
                     <strong>Nipunah.com</strong> is not just a listing site —
                     it’s a specialized digital ecosystem built exclusively for
                     the maritime and ocean sectors.
                   </span>
-                  <p className="C-heading size-6 mb-3 semiBold">
+                  <p className="C-heading size-6 mb-3">
                     Our platform unites a traditionally fragmented industry by
                     enabling verified companies, professionals, and institutions
                     to connect, collaborate, and grow — all in one trusted,
                     smart, and global space.
                   </p>
-                  <p className="C-heading size-6 mb-3 semiBold">
+                  <p className="C-heading size-6 mb-3">
                     Whether you operate in shipping, ports, dredging, offshore
                     energy, marine technology, shipbuilding, tourism, training,
                     or regulation, Nipunah.com helps you showcase your services,
                     gain visibility, and build meaningful partnerships across
                     the globe.
                   </p>
-                  <p className="C-heading size-6 mb-1 extraBold color-dark">
+                  <p className="C-heading size-5 mb-1 extraBold color-dark font-family-creative">
                     We help maritime businesses:
                   </p>
 
@@ -108,57 +108,57 @@ const AboutPage = () => {
                     <ul>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           Be seen and trusted globally
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           Build reliable, long-term partnerships
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           Support sustainable and transparent supply chains
                         </span>
                       </li>
                     </ul>
                   </div>
-                  <p className="C-heading size-6 mb-1 extraBold color-dark">
+                  <p className="C-heading size-5 mb-1 extraBold color-dark font-family-creative">
                     What makes us unique
                   </p>
                   <div className="C-bulletList mb-0">
                     <ul>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           Built exclusively for the maritime and ocean economy
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           All profiles are verified for credibility and trust
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           Smart filters, tags, and location-based search for
                           easy discovery
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           Live 24/7, 365 days — your business is always working
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
-                        <span className="C-heading semiBold color-dark size-6 mb-0 dont-break">
+                        <span className="C-heading color-dark size-6 mb-0 dont-break">
                           Driven by visibility, trust, and global growth
                         </span>
                       </li>
@@ -184,55 +184,55 @@ const AboutPage = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             variants={fadeInUp}
           >
-            <div className="row">
+            <div className="row g-2">
               <div className="col-md-4 col-sm-6 col-xs-12">
-                <div className="featureBox d-flex flex-column gap-3 align-items-center">
-                  <span className="C-heading size-5 color-dark extraBold mb-0">
+                <div className="bg-white shadow rounded p-4 d-flex flex-column gap-3 text-center">
+                  <div className="image-with-pattern">
+                    <Icon name="workspace_premium" />
+                  </div>
+                  <span className="C-heading size-5 color-dark extraBold mb-0 font-family-creative">
                     Our Vision
                   </span>
                   <span
-                    className="C-heading size-6 semiBold mb-0"
+                    className="C-heading size-6 mb-0"
                     style={{ minHeight: "80px" }}
                   >
                     To become the most trusted global hub for maritime
                     discovery, connection, and innovation.
                   </span>
-                  <div className="iconSection">
-                    <Icon name="workspace_premium" />
-                  </div>
                 </div>
               </div>
               <div className="col-md-4 col-sm-6 col-xs-12">
-                <div className="featureBox d-flex flex-column gap-3 align-items-center">
-                  <span className="C-heading size-5 color-dark extraBold mb-0">
+                <div className="bg-white shadow rounded p-4 d-flex flex-column gap-3 text-center">
+                  <div className="image-with-pattern">
+                    <Icon name="diversity_4" />
+                  </div>
+                  <span className="C-heading size-5 color-dark extraBold mb-0 font-family-creative">
                     Our Mission
                   </span>
                   <span
-                    className="C-heading size-6 semiBold mb-0"
+                    className="C-heading size-6 mb-0"
                     style={{ minHeight: "80px" }}
                   >
                     To digitally connect and empower the global blue economy.
                   </span>
-                  <div className="iconSection">
-                    <Icon name="diversity_4" />
-                  </div>
                 </div>
               </div>
               <div className="col-md-4 col-sm-6 col-xs-12">
-                <div className="featureBox d-flex flex-column gap-3 align-items-center">
-                  <span className="C-heading size-5 color-dark extraBold mb-0">
+                <div className="bg-white shadow rounded p-4 d-flex flex-column gap-3 text-center">
+                  <div className="image-with-pattern">
+                    <Icon name="approval_delegation" />
+                  </div>
+                  <span className="C-heading size-5 color-dark extraBold mb-0 font-family-creative">
                     Business process
                   </span>
                   <span
-                    className="C-heading size-6 semiBold mb-0"
+                    className="C-heading size-6 mb-0"
                     style={{ minHeight: "80px" }}
                   >
                     An activity or set of activities that can accomplish a
                     specific organizational goal.
                   </span>
-                  <div className="iconSection">
-                    <Icon name="approval_delegation" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -249,14 +249,14 @@ const AboutPage = () => {
         transition={{ duration: 0.8, delay: 0.2 }}
         variants={fadeInUp}
       >
-        <section className="counter-section">
+        <section className="counter-section bg-white shadow rounded-sm py-5">
           <div className="container">
             <div className="row g-0">
               <div className="col-md-4 col-sm-6 col-xs-12">
                 <div className="countWrapper bordered d-flex flex-column align-items-center">
                   <Icon name="monitoring" />
                   <Counter to={200} />
-                  <span className="c-heading size-xs mb-0 color-light">
+                  <span className="c-heading size-5 color-white semiBold mb-0 font-family-creative">
                     Companies registered
                   </span>
                 </div>
@@ -265,7 +265,7 @@ const AboutPage = () => {
                 <div className="countWrapper bordered d-flex flex-column align-items-center">
                   <Icon name="group_add" />
                   <Counter to={100} />
-                  <span className="c-heading size-xs mb-0 color-light">
+                  <span className="c-heading size-5 color-white semiBold mb-0 font-family-creative">
                     Experts working
                   </span>
                 </div>
@@ -274,7 +274,7 @@ const AboutPage = () => {
                 <div className="countWrapper d-flex flex-column align-items-center">
                   <Icon name="globe" />
                   <Counter to={20} />
-                  <span className="c-heading size-xs mb-0 color-light">
+                  <span className="c-heading size-5 color-white semiBold mb-0 font-family-creative">
                     Countries we serve
                   </span>
                 </div>
@@ -293,65 +293,65 @@ const AboutPage = () => {
       >
         <section className="section-padding pattern-3">
           <div className="container ">
-            <h2 className="C-heading size-4 extraBold gradient-text text-center mb-5">
+            <h2 className="C-heading size-4 extraBold color-dark font-family-creative text-center mb-5">
               What You Can Do on Nipunah.com
             </h2>
             <div className="process-loader mb-5">
-              <div className="process-card d-flex flex-column">
+              <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
                 <div className="countCircle bordered mb-3">01</div>
-                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   List your company
                 </span>
-                <span className="C-heading size-xs semiBold mb-0 text-center">
+                <span className="C-heading size-6 mb-0 text-center">
                   List your company and showcase your services
                 </span>
               </div>
 
-              <div className="process-card d-flex flex-column">
+              <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
                 <div className="countCircle bordered mb-3 text-center">02</div>
-                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Highlight certifications
                 </span>
-                <span className="C-heading size-xs semiBold mb-0">
+                <span className="C-heading size-6 mb-0 text-center">
                   Highlight certifications, projects, and areas of expertise
                 </span>
               </div>
 
-              <div className="process-card d-flex flex-column">
+              <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
                 <div className="countCircle bordered mb-3">03</div>
-                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Receive direct inquiries
                 </span>
-                <span className="C-heading size-xs semiBold mb-0 text-center">
+                <span className="C-heading size-6 mb-0 text-center">
                   Receive direct inquiries from clients, collaborators, and
                   partners
                 </span>
               </div>
 
-              <div className="process-card d-flex flex-column">
+              <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
                 <div className="countCircle bordered mb-3">04</div>
-                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Discover new suppliers
                 </span>
-                <span className="C-heading size-xs semiBold mb-0 text-center">
+                <span className="C-heading size-6 mb-0 text-center">
                   Discover new suppliers or subcontractors using smart filters
                   and geo-location
                 </span>
               </div>
 
-              <div className="process-card d-flex flex-column">
+              <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
                 <div className="countCircle bordered mb-3">05</div>
-                <span className="C-heading size-6 extraBold color-dark mb-1 text-center">
+                <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Stay visible 24/7
                 </span>
-                <span className="C-heading size-xs semiBold mb-0 text-center">
+                <span className="C-heading size-6 mb-0 text-center">
                   Stay visible 24/7 with a profile that works year-round —
                   anywhere in the world
                 </span>
               </div>
             </div>
 
-            <h2 className="C-heading size-5 extraBold gradient-text mb-2 text-center">
+            <h2 className="C-heading size-5 extraBold color-dark mb-2 text-center font-family-creative">
               Who We Serve
             </h2>
             <span className="C-heading size-6 mb-4 text-center">

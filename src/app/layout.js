@@ -1,17 +1,9 @@
-import { Roboto, Montserrat, Jost } from "next/font/google";
+import { Inter, Jost } from "next/font/google";
 import { AuthProvider } from "@/utilities/AuthContext";
 import "@/styles/global.scss";
 
-// ✅ Roboto
-export const roboto = Roboto({
-  variable: "--font-roboto",
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  display: "swap",
-});
-
-export const montserrat = Montserrat({
-  variable: "--font-montserrat",
+export const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
   display: "swap",
@@ -31,9 +23,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-        className={`${roboto.variable} ${montserrat.variable} ${jost.variable}`}
-      >
+      <body className={`${inter.variable} ${jost.variable}`}>
         <AuthProvider>{children}</AuthProvider>
       </body>
     </html>

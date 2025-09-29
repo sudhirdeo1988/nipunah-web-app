@@ -1,37 +1,3 @@
-.featureBox {
-  background-color: $white;
-  border: 1px solid $border-color;
-  padding: 3rem;
-  text-align: center;
-  @include rounded-corners(8px);
-  @include box-shadow(0 0 10px rgba(0, 0, 0, 0.08));
-  .iconSection {
-    display: grid;
-    place-items: center;
-    position: relative;
-    height: 80px;
-    width: 80px;
-    margin-top: 24px;
-    .g-icon {
-      color: black;
-      font-size: 5rem;
-      position: relative;
-      z-index: 1;
-    }
-    &::after {
-      position: absolute;
-      top: -15px;
-      left: 15px;
-      height: 100%;
-      width: 100%;
-      content: "";
-      background-color: $secondary-color;
-      @include rounded-corners(100%);
-      z-index: 0;
-    }
-  }
-}
-
 .about-image {
   height: auto;
   width: 100%;
@@ -49,8 +15,18 @@
 }
 
 .counter-section {
-  background-color: $highlightColor;
-  padding: 4rem 0;
+  background: url("/assets/images/about-us.jpg") fixed center center no-repeat;
+  background-size: cover;
+  position: relative;
+  &::before {
+    background: RGBA(0, 0, 0, 0.8);
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+  }
   .countWrapper {
     position: relative;
     align-items: center;
@@ -67,11 +43,11 @@
       }
     }
     .g-icon {
-      color: #d7d7d7;
+      color: $white;
       font-size: 4rem;
     }
     .count {
-      color: $black;
+      color: $white;
       font-size: 4rem;
       font-weight: 800;
       letter-spacing: 2px;
@@ -97,15 +73,12 @@
 .process-loader {
   display: flex;
   flex-wrap: wrap;
-  gap: 16px; // space between cards
+  gap: 6px; // space between cards
   .process-card {
     align-items: center;
-    background-color: $white;
-    border: 1px solid $border-color;
     box-sizing: border-box;
     flex: 1 1 calc(20% - 16px); // default: 5 cards per row (>1200px)
     min-width: 0; // allows shrinking
-    padding: 1rem;
     @include rounded-corners(8px);
     @include box-shadow(0 0 10px rgba(0, 0, 0, 0.08));
   }

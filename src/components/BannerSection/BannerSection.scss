@@ -7,25 +7,6 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  // background: url("/assets/images/3.jpg") bottom no-repeat;
-  // background-size: cover;
-
-  // &::before {
-  //   content: "";
-  //   position: absolute;
-  //   display: block;
-  //   top: 20%;
-  //   left: 100%;
-  //   width: 110%;
-  //   height: 100%;
-  //   background-size: 12px 12px;
-  //   background-position: center;
-  //   transform: translate(-50%, -50%);
-  //   background-image: radial-gradient(rgba(0, 0, 0, 0.2) 14%, transparent 14%);
-  //   -webkit-mask-image: radial-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 75%);
-  //   mask-image: radial-gradient(rgba(0, 0, 0, 1), rgba(0, 0, 0, 0) 75%);
-  //   z-index: 0;
-  // }
 
   .hero-content {
     position: relative;
@@ -64,118 +45,6 @@
   }
 }
 
-.searchContainer {
-  background-color: $white;
-  border: 1px solid #ecedf2;
-  margin: 24px auto;
-  padding: 8px 0;
-  width: 100%;
-  @include box-shadow(0 7px 18px rgba(64, 79, 104, 0.05));
-  @include rounded-corners(10px);
-
-  & > div:not(:last-child) {
-    position: relative;
-    &::after {
-      position: absolute;
-      top: 10%;
-      right: 0;
-      height: 80%;
-      content: "";
-      width: 1px;
-      background-color: $border-color;
-    }
-  }
-
-  .selectInSearch {
-    position: relative;
-
-    &.ant-select {
-      width: 100%;
-      .ant-select-selector {
-        padding: 0;
-      }
-      .ant-select-prefix {
-        .g-icon {
-          color: $font-color-light;
-          font-size: 2rem;
-        }
-      }
-      .ant-select-selection-item {
-        font: 500 0.95rem/1rem $primary-font;
-      }
-      .ant-select-selection-placeholder {
-        color: $font-color-light;
-        font: 500 0.95rem/1rem $primary-font;
-      }
-    }
-  }
-
-  .searchInput {
-    background-color: transparent;
-    border: 0;
-    padding: 0;
-    @include box-shadow(none);
-
-    .ant-input {
-      font: 500 0.95rem/1rem $primary-font;
-      &::placeholder {
-        color: $font-color-light;
-      }
-    }
-
-    .ant-input-prefix {
-      .g-icon {
-        color: $font-color-light;
-        font-size: 1.8rem;
-      }
-    }
-  }
-}
-@media (max-width: 920px) {
-  .c-topBanner {
-    min-height: auto;
-    .hero-content {
-      padding: 20px 0;
-    }
-  }
-  .searchContainer {
-    .searchInput {
-      background-color: $white;
-      border: 1px solid $border-color;
-      margin-bottom: 24px;
-      .ant-input {
-        font-size: 1.1rem;
-        line-height: 1.4rem;
-      }
-      .ant-input-prefix {
-        padding: 12px;
-        .g-icon {
-          font-size: 1.4rem;
-        }
-      }
-    }
-
-    .selectInSearch {
-      margin-bottom: 24px;
-      &.ant-select {
-        background-color: $white;
-        border: 1px solid $border-color;
-        height: auto;
-        @include rounded-corners(8px);
-        .ant-select-selector {
-          padding: 8px;
-        }
-        .ant-select-selection-item {
-          text-align: left;
-        }
-        .ant-select-selection-placeholder {
-          text-align: left;
-        }
-      }
-    }
-  }
-}
-
 .bannerImage {
   position: relative;
   z-index: 2;
@@ -204,5 +73,22 @@
     bottom: 40px;
     left: auto;
     right: -40px;
+  }
+}
+
+@media (max-width: 920px) {
+  .c-topBanner {
+    .hero-content {
+      h1,
+      .C-heading {
+        text-align: center;
+      }
+    }
+    &::after {
+      height: 100%;
+      width: 100%;
+      top: 0;
+      @include rounded-corners(0);
+    }
   }
 }
