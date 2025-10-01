@@ -57,57 +57,6 @@
   }
 }
 
-.marq-brand {
-  overflow: hidden; /* hide overflow so only sliding area shows */
-  white-space: nowrap;
-  width: 100%;
-  .slider-box {
-    display: flex;
-    gap: 10px;
-    flex-wrap: nowrap;
-    animation: scroll linear infinite;
-
-    &-item {
-      background: $highlightColor;
-      border: 1px solid transparent;
-      flex: 0 0 auto;
-      display: grid;
-      place-items: center;
-      height: 160px;
-      line-height: 180px;
-      margin: 5px;
-      width: 300px;
-      @include rounded-corners(10px);
-      @include transition(all ease 0.3s);
-      &:hover {
-        background-color: $white;
-        border: 1px solid $border-color;
-      }
-      img {
-        vertical-align: middle;
-        opacity: 0.5;
-      }
-    }
-  }
-}
-@keyframes scroll {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
-}
-
-/* Mobile-friendly sizing */
-@media (max-width: 768px) {
-  .marq-brand .slider-box-item {
-    min-width: 140px;
-    height: 90px;
-    font-size: 1rem;
-  }
-}
-
 @media (max-width: 920px) {
   .brand-logo {
     padding: 1rem;

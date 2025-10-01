@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { Divider, Collapse, Select } from "antd";
+import { Collapse, Carousel } from "antd";
 import Image from "next/image";
 import {
   map as _map,
@@ -239,6 +239,61 @@ const Partners = () => {
                 {renderLogos()}
               </div>
             </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="section-padding small bg-white shadow-sm">
+        <div className="container">
+          {/* ✅ Section Header */}
+          <div className="section-title text-center mb-4">
+            <h2 className="C-heading size-4 extraBold color-dark font-family-creative">
+              Recently Onboarded Companies
+            </h2>
+          </div>
+          <div className="py-4">
+            <Carousel autoplay infinite slidesPerRow={5} dots={false} swipe>
+              <div>
+                <Image
+                  src={`/assets/images/logo.png`}
+                  alt="My Logo"
+                  width={140}
+                  height={40}
+                />
+              </div>
+              <div>
+                <Image
+                  src={`/assets/images/logo.png`}
+                  alt="My Logo"
+                  width={140}
+                  height={40}
+                />
+              </div>
+              <div>
+                <Image
+                  src={`/assets/images/logo.png`}
+                  alt="My Logo"
+                  width={140}
+                  height={40}
+                />
+              </div>
+              <div>
+                <Image
+                  src={`/assets/images/logo.png`}
+                  alt="My Logo"
+                  width={140}
+                  height={40}
+                />
+              </div>
+              <div>
+                <Image
+                  src={`/assets/images/logo.png`}
+                  alt="My Logo"
+                  width={140}
+                  height={40}
+                />
+              </div>
+            </Carousel>
           </div>
         </div>
       </div>

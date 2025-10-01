@@ -94,7 +94,7 @@ const CompanyListPage = () => {
       />
       <section className="section-padding small pt-0">
         <div className="container">
-          <SearchContainer forListingPage />
+          <SearchContainer forListingPage floatingEnable />
 
           <h3 className="C-heading size-4 bold mb-4 font-family-creative">
             Top shipping companies in india

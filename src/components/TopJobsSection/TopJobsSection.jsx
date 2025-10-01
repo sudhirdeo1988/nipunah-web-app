@@ -7,10 +7,10 @@ const TopJobsSection = () => {
       <div className="container">
         <div className="section-title text-center mb-3">
           <div className="sub-title gradient-wrapper">
-            <span>TOP JOBS</span>
+            <span>TOP EQUIPMENTS</span>
           </div>
           <h2 className="C-heading size-4 color-white extraBold color-dark pb-3 font-family-creative">
-            Top marine jobs in India
+            Top marine equipments in India
           </h2>
         </div>
         <div className="row g-3">

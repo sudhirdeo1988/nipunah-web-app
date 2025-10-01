@@ -7,6 +7,12 @@
   width: 100%;
   @include rounded-corners(10px);
 
+  &.fixed {
+    position: fixed !important;
+    top: 110px !important;
+    z-index: 1000 !important;
+  }
+
   &.inListingPage {
     position: relative;
     margin-top: -30px;

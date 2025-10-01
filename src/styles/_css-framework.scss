@@ -129,7 +129,7 @@
   // - For Primary Button with background
   &.is-filled {
     border: 1px solid $primary-color;
-    background-color: $third-color;
+    background-color: $primary-color;
     color: $white;
 
     &:hover {
@@ -1472,6 +1472,10 @@
   color: $secondary-color !important;
 }
 
+.bg-color-primary {
+  background-color: $primary-color !important;
+}
+
 .color-success {
   color: $success;
 }
@@ -1617,11 +1621,16 @@
     inset: 0;
     border-radius: inherit;
     padding: 2px; /* border thickness */
-    background: linear-gradient(90deg, #70cfe2, #3cadc3, #2a7e9f);
+    background: linear-gradient(
+      90deg,
+      color.scale($primary-color, $lightness: 50%),
+      color.scale($primary-color, $lightness: 5%),
+      $primary-color
+    );
     filter: blur(2px); /* soft glow */
 
-    -webkit-mask: linear-gradient(#fff 0 0) content-box,
-      linear-gradient(#fff 0 0);
+    -webkit-mask: linear-gradient($white 0 0) content-box,
+      linear-gradient($white 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
 
@@ -1634,9 +1643,10 @@
 .gradient-text {
   background: linear-gradient(
     71.99deg,
-    #5ebacd 51.73%,
-    #2a8ea2 72.94%,
-    #144d63 88.29%
+    color.scale($primary-color, $lightness: 50%) 31.73%,
+    color.scale($primary-color, $lightness: 20%),
+    72.94%,
+    $primary-color 88.29%
   );
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

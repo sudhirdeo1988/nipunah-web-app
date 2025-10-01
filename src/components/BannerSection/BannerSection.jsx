@@ -56,18 +56,18 @@ const BannerSection = () => {
                   10k+ Candidates
                 </span>
                 <Avatar.Group>
-                  <Avatar style={{ backgroundColor: "#3cadc3" }} size={40}>
-                    <Icon name="person" color="#ffffff" />
+                  <Avatar className="bg-color-primary" size={40}>
+                    <Icon name="person" className="color-white" />
                   </Avatar>
-                  <Avatar style={{ backgroundColor: "#3cadc3" }} size={40}>
-                    <Icon name="person" color="#ffffff" />
+                  <Avatar className="bg-color-primary" size={40}>
+                    <Icon name="person" className="color-white" />
                   </Avatar>
-                  <Avatar style={{ backgroundColor: "#3cadc3" }} size={40}>
-                    <Icon name="person" color="#ffffff" />
+                  <Avatar className="bg-color-primary" size={40}>
+                    <Icon name="person" className="color-white" />
                   </Avatar>
                   <Avatar
                     style={{ backgroundColor: "#f9ab00" }}
-                    icon={<Icon name="add" color="#ffffff" />}
+                    icon={<Icon name="add" className="color-white" />}
                     size={40}
                   />
                 </Avatar.Group>
@@ -77,33 +77,33 @@ const BannerSection = () => {
                   100+ Companies
                 </span>
                 <Avatar.Group shape="square">
-                  <Avatar style={{ backgroundColor: "#3cadc3" }} size={40}>
+                  <Avatar className="bg-color-primary" size={40}>
                     <Icon
                       name="business_center"
                       isFilled
-                      color="#ffffff"
+                      className="color-white"
                       size="small"
                     />
                   </Avatar>
-                  <Avatar style={{ backgroundColor: "#3cadc3" }} size={40}>
+                  <Avatar className="bg-color-primary" size={40}>
                     <Icon
                       name="business_center"
                       isFilled
-                      color="#ffffff"
+                      className="color-white"
                       size="small"
                     />
                   </Avatar>
-                  <Avatar style={{ backgroundColor: "#3cadc3" }} size={40}>
+                  <Avatar className="bg-color-primary" size={40}>
                     <Icon
                       name="business_center"
                       isFilled
-                      color="#ffffff"
+                      className="color-white"
                       size="small"
                     />
                   </Avatar>
                   <Avatar
                     style={{ backgroundColor: "#f9ab00" }}
-                    icon={<Icon name="add" color="#ffffff" />}
+                    icon={<Icon name="add" className="color-white" />}
                     size={40}
                   />
                 </Avatar.Group>

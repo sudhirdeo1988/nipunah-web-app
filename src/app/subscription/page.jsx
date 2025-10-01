@@ -6,6 +6,8 @@ import { Divider, Space, List } from "antd";
 import { map as _map } from "lodash-es";
 import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 const plans = [
   {
@@ -64,12 +66,14 @@ const plans = [
 ];
 
 const SubscriptionPage = () => {
+  const router = useRouter();
+
   return (
     <>
       <PublicLayout>
         <PageHeadingBanner
-          heading="Subscription Plans"
-          currentPageTitle="Subscription Plans"
+          heading="Pricing Plans"
+          currentPageTitle="Pricing Plans"
         />
         <section className="section-padding">
           <div className="container">
@@ -110,7 +114,14 @@ const SubscriptionPage = () => {
                           {planCard?.description}
                         </span>
 
-                        <button className="C-button is-filled w-100">
+                        <button
+                          className="C-button is-filled w-100"
+                          onClick={() =>
+                            router.push(
+                              `${ROUTES.PUBLIC.SIGNUP}?plan=${planCard?.id}`
+                            )
+                          }
+                        >
                           Choose plan
                         </button>
                       </div>

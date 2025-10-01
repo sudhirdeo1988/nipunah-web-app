@@ -298,7 +298,9 @@ const AboutPage = () => {
             </h2>
             <div className="process-loader mb-5">
               <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
-                <div className="countCircle bordered mb-3">01</div>
+                <div className="countCircle bordered mb-3 bg-color-primary">
+                  01
+                </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   List your company
                 </span>
@@ -308,7 +310,9 @@ const AboutPage = () => {
               </div>
 
               <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
-                <div className="countCircle bordered mb-3 text-center">02</div>
+                <div className="countCircle bordered mb-3 text-center bg-color-primary">
+                  02
+                </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Highlight certifications
                 </span>
@@ -318,7 +322,9 @@ const AboutPage = () => {
               </div>
 
               <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
-                <div className="countCircle bordered mb-3">03</div>
+                <div className="countCircle bordered mb-3 bg-color-primary">
+                  03
+                </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Receive direct inquiries
                 </span>
@@ -329,7 +335,9 @@ const AboutPage = () => {
               </div>
 
               <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
-                <div className="countCircle bordered mb-3">04</div>
+                <div className="countCircle bordered mb-3 bg-color-primary">
+                  04
+                </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Discover new suppliers
                 </span>
@@ -340,7 +348,9 @@ const AboutPage = () => {
               </div>
 
               <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
-                <div className="countCircle bordered mb-3">05</div>
+                <div className="countCircle bordered mb-3 bg-color-primary">
+                  05
+                </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
                   Stay visible 24/7
                 </span>
