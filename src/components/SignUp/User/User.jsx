@@ -3,8 +3,11 @@
 import React, { useState } from "react";
 import { Form, Input, Steps, message } from "antd";
 import Icon from "@/components/Icon";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 const UserRegistration = () => {
+  const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [otpVerified, setOtpVerified] = useState(true);
   const [otpSent, setOtpSent] = useState("123456"); // temp OTP for dev mode
@@ -331,41 +334,61 @@ const UserRegistration = () => {
   ];
 
   return (
-    <Form form={form} layout="vertical" autoComplete="off" onFinish={onFinish}>
-      <div className="row justify-content-center d-none d-md-flex">
-        <div className="col-md-8 col-sm-12 col-xs-12">
-          <Steps
-            current={currentStep}
-            className="formSteps mb-4"
-            items={steps}
-          />
+    <div className="">
+      <Form
+        form={form}
+        layout="vertical"
+        autoComplete="off"
+        onFinish={onFinish}
+        className="mb-4"
+      >
+        <div className="row justify-content-center d-none d-md-flex">
+          <div className="col-md-8 col-sm-12 col-xs-12">
+            <Steps
+              current={currentStep}
+              className="formSteps mb-4"
+              items={steps}
+            />
+          </div>
         </div>
-      </div>
 
-      <div className="row justify-content-center">
-        <div className="col-md-6 col-sm-12 col-xs-12">
-          <div className="p-3 pb-0">{steps[currentStep]?.content}</div>
+        <div className="row justify-content-center">
+          <div className="col-md-6 col-sm-12 col-xs-12">
+            <div className="p-3 pb-0">{steps[currentStep]?.content}</div>
+          </div>
         </div>
-      </div>
 
+        <div className="text-center">
+          {currentStep > 0 && (
+            <button className="C-button is-bordered me-2" onClick={prev}>
+              Previous
+            </button>
+          )}
+          {currentStep < steps.length - 1 && (
+            <button className="C-button is-filled" onClick={next}>
+              Next
+            </button>
+          )}
+          {currentStep === steps.length - 1 && (
+            <button className="C-button is-filled" type="submit">
+              Register
+            </button>
+          )}
+        </div>
+      </Form>
       <div className="text-center">
-        {currentStep > 0 && (
-          <button className="C-button is-bordered me-2" onClick={prev}>
-            Previous
+        <span className="C-heading size-xs semiBold mb-1">
+          Already have account.? &nbsp;
+          <button
+            className="C-button is-link p-0 underline"
+            type="button"
+            onClick={() => router.push(ROUTES?.PUBLIC.LOGIN)}
+          >
+            Login
           </button>
-        )}
-        {currentStep < steps.length - 1 && (
-          <button className="C-button is-filled" onClick={next}>
-            Next
-          </button>
-        )}
-        {currentStep === steps.length - 1 && (
-          <button className="C-button is-filled" type="submit">
-            Register
-          </button>
-        )}
+        </span>
       </div>
-    </Form>
+    </div>
   );
 };
 

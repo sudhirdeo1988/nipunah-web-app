@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/utilities/AuthContext";
 
 const AppInitializer = ({ children }) => {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { token } = useAuth();
 
   useEffect(() => {

@@ -34,7 +34,7 @@ const HeaderBeta = () => {
         ))}
         <li className="forMobile">
           <Link href={ROUTES.PUBLIC.SIGNUP}>
-            <button className="C-button is-bordered">Get Listed</button>
+            <button className="C-button is-bordered">Create Account</button>
           </Link>
         </li>
       </>

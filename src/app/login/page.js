@@ -7,7 +7,8 @@ import { setToken } from "@/utilities/auth";
 import { useRouter } from "next/navigation";
 import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
-import { Form, Input } from "antd";
+import { Form, Input, Space } from "antd";
+import Icon from "@/components/Icon";
 
 const LoginPage = () => {
   const { setToken: updateContextToken } = useAuth();
@@ -37,17 +38,22 @@ const LoginPage = () => {
         <div className="container">
           <div className="row justify-content-center">
             <div className="col-xl-5 col-md-6 col-sm-12">
-              <div className="p-3 shadow border border-light rounded-2">
+              <div className="p-3 shadow border rounded-2 bg-white">
+                <h3 className="C-heading size-4 color-dark font-family-creative extraBold mb-4 text-center text-uppercase">
+                  Login
+                </h3>
                 <Form
                   name="basic"
                   layout="vertical"
                   autoComplete="off"
                   onFinish={handleLogin}
                 >
-                  <span className="C-heading size-xs semiBold mb-1">
-                    User Name
-                  </span>
                   <Form.Item
+                    label={
+                      <span className="C-heading size-xs semiBold mb-1">
+                        User Name
+                      </span>
+                    }
                     name="username"
                     rules={[
                       {
@@ -56,12 +62,19 @@ const LoginPage = () => {
                       },
                     ]}
                   >
-                    <Input placeholder="Enter username" size="large" />
+                    <Input
+                      placeholder="Enter username"
+                      size="large"
+                      prefix={<Icon name="person" isFilled color="#ccc" />}
+                    />
                   </Form.Item>
-                  <span className="C-heading size-xs semiBold mb-1">
-                    Password
-                  </span>
+
                   <Form.Item
+                    label={
+                      <span className="C-heading size-xs semiBold mb-1">
+                        Password
+                      </span>
+                    }
                     name="password"
                     rules={[
                       {
@@ -69,9 +82,27 @@ const LoginPage = () => {
                         message: "Please enter password!",
                       },
                     ]}
+                    required
                   >
-                    <Input.Password placeholder="Enter password" size="large" />
+                    <Input.Password
+                      placeholder="Enter password"
+                      size="large"
+                      prefix={<Icon name="passkey" isFilled color="#ccc" />}
+                    />
                   </Form.Item>
+
+                  <div className="text-right mb-4">
+                    <button
+                      className="C-button is-link p-0 small"
+                      type="button"
+                      onClick={() => router.push(ROUTES?.PUBLIC.SIGNUP)}
+                    >
+                      <Space size={4}>
+                        <Icon name="lock" size="small" />
+                        Forgot Password?
+                      </Space>
+                    </button>
+                  </div>
 
                   <div className="text-center mb-3">
                     <button className="C-button is-filled w-100" type="submit">
@@ -81,8 +112,12 @@ const LoginPage = () => {
 
                   <div className="text-center mb-0">
                     <span className="C-heading size-xs semiBold mb-1">
-                      Not registered yet &nbsp;
-                      <button className="C-button is-link p-0" type="button">
+                      Not registered yet.? &nbsp;
+                      <button
+                        className="C-button is-link p-0 underline"
+                        type="button"
+                        onClick={() => router.push(ROUTES?.PUBLIC.SIGNUP)}
+                      >
                         Register here
                       </button>
                     </span>
