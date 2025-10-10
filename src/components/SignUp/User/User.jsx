@@ -578,7 +578,7 @@ const UserRegistration = () => {
         <span className="C-heading size-xs semiBold mb-1">
           Already have account.? &nbsp;
           <button
-            className="C-button is-link p-0 underline"
+            className="C-button is-link p-0 small underline bold"
             type="button"
             onClick={() => router.push(ROUTES?.PUBLIC.LOGIN)}
           >

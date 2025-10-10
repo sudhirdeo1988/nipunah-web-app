@@ -4,8 +4,10 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
-import { Drawer, Dropdown, Select, Space } from "antd";
+import { Drawer, Dropdown, Space } from "antd";
 import Icon from "../Icon";
+import { map as _map } from "lodash-es";
+import { userTypes } from "@/utilities/auth";
 
 const navItems = [
   { label: "Home", href: ROUTES.PUBLIC.HOME },
@@ -29,47 +31,20 @@ const HeaderBeta = () => {
             Register
           </span>
         ),
-        children: [
-          {
-            label: (
-              <Link
-                href={`${ROUTES.PUBLIC.SIGNUP}?for=user`}
-                className="text-decoration-none"
-              >
-                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
-                  For User
-                </span>
-              </Link>
-            ),
-            key: "0",
-          },
-          {
-            label: (
-              <Link
-                href={`${ROUTES.PUBLIC.SIGNUP}?for=expert`}
-                className="text-decoration-none"
-              >
-                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
-                  For Expert
-                </span>
-              </Link>
-            ),
-            key: "10",
-          },
-          {
-            label: (
-              <Link
-                href={`${ROUTES.PUBLIC.SIGNUP}?for=company`}
-                className="text-decoration-none"
-              >
-                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
-                  For Company
-                </span>
-              </Link>
-            ),
-            key: "20",
-          },
-        ],
+
+        children: _map(userTypes, (user) => ({
+          label: (
+            <Link
+              href={`${ROUTES.PUBLIC.SIGNUP}?for=${user?.value}`}
+              className="text-decoration-none"
+            >
+              <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
+                For {user?.label}
+              </span>
+            </Link>
+          ),
+          key: user?.value,
+        })),
       },
       {
         key: "2",

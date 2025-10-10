@@ -25,3 +25,24 @@ export const getClientToken = () => {
   }
   return token;
 };
+
+export const userTypes = [
+  {
+    id: 1,
+    label: "User",
+    value: "user",
+    icon: "",
+  },
+  {
+    id: 2,
+    label: "Expert",
+    value: "expert",
+    icon: "",
+  },
+  {
+    id: 3,
+    label: "Company",
+    value: "company",
+    icon: "",
+  },
+];

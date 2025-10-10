@@ -29,7 +29,7 @@ const Footer = () => {
               <div className="single-footer-widget me-xxl-5 pe-xxl-4">
                 <div className="widget-head mb-3">
                   <Image
-                    src="/assets/images/logo.png"
+                    src="/assets/images/logo-white.png"
                     alt="My Logo"
                     width={180}
                     height={70}
