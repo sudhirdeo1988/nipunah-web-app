@@ -4,7 +4,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
-import { Drawer, Space } from "antd";
+import { Drawer, Dropdown, Select, Space } from "antd";
 import Icon from "../Icon";
 
 const navItems = [
@@ -20,6 +20,80 @@ const HeaderBeta = () => {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const onRenderMenuBar = () => {
+    const items = [
+      {
+        key: "1",
+        type: "group",
+        label: (
+          <span className="C-heading size-xss bold color-light uppercase mb-0 ">
+            Register
+          </span>
+        ),
+        children: [
+          {
+            label: (
+              <Link
+                href={`${ROUTES.PUBLIC.SIGNUP}?for=user`}
+                className="text-decoration-none"
+              >
+                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
+                  For User
+                </span>
+              </Link>
+            ),
+            key: "0",
+          },
+          {
+            label: (
+              <Link
+                href={`${ROUTES.PUBLIC.SIGNUP}?for=expert`}
+                className="text-decoration-none"
+              >
+                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
+                  For Expert
+                </span>
+              </Link>
+            ),
+            key: "10",
+          },
+          {
+            label: (
+              <Link
+                href={`${ROUTES.PUBLIC.SIGNUP}?for=company`}
+                className="text-decoration-none"
+              >
+                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
+                  For Company
+                </span>
+              </Link>
+            ),
+            key: "20",
+          },
+        ],
+      },
+      {
+        key: "2",
+        type: "group",
+        label: (
+          <span className="C-heading size-xss bold color-light uppercase mb-0">
+            Sign in
+          </span>
+        ),
+        children: [
+          {
+            label: (
+              <Link href={ROUTES.PUBLIC.LOGIN} className="text-decoration-none">
+                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
+                  Login to account
+                </span>
+              </Link>
+            ),
+            key: "login",
+          },
+        ],
+      },
+    ];
+
     return (
       <>
         {navItems.map(({ label, href }) => (
@@ -32,10 +106,16 @@ const HeaderBeta = () => {
             </Link>
           </li>
         ))}
+
         <li className="forMobile">
-          <Link href={ROUTES.PUBLIC.SIGNUP}>
-            <button className="C-button is-bordered">Create Account</button>
-          </Link>
+          <Dropdown menu={{ items }} overlayClassName="authOverlay">
+            <button className={`navLink is-clean`}>
+              <Space size={2}>
+                Login / Sign up
+                <Icon name="arrow_drop_down" className="color-primary" />
+              </Space>
+            </button>
+          </Dropdown>
         </li>
       </>
     );

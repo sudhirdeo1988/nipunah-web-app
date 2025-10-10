@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Icon from "@/components/Icon/Icon";
-import { Drawer, Input, Popover, Space } from "antd";
+import { Drawer, Space } from "antd";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";

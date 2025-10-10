@@ -20,11 +20,30 @@
       font: 600 0.85rem / 1.1rem $creative-font;
       @include transition(all ease 0.3s);
       @include rounded-corners(4px);
-      &:hover,
-      &.active {
+      &:not(.is-clean):hover,
+      &:not(.is-clean).active {
         background-color: $primary-color;
         color: $white;
       }
+
+      &.is-clean {
+        background-color: transparent;
+        border: 0;
+        color: $primary-color;
+      }
+    }
+  }
+}
+
+.authOverlay {
+  .ant-dropdown-menu {
+    padding: 0 !important;
+    .ant-dropdown-menu-item-group-title {
+      background-color: #eeeeee;
+      color: $white;
+    }
+    .ant-dropdown-menu-item-group-list {
+      margin: 0 !important;
     }
   }
 }

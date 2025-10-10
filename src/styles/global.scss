@@ -423,3 +423,21 @@ body {
     }
   }
 }
+
+.private-layout {
+  height: 100vh;
+  .c-appLayout {
+    height: 100%;
+
+    .appLayout {
+      &-sideBar {
+        border-right: 1px solid $border-color;
+        background-color: $white;
+        flex: 0 0 260px !important;
+        width: 260px !important;
+        max-width: 260px !important;
+        @include box-shadow(0 0 35px 0 rgba(154, 161, 171, 0.15));
+      }
+    }
+  }
+}

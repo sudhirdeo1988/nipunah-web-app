@@ -1,29 +1,88 @@
 "use client";
 
-import React, { useState } from "react";
-import { Form, Input, Steps, message } from "antd";
+import React, { useState, useMemo, useCallback, memo } from "react";
+import { Form, Input, Steps, message, Select, Divider, Space } from "antd";
+import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
 import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import CountryDetails from "@/utilities/CountryDetails.json";
 
 const UserRegistration = () => {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [otpVerified, setOtpVerified] = useState(true);
   const [otpSent, setOtpSent] = useState("123456"); // temp OTP for dev mode
-
+  const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 1
+  const [selectedCountry, setSelectedCountry] = useState(null);
   const [form] = Form.useForm();
 
+  // Memoize expensive calculations
+  const countries = useMemo(
+    () => _map(CountryDetails, (country) => country.countryName) || [],
+    []
+  );
+
+  const selectedCountryData = useMemo(
+    () =>
+      _find(
+        CountryDetails,
+        (country) => country.countryName === selectedCountry
+      ),
+    [selectedCountry]
+  );
+
+  const states = useMemo(
+    () => (selectedCountryData ? selectedCountryData.states : []),
+    [selectedCountryData]
+  );
+
+  // Memoize country options for contact dropdown
+  const countryOptions = useMemo(
+    () =>
+      _map(CountryDetails, (c) => ({
+        label: (
+          <span className="C-heading size-xs color-light mb-0">
+            {c.countryName} ({c.dailCode})
+          </span>
+        ),
+        value: c.dailCode,
+      })),
+    []
+  );
+
+  // Memoize country select options
+  const countrySelectOptions = useMemo(
+    () =>
+      _map(countries, (country) => (
+        <Select.Option key={country} value={country}>
+          {country}
+        </Select.Option>
+      )),
+    [countries]
+  );
+
+  // Memoize state select options
+  const stateSelectOptions = useMemo(
+    () =>
+      _map(states, (state) => (
+        <Select.Option key={state} value={state}>
+          {state}
+        </Select.Option>
+      )),
+    [states]
+  );
+
   // --- OTP Functions ---
-  const sendOtp = () => {
+  const sendOtp = useCallback(() => {
     const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
     setOtpSent(newOtp);
     message.success(`OTP sent (for dev mode): ${newOtp}`);
     setOtpVerified(false);
     form.setFieldsValue({ otp: "" });
-  };
+  }, [form]);
 
-  const verifyOtp = async () => {
+  const verifyOtp = useCallback(async () => {
     try {
       const values = await form.validateFields(["otp"]);
       if (values.otp === otpSent) {
@@ -34,33 +93,42 @@ const UserRegistration = () => {
         message.error("Invalid OTP. Please try again.");
       }
     } catch (err) {}
-  };
+  }, [form, otpSent]);
 
   // --- Step Navigation ---
-  const next = async () => {
+  const next = useCallback(async () => {
     try {
       if (currentStep === 0) {
-        await form.validateFields([
+        const values = await form.validateFields([
           "first_name",
           "last_name",
           "email",
           "contact",
           "address",
         ]);
+
+        // Capture email from step 1
+        setCapturedEmail(values.email);
         setCurrentStep(currentStep + 1);
       } else if (currentStep === 1) {
         if (!otpVerified) {
           message.error("Please verify OTP before proceeding.");
           return;
         }
+
         setCurrentStep(currentStep + 1);
       }
-    } catch (err) {}
-  };
+    } catch (err) {
+      console.error("Step navigation error:", err);
+    }
+  }, [currentStep, form, otpVerified]);
 
-  const prev = () => setCurrentStep(currentStep - 1);
+  const prev = useCallback(
+    () => setCurrentStep(currentStep - 1),
+    [currentStep]
+  );
 
-  const onFinish = async () => {
+  const onFinish = useCallback(async () => {
     try {
       await form.validateFields();
       if (!otpVerified) {
@@ -69,11 +137,32 @@ const UserRegistration = () => {
         return;
       }
 
-      const finalData = form.getFieldsValue();
-      console.log("Final Registration Data:", finalData);
+      // Get all form values and debug
+      const allFields = form.getFieldsValue(true); // Include undefined values
+
+      console.log("=== FORM SUBMISSION DEBUG ===");
+      console.log("All Fields (including undefined):", allFields);
+      console.log("Address Object Structure:", allFields.address);
+
       message.success("User registered successfully!");
-    } catch (err) {}
-  };
+    } catch (err) {
+      console.error("Form submission error:", err);
+    }
+  }, [form, otpVerified]);
+
+  // Optimize country change handler
+  const handleCountryChange = useCallback(
+    (value) => {
+      setSelectedCountry(value);
+      form.setFieldsValue({
+        address: {
+          ...form.getFieldValue("address"),
+          state: undefined,
+        },
+      }); // Reset state when country changes
+    },
+    [form]
+  );
 
   // --- Step Contents ---
   const userDetailsStep = (
@@ -114,7 +203,6 @@ const UserRegistration = () => {
           />
         </Form.Item>
       </div>
-
       <div className="col-12">
         <Form.Item
           label={
@@ -143,29 +231,128 @@ const UserRegistration = () => {
               Contact Number
             </span>
           }
-          name="contact"
-          rules={[
-            { required: true, message: "Please enter contact number." },
-            { pattern: /^\d{10}$/, message: "Enter a valid 10-digit number." },
-          ]}
-          className="mb-1"
+          required
         >
-          <Input
-            placeholder="Contact number"
-            size="large"
-            prefix={<Icon name="call" isFilled color="#ccc" />}
-          />
+          <Space.Compact block>
+            <Form.Item
+              name="contact_country_code"
+              noStyle
+              rules={[{ required: true, message: "Select code" }]}
+            >
+              <Select
+                placeholder="Code"
+                size="large"
+                style={{ width: "30%" }}
+                options={countryOptions}
+              />
+            </Form.Item>
+            <Form.Item
+              name="contact"
+              noStyle
+              rules={[
+                { required: true, message: "Enter contact number" },
+                {
+                  pattern: /^\d{7,15}$/,
+                  message: "Enter a valid phone number (7-15 digits)",
+                },
+              ]}
+            >
+              <Input
+                placeholder="Phone number"
+                size="large"
+                style={{ width: "70%" }}
+                prefix={<Icon name="phone" isFilled color="#ccc" />}
+              />
+            </Form.Item>
+          </Space.Compact>
         </Form.Item>
       </div>
+
+      <div className="col-12">
+        <Divider orientation="left">
+          <span className="C-heading size-xss bold mb-0">ADDRESS</span>
+        </Divider>
+      </div>
+
+      <div className={`col-${_isEmpty(states) ? "12" : "6"}`}>
+        <Form.Item
+          label={
+            <span className="C-heading size-6 semiBold color-light mb-0">
+              Country
+            </span>
+          }
+          name={["address", "country"]}
+          rules={[{ required: true, message: "Please select a country." }]}
+          className="mb-2"
+        >
+          <Select
+            placeholder="Select Country"
+            size="large"
+            showSearch
+            optionFilterProp="children"
+            onChange={handleCountryChange}
+            filterOption={(input, option) =>
+              option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+            }
+          >
+            {countrySelectOptions}
+          </Select>
+        </Form.Item>
+      </div>
+
+      {!_isEmpty(states) && (
+        <div className="col-6">
+          <Form.Item
+            label={
+              <span className="C-heading size-6 semiBold color-light mb-0">
+                State/Province
+              </span>
+            }
+            name={["address", "state"]}
+            rules={[
+              { required: true, message: "Please select a state/province." },
+              {
+                validator: (_, value) => {
+                  if (
+                    selectedCountry &&
+                    selectedCountryData &&
+                    selectedCountryData.states.length > 0 &&
+                    !value
+                  ) {
+                    return Promise.reject(
+                      new Error("Please select a state/province.")
+                    );
+                  }
+                  return Promise.resolve();
+                },
+              },
+            ]}
+            className="mb-2"
+          >
+            <Select
+              placeholder="Select State/Province"
+              size="large"
+              showSearch
+              optionFilterProp="children"
+              disabled={!selectedCountry || states.length === 0}
+              filterOption={(input, option) =>
+                option.children.toLowerCase().indexOf(input.toLowerCase()) >= 0
+              }
+            >
+              {stateSelectOptions}
+            </Select>
+          </Form.Item>
+        </div>
+      )}
 
       <div className="col-12">
         <Form.Item
           label={
             <span className="C-heading size-6 semiBold color-light mb-0">
-              Address
+              Detail Address
             </span>
           }
-          name="address"
+          name={["address", "location"]}
           rules={[{ required: true, message: "Please enter address." }]}
         >
           <Input.TextArea
@@ -182,6 +369,13 @@ const UserRegistration = () => {
   const otpStep = (
     <div className="row g-3">
       <div className="col-12">
+        {capturedEmail && (
+          <div className="mb-3">
+            <span className="C-heading size-xs color-light mb-0">
+              OTP sent to: <strong>{capturedEmail}</strong>
+            </span>
+          </div>
+        )}
         <Form.Item
           label={
             <span className="C-heading size-6 semiBold color-light mb-0">
@@ -238,11 +432,15 @@ const UserRegistration = () => {
           name="username"
           rules={[{ required: true, message: "Please enter username." }]}
           className="mb-2"
+          initialValue={capturedEmail}
         >
           <Input
             placeholder="Username"
             size="large"
             prefix={<Icon name="person" isFilled color="#ccc" />}
+            readOnly
+            value={capturedEmail}
+            style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
           />
         </Form.Item>
       </div>
@@ -343,7 +541,7 @@ const UserRegistration = () => {
         className="mb-4"
       >
         <div className="row justify-content-center d-none d-md-flex">
-          <div className="col-md-8 col-sm-12 col-xs-12">
+          <div className="col-md-10 d-none d-md-block">
             <Steps
               current={currentStep}
               className="formSteps mb-4"
@@ -353,7 +551,7 @@ const UserRegistration = () => {
         </div>
 
         <div className="row justify-content-center">
-          <div className="col-md-6 col-sm-12 col-xs-12">
+          <div className="col-md-7 col-sm-12">
             <div className="p-3 pb-0">{steps[currentStep]?.content}</div>
           </div>
         </div>
@@ -392,4 +590,4 @@ const UserRegistration = () => {
   );
 };
 
-export default UserRegistration;
+export default memo(UserRegistration);

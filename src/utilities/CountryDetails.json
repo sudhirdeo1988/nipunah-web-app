@@ -6,7 +6,8 @@
     "currencySymbol": "S$",
     "dailCode": "+65",
     "timeZoneDisplay": "(GMT +8)",
-    "timeZone": "Asia/Singapore"
+    "timeZone": "Asia/Singapore",
+    "states": []
   },
   {
     "currencyCode": "MYR",
@@ -15,7 +16,25 @@
     "currencySymbol": "RM",
     "dailCode": "+60",
     "timeZoneDisplay": "(GMT +8)",
-    "timeZone": "Asia/Kuala_Lumpur"
+    "timeZone": "Asia/Kuala_Lumpur",
+    "states": [
+      "Johor",
+      "Kedah",
+      "Kelantan",
+      "Kuala Lumpur",
+      "Labuan",
+      "Malacca",
+      "Negeri Sembilan",
+      "Pahang",
+      "Penang",
+      "Perak",
+      "Perlis",
+      "Putrajaya",
+      "Sabah",
+      "Sarawak",
+      "Selangor",
+      "Terengganu"
+    ]
   },
   {
     "currencyCode": "IDR",
@@ -24,7 +43,8 @@
     "currencySymbol": "Rp",
     "dailCode": "+62",
     "timeZoneDisplay": "(GMT +7)",
-    "timeZone": "Asia/Jakarta"
+    "timeZone": "Asia/Jakarta",
+    "states": []
   },
   {
     "currencyCode": "VND",
@@ -33,7 +53,8 @@
     "currencySymbol": "₫",
     "dailCode": "+84",
     "timeZoneDisplay": "(GMT +7)",
-    "timeZone": "Asia/Ho_Chi_Minh"
+    "timeZone": "Asia/Ho_Chi_Minh",
+    "states": []
   },
   {
     "currencyCode": "PHP",
@@ -42,7 +63,8 @@
     "currencySymbol": "₱",
     "dailCode": "+63",
     "timeZoneDisplay": "(GMT +8)",
-    "timeZone": "Asia/Manila"
+    "timeZone": "Asia/Manila",
+    "states": []
   },
   {
     "currencyCode": "THB",
@@ -51,7 +73,8 @@
     "currencySymbol": "฿",
     "dailCode": "+66",
     "timeZoneDisplay": "(GMT +7)",
-    "timeZone": "Asia/Bangkok"
+    "timeZone": "Asia/Bangkok",
+    "states": []
   },
   {
     "currencyCode": "INR",
@@ -60,7 +83,45 @@
     "currencySymbol": "₹",
     "dailCode": "+91",
     "timeZoneDisplay": "(GMT +5:30)",
-    "timeZone": "Asia/Kolkata"
+    "timeZone": "Asia/Kolkata",
+    "states": [
+      "Andhra Pradesh",
+      "Arunachal Pradesh",
+      "Assam",
+      "Bihar",
+      "Chhattisgarh",
+      "Goa",
+      "Gujarat",
+      "Haryana",
+      "Himachal Pradesh",
+      "Jharkhand",
+      "Karnataka",
+      "Kerala",
+      "Madhya Pradesh",
+      "Maharashtra",
+      "Manipur",
+      "Meghalaya",
+      "Mizoram",
+      "Nagaland",
+      "Odisha",
+      "Punjab",
+      "Rajasthan",
+      "Sikkim",
+      "Tamil Nadu",
+      "Telangana",
+      "Tripura",
+      "Uttar Pradesh",
+      "Uttarakhand",
+      "West Bengal",
+      "Andaman and Nicobar Islands",
+      "Chandigarh",
+      "Dadra and Nagar Haveli and Daman and Diu",
+      "Delhi",
+      "Jammu and Kashmir",
+      "Ladakh",
+      "Lakshadweep",
+      "Puducherry"
+    ]
   },
   {
     "currencyCode": "AFN",
@@ -69,7 +130,8 @@
     "currencySymbol": "؋'",
     "dailCode": "+93",
     "timeZoneDisplay": "(GMT +4:30)",
-    "timeZone": "Asia/Kabul"
+    "timeZone": "Asia/Kabul",
+    "states": []
   },
   {
     "currencyCode": "ALL",
@@ -132,7 +194,17 @@
     "currencySymbol": "$",
     "dailCode": "+61",
     "timeZoneDisplay": "(GMT +10)",
-    "timeZone": "Australia/Lord_Howe"
+    "timeZone": "Australia/Lord_Howe",
+    "states": [
+      "Australian Capital Territory",
+      "New South Wales",
+      "Northern Territory",
+      "Queensland",
+      "South Australia",
+      "Tasmania",
+      "Victoria",
+      "Western Australia"
+    ]
   },
   {
     "currencyCode": "AZN",
@@ -294,7 +366,22 @@
     "currencySymbol": "$",
     "dailCode": "+1",
     "timeZoneDisplay": "(GMT -6)",
-    "timeZone": "America/St_Johns"
+    "timeZone": "America/St_Johns",
+    "states": [
+      "Alberta",
+      "British Columbia",
+      "Manitoba",
+      "New Brunswick",
+      "Newfoundland and Labrador",
+      "Northwest Territories",
+      "Nova Scotia",
+      "Nunavut",
+      "Ontario",
+      "Prince Edward Island",
+      "Quebec",
+      "Saskatchewan",
+      "Yukon"
+    ]
   },
   {
     "currencyCode": "KYD",
@@ -330,7 +417,42 @@
     "currencySymbol": "¥",
     "dailCode": "+86",
     "timeZoneDisplay": "(GMT +8)",
-    "timeZone": "Asia/Shanghai"
+    "timeZone": "Asia/Shanghai",
+    "states": [
+      "Beijing",
+      "Tianjin",
+      "Hebei",
+      "Shanxi",
+      "Inner Mongolia",
+      "Liaoning",
+      "Jilin",
+      "Heilongjiang",
+      "Shanghai",
+      "Jiangsu",
+      "Zhejiang",
+      "Anhui",
+      "Fujian",
+      "Jiangxi",
+      "Shandong",
+      "Henan",
+      "Hubei",
+      "Hunan",
+      "Guangdong",
+      "Guangxi",
+      "Hainan",
+      "Chongqing",
+      "Sichuan",
+      "Guizhou",
+      "Yunnan",
+      "Tibet",
+      "Shaanxi",
+      "Gansu",
+      "Qinghai",
+      "Ningxia",
+      "Xinjiang",
+      "Hong Kong",
+      "Macau"
+    ]
   },
   {
     "currencyCode": "COP",
@@ -492,7 +614,22 @@
     "currencySymbol": "€",
     "dailCode": "+33",
     "timeZoneDisplay": "(GMT +1)",
-    "timeZone": "Europe/Paris"
+    "timeZone": "Europe/Paris",
+    "states": [
+      "Auvergne-Rhône-Alpes",
+      "Bourgogne-Franche-Comté",
+      "Brittany",
+      "Centre-Val de Loire",
+      "Corsica",
+      "Grand Est",
+      "Hauts-de-France",
+      "Île-de-France",
+      "Normandy",
+      "Nouvelle-Aquitaine",
+      "Occitanie",
+      "Pays de la Loire",
+      "Provence-Alpes-Côte d'Azur"
+    ]
   },
   {
     "currencyCode": "XPF",
@@ -645,7 +782,17 @@
     "currencySymbol": "¥",
     "dailCode": "+81",
     "timeZoneDisplay": "(GMT +9)",
-    "timeZone": "Asia/Tokyo"
+    "timeZone": "Asia/Tokyo",
+    "states": [
+      "Hokkaido",
+      "Tohoku",
+      "Kanto",
+      "Chubu",
+      "Kansai",
+      "Chugoku",
+      "Shikoku",
+      "Kyushu"
+    ]
   },
   {
     "currencyCode": "GBP",
@@ -1329,7 +1476,59 @@
     "currencySymbol": "$",
     "dailCode": "+1",
     "timeZoneDisplay": "(GMT -6)",
-    "timeZone": "America/New_York"
+    "timeZone": "America/New_York",
+    "states": [
+      "Alabama",
+      "Alaska",
+      "Arizona",
+      "Arkansas",
+      "California",
+      "Colorado",
+      "Connecticut",
+      "Delaware",
+      "Florida",
+      "Georgia",
+      "Hawaii",
+      "Idaho",
+      "Illinois",
+      "Indiana",
+      "Iowa",
+      "Kansas",
+      "Kentucky",
+      "Louisiana",
+      "Maine",
+      "Maryland",
+      "Massachusetts",
+      "Michigan",
+      "Minnesota",
+      "Mississippi",
+      "Missouri",
+      "Montana",
+      "Nebraska",
+      "Nevada",
+      "New Hampshire",
+      "New Jersey",
+      "New Mexico",
+      "New York",
+      "North Carolina",
+      "North Dakota",
+      "Ohio",
+      "Oklahoma",
+      "Oregon",
+      "Pennsylvania",
+      "Rhode Island",
+      "South Carolina",
+      "South Dakota",
+      "Tennessee",
+      "Texas",
+      "Utah",
+      "Vermont",
+      "Virginia",
+      "Washington",
+      "West Virginia",
+      "Wisconsin",
+      "Wyoming"
+    ]
   },
   {
     "currencyCode": "UYU",
@@ -1392,7 +1591,8 @@
     "currencySymbol": "£",
     "dailCode": "+44",
     "timeZoneDisplay": "(GMT)",
-    "timeZone": "Europe/London"
+    "timeZone": "Europe/London",
+    "states": ["England", "Scotland", "Wales", "Northern Ireland"]
   },
   {
     "currencyCode": "EUR",
@@ -1401,6 +1601,24 @@
     "currencySymbol": "€",
     "dailCode": "+49",
     "timeZoneDisplay": "(GMT +1)",
-    "timeZone": "Europe/Berlin"
+    "timeZone": "Europe/Berlin",
+    "states": [
+      "Baden-Württemberg",
+      "Bavaria",
+      "Berlin",
+      "Brandenburg",
+      "Bremen",
+      "Hamburg",
+      "Hesse",
+      "Lower Saxony",
+      "Mecklenburg-Vorpommern",
+      "North Rhine-Westphalia",
+      "Rhineland-Palatinate",
+      "Saarland",
+      "Saxony",
+      "Saxony-Anhalt",
+      "Schleswig-Holstein",
+      "Thuringia"
+    ]
   }
 ]

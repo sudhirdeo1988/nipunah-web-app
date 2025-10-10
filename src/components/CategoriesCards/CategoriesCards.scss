@@ -78,3 +78,16 @@
     border-left: none;
   }
 }
+
+.type-1 {
+  background-color: $third-color !important;
+
+  .bg-dark {
+    background-color: $third-color !important;
+  }
+  .C-card ul li:before,
+  .C-heading.size-6,
+  .sub-title.gradient-wrapper span {
+    color: $white !important;
+  }
+}

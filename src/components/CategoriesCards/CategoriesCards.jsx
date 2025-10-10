@@ -75,7 +75,7 @@ const data = [
 
 const CategoriesCards = () => {
   return (
-    <section className="section-padding bg-dark small">
+    <section className="section-padding bg-dark small type-1">
       <div className="container">
         <div className="section-title text-center mb-3">
           <div className="sub-title gradient-wrapper">

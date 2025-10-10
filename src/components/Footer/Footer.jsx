@@ -21,7 +21,7 @@ const Footer = () => {
     { label: "Contact", href: ROUTES.PUBLIC.CONTACT },
   ];
   return (
-    <footer className="footer-wrapper bg-dark pt-3">
+    <footer className="footer-wrapper bg-dark pt-3 type-1">
       <div className="container">
         <div className="footer-widgets-1">
           <div className="row g-5">
@@ -33,7 +33,7 @@ const Footer = () => {
                     alt="My Logo"
                     width={180}
                     height={70}
-                    className="p-2 bg-white rounded"
+                    className="p-2 rounded"
                   />
                 </div>
                 <div className="footer-content">
