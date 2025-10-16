@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ant-design/v5-patch-for-react-19": "^1.0.3",
     "antd": "^5.27.4",
     "bootstrap-icons": "^1.13.1",
     "cookie": "^1.0.2",

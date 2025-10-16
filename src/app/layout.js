@@ -1,3 +1,4 @@
+import "@ant-design/v5-patch-for-react-19";
 import { Inter, Jost } from "next/font/google";
 import { AuthProvider } from "@/utilities/AuthContext";
 import "@/styles/global.scss";
