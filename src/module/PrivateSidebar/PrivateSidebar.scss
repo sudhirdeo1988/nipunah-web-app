@@ -33,3 +33,16 @@
     }
   }
 }
+
+.sidebarNav {
+  &:hover,
+  &.active {
+    background-color: $gray-bg !important;
+    .C-heading {
+      color: $third-color !important;
+    }
+    .g-icon {
+      color: $third-color !important;
+    }
+  }
+}

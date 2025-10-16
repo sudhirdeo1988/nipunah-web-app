@@ -15,6 +15,8 @@ export const ROUTES = {
   },
   PRIVATE: {
     DASHBOARD: "/app/dashboard",
+    CATEGORY: "/app/category",
+    JOB: "/app/job",
     SETTINGS: "/app/settings",
     PROFILE: "/app/profile",
   },

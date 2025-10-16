@@ -6,27 +6,11 @@ import { useEffect, lazy, Suspense } from "react";
 import AppInitializer from "@/components/AppInitializer";
 import { ROUTES } from "@/constants/routes";
 import { Layout } from "antd";
+import PrivateHeader from "module/PrivateHeader";
 
 const { Header, Footer, Sider, Content } = Layout;
 
 const PrivateSidebar = lazy(() => import("module/PrivateSidebar"));
-
-const headerStyle = {
-  textAlign: "center",
-  color: "red",
-  height: 64,
-  paddingInline: 48,
-  lineHeight: "64px",
-};
-const contentStyle = {
-  textAlign: "center",
-  minHeight: 120,
-  lineHeight: "120px",
-};
-
-const footerStyle = {
-  textAlign: "center",
-};
 
 export default function AppLayout({ children }) {
   const { isLoggedIn } = useAuth();
@@ -34,7 +18,7 @@ export default function AppLayout({ children }) {
 
   useEffect(() => {
     if (!isLoggedIn) {
-      router.replace(ROUTES?.AUTH?.LOGIN);
+      router.replace(ROUTES?.PUBLIC?.LOGIN);
     }
   }, [isLoggedIn]);
 
@@ -52,12 +36,14 @@ export default function AppLayout({ children }) {
           </Sider>
           {/* Main Container */}
           <Layout>
-            <Header style={headerStyle}>Header</Header>
-            <Content style={contentStyle}>
+            <Header className="appLayout-header">
+              <PrivateHeader />
+            </Header>
+            <Content className="appLayout-body">
               {/* e.g., NavBar, Sidebar here */}
-              {children}
+              <div className="p-3 h-100">{children}</div>
             </Content>
-            <Footer style={footerStyle}>Footer</Footer>
+            <Footer className="appLayout-footer">Footer</Footer>
           </Layout>
         </Layout>
       </div>

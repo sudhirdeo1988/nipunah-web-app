@@ -76,16 +76,11 @@
   @include box-shadow(none);
   @include transition(all ease 0.3s);
 
-  .g-icon {
-    font-size: 1.4rem !important;
-    max-height: 21px;
-  }
-
   // - without background color and border
   &.is-clean {
-    background-color: transparent !important;
+    background-color: transparent;
     border: 0 !important;
-    padding: 2px !important;
+    padding: 2px;
   }
 
   &.has-animation {
@@ -520,7 +515,7 @@
   &.left {
     & > .ant-tabs-left {
       & > .ant-tabs-nav {
-        flex-basis: 260px;
+        flex-basis: 230px;
       }
 
       .ant-tabs-tabpane {
