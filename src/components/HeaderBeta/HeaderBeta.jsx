@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import "./HeaderBeta.scss";
 import Image from "next/image";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
-import { Drawer, Dropdown, Space } from "antd";
+import { Avatar, Drawer, Dropdown, Popover, Space } from "antd";
 import Icon from "../Icon";
 import { map as _map } from "lodash-es";
+import "./HeaderBeta.scss";
 import { userTypes } from "@/utilities/auth";
 
 const navItems = [
@@ -20,54 +20,84 @@ const navItems = [
 
 const HeaderBeta = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
-  const onRenderMenuBar = () => {
-    const items = [
-      {
-        key: "1",
-        type: "group",
-        label: (
-          <span className="C-heading size-xss bold color-light uppercase mb-0 ">
-            Register
-          </span>
-        ),
 
-        children: _map(userTypes, (user) => ({
-          label: (
-            <Link
-              href={`${ROUTES.PUBLIC.SIGNUP}?for=${user?.value}`}
-              className="text-decoration-none"
+  const onRenderMenuBar = () => {
+    const content = (
+      <div className="signupPopover text-center">
+        <span className="C-heading size-6 text-center semiBold color-light mb-3">
+          Sign up to access more features.
+        </span>
+        <div className="row g-2 mb-4">
+          <div className="col">
+            <div
+              className="signupCard p-2 h-100 text-center rounded-3"
+              role="button"
+              onClick={() => router.push(`${ROUTES?.PUBLIC?.SIGNUP}?for=user`)}
             >
-              <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
-                For {user?.label}
+              <div className="profile rounded-circle">
+                <i className="bi bi-person-badge-fill"></i>
+              </div>
+              <span className="C-heading size-6 extraBold mb-2 color-white">
+                Browse Listing
               </span>
-            </Link>
-          ),
-          key: user?.value,
-        })),
-      },
-      {
-        key: "2",
-        type: "group",
-        label: (
-          <span className="C-heading size-xss bold color-light uppercase mb-0">
-            Sign in
-          </span>
-        ),
-        children: [
-          {
-            label: (
-              <Link href={ROUTES.PUBLIC.LOGIN} className="text-decoration-none">
-                <span className="C-heading size-xs mb-1 semiBold text-black-50 p-1">
-                  Login to account
-                </span>
-              </Link>
-            ),
-            key: "login",
-          },
-        ],
-      },
-    ];
+              <span className="C-heading size-xs color-light mb-0 color-white">
+                Explore companies, experts, Jobs and much more.
+              </span>
+            </div>
+          </div>
+          <div className="col">
+            <div
+              className="signupCard p-2 h-100 text-center rounded-3"
+              role="button"
+              onClick={() =>
+                router.push(`${ROUTES?.PUBLIC?.SIGNUP}?for=expert`)
+              }
+            >
+              <div className="profile rounded-circle">
+                <i className="bi bi-person-lines-fill"></i>
+              </div>
+              <span className="C-heading size-6 extraBold mb-2 color-white">
+                Create expert profile
+              </span>
+              <span className="C-heading size-xs color-light mb-0 color-white">
+                Showcase your expertise and get discovered.
+              </span>
+            </div>
+          </div>
+          <div className="col">
+            <div
+              className="signupCard p-2 h-100 text-center rounded-3"
+              role="button"
+              onClick={() =>
+                router.push(`${ROUTES?.PUBLIC?.SIGNUP}?for=company`)
+              }
+            >
+              <div className="profile rounded-circle">
+                <i className="bi bi-building-fill-check"></i>
+              </div>
+              <span className="C-heading size-6 extraBold mb-2 color-white">
+                List my company
+              </span>
+              <span className="C-heading size-xs color-light mb-0 color-white">
+                Subscribe and get listed your company
+              </span>
+            </div>
+          </div>
+        </div>
+        <Link href={ROUTES.PUBLIC.LOGIN} className="C-button is-link mb-1 p-0">
+          <Space>
+            <Icon name="login" />
+            Login to access your account
+          </Space>
+        </Link>
+      </div>
+    );
+
+    const userSettings = (
+      <div className="userSettings">User setting popover</div>
+    );
 
     return (
       <>
@@ -82,15 +112,27 @@ const HeaderBeta = () => {
           </li>
         ))}
 
-        <li className="forMobile">
-          <Dropdown menu={{ items }} overlayClassName="authOverlay">
+        <li>
+          <Popover content={content} placement="bottomRight">
             <button className={`navLink is-clean`}>
               <Space size={2}>
                 Login / Sign up
                 <Icon name="arrow_drop_down" className="color-primary" />
               </Space>
             </button>
-          </Dropdown>
+          </Popover>
+        </li>
+        <li>
+          <Popover content={userSettings} placement="bottomRight">
+            <button className="userAccount rounded-pill text-left p-1">
+              <Avatar
+                style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
+                size={36}
+              >
+                S
+              </Avatar>
+            </button>
+          </Popover>
         </li>
       </>
     );

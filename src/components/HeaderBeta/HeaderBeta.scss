@@ -35,6 +35,40 @@
   }
 }
 
+.signupPopover {
+  width: 600px;
+  min-height: 200px;
+  .signupCard {
+    background-color: $primary-color;
+    position: relative;
+    @include transition(all ease 0.3s);
+
+    &:hover {
+      cursor: pointer;
+      @include box-shadow(0 0 4px $gray);
+    }
+  }
+  .profile {
+    background-color: $white;
+    border: 3px solid $secondary-color;
+    display: grid;
+    place-items: center;
+    margin: 0 auto 12px;
+    height: 60px;
+    width: 60px;
+    .bi,
+    .g-icon {
+      color: $primary-color;
+      font-size: 2rem;
+    }
+  }
+}
+
+.userAccount {
+  background-color: #eeeeee;
+  border: 0;
+}
+
 .authOverlay {
   .ant-dropdown-menu {
     padding: 0 !important;
