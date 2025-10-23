@@ -9,6 +9,7 @@ import {
   Space,
   message,
   Divider,
+  DatePicker,
 } from "antd";
 import {
   FacebookOutlined,
@@ -51,7 +52,7 @@ const categories = [
 
 const Company = () => {
   const [form] = Form.useForm();
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState(3);
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpSent, setOtpSent] = useState("123456"); // Dev temp OTP
   const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 1
@@ -442,27 +443,6 @@ const Company = () => {
                   />
                 </Form.Item>
               </Space.Compact>
-            </Form.Item>
-          </div>
-          <div className="col-12">
-            <Form.Item
-              label={
-                <span className="C-heading size-6 semiBold color-light mb-0">
-                  Company Type
-                </span>
-              }
-              name="company_type"
-              rules={[{ required: true, message: "Select company type" }]}
-              className="mb-0"
-            >
-              <Select
-                placeholder="Select type"
-                size="large"
-                prefix={<Icon name="settings" isFilled color="#ccc" />}
-              >
-                <Option value="private">Private</Option>
-                <Option value="public">Public</Option>
-              </Select>
             </Form.Item>
           </div>
 
@@ -904,6 +884,23 @@ const Company = () => {
       icon: <Icon name="groups" isFilled />,
       content: (
         <div className="row g-3">
+          <div className="col-12">
+            <Form.Item
+              label={
+                <span className="C-heading size-6 semiBold color-light mb-0">
+                  Found Year
+                </span>
+              }
+              name="found_year"
+              className="mb-2"
+            >
+              <DatePicker
+                picker="year"
+                size="large"
+                prefix={<Icon name="calendar_month" isFilled color="#ccc" />}
+              />
+            </Form.Item>
+          </div>
           <div className="col-12">
             <Form.Item
               label={
