@@ -13,7 +13,7 @@ export default function GuestLayout({ children }) {
     if (isLoggedIn) {
       router.replace(ROUTES?.PRIVATE?.DASHBOARD);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, router]);
 
   return <div className="guest-layout">{children}</div>;
 }

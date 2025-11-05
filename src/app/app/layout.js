@@ -20,7 +20,7 @@ export default function AppLayout({ children }) {
     if (!isLoggedIn) {
       router.replace(ROUTES?.PUBLIC?.LOGIN);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, router]);
 
   if (!isLoggedIn) return null;
 

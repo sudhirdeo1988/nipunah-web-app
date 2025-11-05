@@ -76,6 +76,8 @@ const SignupPopoverContent = memo(({ onNavigate }) => {
   );
 });
 
+SignupPopoverContent.displayName = "SignupPopoverContent";
+
 const LoginPage = () => {
   const { setToken: updateContextToken } = useAuth();
   const router = useRouter();
@@ -100,7 +102,7 @@ const LoginPage = () => {
     if (isLoggedIn) {
       router.replace(ROUTES?.PRIVATE?.DASHBOARD);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, router]);
 
   return (
     <PublicLayout>

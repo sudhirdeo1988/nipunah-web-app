@@ -23,7 +23,7 @@ const SignUpPage = () => {
     if (isLoggedIn) {
       router.replace(ROUTES?.PRIVATE?.DASHBOARD);
     }
-  }, [isLoggedIn]);
+  }, [isLoggedIn, router]);
 
   // Determine which component to render based on URL parameter
   const renderRegistrationComponent = () => {
