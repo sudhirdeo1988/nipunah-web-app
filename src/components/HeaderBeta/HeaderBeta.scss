@@ -36,17 +36,11 @@
 }
 
 .signupPopover {
-  width: 600px;
-  min-height: 200px;
+  min-height: 240px;
   .signupCard {
-    background-color: $primary-color;
+    background-color: $white;
     position: relative;
     @include transition(all ease 0.3s);
-
-    &:hover {
-      cursor: pointer;
-      @include box-shadow(0 0 4px $gray);
-    }
   }
   .profile {
     background-color: $white;

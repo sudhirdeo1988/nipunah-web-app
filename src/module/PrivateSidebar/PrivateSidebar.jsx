@@ -6,51 +6,72 @@ import Icon from "@/components/Icon";
 import { map as _map } from "lodash-es";
 import { DASHBOARD_ROUTES } from "module/utility/utility";
 import { usePathname, useRouter } from "next/navigation";
+import { useAuth } from "@/utilities/AuthContext";
+import { ROUTES } from "@/constants/routes";
 
 const PrivateSidebar = () => {
   const pathname = usePathname();
   const router = useRouter();
+  const { logout } = useAuth();
 
   const handleNavigation = (route) => {
     if (!route) return;
     router.push(route);
   };
 
+  /**
+   * Handles logout functionality
+   * Clears authentication token and redirects to login page
+   */
+  const handleLogout = () => {
+    logout();
+    router.push(ROUTES.PUBLIC.LOGIN);
+  };
+
   const items = [
     {
-      key: "1",
+      key: "profile",
       label: (
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://www.antgroup.com"
+        <button
+          className="C-button is-clean p-0 w-100 text-left small color-light"
+          onClick={() => handleNavigation(ROUTES.PRIVATE.PROFILE)}
         >
-          1st menu item
-        </a>
+          <Space>
+            <Icon name="person" />
+            <span>Profile</span>
+          </Space>
+        </button>
       ),
     },
     {
-      key: "2",
+      key: "settings",
       label: (
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://www.aliyun.com"
+        <button
+          className="C-button is-clean p-0 w-100 text-left small color-light"
+          onClick={() => handleNavigation(ROUTES.PRIVATE.SETTINGS)}
         >
-          2nd menu item
-        </a>
+          <Space>
+            <Icon name="settings" />
+            <span>Settings</span>
+          </Space>
+        </button>
       ),
     },
     {
-      key: "3",
+      type: "divider",
+    },
+    {
+      key: "logout",
       label: (
-        <a
-          target="_blank"
-          rel="noopener noreferrer"
-          href="https://www.luohanacademy.com"
+        <button
+          className="C-button is-clean p-0 w-100 text-left small color-light"
+          onClick={handleLogout}
         >
-          3rd menu item
-        </a>
+          <Space>
+            <Icon name="logout" />
+            <span>Logout</span>
+          </Space>
+        </button>
       ),
     },
   ];

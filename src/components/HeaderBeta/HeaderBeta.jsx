@@ -21,74 +21,6 @@ const navItems = [
 ];
 
 /**
- * Signup popover content component
- * Displays signup options for different user types
- * @component
- * @param {Object} props - Component props
- * @param {Function} props.onNavigate - Navigation handler function
- * @returns {JSX.Element} Signup popover content
- */
-const SignupPopoverContent = memo(({ onNavigate }) => {
-  const signupOptions = [
-    {
-      icon: "bi bi-person-badge-fill",
-      title: "Browse Listing",
-      description: "Explore companies, experts, Jobs and much more.",
-      route: `${ROUTES?.PUBLIC?.SIGNUP}?for=user`,
-    },
-    {
-      icon: "bi bi-person-lines-fill",
-      title: "Create expert profile",
-      description: "Showcase your expertise and get discovered.",
-      route: `${ROUTES?.PUBLIC?.SIGNUP}?for=expert`,
-    },
-    {
-      icon: "bi bi-building-fill-check",
-      title: "List my company",
-      description: "Subscribe and get listed your company",
-      route: `${ROUTES?.PUBLIC?.SIGNUP}?for=company`,
-    },
-  ];
-
-  return (
-    <div className="signupPopover text-center">
-      <span className="C-heading size-6 text-center semiBold color-light mb-3">
-        Sign up to access more features.
-      </span>
-      <div className="row g-2 mb-4">
-        {signupOptions.map((option, index) => (
-          <div className="col" key={index}>
-            <div
-              className="signupCard p-2 h-100 text-center rounded-3"
-              role="button"
-              onClick={() => onNavigate(option.route)}
-            >
-              <div className="profile rounded-circle">
-                <i className={option.icon}></i>
-              </div>
-              <span className="C-heading size-6 extraBold mb-2 color-white">
-                {option.title}
-              </span>
-              <span className="C-heading size-xs color-light mb-0 color-white">
-                {option.description}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-      <Link href={ROUTES.PUBLIC.LOGIN} className="C-button is-link mb-1 p-0">
-        <Space>
-          <Icon name="login" />
-          Login to access your account
-        </Space>
-      </Link>
-    </div>
-  );
-});
-
-SignupPopoverContent.displayName = "SignupPopoverContent";
-
-/**
  * User settings dropdown component
  * Displays user profile information and action buttons
  * @component
@@ -159,14 +91,6 @@ const HeaderBeta = memo(() => {
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
-  // Memoized navigation handler to prevent unnecessary re-renders
-  const handleNavigation = useCallback(
-    (route) => {
-      router.push(route);
-    },
-    [router]
-  );
-
   // Memoized drawer toggle handlers
   const handleDrawerOpen = useCallback(() => {
     setOpen(true);
@@ -175,12 +99,6 @@ const HeaderBeta = memo(() => {
   const handleDrawerClose = useCallback(() => {
     setOpen(false);
   }, []);
-
-  // Memoized signup popover content to prevent recreation on every render
-  const signupPopoverContent = useMemo(
-    () => <SignupPopoverContent onNavigate={handleNavigation} />,
-    [handleNavigation]
-  );
 
   // Memoized user settings dropdown content
   const userSettingsContent = useMemo(() => <UserSettingsDropdown />, []);
@@ -213,14 +131,12 @@ const HeaderBeta = memo(() => {
 
         {/* Login/Signup Popover */}
         <li>
-          <Popover content={signupPopoverContent} placement="bottomRight">
-            <button className="navLink is-clean">
-              <Space size={2}>
-                Login / Sign up
-                <Icon name="arrow_drop_down" className="color-primary" />
-              </Space>
-            </button>
-          </Popover>
+          <button
+            className="C-button is-bordered"
+            onClick={() => router.push(ROUTES.PUBLIC.LOGIN)}
+          >
+            Login
+          </button>
         </li>
 
         {/* User Account Dropdown */}
@@ -238,7 +154,7 @@ const HeaderBeta = memo(() => {
         </li>
       </>
     ),
-    [navigationItems, signupPopoverContent, userSettingsContent]
+    [navigationItems, userSettingsContent]
   );
 
   return (
@@ -257,13 +173,18 @@ const HeaderBeta = memo(() => {
                 >
                   <Icon name="menu" />
                 </button>
-                <Image
-                  src="/assets/images/logo.png"
-                  alt="Nipunah Logo"
-                  width={164}
-                  height={50}
-                  priority // Optimize logo loading
-                />
+                <button
+                  className="C-button is-clean p-0 border-0 d-flex align-items-center"
+                  onClick={() => router.push(ROUTES.PUBLIC.HOME)}
+                >
+                  <Image
+                    src="/assets/images/logo.png"
+                    alt="Nipunah Logo"
+                    width={164}
+                    height={50}
+                    priority // Optimize logo loading
+                  />
+                </button>
               </Space>
             </div>
 

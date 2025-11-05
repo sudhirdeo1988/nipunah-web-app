@@ -3,7 +3,6 @@ import {
   Button,
   Form,
   Input,
-  Upload,
   Select,
   Steps,
   Space,
@@ -22,7 +21,7 @@ import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
 
 const { TextArea } = Input;
-const { Dragger } = Upload;
+
 const { Option } = Select;
 
 const categories = [
@@ -52,7 +51,7 @@ const categories = [
 
 const Company = () => {
   const [form] = Form.useForm();
-  const [currentStep, setCurrentStep] = useState(3);
+  const [currentStep, setCurrentStep] = useState(0);
   const [otpVerified, setOtpVerified] = useState(false);
   const [otpSent, setOtpSent] = useState("123456"); // Dev temp OTP
   const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 1

@@ -1,12 +1,15 @@
 "use client"; // ✅ Required for interactive Ant Design components in App Router
 
-import React from "react";
-import { Tag, Space } from "antd";
+import React, { useState } from "react";
+import { Tag, Space, Drawer } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import EquipmentCard from "@/components/EquipmentCard";
 import CardListing from "@/components/CardListing";
+import { map as _map } from "lodash-es";
 import SearchContainer from "@/components/SearchContainer";
+import CountryDetails from "@/utilities/CountryDetails.json";
+import Icon from "@/components/Icon";
 
 const data = [
   {
@@ -96,6 +99,59 @@ const data = [
 ];
 
 const EquipmentListPage = () => {
+  const [open, setOpen] = useState(false);
+  const showDrawer = () => {
+    setOpen(true);
+  };
+  const onClose = () => {
+    setOpen(false);
+  };
+  // Search field configuration
+  const searchFieldOptions = [
+    {
+      type: "search",
+      label: "",
+      formFieldValue: "search",
+      defaultValue: "",
+      placeholder: "Search",
+      icon: "",
+    },
+    {
+      type: "select",
+      label: "",
+      formFieldValue: "equipmentType",
+      defaultValue: "",
+      placeholder: "Select equipment type",
+      options: [
+        { value: "Companies", label: "Marine Engineering" },
+        { value: "Equipments", label: "Marine Equipments" },
+      ],
+    },
+
+    {
+      type: "countrySelect",
+      label: "",
+      icon: "",
+      formFieldValue: "countrySelect",
+      defaultValue: "",
+      placeholder: "Select Location",
+      options: _map(CountryDetails, (country) => {
+        return {
+          value: country?.countryName,
+          label: country?.countryName,
+        };
+      }),
+    },
+  ];
+
+  // Handle search form submission
+  const handleSearch = (values) => {
+    console.log("Search values:", values);
+    // Here you can implement your search logic
+    // Example: filter data based on values
+    // values.equipmentType, values.search, values.countrySelect
+  };
+
   return (
     <PublicLayout>
       <PageHeadingBanner
@@ -104,11 +160,27 @@ const EquipmentListPage = () => {
       />
       <section className="section-padding small pt-0">
         <div className="container">
-          <SearchContainer forListingPage floatingEnable />
+          <div className="d-none d-md-block">
+            <SearchContainer
+              forListingPage
+              floatingEnable
+              searchFieldOptions={searchFieldOptions}
+              onSearch={handleSearch}
+            />
+          </div>
 
-          <h3 className="C-heading size-4 bold mb-4 font-family-creative">
-            Top equipments in marine Engineering
-          </h3>
+          <div className="row align-items-center my-2">
+            <div className="col-10">
+              <h3 className="C-heading size-4 bold mb-4 font-family-creative">
+                Top equipments in marine Engineering
+              </h3>
+            </div>
+            <div className="col-2 text-right d-md-none">
+              <button className="C-settingButton" onClick={showDrawer}>
+                <Icon name="filter_alt" isFilled />
+              </button>
+            </div>
+          </div>
 
           <div className="row border-bottom pb-2 mb-3">
             <div className="col-md-4 col-sm-12">
@@ -141,6 +213,20 @@ const EquipmentListPage = () => {
           </div>
         </div>
       </section>
+      <Drawer
+        title="Filter Equipments"
+        closable={{ "aria-label": "Close Button" }}
+        onClose={onClose}
+        open={open}
+      >
+        <SearchContainer
+          forListingPage
+          floatingEnable
+          searchFieldOptions={searchFieldOptions}
+          onSearch={handleSearch}
+          inSidebar
+        />
+      </Drawer>
     </PublicLayout>
   );
 };

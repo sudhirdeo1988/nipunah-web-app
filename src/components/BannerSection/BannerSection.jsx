@@ -3,12 +3,59 @@ import { Avatar } from "antd";
 import { map as _map } from "lodash-es";
 import Icon from "../Icon";
 import Image from "next/image";
+import CountryDetails from "@/utilities/CountryDetails.json";
 
 import "./BannerSection.scss";
 
 const SearchContainer = lazy(() => import("../SearchContainer"));
 
 const BannerSection = () => {
+  // Search field configuration
+  const searchFieldOptions = [
+    {
+      type: "search",
+      label: "",
+      formFieldValue: "search",
+      defaultValue: "",
+      placeholder: "Search",
+      icon: "",
+    },
+    {
+      type: "select",
+      label: "",
+      formFieldValue: "equipmentType",
+      defaultValue: "",
+      placeholder: "Select type",
+      options: [
+        { value: "Companies", label: "Company" },
+        { value: "Equipments", label: "Equipments" },
+        { value: "Experts", label: "Experts" },
+      ],
+    },
+
+    {
+      type: "countrySelect",
+      label: "",
+      icon: "",
+      formFieldValue: "countrySelect",
+      defaultValue: "",
+      placeholder: "Select Location",
+      options: _map(CountryDetails, (country) => {
+        return {
+          value: country?.countryName,
+          label: country?.countryName,
+        };
+      }),
+    },
+  ];
+
+  // Handle search form submission
+  const handleSearch = (values) => {
+    console.log("Search values:", values);
+    // Here you can implement your search logic
+    // Example: filter data based on values
+    // values.equipmentType, values.search, values.countrySelect
+  };
   return (
     <section className="c-topBanner">
       <div className="container">
@@ -28,7 +75,10 @@ const BannerSection = () => {
               </p>
 
               <Suspense fallback={<></>}>
-                <SearchContainer />
+                <SearchContainer
+                  searchFieldOptions={searchFieldOptions}
+                  onSearch={handleSearch}
+                />
               </Suspense>
 
               <span className="C-heading size-xs">
