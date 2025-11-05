@@ -5,6 +5,42 @@ import { map as _map } from "lodash-es";
 import Icon from "../Icon";
 import "./SearchContainer.scss";
 
+const searchFieldOptions = [
+  {
+    type: "select",
+    label: "",
+    formFieldValue: "companyType",
+    defaultValue: "",
+    placeholder: "Select company type",
+    options: [
+      { value: "Companies", label: "Marine Engineering" },
+      { value: "Equipments", label: "Marine Equipments" },
+    ],
+  },
+  {
+    type: "search",
+    label: "",
+    formFieldValue: "search",
+    defaultValue: "",
+    placeholder: "Search",
+    icon: "",
+  },
+  {
+    type: "countrySelect",
+    label: "Select Location",
+    icon: "",
+    formFieldValue: "countrySelect",
+    defaultValue: "",
+    placeholder: "Select Location",
+    options: _map(CountryDetails, (country) => {
+      return {
+        value: country?.countryName,
+        label: country?.countryName,
+      };
+    }),
+  },
+];
+
 const SearchContainer = (props) => {
   const {
     forListingPage,
@@ -15,6 +51,20 @@ const SearchContainer = (props) => {
   const [isFixed, setIsFixed] = useState(false);
   const [fixedStyles, setFixedStyles] = useState({});
   const initialOffset = useRef(0);
+
+  // Search
+  const showSeatch = () => {
+    return (
+      <div className="col-lg-4 col-md-4 col-sm-6 col-xs-12 p-3">
+        <Input
+          size="large"
+          placeholder="Search"
+          prefix={<Icon name="search" />}
+          className="searchInput"
+        />
+      </div>
+    );
+  };
 
   useEffect(() => {
     if (floatingEnable) {
@@ -66,15 +116,13 @@ const SearchContainer = (props) => {
       </div>
       <div className="col-lg-3 col-md-3 col-sm-6 col-xs-12 p-3">
         <Select
-          placeholder="Select Section"
+          placeholder="Select Company Type"
           variant="borderless"
           options={[
-            { value: "Companies", label: "Companies" },
-            { value: "Equipments", label: "Equipments" },
-            { value: "Experts", label: "Experts" },
+            { value: "Companies", label: "Marine Engineering" },
+            { value: "Equipments", label: "Marine Equipments" },
           ]}
           className="selectInSearch"
-          // defaultValue={"Companies"}
           suffixIcon={<Icon name="keyboard_arrow_down" />}
           prefix={<Icon name="apps" />}
         />

@@ -22,5 +22,18 @@ export const ROUTES = {
     EXPERTS: "/app/experts",
     SETTINGS: "/app/settings",
     PROFILE: "/app/profile",
+    SEC_COMPANY: {
+      EQUIPMENT: "/sec/company/equipment",
+      JOBS: "/sec/company/equipment",
+      PROFILE: "/sec/company/profile",
+    },
+    SEC_USER: {
+      JOBS: "/sec/user/equipment",
+      PROFILE: "/sec/user/profile",
+    },
+    SEC_EXPERT: {
+      JOBS: "/sec/expert/equipment",
+      PROFILE: "/sec/expert/profile",
+    },
   },
 };

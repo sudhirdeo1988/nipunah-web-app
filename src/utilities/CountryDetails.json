@@ -1,129 +1,5 @@
 [
   {
-    "currencyCode": "SGD",
-    "countryName": "Singapore",
-    "countryCode": "SG",
-    "currencySymbol": "S$",
-    "dailCode": "+65",
-    "timeZoneDisplay": "(GMT +8)",
-    "timeZone": "Asia/Singapore",
-    "states": []
-  },
-  {
-    "currencyCode": "MYR",
-    "countryName": "Malaysia",
-    "countryCode": "MY",
-    "currencySymbol": "RM",
-    "dailCode": "+60",
-    "timeZoneDisplay": "(GMT +8)",
-    "timeZone": "Asia/Kuala_Lumpur",
-    "states": [
-      "Johor",
-      "Kedah",
-      "Kelantan",
-      "Kuala Lumpur",
-      "Labuan",
-      "Malacca",
-      "Negeri Sembilan",
-      "Pahang",
-      "Penang",
-      "Perak",
-      "Perlis",
-      "Putrajaya",
-      "Sabah",
-      "Sarawak",
-      "Selangor",
-      "Terengganu"
-    ]
-  },
-  {
-    "currencyCode": "IDR",
-    "countryName": "Indonesia",
-    "countryCode": "ID",
-    "currencySymbol": "Rp",
-    "dailCode": "+62",
-    "timeZoneDisplay": "(GMT +7)",
-    "timeZone": "Asia/Jakarta",
-    "states": []
-  },
-  {
-    "currencyCode": "VND",
-    "countryName": "Vietnam",
-    "countryCode": "VN",
-    "currencySymbol": "₫",
-    "dailCode": "+84",
-    "timeZoneDisplay": "(GMT +7)",
-    "timeZone": "Asia/Ho_Chi_Minh",
-    "states": []
-  },
-  {
-    "currencyCode": "PHP",
-    "countryName": "Philippines",
-    "countryCode": "PH",
-    "currencySymbol": "₱",
-    "dailCode": "+63",
-    "timeZoneDisplay": "(GMT +8)",
-    "timeZone": "Asia/Manila",
-    "states": []
-  },
-  {
-    "currencyCode": "THB",
-    "countryName": "Thailand",
-    "countryCode": "TH",
-    "currencySymbol": "฿",
-    "dailCode": "+66",
-    "timeZoneDisplay": "(GMT +7)",
-    "timeZone": "Asia/Bangkok",
-    "states": []
-  },
-  {
-    "currencyCode": "INR",
-    "countryName": "India",
-    "countryCode": "IN",
-    "currencySymbol": "₹",
-    "dailCode": "+91",
-    "timeZoneDisplay": "(GMT +5:30)",
-    "timeZone": "Asia/Kolkata",
-    "states": [
-      "Andhra Pradesh",
-      "Arunachal Pradesh",
-      "Assam",
-      "Bihar",
-      "Chhattisgarh",
-      "Goa",
-      "Gujarat",
-      "Haryana",
-      "Himachal Pradesh",
-      "Jharkhand",
-      "Karnataka",
-      "Kerala",
-      "Madhya Pradesh",
-      "Maharashtra",
-      "Manipur",
-      "Meghalaya",
-      "Mizoram",
-      "Nagaland",
-      "Odisha",
-      "Punjab",
-      "Rajasthan",
-      "Sikkim",
-      "Tamil Nadu",
-      "Telangana",
-      "Tripura",
-      "Uttar Pradesh",
-      "Uttarakhand",
-      "West Bengal",
-      "Andaman and Nicobar Islands",
-      "Chandigarh",
-      "Dadra and Nagar Haveli and Daman and Diu",
-      "Delhi",
-      "Jammu and Kashmir",
-      "Ladakh",
-      "Lakshadweep",
-      "Puducherry"
-    ]
-  },
-  {
     "currencyCode": "AFN",
     "countryName": "Afghanistan",
     "countryCode": "AF",
@@ -659,6 +535,33 @@
     "timeZone": "Asia/Tbilisi"
   },
   {
+    "currencyCode": "EUR",
+    "countryName": "Germany",
+    "countryCode": "DE",
+    "currencySymbol": "€",
+    "dailCode": "+49",
+    "timeZoneDisplay": "(GMT +1)",
+    "timeZone": "Europe/Berlin",
+    "states": [
+      "Baden-Württemberg",
+      "Bavaria",
+      "Berlin",
+      "Brandenburg",
+      "Bremen",
+      "Hamburg",
+      "Hesse",
+      "Lower Saxony",
+      "Mecklenburg-Vorpommern",
+      "North Rhine-Westphalia",
+      "Rhineland-Palatinate",
+      "Saarland",
+      "Saxony",
+      "Saxony-Anhalt",
+      "Schleswig-Holstein",
+      "Thuringia"
+    ]
+  },
+  {
     "currencyCode": "GHS",
     "countryName": "Ghana",
     "countryCode": "GH",
@@ -738,6 +641,63 @@
     "dailCode": "+354",
     "timeZoneDisplay": "(GMT +0)",
     "timeZone": "Atlantic/Reykjavik"
+  },
+  {
+    "currencyCode": "INR",
+    "countryName": "India",
+    "countryCode": "IN",
+    "currencySymbol": "₹",
+    "dailCode": "+91",
+    "timeZoneDisplay": "(GMT +5:30)",
+    "timeZone": "Asia/Kolkata",
+    "states": [
+      "Andhra Pradesh",
+      "Arunachal Pradesh",
+      "Assam",
+      "Bihar",
+      "Chhattisgarh",
+      "Goa",
+      "Gujarat",
+      "Haryana",
+      "Himachal Pradesh",
+      "Jharkhand",
+      "Karnataka",
+      "Kerala",
+      "Madhya Pradesh",
+      "Maharashtra",
+      "Manipur",
+      "Meghalaya",
+      "Mizoram",
+      "Nagaland",
+      "Odisha",
+      "Punjab",
+      "Rajasthan",
+      "Sikkim",
+      "Tamil Nadu",
+      "Telangana",
+      "Tripura",
+      "Uttar Pradesh",
+      "Uttarakhand",
+      "West Bengal",
+      "Andaman and Nicobar Islands",
+      "Chandigarh",
+      "Dadra and Nagar Haveli and Daman and Diu",
+      "Delhi",
+      "Jammu and Kashmir",
+      "Ladakh",
+      "Lakshadweep",
+      "Puducherry"
+    ]
+  },
+  {
+    "currencyCode": "IDR",
+    "countryName": "Indonesia",
+    "countryCode": "ID",
+    "currencySymbol": "Rp",
+    "dailCode": "+62",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Jakarta",
+    "states": []
   },
   {
     "currencyCode": "IRR",
@@ -919,6 +879,33 @@
     "dailCode": "+265",
     "timeZoneDisplay": "(GMT +2)",
     "timeZone": "Africa/Blantyre"
+  },
+  {
+    "currencyCode": "MYR",
+    "countryName": "Malaysia",
+    "countryCode": "MY",
+    "currencySymbol": "RM",
+    "dailCode": "+60",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Kuala_Lumpur",
+    "states": [
+      "Johor",
+      "Kedah",
+      "Kelantan",
+      "Kuala Lumpur",
+      "Labuan",
+      "Malacca",
+      "Negeri Sembilan",
+      "Pahang",
+      "Penang",
+      "Perak",
+      "Perlis",
+      "Putrajaya",
+      "Sabah",
+      "Sarawak",
+      "Selangor",
+      "Terengganu"
+    ]
   },
   {
     "currencyCode": "MVR",
@@ -1128,6 +1115,16 @@
     "timeZone": "America/Lima"
   },
   {
+    "currencyCode": "PHP",
+    "countryName": "Philippines",
+    "countryCode": "PH",
+    "currencySymbol": "₱",
+    "dailCode": "+63",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Manila",
+    "states": []
+  },
+  {
     "currencyCode": "PLN",
     "countryName": "Poland",
     "countryCode": "PL",
@@ -1227,6 +1224,15 @@
     "timeZone": "Pacific/Apia"
   },
   {
+    "currencyCode": "STD",
+    "countryName": "São Tomé and Príncipe",
+    "countryCode": "ST",
+    "currencySymbol": "Db",
+    "dailCode": "+239",
+    "timeZoneDisplay": "(GMT +0)",
+    "timeZone": "Africa/Sao_Tome"
+  },
+  {
     "currencyCode": "SAR",
     "countryName": "Saudi Arabia",
     "countryCode": "SA",
@@ -1270,6 +1276,16 @@
     "dailCode": "+232",
     "timeZoneDisplay": "(GMT +0)",
     "timeZone": "Africa/Freetown"
+  },
+  {
+    "currencyCode": "SGD",
+    "countryName": "Singapore",
+    "countryCode": "SG",
+    "currencySymbol": "S$",
+    "dailCode": "+65",
+    "timeZoneDisplay": "(GMT +8)",
+    "timeZone": "Asia/Singapore",
+    "states": []
   },
   {
     "currencyCode": "SBD",
@@ -1362,15 +1378,6 @@
     "timeZone": "Asia/Damascus"
   },
   {
-    "currencyCode": "STD",
-    "countryName": "São Tomé and Príncipe",
-    "countryCode": "ST",
-    "currencySymbol": "Db",
-    "dailCode": "+239",
-    "timeZoneDisplay": "(GMT +0)",
-    "timeZone": "Africa/Sao_Tome"
-  },
-  {
     "currencyCode": "TWD",
     "countryName": "Taiwan",
     "countryCode": "TW",
@@ -1396,6 +1403,16 @@
     "dailCode": "+255",
     "timeZoneDisplay": "(GMT +3)",
     "timeZone": "Africa/Dar_es_Salaam"
+  },
+  {
+    "currencyCode": "THB",
+    "countryName": "Thailand",
+    "countryCode": "TH",
+    "currencySymbol": "฿",
+    "dailCode": "+66",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Bangkok",
+    "states": []
   },
   {
     "currencyCode": "TOP",
@@ -1468,6 +1485,21 @@
     "dailCode": "+971",
     "timeZoneDisplay": "(GMT +4)",
     "timeZone": "Asia/Dubai"
+  },
+  {
+    "currencyCode": "GBP",
+    "countryName": "United Kingdom",
+    "countryCode": "GB",
+    "currencySymbol": "£",
+    "dailCode": "+44",
+    "timeZoneDisplay": "(GMT)",
+    "timeZone": "Europe/London",
+    "states": [
+      "England",
+      "Scotland",
+      "Wales",
+      "Northern Ireland"
+    ]
   },
   {
     "currencyCode": "USD",
@@ -1567,6 +1599,16 @@
     "timeZone": "America/Caracas"
   },
   {
+    "currencyCode": "VND",
+    "countryName": "Vietnam",
+    "countryCode": "VN",
+    "currencySymbol": "₫",
+    "dailCode": "+84",
+    "timeZoneDisplay": "(GMT +7)",
+    "timeZone": "Asia/Ho_Chi_Minh",
+    "states": []
+  },
+  {
     "currencyCode": "YER",
     "countryName": "Yemen",
     "countryCode": "YE",
@@ -1583,42 +1625,5 @@
     "dailCode": "+260",
     "timeZoneDisplay": "(GMT +1)",
     "timeZone": "Africa/Lusaka"
-  },
-  {
-    "currencyCode": "GBP",
-    "countryName": "United Kingdom",
-    "countryCode": "GB",
-    "currencySymbol": "£",
-    "dailCode": "+44",
-    "timeZoneDisplay": "(GMT)",
-    "timeZone": "Europe/London",
-    "states": ["England", "Scotland", "Wales", "Northern Ireland"]
-  },
-  {
-    "currencyCode": "EUR",
-    "countryName": "Germany",
-    "countryCode": "DE",
-    "currencySymbol": "€",
-    "dailCode": "+49",
-    "timeZoneDisplay": "(GMT +1)",
-    "timeZone": "Europe/Berlin",
-    "states": [
-      "Baden-Württemberg",
-      "Bavaria",
-      "Berlin",
-      "Brandenburg",
-      "Bremen",
-      "Hamburg",
-      "Hesse",
-      "Lower Saxony",
-      "Mecklenburg-Vorpommern",
-      "North Rhine-Westphalia",
-      "Rhineland-Palatinate",
-      "Saarland",
-      "Saxony",
-      "Saxony-Anhalt",
-      "Schleswig-Holstein",
-      "Thuringia"
-    ]
   }
 ]
