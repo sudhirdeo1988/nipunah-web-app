@@ -10,118 +10,7 @@ import { map as _map } from "lodash-es";
 import SearchContainer from "@/components/SearchContainer";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
-
-const data = [
-  {
-    id: 1,
-    name: "Company Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry",
-    logo: "",
-    segment: "Logistics",
-    category: ["Product Development"],
-    createdOn: "3 weeks ago",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    isApplied: false,
-    isPaid: false,
-    isPriority: true,
-  },
-  {
-    id: 2,
-    name: "Company Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    segment: "Logistics",
-    category: ["Product Development"],
-    createdOn: "1 month ago",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    isApplied: false,
-    isPaid: false,
-  },
-  {
-    id: 22,
-    name: "Company Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    segment: "Logistics",
-    category: ["Product Development"],
-    createdOn: "1 month ago",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    isApplied: false,
-    isPaid: false,
-  },
-  {
-    id: 21,
-    name: "Company Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    segment: "Logistics",
-    category: ["Product Development"],
-    createdOn: "1 month ago",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    isApplied: false,
-    isPaid: false,
-  },
-  {
-    id: 25,
-    name: "Company Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    segment: "Logistics",
-    category: ["Product Development"],
-    createdOn: "1 month ago",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    isApplied: false,
-    isPaid: false,
-  },
-  {
-    id: 27,
-    name: "Company Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    segment: "Logistics",
-    category: ["Product Development"],
-    createdOn: "1 month ago",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    isApplied: false,
-    isPaid: false,
-  },
-];
+import { EXPERTS_DATA, EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
 
 const ExpertsPage = () => {
   const [open, setOpen] = useState(false);
@@ -147,10 +36,10 @@ const ExpertsPage = () => {
       formFieldValue: "expertType",
       defaultValue: "",
       placeholder: "Select expert type",
-      options: [
-        { value: "Companies", label: "Marine Engineering" },
-        { value: "Equipments", label: "Marine Equipments" },
-      ],
+      options: _map(EXPERT_CATEGORIES, (category) => ({
+        value: category.value,
+        label: category.label,
+      })),
     },
 
     {
@@ -229,10 +118,10 @@ const ExpertsPage = () => {
               {/* Main Content */}
               <div className="col-12 col-md-12">
                 <CardListing
-                  data={data}
+                  data={EXPERTS_DATA}
                   CardComponent={ExpertCard}
                   // loading={loading}
-                  // onPageChange={loadCompanies}
+                  // onPageChange={loadExperts}
                   size={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
                 />
               </div>

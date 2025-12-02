@@ -85,7 +85,7 @@ const LoginPage = () => {
 
   const handleLogin = () => {
     const fakeToken = "abc123";
-    setToken(fakeToken, 3600); // 1 hour expiry
+    setToken(fakeToken, 86400); // 24 hours expiry
     updateContextToken(fakeToken);
     router.push("/app/dashboard");
   };

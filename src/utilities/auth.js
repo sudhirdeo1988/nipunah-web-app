@@ -5,7 +5,7 @@ import Cookies from "js-cookie";
 const TOKEN_KEY = "token";
 const EXPIRY_KEY = "token_expiry";
 
-export const setToken = (token, expiresIn = 3600) => {
+export const setToken = (token, expiresIn = 86400) => {
   const expiry = Date.now() + expiresIn * 1000;
   Cookies.set(TOKEN_KEY, token, { expires: new Date(expiry) });
   Cookies.set(EXPIRY_KEY, expiry.toString(), { expires: new Date(expiry) });

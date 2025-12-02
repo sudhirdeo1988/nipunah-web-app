@@ -118,7 +118,7 @@ const SubscriptionPage = () => {
                           className="C-button is-filled w-100"
                           onClick={() =>
                             router.push(
-                              `${ROUTES.PUBLIC.SIGNUP}?plan=${planCard?.id}`
+                              `${ROUTES.PUBLIC.SIGNUP}?for=company&plan=${planCard?.id}`
                             )
                           }
                         >

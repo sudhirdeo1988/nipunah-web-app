@@ -51,10 +51,8 @@ const categories = [
 
 const Company = () => {
   const [form] = Form.useForm();
-  const [currentStep, setCurrentStep] = useState(0);
-  const [otpVerified, setOtpVerified] = useState(false);
-  const [otpSent, setOtpSent] = useState("123456"); // Dev temp OTP
-  const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 1
+  const [currentStep, setCurrentStep] = useState(1);
+  const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 0
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [categoriesData, setCategoriesData] = useState([
     { main: undefined, sub: undefined },
@@ -107,28 +105,6 @@ const Company = () => {
     []
   );
 
-  // --- OTP Functions ---
-  const sendOtp = useCallback(() => {
-    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setOtpSent(newOtp);
-    message.success(`OTP sent (for dev mode): ${newOtp}`);
-    setOtpVerified(false);
-    form.setFieldsValue({ otp: "" });
-  }, [form]);
-
-  const verifyOtp = useCallback(async () => {
-    try {
-      const { otp } = await form.validateFields(["otp"]);
-      if (otp === otpSent) {
-        setOtpVerified(true);
-        message.success("OTP verified successfully!");
-      } else {
-        message.error("Invalid OTP. Please try again.");
-        setOtpVerified(false);
-      }
-    } catch (err) {}
-  }, [form, otpSent]);
-
   // Optimize country change handler
   const handleCountryChange = useCallback(
     (value, addressIndex) => {
@@ -159,6 +135,25 @@ const Company = () => {
     try {
       if (currentStep === 0) {
         try {
+          // Get addresses to build validation paths
+          const addresses = form.getFieldValue("addresses") || [];
+
+          if (!addresses.length) {
+            message.error("Please add at least one address.");
+            return;
+          }
+
+          // Build validation paths for all address fields
+          const addressFieldsToValidate = [];
+          addresses.forEach((_, index) => {
+            addressFieldsToValidate.push(["addresses", index, "country"]);
+            addressFieldsToValidate.push(["addresses", index, "address"]);
+            addressFieldsToValidate.push(["addresses", index, "city"]);
+            addressFieldsToValidate.push(["addresses", index, "postal_code"]);
+            // State will be validated by its own rules if required
+            addressFieldsToValidate.push(["addresses", index, "state"]);
+          });
+
           // Validate all fields including nested address fields
           const values = await form.validateFields([
             "company_name",
@@ -166,83 +161,46 @@ const Company = () => {
             "email",
             "contact_country_code",
             "contact",
-            "company_type",
-            "addresses",
+            ...addressFieldsToValidate,
           ]);
-
-          // Additional validation for addresses array
-          const addresses = values.addresses || [];
-          if (!addresses.length) {
-            message.error("Please add at least one address.");
-            return;
-          }
-
-          // Validate each address has required fields
-          for (let i = 0; i < addresses.length; i++) {
-            const address = addresses[i];
-            if (!address.country) {
-              message.error(`Please select a country for Address ${i + 1}.`);
-              return;
-            }
-            if (!address.address) {
-              message.error(
-                `Please enter address details for Address ${i + 1}.`
-              );
-              return;
-            }
-
-            // Check if state is required for the selected country
-            const countryData = _find(
-              countryDetails,
-              (c) => c.countryName === address.country
-            );
-            if (
-              countryData &&
-              countryData.states.length > 0 &&
-              !address.state
-            ) {
-              message.error(
-                `Please select a state/province for Address ${i + 1}.`
-              );
-              return;
-            }
-          }
 
           // Capture email from step 0
           setCapturedEmail(values.email);
         } catch (validationError) {
           console.error("Step 0 validation error:", validationError);
-          // Let Ant Design handle the validation error display
+          // Ant Design will automatically display field-level validation errors
           return;
         }
       }
       if (currentStep === 1) {
-        // Categories step - validate at least one category is selected
-        const categories = form.getFieldValue("categories") || [];
-        if (
-          !categories.length ||
-          !categories.some((cat) => cat.main && cat.sub)
-        ) {
-          message.error("Please select at least one category and subcategory.");
-          return;
-        }
-        // Validate each category has both main and sub selected
-        for (let i = 0; i < categories.length; i++) {
-          if (!categories[i].main || !categories[i].sub) {
-            message.error(
-              `Please complete category ${
-                i + 1
-              } - select both main and sub category.`
-            );
+        // Categories step - validate Form.List fields
+        try {
+          const categories = form.getFieldValue("categories") || [];
+
+          if (!categories.length) {
+            message.error("Please add at least one category.");
             return;
           }
+
+          // Build validation paths for all category fields
+          const categoryFieldsToValidate = [];
+          categories.forEach((_, index) => {
+            categoryFieldsToValidate.push(["categories", index, "main"]);
+            categoryFieldsToValidate.push(["categories", index, "sub"]);
+          });
+
+          // Validate all category fields using Ant Design validation
+          await form.validateFields(categoryFieldsToValidate);
+        } catch (validationError) {
+          console.error(
+            "Step 1 (Categories) validation error:",
+            validationError
+          );
+          // Ant Design will automatically display field-level validation errors
+          return;
         }
       }
-      if (currentStep === 2 && !otpVerified) {
-        message.error("Please verify OTP before proceeding.");
-        return;
-      }
-      if (currentStep === 3) {
+      if (currentStep === 2) {
         try {
           await form.validateFields([
             "website_url",
@@ -253,11 +211,11 @@ const Company = () => {
             ["socialMedia", "linkedin"],
           ]);
         } catch (validationError) {
-          console.error("Step 3 validation error:", validationError);
+          console.error("Step 2 validation error:", validationError);
           return;
         }
       }
-      if (currentStep === 4) {
+      if (currentStep === 3) {
         try {
           await form.validateFields([
             "username",
@@ -267,7 +225,7 @@ const Company = () => {
           onFinish();
           return;
         } catch (validationError) {
-          console.error("Step 4 validation error:", validationError);
+          console.error("Step 3 validation error:", validationError);
           return;
         }
       }
@@ -282,7 +240,7 @@ const Company = () => {
       });
       // Validation errors handled by AntD
     }
-  }, [currentStep, form, otpVerified]);
+  }, [currentStep, form]);
 
   const prev = useCallback(
     () => setCurrentStep(currentStep - 1),
@@ -293,12 +251,6 @@ const Company = () => {
   const onFinish = useCallback(async () => {
     try {
       await form.validateFields();
-
-      if (!otpVerified) {
-        message.error("OTP is not verified.");
-        setCurrentStep(1);
-        return;
-      }
 
       // Get all form values and debug
       const allFields = form.getFieldsValue(true); // Include undefined values
@@ -312,7 +264,7 @@ const Company = () => {
     } catch (err) {
       console.error("Form submission error:", err);
     }
-  }, [form, otpVerified]);
+  }, [form]);
 
   // --- Logo Upload ---
   const logoUploadProps = {
@@ -456,7 +408,15 @@ const Company = () => {
           <Form.List
             name="addresses"
             initialValue={[
-              { id: 1, isPrimary: true, country: "", state: "", address: "" },
+              {
+                id: 1,
+                isPrimary: true,
+                country: "",
+                state: "",
+                address: "",
+                city: "",
+                postal_code: "",
+              },
             ]}
           >
             {(fields, { add, remove }) => (
@@ -524,14 +484,14 @@ const Company = () => {
                               placeholder="Select Country"
                               size="large"
                               showSearch
-                              optionFilterProp="children"
+                              optionFilterProp="value"
                               onChange={(value) =>
                                 handleCountryChange(value, idx)
                               }
                               filterOption={(input, option) =>
-                                option.children
+                                (option?.value || "")
                                   .toLowerCase()
-                                  .indexOf(input.toLowerCase()) >= 0
+                                  .includes(input.toLowerCase())
                               }
                             >
                               {_map(countries, (country) => (
@@ -580,14 +540,14 @@ const Company = () => {
                                 placeholder="Select State/Province"
                                 size="large"
                                 showSearch
-                                optionFilterProp="children"
+                                optionFilterProp="value"
                                 disabled={
                                   !currentCountry || currentStates.length === 0
                                 }
                                 filterOption={(input, option) =>
-                                  option.children
+                                  (option?.value || "")
                                     .toLowerCase()
-                                    .indexOf(input.toLowerCase()) >= 0
+                                    .includes(input.toLowerCase())
                                 }
                               >
                                 {_map(currentStates, (state) => (
@@ -628,6 +588,69 @@ const Company = () => {
                           </Form.Item>
                         </div>
 
+                        <div className="col-6">
+                          <Form.Item
+                            label={
+                              <span className="C-heading size-6 semiBold color-light mb-0">
+                                City
+                              </span>
+                            }
+                            {...restField}
+                            name={[name, "city"]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please enter city.",
+                              },
+                            ]}
+                            className="mb-2"
+                          >
+                            <Input
+                              placeholder="City"
+                              size="large"
+                              prefix={
+                                <Icon
+                                  name="location_city"
+                                  isFilled
+                                  color="#ccc"
+                                />
+                              }
+                            />
+                          </Form.Item>
+                        </div>
+
+                        <div className="col-6">
+                          <Form.Item
+                            label={
+                              <span className="C-heading size-6 semiBold color-light mb-0">
+                                Postal Code / Pincode
+                              </span>
+                            }
+                            {...restField}
+                            name={[name, "postal_code"]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please enter postal code/pincode.",
+                              },
+                              {
+                                pattern: /^\d{4,10}$/,
+                                message: "Postal code must be 4-10 digits.",
+                              },
+                            ]}
+                            className="mb-2"
+                          >
+                            <Input
+                              placeholder="Postal Code / Pincode"
+                              size="large"
+                              prefix={
+                                <Icon name="pin_drop" isFilled color="#ccc" />
+                              }
+                              maxLength={10}
+                            />
+                          </Form.Item>
+                        </div>
+
                         <Form.Item {...restField} name={[name, "id"]} hidden>
                           <Input />
                         </Form.Item>
@@ -663,6 +686,8 @@ const Company = () => {
                         country: "",
                         state: "",
                         address: "",
+                        city: "",
+                        postal_code: "",
                       });
                     }}
                     block
@@ -698,58 +723,6 @@ const Company = () => {
               </Dragger>
             </Form.Item>
           </div> */}
-        </div>
-      ),
-    },
-    {
-      title: <span className="C-heading size-6 semiBold mt-2">OTP</span>,
-      icon: <Icon name="pin" isFilled />,
-      content: (
-        <div className="row g-3">
-          <div className="col-12">
-            {capturedEmail && (
-              <div className="mb-3">
-                <span className="C-heading size-xs color-light mb-0">
-                  OTP sent to: <strong>{capturedEmail}</strong>
-                </span>
-              </div>
-            )}
-            <Form.Item
-              label={
-                <span className="C-heading size-6 semiBold color-light mb-0">
-                  Enter OTP
-                </span>
-              }
-              name="otp"
-              rules={[
-                { required: true, message: "Enter OTP" },
-                { len: 6, message: "OTP must be 6 digits" },
-              ]}
-            >
-              <Input
-                maxLength={6}
-                placeholder="6-digit OTP"
-                size="large"
-                prefix={<Icon name="pin" isFilled color="#ccc" />}
-              />
-            </Form.Item>
-            <div className="d-flex justify-content-between">
-              <button
-                type="button"
-                onClick={sendOtp}
-                className="C-button is-link small"
-              >
-                Resend OTP
-              </button>
-              <button
-                type="button"
-                onClick={verifyOtp}
-                className="C-button is-bordered small"
-              >
-                Verify OTP
-              </button>
-            </div>
-          </div>
         </div>
       ),
     },
@@ -994,6 +967,19 @@ const Company = () => {
               </Space.Compact>
             </Form.Item>
           </div>
+          <div className="col-12">
+            <Form.Item
+              label={
+                <span className="C-heading size-6 semiBold color-light mb-0">
+                  Key Clients
+                </span>
+              }
+              name="key_clients"
+              className="mb-2"
+            >
+              <TextArea rows={3} placeholder="Enter key clients" size="large" />
+            </Form.Item>
+          </div>
 
           <div className="col-12">
             <Divider orientation="left" orientationMargin="0">
@@ -1078,12 +1064,15 @@ const Company = () => {
               initialValue={capturedEmail}
             >
               <Input
-                placeholder="Username"
+                placeholder="Username (auto-filled from email)"
                 size="large"
                 prefix={<Icon name="person" isFilled color="#ccc" />}
                 readOnly
                 value={capturedEmail}
-                style={{ backgroundColor: "#f5f5f5", cursor: "not-allowed" }}
+                style={{
+                  backgroundColor: "#f5f5f5",
+                  cursor: "not-allowed",
+                }}
               />
             </Form.Item>
           </div>

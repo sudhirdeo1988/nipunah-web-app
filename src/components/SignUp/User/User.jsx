@@ -162,10 +162,12 @@ const UserRegistration = () => {
       address: {
         country: formData.address?.country,
         state: formData.address?.state,
+        city: formData.address?.city,
+        postal_code: formData.address?.postal_code,
         location: formData.address?.location,
         fullAddress: `${formData.address?.location}, ${
-          formData.address?.state || ""
-        }, ${formData.address?.country}`,
+          formData.address?.city || ""
+        }, ${formData.address?.state || ""}, ${formData.address?.country}`,
       },
 
       // Credentials
@@ -429,12 +431,12 @@ const UserRegistration = () => {
                       placeholder="Select Country"
                       size="large"
                       showSearch
-                      optionFilterProp="children"
+                      optionFilterProp="value"
                       onChange={handleCountryChange}
                       filterOption={(input, option) =>
-                        option.children
+                        (option?.value || "")
                           .toLowerCase()
-                          .indexOf(input.toLowerCase()) >= 0
+                          .includes(input.toLowerCase())
                       }
                     >
                       {countrySelectOptions}
@@ -479,12 +481,12 @@ const UserRegistration = () => {
                         placeholder="Select State/Province"
                         size="large"
                         showSearch
-                        optionFilterProp="children"
+                        optionFilterProp="value"
                         disabled={!selectedCountry || states.length === 0}
                         filterOption={(input, option) =>
-                          option.children
+                          (option?.value || "")
                             .toLowerCase()
-                            .indexOf(input.toLowerCase()) >= 0
+                            .includes(input.toLowerCase())
                         }
                       >
                         {stateSelectOptions}
@@ -505,12 +507,69 @@ const UserRegistration = () => {
                     rules={[
                       { required: true, message: "Please enter address." },
                     ]}
+                    className="mb-2"
                   >
                     <Input.TextArea
                       placeholder="Address"
                       size="large"
                       rows={3}
                       prefix={<Icon name="home_pin" />}
+                    />
+                  </Form.Item>
+                </div>
+
+                {/* City Field */}
+                <div className="col-6">
+                  <Form.Item
+                    label={
+                      <span className="C-heading size-6 semiBold color-light mb-0">
+                        City
+                      </span>
+                    }
+                    name={["address", "city"]}
+                    rules={[
+                      { required: true, message: "Please enter city." },
+                    ]}
+                    className="mb-2"
+                  >
+                    <Input
+                      placeholder="City"
+                      size="large"
+                      prefix={
+                        <Icon name="location_city" isFilled color="#ccc" />
+                      }
+                    />
+                  </Form.Item>
+                </div>
+
+                {/* Postal Code / Pincode Field */}
+                <div className="col-6">
+                  <Form.Item
+                    label={
+                      <span className="C-heading size-6 semiBold color-light mb-0">
+                        Postal Code / Pincode
+                      </span>
+                    }
+                    name={["address", "postal_code"]}
+                    rules={[
+                      {
+                        required: true,
+                        message: "Please enter postal code/pincode.",
+                      },
+                      {
+                        pattern: /^\d{4,10}$/,
+                        message: "Postal code must be 4-10 digits.",
+                      },
+                    ]}
+                    className="mb-2"
+                  >
+                    <Input
+                      placeholder="Postal Code / Pincode"
+                      size="large"
+                      prefix={
+                        <Icon name="pin_drop" isFilled color="#ccc" />
+                      }
+                      maxLength={10}
                     />
                   </Form.Item>
                 </div>

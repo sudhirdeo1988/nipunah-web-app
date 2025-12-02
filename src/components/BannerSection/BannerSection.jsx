@@ -95,7 +95,7 @@ const BannerSection = () => {
           <div className="col-md-4 col-xl-4 d-lg-block d-none">
             <div className="bannerImage">
               <Image
-                src="/assets/images/dummy-banner.jpg"
+                src="/assets/images/dummy-banner.png"
                 alt="My Logo"
                 width={180}
                 height={60}
