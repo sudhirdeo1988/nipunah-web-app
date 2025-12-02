@@ -10,7 +10,10 @@ import { map as _map } from "lodash-es";
 import SearchContainer from "@/components/SearchContainer";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
-import { EXPERTS_DATA, EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
+import {
+  EXPERTS_DATA,
+  EXPERT_CATEGORIES,
+} from "@/module/Experts/constants/expertConstants";
 
 const ExpertsPage = () => {
   const [open, setOpen] = useState(false);

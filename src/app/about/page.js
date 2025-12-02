@@ -8,7 +8,7 @@ import { map as _map } from "lodash-es";
 import Image from "next/image";
 import { motion, useInView, useMotionValue, useSpring } from "framer-motion";
 import "./about-global.scss";
-import { Carousel, Divider, Space } from "antd";
+import { Carousel } from "antd";
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 50 },

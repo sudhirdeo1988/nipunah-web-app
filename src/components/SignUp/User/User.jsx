@@ -7,6 +7,7 @@ import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import ThankYouModal from "@/components/ThankYouModal";
 
 /**
  * UserRegistration Component
@@ -26,6 +27,7 @@ const UserRegistration = () => {
   const router = useRouter();
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [form] = Form.useForm();
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
 
   // ===== MEMOIZED DATA PROCESSING =====
 
@@ -231,10 +233,8 @@ const UserRegistration = () => {
       //   throw new Error('Registration failed');
       // }
 
-      message.success("User registered successfully!");
-
-      // TODO: Redirect to appropriate page after successful registration
-      // router.push(ROUTES?.PUBLIC.LOGIN);
+      // Show thank you modal
+      setShowThankYouModal(true);
     } catch (err) {
       console.error("Form submission error:", err);
       message.error("Please fix the form errors before submitting.");
@@ -527,9 +527,7 @@ const UserRegistration = () => {
                       </span>
                     }
                     name={["address", "city"]}
-                    rules={[
-                      { required: true, message: "Please enter city." },
-                    ]}
+                    rules={[{ required: true, message: "Please enter city." }]}
                     className="mb-2"
                   >
                     <Input
@@ -566,9 +564,7 @@ const UserRegistration = () => {
                     <Input
                       placeholder="Postal Code / Pincode"
                       size="large"
-                      prefix={
-                        <Icon name="pin_drop" isFilled color="#ccc" />
-                      }
+                      prefix={<Icon name="pin_drop" isFilled color="#ccc" />}
                       maxLength={10}
                     />
                   </Form.Item>
@@ -701,6 +697,15 @@ const UserRegistration = () => {
           </button>
         </span>
       </div>
+
+      {/* Thank You Modal */}
+      <ThankYouModal
+        isOpen={showThankYouModal}
+        onClose={() => {
+          setShowThankYouModal(false);
+          router.push(ROUTES?.PUBLIC.LOGIN);
+        }}
+      />
     </div>
   );
 };

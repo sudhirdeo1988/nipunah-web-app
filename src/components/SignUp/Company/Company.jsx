@@ -19,6 +19,9 @@ import {
 import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
 import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
+import ThankYouModal from "@/components/ThankYouModal";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
 
 const { TextArea } = Input;
 
@@ -50,6 +53,7 @@ const categories = [
 ];
 
 const Company = () => {
+  const router = useRouter();
   const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(1);
   const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 0
@@ -57,6 +61,7 @@ const Company = () => {
   const [categoriesData, setCategoriesData] = useState([
     { main: undefined, sub: undefined },
   ]);
+  const [showThankYouModal, setShowThankYouModal] = useState(false);
 
   // Memoize expensive calculations
   const countries = useMemo(
@@ -260,7 +265,8 @@ const Company = () => {
 
       console.log("=====================================");
 
-      message.success("Company registered successfully!");
+      // Show thank you modal
+      setShowThankYouModal(true);
     } catch (err) {
       console.error("Form submission error:", err);
     }
@@ -1180,6 +1186,15 @@ const Company = () => {
           </Button>
         </div>
       </Form>
+
+      {/* Thank You Modal */}
+      <ThankYouModal
+        isOpen={showThankYouModal}
+        onClose={() => {
+          setShowThankYouModal(false);
+          router.push(ROUTES?.PUBLIC.LOGIN);
+        }}
+      />
     </>
   );
 };

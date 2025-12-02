@@ -537,4 +537,3 @@ export const EXPERTS_DATA = [
   // Others
   { id: 86, name: "Others", category: "Others", categoryId: 8 },
 ];
-
