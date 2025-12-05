@@ -103,3 +103,7 @@ export const getExpertsCountByCategory = (categoryId) => {
   return EXPERTS_DATA.filter((expert) => expert.categoryId === categoryId)
     .length;
 };
+
+
+
+

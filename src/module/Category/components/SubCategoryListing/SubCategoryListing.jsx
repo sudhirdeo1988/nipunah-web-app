@@ -2,16 +2,23 @@ import Icon from "@/components/Icon";
 import { Dropdown, Table, Modal, Space } from "antd";
 import CreateCategory from "../CreateCategory/CreateCategory";
 import {
-  MOCK_SUB_CATEGORY_DATA,
   ACTION_MENU_ITEMS,
   MODAL_MODES,
 } from "../../constants/categoryConstants";
 import { getModalTitle } from "../../utils/categoryUtils";
 import { useCategoryModal } from "../../hooks/useCategoryModal";
-import React, { useMemo, useCallback, useState } from "react";
+import { useCategory } from "../../hooks/useCategory";
+import React, { useMemo, useCallback, useState, useEffect, useRef, memo } from "react";
 import PropTypes from "prop-types";
 
-// Transform action menu items to include icons
+/**
+ * Transform action menu items to include icons
+ * 
+ * Performance: Defined outside component to prevent recreation on every render.
+ * Menu items are static, so they don't need to be recreated.
+ * 
+ * @returns {Array} Array of menu items with icon labels
+ */
 const getActionMenuItems = () =>
   ACTION_MENU_ITEMS.map((item) => ({
     ...item,
@@ -23,7 +30,37 @@ const getActionMenuItems = () =>
     ),
   }));
 
-const SubCategoryListing = ({ parentRecord }) => {
+/**
+ * SubCategoryListing Component
+ * 
+ * Displays subcategories for a parent category in an expandable table row.
+ * Handles CRUD operations for subcategories with proper loading and error states.
+ * 
+ * Performance optimizations:
+ * - Uses refs to prevent duplicate API calls
+ * - Memoized columns to prevent unnecessary re-renders
+ * - Only fetches when parent category changes
+ * 
+ * Error handling:
+ * - Shows error messages via Ant Design message component
+ * - Handles loading states properly
+ * - Allows retry on error
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.parentRecord - Parent category record
+ * @param {number} props.parentRecord.id - Parent category ID
+ * @param {string} props.parentRecord.c_name - Parent category name
+ * @param {Function} props.onDeleteSubCategory - Handler for subcategory deletion
+ */
+/**
+ * SubCategoryListing Component Props
+ * 
+ * @param {Object} props - Component props
+ * @param {Object} props.parentRecord - Parent category record
+ * @param {Function} props.onDeleteSubCategory - Handler for subcategory deletion
+ * @param {Function} props.onEditSubCategory - Handler for subcategory edit (optional, falls back to parent handler)
+ */
+const SubCategoryListing = memo(({ parentRecord, onDeleteSubCategory, onEditSubCategory }) => {
   const {
     isModalOpen,
     selectedCategory,
@@ -33,39 +70,143 @@ const SubCategoryListing = ({ parentRecord }) => {
     closeModal,
   } = useCategoryModal();
 
+  const { fetchSubCategories, getCategoriesForSelect, updateSubCategory, createSubCategory, deleteSubCategory } = useCategory();
+
   // Confirmation modal state for sub-category delete
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [subCategoryToDelete, setSubCategoryToDelete] = useState(null);
+  const [subCategories, setSubCategories] = useState([]);
+  const [loading, setLoading] = useState(false);
+  // Use ref to track which category we've fetched to prevent duplicate calls
+  const fetchedCategoryIdRef = useRef(null);
+  const isFetchingRef = useRef(false);
 
-  // Filter sub-categories based on parent record
-  const filteredSubCategories = MOCK_SUB_CATEGORY_DATA.filter(
-    (subCat) => subCat.parentId === parentRecord.id
-  );
+  /**
+   * Load subcategories when component mounts or parent record changes
+   *
+   * Performance optimizations:
+   * - Uses data from main categories API response (no separate API call)
+   * - Uses refs to prevent duplicate processing
+   * - Only processes if category ID changed and not already processing
+   * - Tracks processed category to avoid redundant operations
+   *
+   * Note: Subcategories are already included in the main categories API response,
+   * so we just extract them from the parentRecord instead of making a separate API call.
+   */
+  useEffect(() => {
+    const loadSubCategories = async () => {
+      const categoryId = parentRecord?.id;
+      
+      // Validation: Only process if we have a valid category ID
+      if (!categoryId) {
+        console.warn("No category ID provided to SubCategoryListing");
+        return;
+      }
+      
+      // Performance: Only process if:
+      // 1. We have a category ID
+      // 2. We haven't processed this category yet (prevents duplicate operations)
+      // 3. We're not currently processing (prevents concurrent operations)
+      if (
+        fetchedCategoryIdRef.current !== categoryId &&
+        !isFetchingRef.current
+      ) {
+        isFetchingRef.current = true;
+        setLoading(true);
+        
+        try {
+          // Extract subcategories from parentRecord (already fetched from main API)
+          // No separate API call needed - data comes from GET /categories response
+          const data = await fetchSubCategories(categoryId);
+          setSubCategories(data);
+          
+          // Mark this category as processed to prevent duplicate operations
+          fetchedCategoryIdRef.current = categoryId;
+        } catch (error) {
+          // Error handling: Log error and reset state to allow retry
+          console.error("Error loading subcategories:", error);
+          
+          // Reset ref on error so we can retry on next render
+          fetchedCategoryIdRef.current = null;
+        } finally {
+          // Always reset loading state, even on error
+          setLoading(false);
+          isFetchingRef.current = false;
+        }
+      }
+    };
 
-  // Separate edit handler for sub-categories
-  const handleEditSubCategory = useCallback((record, modalMode) => {
-    console.log("Editing sub-category:", record, "Mode:", modalMode);
-    // Add your edit sub-category logic here
-    // You can make API calls, update state, etc.
-    // Example: await api.updateSubCategory(record.id, record);
-  }, []);
+    loadSubCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [parentRecord?.id]); // Only depend on parentRecord.id to prevent unnecessary re-processing
 
   // Separate delete handler for sub-categories
-  const handleDeleteSubCategory = useCallback((record) => {
-    console.log("Deleting sub-category:", record);
-    setSubCategoryToDelete(record);
-    setIsDeleteModalOpen(true);
-  }, []);
+  const handleDeleteSubCategoryClick = useCallback(
+    (record) => {
+      setSubCategoryToDelete(record);
+      setIsDeleteModalOpen(true);
+    },
+    []
+  );
 
-  const handleConfirmDeleteSubCategory = useCallback(() => {
-    if (subCategoryToDelete) {
-      console.log("Confirmed deletion of sub-category:", subCategoryToDelete);
-      // Add your actual delete logic here
-      // Example: await api.deleteSubCategory(subCategoryToDelete.id);
+  /**
+   * Handle confirm delete subcategory action
+   * 
+   * Deletes the subcategory and refreshes the list.
+   * Handles loading state and errors properly.
+   * 
+   * Error handling: Shows error message if delete or reload fails.
+   */
+  const handleConfirmDeleteSubCategory = useCallback(async () => {
+    if (!subCategoryToDelete) {
+      console.warn("Cannot delete: missing subcategory");
+      return;
     }
-    setIsDeleteModalOpen(false);
-    setSubCategoryToDelete(null);
-  }, [subCategoryToDelete]);
+
+    try {
+      // Get category ID from subcategory record or parent record
+      const categoryId =
+        subCategoryToDelete.categoryId ||
+        subCategoryToDelete.parentId ||
+        parentRecord.id;
+
+      if (!categoryId) {
+        console.error("Category ID is required for subcategory deletion");
+        return;
+      }
+
+      console.log("🟢 API CALL: DELETE /categories/{categoryId}/subcategories/{subCategoryId}", {
+        categoryId,
+        subCategoryId: subCategoryToDelete.id,
+      });
+
+      // Call deleteSubCategory from hook to make API call
+      await deleteSubCategory(categoryId, subCategoryToDelete.id);
+
+      // Reload subcategories after successful delete
+      setLoading(true);
+      try {
+        const data = await fetchSubCategories(parentRecord.id);
+        setSubCategories(data);
+
+        // Reset fetched ref to allow fresh fetch
+        fetchedCategoryIdRef.current = null;
+      } catch (error) {
+        // Error reloading: Log but don't show error (delete was successful)
+        console.error("Error reloading subcategories after delete:", error);
+      } finally {
+        setLoading(false);
+      }
+
+      // Close modal only on success
+      setIsDeleteModalOpen(false);
+      setSubCategoryToDelete(null);
+    } catch (error) {
+      // Delete failed - error is already handled in the hook with message.error()
+      // Keep modal open so user can retry
+      console.error("Error deleting subcategory:", error);
+    }
+  }, [subCategoryToDelete, parentRecord.id, fetchSubCategories, deleteSubCategory]);
 
   const handleCancelDeleteSubCategory = useCallback(() => {
     setIsDeleteModalOpen(false);
@@ -79,25 +220,110 @@ const SubCategoryListing = ({ parentRecord }) => {
       if (key === "edit") {
         openModal(MODAL_MODES.SUB_CATEGORY, record);
       } else if (key === "delete") {
-        handleDeleteSubCategory(record);
+        handleDeleteSubCategoryClick(record);
       }
     },
-    [openModal, handleDeleteSubCategory]
+    [openModal, handleDeleteSubCategoryClick]
   );
 
-  const handleModalSubmit = useCallback(() => {
-    if (isEditMode) {
-      handleEditSubCategory(selectedCategory, modalMode);
-    }
-    closeModal();
-  }, [
-    isEditMode,
-    selectedCategory,
-    modalMode,
-    handleEditSubCategory,
-    closeModal,
-  ]);
+  /**
+   * Handle modal form submission (create/edit subcategory)
+   * 
+   * Makes the API call to create or update subcategory, then reloads the list.
+   * 
+   * API Endpoints:
+   * - PUT /subcategories/{id} for edit
+   * - POST /categories/{id}/subcategories for create
+   * 
+   * @param {Object} formData - Form data from CreateCategory component
+   */
+  const handleModalSubmit = useCallback(
+    async (formData) => {
+      try {
+        if (isEditMode && selectedCategory) {
+          // Edit mode: Update existing subcategory
+          // API: PUT /subcategories/{id}
+          // Payload: { "name": "string" }
+          const categoryId =
+            formData.categoryId ||
+            selectedCategory.categoryId ||
+            selectedCategory.parentId ||
+            parentRecord.id;
 
+          console.log("🟢 API CALL: PUT /subcategories/{id}", {
+            subCategoryId: selectedCategory.id,
+            categoryId,
+            payload: { name: formData.subCategoryName },
+          });
+
+          // Call API to update subcategory
+          await updateSubCategory(categoryId, selectedCategory.id, {
+            subCategoryName: formData.subCategoryName,
+          });
+        } else {
+          // Create mode: Create new subcategory
+          // API: POST /categories/{id}/subcategories
+          // Payload: { "name": "string" }
+          const categoryId = formData.categoryId || parentRecord.id;
+
+          if (!categoryId) {
+            console.error("Category ID is required for subcategory creation");
+            return;
+          }
+
+          console.log("🟢 API CALL: POST /categories/{id}/subcategories", {
+            categoryId,
+            payload: { name: formData.subCategoryName },
+          });
+
+          // Call API to create subcategory
+          await createSubCategory(categoryId, {
+            subCategoryName: formData.subCategoryName,
+          });
+        }
+
+        // Reload subcategories after successful create/edit
+        if (parentRecord?.id) {
+          setLoading(true);
+          try {
+            const data = await fetchSubCategories(parentRecord.id);
+            setSubCategories(data);
+
+            // Reset fetched ref to ensure fresh data
+            fetchedCategoryIdRef.current = null;
+          } catch (error) {
+            // Error reloading: Log but don't block modal close
+            console.error("Error reloading subcategories after create/edit:", error);
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        // Close modal after successful operation
+        closeModal();
+      } catch (error) {
+        // Error is already handled in the hook with message.error()
+        // Keep modal open so user can retry
+        console.error("Error in subcategory modal submit:", error);
+      }
+    },
+    [
+      isEditMode,
+      selectedCategory,
+      parentRecord.id,
+      updateSubCategory,
+      createSubCategory,
+      fetchSubCategories,
+      closeModal,
+    ]
+  );
+
+  /**
+   * Table columns configuration for subcategories
+   * 
+   * Performance: Memoized to prevent recreation on every render.
+   * Only recreates when handleSubCategoryMenuClick changes.
+   */
   const columns = useMemo(
     () => [
       {
@@ -141,6 +367,7 @@ const SubCategoryListing = ({ parentRecord }) => {
               onClick: (menuInfo) =>
                 handleSubCategoryMenuClick(menuInfo, record),
             }}
+            trigger={['hover', 'click']}
           >
             <button className="C-settingButton is-clean small">
               <Icon name="more_vert" />
@@ -158,8 +385,9 @@ const SubCategoryListing = ({ parentRecord }) => {
         <h6 className="mb-3">Sub Categories for {parentRecord.c_name}</h6>
         <Table
           columns={columns}
-          dataSource={filteredSubCategories}
+          dataSource={subCategories}
           rowKey="id"
+          loading={loading}
           pagination={{ hideOnSinglePage: true, defaultPageSize: 5 }}
           size="small"
         />
@@ -183,6 +411,7 @@ const SubCategoryListing = ({ parentRecord }) => {
           modalMode={modalMode}
           onCancel={closeModal}
           onSubmit={handleModalSubmit}
+          categories={getCategoriesForSelect()}
         />
       </Modal>
 
@@ -227,10 +456,14 @@ const SubCategoryListing = ({ parentRecord }) => {
       </Modal>
     </>
   );
-};
+});
+
+SubCategoryListing.displayName = "SubCategoryListing";
 
 SubCategoryListing.propTypes = {
   parentRecord: PropTypes.object.isRequired,
+  onDeleteSubCategory: PropTypes.func,
+  onEditSubCategory: PropTypes.func, // Optional - for future use
 };
 
 export default SubCategoryListing;

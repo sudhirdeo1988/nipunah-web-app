@@ -396,6 +396,7 @@ const UserListing = () => {
           items: getActionMenuItems(),
           onClick: (menuInfo) => handleMenuClick(menuInfo, record),
         }}
+        trigger={['hover', 'click']}
       >
         <button className="C-settingButton is-clean small">
           <Icon name="more_vert" />

@@ -108,7 +108,7 @@ const PrivateSidebar = () => {
         </div>
       </div>
       <div className="sidebar-footer p-3">
-        <Dropdown menu={{ items }} placement="top" className="userProfile">
+        <Dropdown menu={{ items }} placement="top" className="userProfile" trigger={['hover', 'click']}>
           <button className="border-0 p-0">
             <Avatar
               src={

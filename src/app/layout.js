@@ -1,6 +1,6 @@
-import "@ant-design/v5-patch-for-react-19";
 import { Inter, Jost } from "next/font/google";
 import { AuthProvider } from "@/utilities/AuthContext";
+import { App } from "antd";
 import "@/styles/global.scss";
 
 export const inter = Inter({
@@ -25,7 +25,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${inter.variable} ${jost.variable}`}>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <App>{children}</App>
+        </AuthProvider>
       </body>
     </html>
   );
