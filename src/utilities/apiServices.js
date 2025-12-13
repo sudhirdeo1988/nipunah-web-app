@@ -136,10 +136,23 @@ export const jobService = {
 
 /**
  * Expert API Services
+ *
+ * Provides all CRUD operations for experts.
+ * Supports pagination, sorting, and search functionality.
  */
 export const expertService = {
   /**
-   * Get all experts with filters
+   * Get all experts with pagination, sorting, and search
+   *
+   * API Endpoint: GET /experts?page=1&limit=10&sortBy=name&order=asc
+   *
+   * @param {Object} params - Query parameters
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.limit - Items per page (default: 10)
+   * @param {string} params.sortBy - Field to sort by (e.g., "name", "createdAt")
+   * @param {string} params.order - Sort order: "asc" or "desc" (default: "asc")
+   * @param {string} params.search - Search query string
+   * @returns {Promise<Object>} Response with experts data and pagination info
    */
   getExperts: async (params = {}) => {
     return api.get("/experts", { params });
@@ -147,6 +160,11 @@ export const expertService = {
 
   /**
    * Get expert by ID
+   *
+   * API Endpoint: GET /experts/{id}
+   *
+   * @param {number} expertId - ID of the expert
+   * @returns {Promise<Object>} Expert data
    */
   getExpertById: async (expertId) => {
     return api.get(`/experts/${expertId}`);
@@ -154,6 +172,15 @@ export const expertService = {
 
   /**
    * Create a new expert
+   *
+   * API Endpoint: POST /experts
+   *
+   * @param {Object} expertData - Expert data
+   * @param {string} expertData.name - Name of the expert
+   * @param {string} expertData.email - Email of the expert
+   * @param {string} expertData.contact - Contact number
+   * @param {string} expertData.country - Country
+   * @returns {Promise<Object>} Created expert response
    */
   createExpert: async (expertData) => {
     return api.post("/experts", { body: expertData });
@@ -161,9 +188,27 @@ export const expertService = {
 
   /**
    * Update expert
+   *
+   * API Endpoint: PUT /experts/{id}
+   *
+   * @param {number} expertId - ID of the expert to update
+   * @param {Object} expertData - Updated expert data
+   * @returns {Promise<Object>} Updated expert response
    */
   updateExpert: async (expertId, expertData) => {
-    return api.patch(`/experts/${expertId}`, { body: expertData });
+    return api.put(`/experts/${expertId}`, { body: expertData });
+  },
+
+  /**
+   * Delete expert
+   *
+   * API Endpoint: DELETE /experts/{id}
+   *
+   * @param {number} expertId - ID of the expert to delete
+   * @returns {Promise<Object>} Deletion response
+   */
+  deleteExpert: async (expertId) => {
+    return api.delete(`/experts/${expertId}`);
   },
 };
 

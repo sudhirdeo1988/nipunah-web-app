@@ -1,9 +1,9 @@
-"use client";
-
 /**
- * Experts Constants
+ * Expert Constants
  *
- * This file contains expert categories and re-exports experts data and utilities.
+ * This file contains constants for expert operations including
+ * action menu items, modal modes, and modal titles.
+ * Also re-exports expert data and categories for backward compatibility.
  */
 
 // Import experts data from separate config file
@@ -66,24 +66,25 @@ export const EXPERT_CATEGORIES = [
   },
 ];
 
-// Re-export utility functions from experts_utility.js
-export {
-  getExpertById,
-  getExpertByName,
-  getExpertsByCategory,
-  getExpertsByCategoryId,
-  searchExperts,
-  getCategoryById,
-  getCategoryByValue,
-  getAllExpertNames,
-  getTotalExpertsCount,
-  getExpertsCountByCategory,
-} from "./experts_utility";
+// Action menu items for expert operations
+export const ACTION_MENU_ITEMS = [
+  {
+    key: "edit",
+    label: "Edit",
+  },
+  {
+    key: "delete",
+    label: "Delete",
+  },
+];
 
-/**
- * Default export for easy importing
- */
-export default {
-  EXPERTS_DATA,
-  EXPERT_CATEGORIES,
+// Modal modes for expert operations
+export const MODAL_MODES = {
+  EXPERT: "expert",
+};
+
+// Modal titles for expert operations
+export const MODAL_TITLES = {
+  ADD_EXPERT: "Add New Expert",
+  EDIT_EXPERT: "Edit Expert",
 };
