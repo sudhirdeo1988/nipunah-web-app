@@ -23,8 +23,11 @@ import React, { useCallback, useState } from "react";
 import Icon from "@/components/Icon";
 import { Dropdown, Space, Modal } from "antd";
 import ExpertUserListing from "module/Experts/Components/ExpertUserListing";
-import CreateExpert from "module/Experts/components/CreateExpert";
-import { MODAL_MODES, MODAL_TITLES } from "module/Experts/constants/expertConstants";
+import CreateExpert from "module/Experts/Components/CreateExpert";
+import {
+  MODAL_MODES,
+  MODAL_TITLES,
+} from "module/Experts/constants/expertConstants";
 import { useExpertModal } from "module/Experts/hooks/useExpertModal";
 import { useExpert } from "module/Experts/hooks/useExpert";
 
@@ -162,13 +165,10 @@ const ExpertsPage = () => {
    *
    * @param {Object} record - Expert record to delete
    */
-  const handleDeleteClick = useCallback(
-    (record) => {
-      setExpertToDelete(record);
-      setIsDeleteModalOpen(true);
-    },
-    []
-  );
+  const handleDeleteClick = useCallback((record) => {
+    setExpertToDelete(record);
+    setIsDeleteModalOpen(true);
+  }, []);
 
   /**
    * Handle confirm delete action
@@ -263,7 +263,9 @@ const ExpertsPage = () => {
       </div>
 
       <Modal
-        title={<span className="C-heaidng size-5 mb-0 bold">{getModalTitle()}</span>}
+        title={
+          <span className="C-heaidng size-5 mb-0 bold">{getModalTitle()}</span>
+        }
         closable={{ "aria-label": "Custom Close Button" }}
         open={isModalOpen}
         width={600}
@@ -282,7 +284,9 @@ const ExpertsPage = () => {
 
       {/* Delete Confirmation Modal */}
       <Modal
-        title={<span className="C-heaidng size-5 mb-0 bold">Delete Expert</span>}
+        title={
+          <span className="C-heaidng size-5 mb-0 bold">Delete Expert</span>
+        }
         open={isDeleteModalOpen}
         onOk={handleConfirmDelete}
         onCancel={handleCancelDelete}
