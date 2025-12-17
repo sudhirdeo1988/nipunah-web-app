@@ -2,8 +2,8 @@
 
 import Cookies from "js-cookie";
 
-const TOKEN_KEY = "token";
-const EXPIRY_KEY = "token_expiry";
+const TOKEN_KEY = "access_token";
+const EXPIRY_KEY = "access_token_expiry";
 
 export const setToken = (token, expiresIn = 86400) => {
   const expiry = Date.now() + expiresIn * 1000;

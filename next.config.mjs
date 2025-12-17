@@ -59,14 +59,15 @@ const nextConfig = {
   },
 
   // Optional: Rewrites (useful for API proxying)
-  async rewrites() {
-    return [
-      {
-        source: "/api/:path*",
-        destination: "https://api.example.com/:path*",
-      },
-    ];
-  },
+  // Disabled - we're using Next.js API routes as proxies instead
+  // async rewrites() {
+  //   return [
+  //     {
+  //       source: "/api/:path*",
+  //       destination: "https://api.example.com/:path*",
+  //     },
+  //   ];
+  // },
 
   // Generate source maps in production for debugging
   productionBrowserSourceMaps: true,

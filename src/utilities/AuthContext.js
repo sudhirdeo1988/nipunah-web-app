@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import { getClientToken, clearToken } from "./auth";
 
 const AuthContext = createContext(null);
@@ -9,20 +15,54 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const token = getClientToken();
-    setToken(token);
-    setLoading(false);
+  // Function to validate and update token
+  const validateToken = useCallback(() => {
+    const currentToken = getClientToken();
+
+    // getClientToken() automatically clears expired tokens and returns null
+    // So if currentToken is null, the token is either missing or expired
+    setToken(currentToken);
+
+    return currentToken;
   }, []);
 
-  const logout = () => {
+  // Check token on mount
+  useEffect(() => {
+    const initialToken = validateToken();
+    setLoading(false);
+  }, [validateToken]);
+
+  // Set up periodic token validation (check every 60 seconds)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      validateToken();
+    }, 60000); // Check every 60 seconds
+
+    // Also check when window gains focus (user comes back to tab)
+    const handleFocus = () => {
+      validateToken();
+    };
+    window.addEventListener("focus", handleFocus);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [validateToken]);
+
+  const logout = useCallback(() => {
     clearToken();
     setToken(null);
-  };
+  }, []);
+
+  // Update token function
+  const updateToken = useCallback((newToken) => {
+    setToken(newToken);
+  }, []);
 
   return (
     <AuthContext.Provider
-      value={{ token, isLoggedIn: !!token, logout, setToken }}
+      value={{ token, isLoggedIn: !!token, logout, setToken: updateToken }}
     >
       {!loading && children}
     </AuthContext.Provider>

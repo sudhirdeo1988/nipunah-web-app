@@ -389,14 +389,11 @@ export const useCategory = () => {
           });
           response = { success: true };
         } else {
-          // Call actual API to create category
-          // Payload format: { "name": "string" }
-          console.log("🟢 API CALL: POST /category", {
-            payload: { name: categoryData.categoryName },
-          });
-          response = await categoryService.createCategory({
-            name: categoryData.categoryName,
-          });
+          // Call simple API function
+          console.log("🟢 Calling createMainCategory");
+          response = await categoryService.createMainCategory(
+            categoryData.categoryName
+          );
           console.log("✅ API Response:", response);
         }
 
@@ -551,10 +548,14 @@ export const useCategory = () => {
    * Create a new subcategory for a category
    *
    * API Endpoint: POST /categories/{categoryId}/subcategories
+   * Payload Structure: { "categoryId": number, "subcategoryName": "string" }
+   *
+   * Note: The categoryService.createSubCategory automatically constructs
+   * the correct payload with both categoryId and subcategoryName
    *
    * @param {number} categoryId - ID of the parent category
    * @param {Object} subCategoryData - Subcategory data from form
-   * @param {string} subCategoryData.subCategoryName - Name of the subcategory
+   * @param {string} subCategoryData.subcategoryName - Name of the subcategory
    * @returns {Promise<Object>} Created subcategory response
    * @throws {Error} If creation fails
    */
@@ -568,12 +569,35 @@ export const useCategory = () => {
 
         if (useMockData) {
           // Mock create - just show success message for development
+          console.log("🔵 MOCK MODE: Create subcategory (no API call)", {
+            categoryId,
+            subcategoryName: subCategoryData.subcategoryName,
+          });
           response = { success: true };
         } else {
-          // Call actual API to create subcategory
-          response = await categoryService.createSubCategory(categoryId, {
-            name: subCategoryData.subCategoryName,
+          // Extract subcategory name - support multiple field name variations
+          const subcategoryName =
+            subCategoryData.subcategoryName ||
+            subCategoryData.subCategoryName || // Capital C version from form
+            subCategoryData.name ||
+            "";
+
+          console.log("🟢 HOOK: Creating subcategory", {
+            categoryId,
+            subcategoryName,
+            originalData: subCategoryData,
           });
+
+          if (!subcategoryName) {
+            throw new Error("Subcategory name is required");
+          }
+
+          // Use the simple API function
+          response = await categoryService.createNewSubCategory(
+            categoryId,
+            subcategoryName
+          );
+          console.log("✅ API Response:", response);
         }
 
         message.success("Subcategory created successfully");

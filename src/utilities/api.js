@@ -18,16 +18,38 @@ import { getClientToken, clearToken } from "./auth";
  * Falls back to a default if not set
  */
 const getApiBaseUrl = () => {
+  const DEFAULT_API = "http://64.227.184.238/api/";
+
   if (typeof window !== "undefined") {
     // Client-side: use NEXT_PUBLIC_ prefixed env variable
-    return process.env.NEXT_PUBLIC_API_BASE_URL || "http://64.227.184.238/api/";
+    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API;
+
+    // Prevent using localhost for external API calls
+    if (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1")) {
+      console.warn(
+        `⚠️ Localhost detected in NEXT_PUBLIC_API_BASE_URL (${apiUrl}), using default: ${DEFAULT_API}`
+      );
+      return DEFAULT_API;
+    }
+
+    return apiUrl;
   }
+
   // Server-side: use regular env variable
-  return (
+  const apiUrl =
     process.env.API_BASE_URL ||
     process.env.NEXT_PUBLIC_API_BASE_URL ||
-    "http://64.227.184.238/api/"
-  );
+    DEFAULT_API;
+
+  // Prevent using localhost for external API calls
+  if (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1")) {
+    console.warn(
+      `⚠️ Localhost detected in API_BASE_URL (${apiUrl}), using default: ${DEFAULT_API}`
+    );
+    return DEFAULT_API;
+  }
+
+  return apiUrl;
 };
 
 /**
@@ -184,6 +206,11 @@ const apiRequest = async (endpoint, options = {}) => {
   try {
     // Build URL with query parameters
     let url = buildUrl(endpoint);
+
+    // Debug: Log the URL being called (remove in production)
+    if (typeof window !== "undefined") {
+      console.log(`🌐 API Call: ${method} ${url}`);
+    }
     if (params && Object.keys(params).length > 0) {
       const searchParams = new URLSearchParams();
       Object.entries(params).forEach(([key, value]) => {

@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, memo, useCallback } from "react";
+import { useEffect, memo, useCallback, useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/utilities/AuthContext";
 import { setToken, userTypes } from "@/utilities/auth";
 import { useRouter } from "next/navigation";
 import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
-import { Form, Input, Select, Space } from "antd";
+import { Form, Input, Select, Space, message } from "antd";
 
 import { map as _map } from "lodash-es";
 
@@ -82,12 +82,71 @@ const LoginPage = () => {
   const { setToken: updateContextToken } = useAuth();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const [form] = Form.useForm();
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
-    const fakeToken = "abc123";
-    setToken(fakeToken, 86400); // 24 hours expiry
-    updateContextToken(fakeToken);
-    router.push("/app/dashboard");
+  const handleLogin = async (values) => {
+    try {
+      setLoading(true);
+
+      // Call Next.js API route (which proxies to external API to avoid CORS)
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          username: values.username,
+          password: values.password,
+          type: values.type,
+        }),
+      });
+
+      // Parse response
+      const data = await response.json();
+
+      // Check if request was successful
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+            data?.error ||
+            "Login failed. Please check your credentials and try again."
+        );
+      }
+
+      // Extract token from response
+      // Assuming the API returns { token: "..." } or { access_token: "..." } or { data: { token: "..." } }
+      const token =
+        data?.token ||
+        data?.access_token ||
+        data?.data?.token ||
+        data?.data?.access_token;
+
+      if (!token) {
+        throw new Error("Token not found in response");
+      }
+
+      // Store token in cookies (24 hours expiry)
+      setToken(token, 86400);
+      updateContextToken(token);
+
+      // Show success message
+      message.success("Login successful!");
+
+      // Redirect to dashboard
+      router.push(ROUTES?.PRIVATE?.DASHBOARD || "/app/dashboard");
+    } catch (error) {
+      // Handle error
+      const errorMessage =
+        error?.message ||
+        "Login failed. Please check your credentials and try again.";
+
+      message.error(errorMessage);
+      console.error("Login error:", error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Memoized navigation handler to prevent unnecessary re-renders
@@ -119,6 +178,7 @@ const LoginPage = () => {
                 Login
               </h3>
               <Form
+                form={form}
                 name="basic"
                 layout="vertical"
                 autoComplete="off"
@@ -203,8 +263,12 @@ const LoginPage = () => {
                 </div>
 
                 <div className="text-center mb-3">
-                  <button className="C-button is-filled w-100" type="submit">
-                    Login
+                  <button
+                    className="C-button is-filled w-100"
+                    type="submit"
+                    disabled={loading}
+                  >
+                    {loading ? "Logging in..." : "Login"}
                   </button>
                 </div>
               </Form>

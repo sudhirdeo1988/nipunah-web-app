@@ -2,17 +2,17 @@
 
 /**
  * CategoryPage Component
- * 
+ *
  * Main page component for managing categories and subcategories.
  * Provides full CRUD operations with proper loading, error, and success states.
- * 
+ *
  * Features:
  * - Category listing with pagination, sorting, and search
  * - Create/Edit categories and subcategories
  * - Delete with confirmation modal
  * - Expandable rows to view subcategories
  * - Error boundary for graceful error handling
- * 
+ *
  * API Endpoints Used:
  * - GET /categories - Fetch categories list
  * - POST /category - Create category
@@ -74,10 +74,10 @@ const CategoryPage = () => {
 
   /**
    * Handle create category action
-   * 
+   *
    * Creates a new category and closes modal on success.
    * Error handling is done in the hook with message.error().
-   * 
+   *
    * @param {Object} formData - Form data from CreateCategory component
    * @param {string} formData.categoryName - Name of the category to create
    */
@@ -99,30 +99,31 @@ const CategoryPage = () => {
 
   /**
    * Handle create subcategory action
-   * 
+   *
    * Creates a new subcategory for a parent category.
    * Validates that categoryId is present before creating.
-   * 
+   *
    * @param {Object} formData - Form data from CreateCategory component
    * @param {number} formData.categoryId - ID of the parent category
    * @param {string} formData.subCategoryName - Name of the subcategory to create
    */
   const handleCreateSubCategory = useCallback(
     async (formData) => {
+      console.log({ formData });
       try {
         // Get category ID from form data or selected category
         const categoryId = formData.categoryId || selectedCategory?.categoryId;
-        
+
         // Validation: Ensure category ID is present
         if (!categoryId) {
           console.error("Category ID is required for subcategory creation");
           // Could show error message here
           return;
         }
-        
+
         // Create subcategory (error handling is in the hook)
         await createSubCategory(categoryId, formData);
-        
+
         // Close modal only on success
         closeModal();
       } catch (error) {
@@ -136,16 +137,16 @@ const CategoryPage = () => {
 
   /**
    * Handle add category/subcategory button click
-   * 
+   *
    * Opens the appropriate modal based on the selected menu item.
-   * 
+   *
    * @param {Object} menu - Menu item object from dropdown
    * @param {string} menu.key - Menu item key ("category" or "sub_category")
    */
   const handleAddCategory = useCallback(
     (menu) => {
       const { key } = menu;
-      
+
       // Determine modal mode based on menu selection
       const mode =
         key === MODAL_MODES.SUB_CATEGORY
@@ -161,13 +162,13 @@ const CategoryPage = () => {
 
   /**
    * Handle edit category/subcategory action
-   * 
+   *
    * API Endpoints:
    * - PUT /categories/{id} for main categories
    * - PUT /subcategories/{id} for subcategories
-   * 
+   *
    * Payload: { "name": "string" }
-   * 
+   *
    * Shows loading state, calls update API, shows success/error messages,
    * and refreshes the list after successful update.
    */
@@ -198,27 +199,24 @@ const CategoryPage = () => {
 
   /**
    * Handle delete category/subcategory action
-   * 
+   *
    * Opens confirmation modal before deletion.
-   * 
+   *
    * @param {Object} record - Category or subcategory record to delete
    * @param {boolean} isSubCategory - Whether the record is a subcategory
    */
-  const handleDeleteCategory = useCallback(
-    (record, isSubCategory = false) => {
-      // Set state for delete confirmation modal
-      setCategoryToDelete(record);
-      setIsSubCategoryDelete(isSubCategory);
-      setIsDeleteModalOpen(true);
-    },
-    []
-  );
+  const handleDeleteCategory = useCallback((record, isSubCategory = false) => {
+    // Set state for delete confirmation modal
+    setCategoryToDelete(record);
+    setIsSubCategoryDelete(isSubCategory);
+    setIsDeleteModalOpen(true);
+  }, []);
 
   /**
    * Handle confirm delete action
-   * 
+   *
    * API Endpoint: DELETE /categories/{id}
-   * 
+   *
    * Shows loading state, calls delete API, shows success/error messages,
    * and refreshes the list after successful deletion.
    */
@@ -247,11 +245,16 @@ const CategoryPage = () => {
         // Don't close modal on error - let user decide to retry or cancel
       }
     }
-  }, [categoryToDelete, isSubCategoryDelete, deleteCategory, deleteSubCategory]);
+  }, [
+    categoryToDelete,
+    isSubCategoryDelete,
+    deleteCategory,
+    deleteSubCategory,
+  ]);
 
   /**
    * Handle cancel delete action
-   * 
+   *
    * Closes delete confirmation modal without deleting.
    */
   const handleCancelDelete = useCallback(() => {
@@ -262,10 +265,10 @@ const CategoryPage = () => {
 
   /**
    * Handle modal form submission
-   * 
+   *
    * Routes to appropriate handler based on mode (create/edit) and type (category/subcategory).
    * All error handling is done in the individual handler functions.
-   * 
+   *
    * @param {Object} formData - Form data from CreateCategory component
    */
   const handleModalSubmit = useCallback(
@@ -277,6 +280,7 @@ const CategoryPage = () => {
         } else {
           // Create mode: Create new category/subcategory
           if (modalMode === MODAL_MODES.SUB_CATEGORY) {
+            console.log({ formData });
             await handleCreateSubCategory(formData);
           } else {
             await handleCreateCategory(formData);
@@ -321,7 +325,7 @@ const CategoryPage = () => {
                   })),
                   onClick: (menuInfo) => handleAddCategory(menuInfo),
                 }}
-                trigger={['hover', 'click']}
+                trigger={["hover", "click"]}
               >
                 <button className="C-button is-filled small">
                   <Space>
