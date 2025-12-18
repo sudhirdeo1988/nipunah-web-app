@@ -6,6 +6,7 @@
  */
 
 import api from "./api";
+import { API_BASE_URL } from "@/constants/api";
 
 /**
  * User API Services
@@ -460,7 +461,7 @@ export const categoryService = {
    *
    * API Endpoint: POST /api/categories
    * Note: Uses Next.js API route proxy to avoid CORS issues. Bearer token is automatically included from cookies.
-   * External API: POST {API_BASE_URL}/category
+   * External API: POST API_BASE_URL/category (see @/constants/api)
    * Requires: Bearer token authentication
    *
    * @param {Object} categoryData - Category data
@@ -545,7 +546,7 @@ export const categoryService = {
    *
    * API Endpoint: POST /api/categories/{categoryId}/subcategories
    * Note: Uses Next.js API route proxy to avoid CORS issues. Bearer token is automatically included from cookies.
-   * External API: POST {API_BASE_URL}/categories/{categoryId}/subcategories
+   * External API: POST API_BASE_URL/categories/{categoryId}/subcategories (see @/constants/api)
    * Requires: Bearer token authentication
    *
    * Payload Structure:

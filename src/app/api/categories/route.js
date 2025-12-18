@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { API_BASE_URL } from "@/constants/api";
 
 /**
  * POST /api/categories
@@ -14,37 +15,9 @@ export async function POST(request) {
     // Get request body
     const body = await request.json();
 
-    // Get API base URL from environment variable
-    // Always use the external API, never localhost
-    const DEFAULT_API = "http://64.227.184.238/api/";
+    // Use API base URL from constants
+    const url = `${API_BASE_URL}/category`;
 
-    let apiBaseUrl =
-      process.env.API_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      DEFAULT_API;
-
-    // Prevent using localhost or any local addresses - use default external API instead
-    if (
-      apiBaseUrl.includes("localhost") ||
-      apiBaseUrl.includes("127.0.0.1") ||
-      apiBaseUrl.includes("0.0.0.0")
-    ) {
-      console.warn(
-        `⚠️ Local address detected in API_BASE_URL (${apiBaseUrl}), forcing external API: ${DEFAULT_API}`
-      );
-      apiBaseUrl = DEFAULT_API;
-    }
-
-    // Build the full URL
-    const baseUrl = apiBaseUrl.replace(/\/$/, ""); // Remove trailing slash
-    const url = `${baseUrl}/category`;
-
-    console.log("🌍 Environment Variables:");
-    console.log("   - API_BASE_URL:", process.env.API_BASE_URL || "not set");
-    console.log(
-      "   - NEXT_PUBLIC_API_BASE_URL:",
-      process.env.NEXT_PUBLIC_API_BASE_URL || "not set"
-    );
     console.log("🎯 Final API URL:", url);
     console.log("📝 Request body:", JSON.stringify(body));
 

@@ -12,44 +12,14 @@
  */
 
 import { getClientToken, clearToken } from "./auth";
+import { API_BASE_URL } from "@/constants/api";
 
 /**
- * Get the API base URL from environment variables
- * Falls back to a default if not set
+ * Get the API base URL
+ * Returns the base URL without trailing slash
  */
 const getApiBaseUrl = () => {
-  const DEFAULT_API = "http://64.227.184.238/api/";
-
-  if (typeof window !== "undefined") {
-    // Client-side: use NEXT_PUBLIC_ prefixed env variable
-    const apiUrl = process.env.NEXT_PUBLIC_API_BASE_URL || DEFAULT_API;
-
-    // Prevent using localhost for external API calls
-    if (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1")) {
-      console.warn(
-        `⚠️ Localhost detected in NEXT_PUBLIC_API_BASE_URL (${apiUrl}), using default: ${DEFAULT_API}`
-      );
-      return DEFAULT_API;
-    }
-
-    return apiUrl;
-  }
-
-  // Server-side: use regular env variable
-  const apiUrl =
-    process.env.API_BASE_URL ||
-    process.env.NEXT_PUBLIC_API_BASE_URL ||
-    DEFAULT_API;
-
-  // Prevent using localhost for external API calls
-  if (apiUrl.includes("localhost") || apiUrl.includes("127.0.0.1")) {
-    console.warn(
-      `⚠️ Localhost detected in API_BASE_URL (${apiUrl}), using default: ${DEFAULT_API}`
-    );
-    return DEFAULT_API;
-  }
-
-  return apiUrl;
+  return API_BASE_URL;
 };
 
 /**
@@ -58,7 +28,7 @@ const getApiBaseUrl = () => {
  * @returns {string} Full URL
  */
 const buildUrl = (endpoint) => {
-  const baseUrl = getApiBaseUrl().replace(/\/$/, ""); // Remove trailing slash
+  const baseUrl = getApiBaseUrl(); // Already has no trailing slash
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   return `${baseUrl}${cleanEndpoint}`;
 };

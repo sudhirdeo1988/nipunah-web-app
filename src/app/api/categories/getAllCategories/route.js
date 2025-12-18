@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { API_BASE_URL } from "@/constants/api";
 
 /**
  * GET /api/categories/getAllCategories
@@ -11,21 +12,16 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());
 
-    // Get API base URL from environment variable
-    // In Next.js API routes, use NEXT_PUBLIC_ prefix for client-accessible vars
-    // But for server-side only, we can use API_BASE_URL
-    const apiBaseUrl =
-      process.env.NEXT_PUBLIC_API_BASE_URL || "http://64.227.184.238/api/";
-
-    // Ensure we have a valid base URL (not localhost)
-    if (!apiBaseUrl || apiBaseUrl.includes("localhost")) {
-      console.error("Invalid API base URL:", apiBaseUrl);
-      throw new Error("API base URL is not configured correctly");
+    // Use API base URL from constants
+    // Verify the constant is loaded correctly
+    if (!API_BASE_URL || API_BASE_URL.includes("localhost")) {
+      console.error("❌ ERROR: API_BASE_URL is incorrect:", API_BASE_URL);
+      throw new Error("API_BASE_URL is not configured correctly");
     }
 
-    // Build the full URL with query parameters
-    const baseUrl = apiBaseUrl.replace(/\/$/, ""); // Remove trailing slash
-    let url = `${baseUrl}/categories/getAllCategories`;
+    let url = `${API_BASE_URL}/categories/getAllCategories`;
+    console.log("🔍 Debug - API_BASE_URL constant value:", API_BASE_URL);
+    console.log("🔍 Debug - Constructed URL:", url);
 
     // Add query parameters if they exist
     if (Object.keys(params).length > 0) {
@@ -67,9 +63,10 @@ export async function GET(request) {
     }
 
     // Log for debugging (remove in production)
-    console.log("API URL:", url);
-    console.log("Cookie header present:", !!cookieHeader);
-    console.log("Token found:", !!token);
+    console.log("🌐 External API URL:", url);
+    console.log("📋 API_BASE_URL constant:", API_BASE_URL);
+    console.log("🍪 Cookie header present:", !!cookieHeader);
+    console.log("🔑 Token found:", !!token);
     if (cookieHeader) {
       console.log(
         "All cookies:",
@@ -129,4 +126,3 @@ export async function GET(request) {
     );
   }
 }
-

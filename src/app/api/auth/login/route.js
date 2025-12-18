@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { API_BASE_URL } from "@/constants/api";
 
 /**
  * POST /api/auth/login
@@ -9,14 +10,8 @@ export async function POST(request) {
     // Get the request body
     const body = await request.json();
 
-    // Get API base URL from environment variable
-    const apiBaseUrl =
-      process.env.API_BASE_URL ||
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      "http://64.227.184.238/api/";
-
-    // Build the full URL
-    const url = `${apiBaseUrl.replace(/\/$/, "")}/auth/login`;
+    // Use API base URL from constants
+    const url = `${API_BASE_URL}/auth/login`;
 
     // Make the request to the external API
     const response = await fetch(url, {
