@@ -320,12 +320,45 @@ export const categoryService = {
     });
 
     if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: response.statusText }));
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`
-      );
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+
+      // Try to extract error message from response
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        // If JSON parsing fails, use status text
+        const text = await response.text().catch(() => "");
+        if (text) {
+          try {
+            const parsed = JSON.parse(text);
+            errorMessage = parsed.message || parsed.error || errorMessage;
+          } catch {
+            // Use status text as fallback
+          }
+        }
+      }
+
+      // Provide user-friendly messages for common status codes
+      if (response.status === 404) {
+        errorMessage =
+          "Category endpoint not found. Please check the API configuration.";
+      } else if (response.status === 401) {
+        errorMessage = "Unauthorized. Please log in again.";
+      } else if (response.status === 403) {
+        errorMessage =
+          "Forbidden. You don't have permission to create categories.";
+      } else if (response.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      }
+
+      console.error("❌ Category creation failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorMessage,
+      });
+
+      throw new Error(errorMessage);
     }
 
     console.log("✅ Category created successfully");
@@ -377,12 +410,45 @@ export const categoryService = {
     );
 
     if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: response.statusText }));
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`
-      );
+      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+
+      // Try to extract error message from response
+      try {
+        const errorData = await response.json();
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch (e) {
+        // If JSON parsing fails, use status text
+        const text = await response.text().catch(() => "");
+        if (text) {
+          try {
+            const parsed = JSON.parse(text);
+            errorMessage = parsed.message || parsed.error || errorMessage;
+          } catch {
+            // Use status text as fallback
+          }
+        }
+      }
+
+      // Provide user-friendly messages for common status codes
+      if (response.status === 404) {
+        errorMessage =
+          "Subcategory endpoint not found. Please check the API configuration.";
+      } else if (response.status === 401) {
+        errorMessage = "Unauthorized. Please log in again.";
+      } else if (response.status === 403) {
+        errorMessage =
+          "Forbidden. You don't have permission to create subcategories.";
+      } else if (response.status >= 500) {
+        errorMessage = "Server error. Please try again later.";
+      }
+
+      console.error("❌ Subcategory creation failed:", {
+        status: response.status,
+        statusText: response.statusText,
+        errorMessage,
+      });
+
+      throw new Error(errorMessage);
     }
 
     console.log("✅ Subcategory created successfully");

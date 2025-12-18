@@ -175,7 +175,7 @@ const Partners = () => {
                       accordion
                       bordered={false}
                       key={category.id}
-                      expandIconPosition="end"
+                      expandIconPlacement="end"
                       className={`${
                         activeCategory?.id === category.id ? "active" : ""
                       }`}

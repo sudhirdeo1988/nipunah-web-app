@@ -28,6 +28,7 @@ const nextConfig = {
   },
 
   // Optional: Internationalization
+  // Note: i18n is not fully supported in App Router, but keeping for compatibility
   i18n: {
     locales: ["en"],
     defaultLocale: "en",

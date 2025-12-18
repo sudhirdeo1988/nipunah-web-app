@@ -314,8 +314,12 @@ const SubCategoryListing = memo(
           fetchedCategoryIdRef.current = null;
           closeModal();
         } catch (error) {
-          console.error("❌ Error:", error);
-          message.error(error.message || "Failed to save");
+          console.error("❌ Error creating/updating subcategory:", error);
+          const errorMessage =
+            error?.message ||
+            error?.error ||
+            (typeof error === "string" ? error : "Failed to save subcategory");
+          message.error(errorMessage);
         } finally {
           setLoading(false);
         }

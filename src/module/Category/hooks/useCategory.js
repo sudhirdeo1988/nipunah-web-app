@@ -405,9 +405,13 @@ export const useCategory = () => {
 
         return response;
       } catch (error) {
-        console.error("Error creating category:", error);
+        console.error("❌ Error creating category:", error);
         setError(error);
-        message.error(error.message || "Failed to create category");
+        const errorMessage =
+          error?.message ||
+          error?.error ||
+          (typeof error === "string" ? error : "Failed to create category");
+        message.error(errorMessage);
         throw error;
       } finally {
         setLoading(false);
@@ -604,9 +608,13 @@ export const useCategory = () => {
         await fetchCategories(); // Refresh list to show new subcategory
         return response;
       } catch (error) {
-        console.error("Error creating subcategory:", error);
+        console.error("❌ Error creating subcategory:", error);
         setError(error);
-        message.error(error.message || "Failed to create subcategory");
+        const errorMessage =
+          error?.message ||
+          error?.error ||
+          (typeof error === "string" ? error : "Failed to create subcategory");
+        message.error(errorMessage);
         throw error;
       } finally {
         setLoading(false);

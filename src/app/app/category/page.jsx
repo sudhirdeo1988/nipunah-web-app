@@ -26,7 +26,7 @@
 
 import React, { useCallback, useState } from "react";
 import Icon from "@/components/Icon";
-import { Dropdown, Space, Modal } from "antd";
+import { Dropdown, Space, Modal, message } from "antd";
 import MainCategoryListing from "module/Category/components/MainCategoryListing";
 import CreateCategory from "module/Category/components/CreateCategory/CreateCategory";
 import CategoryErrorBoundary from "module/Category/components/ErrorBoundary/CategoryErrorBoundary";
@@ -90,8 +90,14 @@ const CategoryPage = () => {
         closeModal();
       } catch (error) {
         // Error is already handled in the hook with message.error()
-        // Keep modal open so user can retry
-        console.error("Error creating category:", error);
+        // But add fallback in case hook doesn't catch it
+        console.error("❌ Error creating category:", error);
+        // Fallback: Show error message if available
+        const errorMessage =
+          error?.message ||
+          error?.error ||
+          (typeof error === "string" ? error : "Failed to create category");
+        message.error(errorMessage);
       }
     },
     [createCategory, closeModal]
@@ -128,8 +134,14 @@ const CategoryPage = () => {
         closeModal();
       } catch (error) {
         // Error is already handled in the hook with message.error()
-        // Keep modal open so user can retry
-        console.error("Error creating subcategory:", error);
+        // But add fallback in case hook doesn't catch it
+        console.error("❌ Error creating subcategory:", error);
+        // Fallback: Show error message if available
+        const errorMessage =
+          error?.message ||
+          error?.error ||
+          (typeof error === "string" ? error : "Failed to create subcategory");
+        message.error(errorMessage);
       }
     },
     [createSubCategory, selectedCategory, closeModal]
