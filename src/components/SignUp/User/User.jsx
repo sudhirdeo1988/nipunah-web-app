@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
-import axiosInstance from "@/utilities/axiosInstance";
+import axiosPublicInstance from "@/utilities/axiosPublicInstance";
 
 /**
  * UserRegistration Component
@@ -208,6 +208,20 @@ const UserRegistration = () => {
       // Get all form values
       const allFields = form.getFieldsValue(true); // Include undefined values
 
+      // Map field names to match API expectations
+      // Rename first_name to name
+      if (allFields.first_name) {
+        allFields.name = allFields.first_name;
+      }
+      // Remove first_name as it's renamed to name
+      // Keep last_name in payload as requested
+      delete allFields.first_name;
+
+      // Ensure username is set from contactEmail if not already set
+      if (!allFields.username && allFields.contactEmail) {
+        allFields.username = allFields.contactEmail;
+      }
+
       // Remove confirm_password from payload (only used for frontend validation)
       delete allFields.confirm_password;
 
@@ -235,10 +249,11 @@ const UserRegistration = () => {
       // Endpoint: /users/register
       // Method: POST
       // Payload: All form values object
-      // Override withCredentials to false for registration (no auth needed)
-      const response = await axiosInstance.post("/users/register", allFields, {
-        withCredentials: false, // Don't send credentials for registration
-      });
+      // Using axiosPublicInstance (no credentials) to avoid CORS issues
+      const response = await axiosPublicInstance.post(
+        "/users/register",
+        allFields
+      );
 
       console.log("Response:", response);
 
@@ -253,8 +268,28 @@ const UserRegistration = () => {
       setShowThankYouModal(false);
 
       // Extract error message from axios error
-      const errorMessage =
-        err?.message || "Failed to register user. Please try again.";
+      let errorMessage = "Failed to register user. Please try again.";
+
+      if (err?.response?.data) {
+        // API returned error response
+        const errorData = err.response.data;
+        errorMessage =
+          errorData.message ||
+          errorData.error ||
+          errorData.detail ||
+          errorMessage;
+      } else if (err?.message) {
+        // Axios error message
+        errorMessage = err.message;
+      }
+
+      // Log error for debugging
+      console.error("Registration error details:", {
+        message: err?.message,
+        status: err?.response?.status,
+        data: err?.response?.data,
+        error: err,
+      });
 
       // Show error message to user
       message.error(errorMessage);
@@ -272,7 +307,7 @@ const UserRegistration = () => {
   const handleEmailChange = useCallback(
     (e) => {
       const emailValue = e.target.value;
-      // Set username field to match email
+      // Set username field to match email (contactEmail field)
       form.setFieldsValue({
         username: emailValue,
       });
@@ -366,7 +401,7 @@ const UserRegistration = () => {
                         Email
                       </span>
                     }
-                    name="email"
+                    name="contactEmail"
                     rules={[
                       { required: true, message: "Please enter email." },
                       { type: "email", message: "Please enter a valid email." },
@@ -406,7 +441,7 @@ const UserRegistration = () => {
                         />
                       </Form.Item>
                       <Form.Item
-                        name="contact"
+                        name="contactNumber"
                         noStyle
                         rules={[
                           { required: true, message: "Enter contact number" },
@@ -429,7 +464,7 @@ const UserRegistration = () => {
 
                 {/* ===== ADDRESS INFORMATION SECTION ===== */}
                 <div className="col-12">
-                  <Divider orientation="left">
+                  <Divider titlePlacement="left">
                     <span className="C-heading size-xss bold mb-0">
                       ADDRESS
                     </span>
@@ -593,7 +628,7 @@ const UserRegistration = () => {
 
                 {/* ===== CREDENTIALS SECTION ===== */}
                 <div className="col-12">
-                  <Divider orientation="left">
+                  <Divider titlePlacement="left">
                     <span className="C-heading size-xss bold mb-0">
                       CREDENTIALS
                     </span>
