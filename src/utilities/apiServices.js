@@ -6,7 +6,7 @@
  */
 
 import api from "./api";
-import { API_BASE_URL } from "@/constants/api";
+import axiosInstance from "./axiosInstance";
 
 /**
  * User API Services
@@ -235,43 +235,17 @@ export const categoryService = {
    * @returns {Promise<Object>} Response with categories data and pagination info
    */
   getCategories: async (params = {}) => {
-    // Use Next.js API route proxy to avoid CORS
-    // Build query string from params
-    const queryParams = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-      if (value !== null && value !== undefined && value !== "") {
-        queryParams.append(key, String(value));
-      }
-    });
-
-    const queryString = queryParams.toString();
-
-    const url = `/api/categories/getAllCategories${
-      queryString ? `?${queryString}` : ""
-    }`;
-
-    // Use direct fetch for Next.js API route (same origin, no CORS)
-    // credentials: 'include' ensures cookies are sent with the request
-    // Using relative URL - will automatically use the current domain
-    const response = await fetch(url, {
-      method: "GET",
-      credentials: "include", // Include cookies in the request
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-    });
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: response.statusText }));
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`
-      );
+    // Call external API directly using axios
+    // Axios automatically handles query parameters and cookies
+    try {
+      const response = await axiosInstance.get("/categories/getAllCategories", {
+        params: params,
+      });
+      return response;
+    } catch (error) {
+      // Error is already handled by axios interceptor
+      throw error;
     }
-
-    return await response.json();
   },
 
   /**
@@ -308,62 +282,20 @@ export const categoryService = {
 
     console.log("📦 Creating category:", payload);
 
-    // Call Next.js proxy route (handles CORS and bearer token)
-    // Using relative URL - will automatically use the current domain
-    const response = await fetch("/api/categories", {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-
-      // Try to extract error message from response
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || errorMessage;
-      } catch (e) {
-        // If JSON parsing fails, use status text
-        const text = await response.text().catch(() => "");
-        if (text) {
-          try {
-            const parsed = JSON.parse(text);
-            errorMessage = parsed.message || parsed.error || errorMessage;
-          } catch {
-            // Use status text as fallback
-          }
-        }
-      }
-
-      // Provide user-friendly messages for common status codes
-      if (response.status === 404) {
-        errorMessage =
+    try {
+      // Call external API directly using axios
+      const response = await axiosInstance.post("/category", payload);
+      console.log("✅ Category created successfully");
+      return response;
+    } catch (error) {
+      // Error is already handled by axios interceptor with user-friendly messages
+      // Add specific error handling for category creation if needed
+      if (error.status === 404) {
+        error.message =
           "Category endpoint not found. Please check the API configuration.";
-      } else if (response.status === 401) {
-        errorMessage = "Unauthorized. Please log in again.";
-      } else if (response.status === 403) {
-        errorMessage =
-          "Forbidden. You don't have permission to create categories.";
-      } else if (response.status >= 500) {
-        errorMessage = "Server error. Please try again later.";
       }
-
-      console.error("❌ Category creation failed:", {
-        status: response.status,
-        statusText: response.statusText,
-        errorMessage,
-      });
-
-      throw new Error(errorMessage);
+      throw error;
     }
-
-    console.log("✅ Category created successfully");
-    return await response.json();
   },
 
   /**
@@ -395,109 +327,23 @@ export const categoryService = {
 
     console.log("📦 Creating subcategory:", payload);
 
-    // Call Next.js proxy route (handles CORS and bearer token)
-    // Using relative URL - will automatically use the current domain
-    const response = await fetch(
-      `/api/categories/${categoryId}/subcategories`,
-      {
-        method: "POST",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    if (!response.ok) {
-      let errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-
-      // Try to extract error message from response
-      try {
-        const errorData = await response.json();
-        errorMessage = errorData.message || errorData.error || errorMessage;
-      } catch (e) {
-        // If JSON parsing fails, use status text
-        const text = await response.text().catch(() => "");
-        if (text) {
-          try {
-            const parsed = JSON.parse(text);
-            errorMessage = parsed.message || parsed.error || errorMessage;
-          } catch {
-            // Use status text as fallback
-          }
-        }
-      }
-
-      // Provide user-friendly messages for common status codes
-      if (response.status === 404) {
-        errorMessage =
-          "Subcategory endpoint not found. Please check the API configuration.";
-      } else if (response.status === 401) {
-        errorMessage = "Unauthorized. Please log in again.";
-      } else if (response.status === 403) {
-        errorMessage =
-          "Forbidden. You don't have permission to create subcategories.";
-      } else if (response.status >= 500) {
-        errorMessage = "Server error. Please try again later.";
-      }
-
-      console.error("❌ Subcategory creation failed:", {
-        status: response.status,
-        statusText: response.statusText,
-        errorMessage,
-      });
-
-      throw new Error(errorMessage);
-    }
-
-    console.log("✅ Subcategory created successfully");
-    return await response.json();
-  },
-
-  /**
-   * Create a new category
-   *
-   * API Endpoint: POST /api/categories
-   * Note: Uses Next.js API route proxy to avoid CORS issues. Bearer token is automatically included from cookies.
-   * External API: POST API_BASE_URL/category (see @/constants/api)
-   * Requires: Bearer token authentication
-   *
-   * @param {Object} categoryData - Category data
-   * @param {string} categoryData.name - Name of the category
-   * @returns {Promise<Object>} Created category response
-   */
-  createCategory: async (categoryData) => {
-    // IMPORTANT: Use Next.js API route proxy (relative URL) to avoid CORS
-    // This calls YOUR Next.js server, which then proxies to external API
-    // DO NOT use the external API URL directly here - it will cause CORS!
-
-    console.log("🔵 Creating category:", categoryData);
-
-    // Use direct fetch for Next.js API route (same origin, no CORS)
-    // credentials: 'include' ensures cookies are sent with the request
-    // Using relative URL - will automatically use the current domain
-    const response = await fetch("/api/categories", {
-      method: "POST",
-      credentials: "include", // Include cookies in the request
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      body: JSON.stringify(categoryData),
-    });
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: response.statusText }));
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`
+    try {
+      // Call external API directly using axios
+      const response = await axiosInstance.post(
+        `/categories/${categoryId}/subcategories`,
+        payload
       );
+      console.log("✅ Subcategory created successfully");
+      return response;
+    } catch (error) {
+      // Error is already handled by axios interceptor with user-friendly messages
+      // Add specific error handling for subcategory creation if needed
+      if (error.status === 404) {
+        error.message =
+          "Subcategory endpoint not found. Please check the API configuration.";
+      }
+      throw error;
     }
-
-    return await response.json();
   },
 
   /**
@@ -539,96 +385,6 @@ export const categoryService = {
    */
   getSubCategoryById: async (categoryId, subCategoryId) => {
     return api.get(`/categories/${categoryId}/subcategories/${subCategoryId}`);
-  },
-
-  /**
-   * Create a new subcategory for a category
-   *
-   * API Endpoint: POST /api/categories/{categoryId}/subcategories
-   * Note: Uses Next.js API route proxy to avoid CORS issues. Bearer token is automatically included from cookies.
-   * External API: POST API_BASE_URL/categories/{categoryId}/subcategories (see @/constants/api)
-   * Requires: Bearer token authentication
-   *
-   * Payload Structure:
-   * {
-   *   "categoryId": number,
-   *   "subcategoryName": "string"
-   * }
-   *
-   * @param {number} categoryId - ID of the parent category
-   * @param {Object} subCategoryData - Subcategory data
-   * @param {string} subCategoryData.subcategoryName - Name of the subcategory (can also accept 'name' for backwards compatibility)
-   * @returns {Promise<Object>} Created subcategory response
-   */
-  createSubCategory: async (categoryId, subCategoryData) => {
-    // IMPORTANT: Use Next.js API route proxy (relative URL) to avoid CORS
-    // This calls YOUR Next.js server, which then proxies to external API
-    // DO NOT use the external API URL directly here - it will cause CORS!
-
-    // Debug: Log what we received
-    console.log("🔍 createSubCategory received:", {
-      categoryId,
-      subCategoryData,
-      keys: Object.keys(subCategoryData),
-    });
-
-    // Construct the correct payload structure
-    // Support multiple field name variations for backwards compatibility
-    const subcategoryName =
-      subCategoryData.subcategoryName ||
-      subCategoryData.subCategoryName || // Check capital C version
-      subCategoryData.name ||
-      "";
-
-    console.log("🔍 Extracted subcategoryName:", subcategoryName);
-
-    if (!subcategoryName) {
-      console.error(
-        "❌ ERROR: No subcategory name found in data:",
-        subCategoryData
-      );
-      throw new Error("Subcategory name is required");
-    }
-
-    const payload = {
-      categoryId: parseInt(categoryId, 10),
-      subcategoryName: subcategoryName,
-    };
-
-    console.log("🔵 Creating subcategory via proxy");
-    console.log("📦 Constructed Payload:", JSON.stringify(payload));
-    console.log("📊 Payload Details:", {
-      hasSubcategoryName: !!payload.subcategoryName,
-      hasCategoryId: !!payload.categoryId,
-      rawSubCategoryData: subCategoryData,
-    });
-
-    // Use direct fetch for Next.js API route (same origin, no CORS)
-    // credentials: 'include' ensures cookies are sent with the request
-    // Using relative URL - will automatically use the current domain
-    const response = await fetch(
-      `/api/categories/${categoryId}/subcategories`,
-      {
-        method: "POST",
-        credentials: "include", // Include cookies in the request
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(payload),
-      }
-    );
-
-    if (!response.ok) {
-      const errorData = await response
-        .json()
-        .catch(() => ({ message: response.statusText }));
-      throw new Error(
-        errorData.message || `HTTP ${response.status}: ${response.statusText}`
-      );
-    }
-
-    return await response.json();
   },
 
   /**

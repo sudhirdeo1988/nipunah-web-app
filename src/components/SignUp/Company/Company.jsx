@@ -22,10 +22,9 @@ import countryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import axiosInstance from "@/utilities/axiosInstance";
 
 const { TextArea } = Input;
-
-const { Option } = Select;
 
 const categories = [
   {
@@ -55,13 +54,14 @@ const categories = [
 const Company = () => {
   const router = useRouter();
   const [form] = Form.useForm();
-  const [currentStep, setCurrentStep] = useState(1);
+  const [currentStep, setCurrentStep] = useState(0);
   const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 0
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [categoriesData, setCategoriesData] = useState([
     { main: undefined, sub: undefined },
   ]);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
 
   // Memoize expensive calculations
   const countries = useMemo(
@@ -134,6 +134,92 @@ const Company = () => {
     },
     [form]
   );
+
+  // --- Form Submit ---
+  /**
+   * Handle form submission
+   * - Validates form fields
+   * - Prepares payload (converts found_year, removes confirm_password)
+   * - Makes POST request to company registration API
+   * - Handles loading, success, and error states
+   */
+  const onFinish = useCallback(async () => {
+    try {
+      // Validate all form fields before submission
+      await form.validateFields();
+
+      // Set loading state to prevent multiple submissions
+      setIsSubmitting(true);
+
+      // Get all form values
+      const allFields = form.getFieldsValue(true); // Include undefined values
+
+      // Convert found_year from date string/object to year value (number)
+      if (allFields.found_year) {
+        if (typeof allFields.found_year === "string") {
+          // Handle ISO date string like "2020-12-18T18:30:00.000Z"
+          const year = new Date(allFields.found_year).getFullYear();
+          allFields.found_year = isNaN(year) ? allFields.found_year : year;
+        } else if (typeof allFields.found_year.year === "function") {
+          // Handle dayjs/moment object
+          allFields.found_year = allFields.found_year.year();
+        } else if (typeof allFields.found_year.format === "function") {
+          // Fallback: use format if year() doesn't exist
+          allFields.found_year = parseInt(
+            allFields.found_year.format("YYYY"),
+            10
+          );
+        } else if (allFields.found_year instanceof Date) {
+          // Handle Date object
+          allFields.found_year = allFields.found_year.getFullYear();
+        } else if (typeof allFields.found_year === "number") {
+          // Already a number, keep it as is
+          // No conversion needed
+        }
+      }
+
+      // Remove confirm_password from payload (only used for frontend validation)
+      delete allFields.confirm_password;
+
+      console.log("=== COMPANY FORM SUBMISSION ===");
+      console.log("Payload:", allFields);
+
+      // Make POST request to company registration API
+      // Endpoint: /companies/register
+      // Method: POST
+      // Payload: All form values object
+      const response = await axiosInstance.post(
+        "/companies/register",
+        allFields
+      );
+
+      console.log("=== COMPANY REGISTRATION SUCCESS ===");
+      console.log("Response:", response);
+
+      // Show success message
+      message.success("Company registered successfully!");
+
+      // Show thank you modal on successful registration
+      setShowThankYouModal(true);
+    } catch (err) {
+      // Handle API errors
+      console.error("=== COMPANY REGISTRATION ERROR ===");
+      console.error("Error:", err);
+
+      // Ensure ThankYouModal is not shown on error
+      setShowThankYouModal(false);
+
+      // Extract error message from axios error
+      const errorMessage =
+        err?.message || "Failed to register company. Please try again.";
+
+      // Show error message to user
+      message.error(errorMessage);
+    } finally {
+      // Reset loading state regardless of success or failure
+      setIsSubmitting(false);
+    }
+  }, [form]);
 
   // --- Step Navigation ---
   const next = useCallback(async () => {
@@ -245,32 +331,12 @@ const Company = () => {
       });
       // Validation errors handled by AntD
     }
-  }, [currentStep, form]);
+  }, [currentStep, form, onFinish]);
 
   const prev = useCallback(
     () => setCurrentStep(currentStep - 1),
     [currentStep]
   );
-
-  // --- Form Submit ---
-  const onFinish = useCallback(async () => {
-    try {
-      await form.validateFields();
-
-      // Get all form values and debug
-      const allFields = form.getFieldsValue(true); // Include undefined values
-
-      console.log("=== COMPANY FORM SUBMISSION DEBUG ===");
-      console.log("All Fields (including undefined):", allFields);
-
-      console.log("=====================================");
-
-      // Show thank you modal
-      setShowThankYouModal(true);
-    } catch (err) {
-      console.error("Form submission error:", err);
-    }
-  }, [form]);
 
   // --- Logo Upload ---
   const logoUploadProps = {
@@ -295,11 +361,12 @@ const Company = () => {
   };
 
   // --- Steps Content ---
+  // Convert content to functions so Form.Item can access FormContext
   const steps = [
     {
       title: <span className="C-heading size-6 semiBold mt-2">Details</span>,
       icon: <Icon name="diversity_3" isFilled />,
-      content: (
+      content: () => (
         <div className="row g-3">
           <div className="col-12">
             <Form.Item
@@ -404,7 +471,7 @@ const Company = () => {
           </div>
 
           <div className="col-12">
-            <Divider orientation="left" orientationMargin="0">
+            <Divider orientation="left" styles={{ content: { margin: 0 } }}>
               <span className="C-heading size-xss extraBold color-light mb-0">
                 ADDRESSES
               </span>
@@ -490,24 +557,28 @@ const Company = () => {
                               placeholder="Select Country"
                               size="large"
                               showSearch
-                              optionFilterProp="value"
+                              optionFilterProp="label"
                               onChange={(value) =>
                                 handleCountryChange(value, idx)
                               }
-                              filterOption={(input, option) =>
-                                (option?.value || "")
+                              filterOption={(input, option) => {
+                                const labelText =
+                                  typeof option?.label === "string"
+                                    ? option.label
+                                    : option?.label?.props?.children || "";
+                                return String(labelText)
                                   .toLowerCase()
-                                  .includes(input.toLowerCase())
-                              }
-                            >
-                              {_map(countries, (country) => (
-                                <Select.Option key={country} value={country}>
+                                  .includes(input.toLowerCase());
+                              }}
+                              options={_map(countries, (country) => ({
+                                label: (
                                   <span className="C-heading size-6 semiBold mb-0">
                                     {country}
                                   </span>
-                                </Select.Option>
-                              ))}
-                            </Select>
+                                ),
+                                value: country,
+                              }))}
+                            />
                           </Form.Item>
                         </div>
 
@@ -546,24 +617,28 @@ const Company = () => {
                                 placeholder="Select State/Province"
                                 size="large"
                                 showSearch
-                                optionFilterProp="value"
+                                optionFilterProp="label"
                                 disabled={
                                   !currentCountry || currentStates.length === 0
                                 }
-                                filterOption={(input, option) =>
-                                  (option?.value || "")
+                                filterOption={(input, option) => {
+                                  const labelText =
+                                    typeof option?.label === "string"
+                                      ? option.label
+                                      : option?.label?.props?.children || "";
+                                  return String(labelText)
                                     .toLowerCase()
-                                    .includes(input.toLowerCase())
-                                }
-                              >
-                                {_map(currentStates, (state) => (
-                                  <Select.Option key={state} value={state}>
+                                    .includes(input.toLowerCase());
+                                }}
+                                options={_map(currentStates, (state) => ({
+                                  label: (
                                     <span className="C-heading size-6 semiBold mb-0">
                                       {state}
                                     </span>
-                                  </Select.Option>
-                                ))}
-                              </Select>
+                                  ),
+                                  value: state,
+                                }))}
+                              />
                             </Form.Item>
                           </div>
                         )}
@@ -589,7 +664,6 @@ const Company = () => {
                               placeholder="Address"
                               size="large"
                               rows={2}
-                              prefix={<Icon name="home_pin" />}
                             />
                           </Form.Item>
                         </div>
@@ -735,7 +809,7 @@ const Company = () => {
     {
       title: <span className="C-heading size-6 semiBold mt-2">Categories</span>,
       icon: <Icon name="format_list_numbered" isFilled />,
-      content: (
+      content: () => (
         <Form.List name="categories">
           {(fields, { add, remove }) => (
             <>
@@ -770,19 +844,14 @@ const Company = () => {
                             newValues[idx] = { main: value, sub: undefined };
                             setCategoriesData(newValues);
                           }}
-                        >
-                          {categories.map((cat) => (
-                            <Option
-                              key={cat.id}
-                              value={cat.id}
-                              disabled={values.some(
-                                (c, i) => i !== idx && c?.main === cat.id
-                              )}
-                            >
-                              {cat.title}
-                            </Option>
-                          ))}
-                        </Select>
+                          options={categories.map((cat) => ({
+                            label: cat.title,
+                            value: cat.id,
+                            disabled: values.some(
+                              (c, i) => i !== idx && c?.main === cat.id
+                            ),
+                          }))}
+                        />
                       </Form.Item>
                     </div>
                     <div className="col-md-5">
@@ -803,22 +872,20 @@ const Company = () => {
                           size="large"
                           disabled={!currentMainCategory}
                           key={currentMainCategory} // Force re-render when main category changes
-                        >
-                          {currentMainCategory &&
-                            categories
-                              .find((cat) => cat.id === currentMainCategory)
-                              ?.list.map((sub, i) => (
-                                <Option
-                                  key={i}
-                                  value={sub}
-                                  disabled={values.some(
-                                    (c, i2) => i2 !== idx && c?.sub === sub
-                                  )}
-                                >
-                                  {sub}
-                                </Option>
-                              ))}
-                        </Select>
+                          options={
+                            currentMainCategory
+                              ? categories
+                                  .find((cat) => cat.id === currentMainCategory)
+                                  ?.list.map((sub, i) => ({
+                                    label: sub,
+                                    value: sub,
+                                    disabled: values.some(
+                                      (c, i2) => i2 !== idx && c?.sub === sub
+                                    ),
+                                  })) || []
+                              : []
+                          }
+                        />
                       </Form.Item>
                     </div>
                     <div className="col-md-2">
@@ -860,7 +927,7 @@ const Company = () => {
     {
       title: <span className="C-heading size-6 semiBold mt-2">Statistics</span>,
       icon: <Icon name="groups" isFilled />,
-      content: (
+      content: () => (
         <div className="row g-3">
           <div className="col-12">
             <Form.Item
@@ -872,11 +939,7 @@ const Company = () => {
               name="found_year"
               className="mb-2"
             >
-              <DatePicker
-                picker="year"
-                size="large"
-                prefix={<Icon name="calendar_month" isFilled color="#ccc" />}
-              />
+              <DatePicker picker="year" size="large" />
             </Form.Item>
           </div>
           <div className="col-12">
@@ -988,7 +1051,7 @@ const Company = () => {
           </div>
 
           <div className="col-12">
-            <Divider orientation="left" orientationMargin="0">
+            <Divider orientation="left" styles={{ content: { margin: 0 } }}>
               <span className="C-heading size-xss extraBold color-light mb-0">
                 SOCIAL MEDIA
               </span>
@@ -1055,7 +1118,7 @@ const Company = () => {
     {
       title: <span className="C-heading size-6 semiBold mt-2">Password</span>,
       icon: <Icon name="passkey" isFilled />,
-      content: (
+      content: () => (
         <div className="row g-3">
           <div className="col-12">
             <Form.Item
@@ -1166,7 +1229,11 @@ const Company = () => {
         {/* Step Content */}
         <div className="row justify-content-center">
           <div className="col-md-7 col-sm-12">
-            <div className="p-3 pb-0">{steps[currentStep]?.content}</div>
+            <div className="p-3 pb-0">
+              {typeof steps[currentStep]?.content === "function"
+                ? steps[currentStep].content()
+                : steps[currentStep]?.content}
+            </div>
           </div>
         </div>
 
@@ -1181,7 +1248,13 @@ const Company = () => {
               Previous
             </Button>
           )}
-          <Button type="primary" className="C-button is-filled" onClick={next}>
+          <Button
+            type="primary"
+            className="C-button is-filled"
+            onClick={next}
+            loading={isSubmitting}
+            disabled={isSubmitting}
+          >
             {currentStep === steps.length - 1 ? "Register" : "Next"}
           </Button>
         </div>

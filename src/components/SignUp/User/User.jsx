@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
+import axiosInstance from "@/utilities/axiosInstance";
 
 /**
  * UserRegistration Component
@@ -28,6 +29,7 @@ const UserRegistration = () => {
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [form] = Form.useForm();
   const [showThankYouModal, setShowThankYouModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
 
   // ===== MEMOIZED DATA PROCESSING =====
 
@@ -85,11 +87,10 @@ const UserRegistration = () => {
    */
   const countrySelectOptions = useMemo(
     () =>
-      _map(countries, (country) => (
-        <Select.Option key={country} value={country}>
-          {country}
-        </Select.Option>
-      )),
+      _map(countries, (country) => ({
+        label: country,
+        value: country,
+      })),
     [countries]
   );
 
@@ -99,11 +100,10 @@ const UserRegistration = () => {
    */
   const stateSelectOptions = useMemo(
     () =>
-      _map(states, (state) => (
-        <Select.Option key={state} value={state}>
-          {state}
-        </Select.Option>
-      )),
+      _map(states, (state) => ({
+        label: state,
+        value: state,
+      })),
     [states]
   );
 
@@ -192,54 +192,77 @@ const UserRegistration = () => {
 
   /**
    * Handle form submission
-   * Validates all fields and processes user registration
-   * Removed OTP verification logic as per requirements
+   * - Validates form fields
+   * - Prepares payload (removes confirm_password)
+   * - Makes POST request to user registration API
+   * - Handles loading, success, and error states
    */
   const onFinish = useCallback(async () => {
     try {
-      // Validate all form fields
+      // Validate all form fields before submission
       await form.validateFields();
 
+      // Set loading state to prevent multiple submissions
+      setIsSubmitting(true);
+
       // Get all form values
-      const formData = form.getFieldsValue(true);
+      const allFields = form.getFieldsValue(true); // Include undefined values
 
-      // Transform form data into structured API payload
-      const registrationData = transformFormDataForAPI(formData);
+      // Remove confirm_password from payload (only used for frontend validation)
+      delete allFields.confirm_password;
 
-      // Debug logging for development
-      console.log("=== USER REGISTRATION FORM DATA ===");
-      console.log("Raw Form Data:", formData);
-      console.log("Structured Registration Data:", registrationData);
-      console.log(
-        "JSON String for API:",
-        JSON.stringify(registrationData, null, 2)
-      );
+      // Add default fields to payload
+      // Check if social media fields exist in form data, otherwise use empty strings
+      allFields.socialMedia = {
+        facebook: allFields.socialMedia?.facebook || allFields.facebook || "",
+        instagram:
+          allFields.socialMedia?.instagram || allFields.instagram || "",
+        linkedin: allFields.socialMedia?.linkedin || allFields.linkedin || "",
+      };
+      allFields.subscriptionPlan = "Free";
 
-      // TODO: Implement actual API call to register user
-      // Example API call:
-      // const response = await fetch('/api/auth/register', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(registrationData)
-      // });
-      //
-      // if (response.ok) {
-      //   const result = await response.json();
-      //   message.success("User registered successfully!");
-      //   router.push(ROUTES?.PUBLIC.LOGIN);
-      // } else {
-      //   throw new Error('Registration failed');
-      // }
+      allFields.paymentDetails = {
+        paidUser: false,
+      };
 
-      // Show thank you modal
+      // Add timestamp for createdOn (milliseconds since epoch)
+      allFields.createdOn = Date.now();
+
+      // Log final payload before API call
+      console.log("Payload:", allFields);
+
+      // Make POST request to user registration API
+      // Endpoint: /users/register
+      // Method: POST
+      // Payload: All form values object
+      // Override withCredentials to false for registration (no auth needed)
+      const response = await axiosInstance.post("/users/register", allFields, {
+        withCredentials: false, // Don't send credentials for registration
+      });
+
+      console.log("Response:", response);
+
+      // Show success message
+      message.success("User registered successfully!");
+
+      // Show thank you modal on successful registration
       setShowThankYouModal(true);
     } catch (err) {
-      console.error("Form submission error:", err);
-      message.error("Please fix the form errors before submitting.");
+      // Handle API errors
+      // Ensure ThankYouModal is not shown on error
+      setShowThankYouModal(false);
+
+      // Extract error message from axios error
+      const errorMessage =
+        err?.message || "Failed to register user. Please try again.";
+
+      // Show error message to user
+      message.error(errorMessage);
+    } finally {
+      // Reset loading state regardless of success or failure
+      setIsSubmitting(false);
     }
-  }, [form, transformFormDataForAPI]);
+  }, [form]);
 
   /**
    * Handle email field change
@@ -431,16 +454,15 @@ const UserRegistration = () => {
                       placeholder="Select Country"
                       size="large"
                       showSearch
-                      optionFilterProp="value"
+                      optionFilterProp="label"
                       onChange={handleCountryChange}
                       filterOption={(input, option) =>
-                        (option?.value || "")
+                        (option?.label || "")
                           .toLowerCase()
                           .includes(input.toLowerCase())
                       }
-                    >
-                      {countrySelectOptions}
-                    </Select>
+                      options={countrySelectOptions}
+                    />
                   </Form.Item>
                 </div>
 
@@ -481,16 +503,15 @@ const UserRegistration = () => {
                         placeholder="Select State/Province"
                         size="large"
                         showSearch
-                        optionFilterProp="value"
+                        optionFilterProp="label"
                         disabled={!selectedCountry || states.length === 0}
                         filterOption={(input, option) =>
-                          (option?.value || "")
+                          (option?.label || "")
                             .toLowerCase()
                             .includes(input.toLowerCase())
                         }
-                      >
-                        {stateSelectOptions}
-                      </Select>
+                        options={stateSelectOptions}
+                      />
                     </Form.Item>
                   </div>
                 )}
@@ -674,11 +695,19 @@ const UserRegistration = () => {
         {/* Form Action Buttons */}
         <div className="text-center mt-4">
           <Space>
-            <button className="C-button is-bordered" type="button">
+            <button
+              className="C-button is-bordered"
+              type="button"
+              onClick={() => router.push(ROUTES?.PUBLIC.LOGIN)}
+            >
               Cancel
             </button>
-            <button className="C-button is-filled" type="submit">
-              Register
+            <button
+              className="C-button is-filled"
+              type="submit"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Registering..." : "Register"}
             </button>
           </Space>
         </div>
