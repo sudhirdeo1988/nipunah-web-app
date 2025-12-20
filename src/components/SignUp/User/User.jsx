@@ -239,6 +239,9 @@ const UserRegistration = () => {
         paidUser: false,
       };
 
+      // Add user approval flag (initially false, updated by admin/reviewer)
+      allFields.isUserApproved = false;
+
       // Add timestamp for createdOn (milliseconds since epoch)
       allFields.createdOn = Date.now();
 

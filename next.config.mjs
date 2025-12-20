@@ -3,9 +3,6 @@ const nextConfig = {
   // Enable React strict mode
   reactStrictMode: true,
 
-  // Enable SWC minification for better builds
-  swcMinify: true,
-
   // Enable SCSS support (built-in)
   sassOptions: {
     prependData: `@import "src/styles/_settings.scss";`,
@@ -22,16 +19,9 @@ const nextConfig = {
   },
 
   // Experimental settings
+  // Note: appDir and serverActions are enabled by default in Next.js 15
   experimental: {
-    appDir: true, // using /app directory
-    serverActions: true,
-  },
-
-  // Optional: Internationalization
-  // Note: i18n is not fully supported in App Router, but keeping for compatibility
-  i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+    // serverActions is enabled by default in Next.js 15
   },
 
   // Optional: Custom headers (CSP, CORS, etc.)

@@ -1,0 +1,13 @@
+# Netlify Configuration for Next.js Application
+# https://docs.netlify.com/configure-builds/file-based-configuration/
+
+
+
+# Redirects for Next.js routing
+# All routes should be handled by Next.js
+[[redirects]]
+  from = "/api/*"
+  to = "http://64.227.184.238/api/:splat"
+  status = 200
+  force = true
+
