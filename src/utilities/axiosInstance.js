@@ -19,15 +19,16 @@ import { getClientToken } from "./auth";
 /**
  * Create axios instance with default configuration
  *
- * baseURL: Uses API_BASE_URL for direct external API calls
- * WARNING: This will fail with CORS error if external API doesn't allow cross-origin requests
+ * baseURL: Uses relative URL "/api" to leverage Netlify redirects
+ * Netlify redirects /api/* to http://64.227.184.238/api/:splat
+ * This avoids mixed content issues (HTTPS -> HTTP) and CORS problems
  *
- * To avoid CORS: Use Next.js proxy routes instead:
- * - baseURL: window.location.origin
- * - Endpoints: /api/categories/* (Next.js routes that proxy to external API)
+ * For local development: Netlify redirects work via netlify.toml
+ * For production: Netlify edge functions handle the redirect
  */
 const axiosInstance = axios.create({
-  baseURL: API_BASE_URL, // Direct external API - may cause CORS errors
+  // baseURL: API_BASE_URL,
+  baseURL: "/api", // Use relative URL to trigger Netlify redirects
   timeout: 30000, // 30 seconds
   withCredentials: true, // Include cookies in requests
   headers: {

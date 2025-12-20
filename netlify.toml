@@ -3,11 +3,15 @@
 
 
 
-# Redirects for Next.js routing
-# All routes should be handled by Next.js
+# Redirects for API proxying
+# Proxies /api/* requests to external API server
+# status = 200 means rewrite (proxy), not redirect
+# force = true means this takes precedence over other rules
 [[redirects]]
   from = "/api/*"
   to = "http://64.227.184.238/api/:splat"
   status = 200
   force = true
+  # Headers are automatically forwarded by Netlify
+  # Authorization header from axios will be preserved
 
