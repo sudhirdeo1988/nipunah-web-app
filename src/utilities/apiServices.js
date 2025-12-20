@@ -280,7 +280,7 @@ export const categoryService = {
   /**
    * Create a main category
    *
-   * API Endpoint: POST /category
+   * API Endpoint: POST /categories
    * Requires: Bearer token authentication (automatically included via axiosInstance)
    *
    * @param {string} categoryName - Name of the category to create
@@ -302,8 +302,8 @@ export const categoryService = {
     console.log("📦 Creating category:", payload);
 
     try {
-      // Call external API directly using axios
-      const response = await axiosInstance.post("/category", payload);
+      // Call external API via Netlify redirect (/api/categories -> http://64.227.184.238/api/categories)
+      const response = await axiosInstance.post("/categories", payload);
       console.log("✅ Category created successfully");
       return response;
     } catch (error) {
@@ -351,10 +351,7 @@ export const categoryService = {
 
     try {
       // Call external API directly using axios
-      const response = await axiosInstance.post(
-        `/categories/${categoryId}/subcategories`,
-        payload
-      );
+      const response = await axiosInstance.post(`/subcategories`, payload);
       console.log("✅ Subcategory created successfully");
       return response;
     } catch (error) {
