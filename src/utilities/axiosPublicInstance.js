@@ -20,7 +20,7 @@ import { API_BASE_URL } from "@/constants/api";
  * withCredentials: false - Prevents CORS issues with servers that don't support credentials
  */
 const axiosPublicInstance = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: "/api",
   timeout: 30000, // 30 seconds
   withCredentials: false, // Don't send credentials for public endpoints
   headers: {
