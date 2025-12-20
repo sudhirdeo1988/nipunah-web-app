@@ -218,13 +218,18 @@ export const expertService = {
  *
  * Simple, dedicated functions for category and subcategory operations.
  * Each function does exactly one thing with clear inputs and outputs.
+ *
+ * IMPORTANT: All category/subcategory APIs are SECURE and require:
+ * - Bearer token authentication (automatically included via axiosInstance)
+ * - User must be logged in
+ * - Token is automatically retrieved from cookies and added to Authorization header
  */
 export const categoryService = {
   /**
    * Get all categories with pagination, sorting, and search
    *
-   * API Endpoint: GET /api/categories/getAllCategories?page=1&limit=10&sortBy=name&order=asc
-   * Note: Uses Next.js API route proxy to avoid CORS issues. Bearer token is automatically included from cookies.
+   * API Endpoint: GET /categories/getAllCategories?page=1&limit=10&sortBy=name&order=asc
+   * Requires: Bearer token authentication (automatically included via axiosInstance)
    *
    * @param {Object} params - Query parameters
    * @param {number} params.page - Page number (default: 1)
@@ -250,9 +255,20 @@ export const categoryService = {
 
   /**
    * Get category by ID
+   *
+   * API Endpoint: GET /categories/{id}
+   * Requires: Bearer token authentication
+   *
+   * @param {number} categoryId - ID of the category to retrieve
+   * @returns {Promise<Object>} Category data
    */
   getCategoryById: async (categoryId) => {
-    return api.get(`/categories/${categoryId}`);
+    try {
+      const response = await axiosInstance.get(`/categories/${categoryId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
@@ -263,6 +279,9 @@ export const categoryService = {
 
   /**
    * Create a main category
+   *
+   * API Endpoint: POST /category
+   * Requires: Bearer token authentication (automatically included via axiosInstance)
    *
    * @param {string} categoryName - Name of the category to create
    * @returns {Promise<Object>} Created category response
@@ -300,6 +319,9 @@ export const categoryService = {
 
   /**
    * Create a subcategory
+   *
+   * API Endpoint: POST /categories/{categoryId}/subcategories
+   * Requires: Bearer token authentication (automatically included via axiosInstance)
    *
    * @param {number} categoryId - Parent category ID
    * @param {string} subcategoryName - Name of the subcategory to create
@@ -351,6 +373,7 @@ export const categoryService = {
    *
    * API Endpoint: PUT /categories/{id}
    * Payload: { "name": "string" }
+   * Requires: Bearer token authentication
    *
    * @param {number} categoryId - ID of the category to update
    * @param {Object} categoryData - Updated category data
@@ -358,61 +381,135 @@ export const categoryService = {
    * @returns {Promise<Object>} Updated category response
    */
   updateCategory: async (categoryId, categoryData) => {
-    return api.put(`/categories/${categoryId}`, { body: categoryData });
+    try {
+      const response = await axiosInstance.put(
+        `/categories/${categoryId}`,
+        categoryData
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Delete category
    *
    * API Endpoint: DELETE /categories/{id}
+   * Requires: Bearer token authentication
    *
    * @param {number} categoryId - ID of the category to delete
    * @returns {Promise<Object>} Deletion response
    */
   deleteCategory: async (categoryId) => {
-    return api.delete(`/categories/${categoryId}`);
+    try {
+      const response = await axiosInstance.delete(`/categories/${categoryId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Get all subcategories for a category
+   *
+   * API Endpoint: GET /categories/{categoryId}/subcategories
+   * Requires: Bearer token authentication
+   *
+   * @param {number} categoryId - ID of the parent category
+   * @param {Object} params - Query parameters (pagination, sorting, etc.)
+   * @returns {Promise<Object>} Subcategories data
    */
   getSubCategories: async (categoryId, params = {}) => {
-    return api.get(`/categories/${categoryId}/subcategories`, { params });
+    try {
+      const response = await axiosInstance.get(
+        `/categories/${categoryId}/subcategories`,
+        { params }
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Get subcategory by ID
+   *
+   * API Endpoint: GET /categories/{categoryId}/subcategories/{subCategoryId}
+   * Requires: Bearer token authentication
+   *
+   * @param {number} categoryId - ID of the parent category
+   * @param {number} subCategoryId - ID of the subcategory to retrieve
+   * @returns {Promise<Object>} Subcategory data
    */
   getSubCategoryById: async (categoryId, subCategoryId) => {
-    return api.get(`/categories/${categoryId}/subcategories/${subCategoryId}`);
+    try {
+      const response = await axiosInstance.get(
+        `/categories/${categoryId}/subcategories/${subCategoryId}`
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Update subcategory
    *
-   * API Endpoint: PUT /subcategories/{id}
+   * API Endpoint: PUT /subcategories/{id} or PUT /categories/{categoryId}/subcategories/{subCategoryId}
    * Payload: { "name": "string" }
+   * Requires: Bearer token authentication
    *
-   * @param {number} categoryId - ID of the parent category (for reference, not used in endpoint)
+   * @param {number} categoryId - ID of the parent category
    * @param {number} subCategoryId - ID of the subcategory to update
    * @param {Object} subCategoryData - Updated subcategory data
    * @param {string} subCategoryData.name - New name of the subcategory
    * @returns {Promise<Object>} Updated subcategory response
    */
   updateSubCategory: async (categoryId, subCategoryId, subCategoryData) => {
-    // Note: Endpoint is PUT /subcategories/{id} (not nested under categories)
-    return api.put(`/subcategories/${subCategoryId}`, {
-      body: subCategoryData,
-    });
+    try {
+      // Try nested endpoint first, fallback to flat endpoint if needed
+      const response = await axiosInstance.put(
+        `/categories/${categoryId}/subcategories/${subCategoryId}`,
+        subCategoryData
+      );
+      return response;
+    } catch (error) {
+      // If nested endpoint fails, try flat endpoint
+      if (error.status === 404) {
+        try {
+          const response = await axiosInstance.put(
+            `/subcategories/${subCategoryId}`,
+            subCategoryData
+          );
+          return response;
+        } catch (fallbackError) {
+          throw fallbackError;
+        }
+      }
+      throw error;
+    }
   },
 
   /**
    * Delete subcategory
+   *
+   * API Endpoint: DELETE /categories/{categoryId}/subcategories/{subCategoryId}
+   * Requires: Bearer token authentication
+   *
+   * @param {number} categoryId - ID of the parent category
+   * @param {number} subCategoryId - ID of the subcategory to delete
+   * @returns {Promise<Object>} Deletion response
    */
   deleteSubCategory: async (categoryId, subCategoryId) => {
-    return api.delete(
-      `/categories/${categoryId}/subcategories/${subCategoryId}`
-    );
+    try {
+      const response = await axiosInstance.delete(
+        `/categories/${categoryId}/subcategories/${subCategoryId}`
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 };
 
