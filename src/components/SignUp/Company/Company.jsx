@@ -22,7 +22,7 @@ import countryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import axiosInstance from "@/utilities/axiosInstance";
+import axiosPublicInstance from "@/utilities/axiosPublicInstance";
 
 const { TextArea } = Input;
 
@@ -181,14 +181,19 @@ const Company = () => {
       // Remove confirm_password from payload (only used for frontend validation)
       delete allFields.confirm_password;
 
+      // Add default paymentDetails object
+      allFields.paymentDetails = {
+        paidUser: false,
+      };
+
       console.log("=== COMPANY FORM SUBMISSION ===");
       console.log("Payload:", allFields);
 
-      // Make POST request to company registration API
+      // Make POST request to company registration API (insecure/public endpoint)
       // Endpoint: /companies/register
       // Method: POST
       // Payload: All form values object
-      const response = await axiosInstance.post(
+      const response = await axiosPublicInstance.post(
         "/companies/register",
         allFields
       );
@@ -210,8 +215,28 @@ const Company = () => {
       setShowThankYouModal(false);
 
       // Extract error message from axios error
-      const errorMessage =
-        err?.message || "Failed to register company. Please try again.";
+      // The axiosPublicInstance interceptor already formats errors, but we handle edge cases
+      let errorMessage = "Failed to register company. Please try again.";
+
+      if (err?.message) {
+        errorMessage = err.message;
+      } else if (err?.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err?.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (typeof err?.response?.data === "string") {
+        errorMessage = err.response.data;
+      } else if (err?.response?.data) {
+        // Handle validation errors or other structured error responses
+        const errorData = err.response.data;
+        if (Array.isArray(errorData)) {
+          errorMessage = errorData.map((e) => e.message || e).join(", ");
+        } else if (errorData.errors) {
+          // Handle validation errors object
+          const errors = Object.values(errorData.errors).flat();
+          errorMessage = errors.join(", ");
+        }
+      }
 
       // Show error message to user
       message.error(errorMessage);
@@ -247,16 +272,16 @@ const Company = () => {
 
           // Validate all fields including nested address fields
           const values = await form.validateFields([
-            "company_name",
-            "company_title",
-            "email",
+            "name",
+            "title",
+            "contactEmail",
             "contact_country_code",
-            "contact",
+            "contactNumber",
             ...addressFieldsToValidate,
           ]);
 
           // Capture email from step 0
-          setCapturedEmail(values.email);
+          setCapturedEmail(values.contactEmail);
         } catch (validationError) {
           console.error("Step 0 validation error:", validationError);
           // Ant Design will automatically display field-level validation errors
@@ -309,7 +334,7 @@ const Company = () => {
       if (currentStep === 3) {
         try {
           await form.validateFields([
-            "username",
+            "userName",
             "password",
             "confirm_password",
           ]);
@@ -375,7 +400,7 @@ const Company = () => {
                   Company Name
                 </span>
               }
-              name="company_name"
+              name="name"
               rules={[{ required: true, message: "Enter company name" }]}
               className="mb-2"
             >
@@ -388,7 +413,7 @@ const Company = () => {
           </div>
           <div className="col-12">
             <Form.Item
-              name="company_title"
+              name="title"
               label={
                 <span className="C-heading size-6 semiBold color-light mb-0">
                   Company title
@@ -411,7 +436,7 @@ const Company = () => {
                   Company Email ID
                 </span>
               }
-              name="email"
+              name="contactEmail"
               rules={[
                 { required: true, message: "Enter email" },
                 { type: "email", message: "Invalid email" },
@@ -449,7 +474,7 @@ const Company = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  name="contact"
+                  name="contactNumber"
                   noStyle
                   rules={[
                     { required: true, message: "Enter contact number" },
@@ -471,7 +496,7 @@ const Company = () => {
           </div>
 
           <div className="col-12">
-            <Divider orientation="left" styles={{ content: { margin: 0 } }}>
+            <Divider titlePlacement="left" styles={{ content: { margin: 0 } }}>
               <span className="C-heading size-xss extraBold color-light mb-0">
                 ADDRESSES
               </span>
@@ -1051,7 +1076,7 @@ const Company = () => {
           </div>
 
           <div className="col-12">
-            <Divider orientation="left" styles={{ content: { margin: 0 } }}>
+            <Divider titlePlacement="left" styles={{ content: { margin: 0 } }}>
               <span className="C-heading size-xss extraBold color-light mb-0">
                 SOCIAL MEDIA
               </span>
@@ -1127,7 +1152,7 @@ const Company = () => {
                   Username
                 </span>
               }
-              name="username"
+              name="userName"
               rules={[{ required: true, message: "Enter username" }]}
               className="mb-2"
               initialValue={capturedEmail}

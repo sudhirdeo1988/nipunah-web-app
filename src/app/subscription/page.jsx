@@ -305,7 +305,7 @@ const SubscriptionPage = () => {
                           </button>
                         </div>
                         <div className="body p-3 pt-0">
-                          <Divider orientation="left">
+                          <Divider titlePlacement="left">
                             <span className="C-heading size-6 color-light mb-0 text-uppercase bold">
                               Features
                             </span>
