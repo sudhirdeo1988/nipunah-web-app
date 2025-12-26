@@ -17,6 +17,13 @@
       left: 0;
       width: 100%;
 
+      & > button {
+        background-color: transparent;
+        display: flex;
+        text-align: left;
+        width: 100%;
+      }
+
       .userProfile {
         background-color: transparent;
         display: flex;

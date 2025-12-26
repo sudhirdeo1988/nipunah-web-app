@@ -2,21 +2,28 @@
 
 import React, { useState, useMemo, useCallback, memo } from "react";
 import { Form, Input, message, Select, Divider, Space } from "antd";
-import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
+import {
+  map as _map,
+  find as _find,
+  isEmpty as _isEmpty,
+  groupBy as _groupBy,
+} from "lodash-es";
 import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
 import axiosPublicInstance from "@/utilities/axiosPublicInstance";
+import { EXPERTS_DATA } from "@/module/Experts/constants/expertsConfig";
 
 /**
- * UserRegistration Component
+ * ExpertRegistration Component
  *
- * A comprehensive user registration form that handles:
+ * A comprehensive expert registration form that handles:
  * - Personal information (name, email, contact)
  * - Address information (country, state, detailed address)
  * - Credentials (username auto-populated from email, password)
+ * - Expertise field (dropdown with Marine Engineering as default)
  *
  * Features:
  * - Email automatically becomes username
@@ -24,12 +31,27 @@ import axiosPublicInstance from "@/utilities/axiosPublicInstance";
  * - Form validation with proper error messages
  * - Responsive design with Bootstrap grid system
  */
-const UserRegistration = () => {
+const ExpertRegistration = () => {
   const router = useRouter();
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [form] = Form.useForm();
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
+
+  // Expertise options for dropdown - grouped by category from EXPERTS_DATA
+  const expertiseOptions = useMemo(() => {
+    // Group experts by category
+    const groupedByCategory = _groupBy(EXPERTS_DATA, "category");
+
+    // Transform grouped data into optGroup format for Ant Design Select
+    return _map(groupedByCategory, (experts, categoryName) => ({
+      label: categoryName,
+      options: _map(experts, (expert) => ({
+        label: expert.name,
+        value: expert.name,
+      })),
+    }));
+  }, []);
 
   // ===== MEMOIZED DATA PROCESSING =====
 
@@ -107,94 +129,13 @@ const UserRegistration = () => {
     [states]
   );
 
-  // ===== UTILITY FUNCTIONS =====
-
-  /**
-   * Transform form data into structured API payload
-   * @param {Object} formData - Raw form data from Ant Design Form
-   * @returns {Object} Structured data object ready for API submission
-   *
-   * Example output structure:
-   * {
-   *   personalInfo: {
-   *     firstName: "John",
-   *     lastName: "Doe",
-   *     email: "john.doe@example.com",
-   *     username: "john.doe@example.com",
-   *     contact: {
-   *       countryCode: "+1",
-   *       number: "1234567890",
-   *       fullNumber: "+11234567890"
-   *     }
-   *   },
-   *   address: {
-   *     country: "United States",
-   *     state: "California",
-   *     location: "123 Main St, Los Angeles",
-   *     fullAddress: "123 Main St, Los Angeles, California, United States"
-   *   },
-   *   credentials: {
-   *     username: "john.doe@example.com",
-   *     password: "SecurePass123!",
-   *     confirmPassword: "SecurePass123!"
-   *   },
-   *   metadata: {
-   *     registrationDate: "2024-01-15T10:30:00.000Z",
-   *     userType: "individual",
-   *     status: "pending_verification"
-   *   }
-   * }
-   */
-  const transformFormDataForAPI = useCallback((formData) => {
-    return {
-      // Personal Information
-      personalInfo: {
-        firstName: formData.first_name,
-        lastName: formData.last_name,
-        email: formData.email,
-        username: formData.username, // Auto-populated from email
-        contact: {
-          countryCode: formData.contact_country_code,
-          number: formData.contact,
-          fullNumber: `${formData.contact_country_code}${formData.contact}`,
-        },
-      },
-
-      // Address Information
-      address: {
-        country: formData.address?.country,
-        state: formData.address?.state,
-        city: formData.address?.city,
-        postal_code: formData.address?.postal_code,
-        location: formData.address?.location,
-        fullAddress: `${formData.address?.location}, ${
-          formData.address?.city || ""
-        }, ${formData.address?.state || ""}, ${formData.address?.country}`,
-      },
-
-      // Credentials
-      credentials: {
-        username: formData.username,
-        password: formData.password,
-        confirmPassword: formData.confirm_password,
-      },
-
-      // Additional metadata
-      metadata: {
-        registrationDate: new Date().toISOString(),
-        userType: "individual", // Since this is user registration
-        status: "pending_verification", // Default status
-      },
-    };
-  }, []);
-
   // ===== EVENT HANDLERS =====
 
   /**
    * Handle form submission
    * - Validates form fields
    * - Prepares payload (removes confirm_password)
-   * - Makes POST request to user registration API
+   * - Makes POST request to expert registration API
    * - Handles loading, success, and error states
    */
   const onFinish = useCallback(async () => {
@@ -218,6 +159,7 @@ const UserRegistration = () => {
         username: allFields.username || allFields.email, // Use email as username if not set
         password: allFields.password,
         is_user_approved: false,
+        expertise: allFields.expertise,
         address: {
           country: allFields.address?.country || "",
           state: allFields.address?.state || "",
@@ -238,22 +180,22 @@ const UserRegistration = () => {
       };
 
       // Log final payload before API call
-      console.log("User Registration Payload:", payload);
+      console.log("Expert Registration Payload:", payload);
 
-      // Make POST request to user registration API
-      // Endpoint: /users/register
+      // Make POST request to expert registration API
+      // Endpoint: /experts/register
       // Method: POST
       // Payload: Structured payload object
       // Using axiosPublicInstance (no credentials) to avoid CORS issues
       const response = await axiosPublicInstance.post(
-        "/users/register",
+        "/experts/register",
         payload
       );
 
-      console.log("Response:", response);
+      console.log("Expert Registration Response:", response);
 
       // Show success message
-      message.success("User registered successfully!");
+      message.success("Expert profile created successfully!");
 
       // Show thank you modal on successful registration
       setShowThankYouModal(true);
@@ -263,7 +205,7 @@ const UserRegistration = () => {
       setShowThankYouModal(false);
 
       // Extract error message from axios error
-      let errorMessage = "Failed to register user. Please try again.";
+      let errorMessage = "Failed to create expert profile. Please try again.";
 
       if (err?.response?.data) {
         // API returned error response
@@ -279,7 +221,7 @@ const UserRegistration = () => {
       }
 
       // Log error for debugging
-      console.error("Registration error details:", {
+      console.error("Expert registration error details:", {
         message: err?.message,
         status: err?.response?.status,
         data: err?.response?.data,
@@ -388,8 +330,9 @@ const UserRegistration = () => {
                     />
                   </Form.Item>
                 </div>
+
                 {/* Email Field - Automatically populates username */}
-                <div className="col-12">
+                <div className="col-6">
                   <Form.Item
                     label={
                       <span className="C-heading size-6 semiBold color-light mb-0">
@@ -408,6 +351,29 @@ const UserRegistration = () => {
                       size="large"
                       prefix={<Icon name="mail" isFilled color="#ccc" />}
                       onChange={handleEmailChange}
+                    />
+                  </Form.Item>
+                </div>
+
+                {/* Expertise Field - Dropdown */}
+                <div className="col-6">
+                  <Form.Item
+                    label={
+                      <span className="C-heading size-6 semiBold color-light mb-0">
+                        Expertise
+                      </span>
+                    }
+                    name="expertise"
+                    rules={[
+                      { required: true, message: "Please select expertise." },
+                    ]}
+                    className="mb-2"
+                  >
+                    <Select
+                      placeholder="Select Expertise"
+                      size="large"
+                      options={expertiseOptions}
+                      prefix={<Icon name="work" isFilled color="#ccc" />}
                     />
                   </Form.Item>
                 </div>
@@ -542,7 +508,6 @@ const UserRegistration = () => {
                             .includes(input.toLowerCase())
                         }
                         options={stateSelectOptions}
-                        prefix={<Icon name="location_on" isFilled color="#ccc" />}
                       />
                     </Form.Item>
                   </div>
@@ -805,7 +770,7 @@ const UserRegistration = () => {
               type="submit"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Registering..." : "Register"}
+              {isSubmitting ? "Creating Profile..." : "Create Profile"}
             </button>
           </Space>
         </div>
@@ -837,4 +802,4 @@ const UserRegistration = () => {
   );
 };
 
-export default memo(UserRegistration);
+export default memo(ExpertRegistration);

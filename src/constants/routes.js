@@ -20,6 +20,7 @@ export const ROUTES = {
     USERS: "/app/users",
     COMPANY: "/app/company",
     EXPERTS: "/app/experts",
+    EQUIPMENT: "/app/equipment",
     SETTINGS: "/app/settings",
     PROFILE: "/app/profile",
     SEC_COMPANY: {

@@ -7,10 +7,12 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
+import { useAuth } from "@/utilities/AuthContext";
 import "./Header.scss";
 
 const Header = () => {
   const pathname = usePathname();
+  const { isLoggedIn } = useAuth();
   const [open, setOpen] = useState(false);
 
   const navItems = [
@@ -35,11 +37,13 @@ const Header = () => {
             </Link>
           </li>
         ))}
-        <li className="forMobile">
-          <Link href={ROUTES.PUBLIC.LOGIN}>
-            <button className="C-button is-filled">Get Listed</button>
-          </Link>
-        </li>
+        {!isLoggedIn && (
+          <li className="forMobile">
+            <Link href={ROUTES.PUBLIC.LOGIN}>
+              <button className="C-button is-filled">Get Listed</button>
+            </Link>
+          </li>
+        )}
       </>
     );
   };

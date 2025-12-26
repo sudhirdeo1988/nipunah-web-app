@@ -214,6 +214,80 @@ export const expertService = {
 };
 
 /**
+ * Equipment API Services
+ *
+ * Provides all CRUD operations for equipment.
+ * Supports pagination, sorting, and search functionality.
+ */
+export const equipmentService = {
+  /**
+   * Get all equipment with pagination, sorting, and search
+   *
+   * API Endpoint: GET /equipment?page=1&limit=10&sortBy=name&order=asc
+   *
+   * @param {Object} params - Query parameters
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.limit - Items per page (default: 10)
+   * @param {string} params.sortBy - Field to sort by (e.g., "name", "createdAt")
+   * @param {string} params.order - Sort order: "asc" or "desc" (default: "asc")
+   * @param {string} params.search - Search query string
+   * @returns {Promise<Object>} Response with equipment data and pagination info
+   */
+  getEquipment: async (params = {}) => {
+    return api.get("/equipment", { params });
+  },
+
+  /**
+   * Get equipment by ID
+   *
+   * API Endpoint: GET /equipment/{id}
+   *
+   * @param {number} equipmentId - ID of the equipment
+   * @returns {Promise<Object>} Equipment data
+   */
+  getEquipmentById: async (equipmentId) => {
+    return api.get(`/equipment/${equipmentId}`);
+  },
+
+  /**
+   * Create a new equipment
+   *
+   * API Endpoint: POST /equipment
+   *
+   * @param {Object} equipmentData - Equipment data
+   * @returns {Promise<Object>} Created equipment response
+   */
+  createEquipment: async (equipmentData) => {
+    return api.post("/equipment", { body: equipmentData });
+  },
+
+  /**
+   * Update equipment
+   *
+   * API Endpoint: PUT /equipment/{id}
+   *
+   * @param {number} equipmentId - ID of the equipment to update
+   * @param {Object} equipmentData - Updated equipment data
+   * @returns {Promise<Object>} Updated equipment response
+   */
+  updateEquipment: async (equipmentId, equipmentData) => {
+    return api.put(`/equipment/${equipmentId}`, { body: equipmentData });
+  },
+
+  /**
+   * Delete equipment
+   *
+   * API Endpoint: DELETE /equipment/{id}
+   *
+   * @param {number} equipmentId - ID of the equipment to delete
+   * @returns {Promise<Object>} Deletion response
+   */
+  deleteEquipment: async (equipmentId) => {
+    return api.delete(`/equipment/${equipmentId}`);
+  },
+};
+
+/**
  * Category API Services - SIMPLIFIED
  *
  * Simple, dedicated functions for category and subcategory operations.

@@ -5,6 +5,7 @@ import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
 import { Avatar, Drawer, Popover, Space } from "antd";
 import Icon from "../Icon";
+import { useAuth } from "@/utilities/AuthContext";
 import "./HeaderBeta.scss";
 
 /**
@@ -89,6 +90,7 @@ UserSettingsDropdown.displayName = "UserSettingsDropdown";
 const HeaderBeta = memo(() => {
   const pathname = usePathname();
   const router = useRouter();
+  const { isLoggedIn } = useAuth();
   const [open, setOpen] = useState(false);
 
   // Memoized drawer toggle handlers
@@ -129,32 +131,36 @@ const HeaderBeta = memo(() => {
       <>
         {navigationItems}
 
-        {/* Login/Signup Popover */}
-        <li>
-          <button
-            className="C-button is-bordered"
-            onClick={() => router.push(ROUTES.PUBLIC.LOGIN)}
-          >
-            Login
-          </button>
-        </li>
-
-        {/* User Account Dropdown */}
-        <li>
-          <Popover content={userSettingsContent} placement="bottomRight">
-            <button className="userAccount rounded-pill text-left p-1">
-              <Avatar
-                style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
-                size={36}
-              >
-                S
-              </Avatar>
+        {/* Login/Signup Popover - Only show if user is not logged in */}
+        {!isLoggedIn && (
+          <li>
+            <button
+              className="C-button is-bordered"
+              onClick={() => router.push(ROUTES.PUBLIC.LOGIN)}
+            >
+              Login
             </button>
-          </Popover>
-        </li>
+          </li>
+        )}
+
+        {/* User Account Dropdown - Only show if user is logged in */}
+        {isLoggedIn && (
+          <li>
+            <Popover content={userSettingsContent} placement="bottomRight">
+              <button className="userAccount rounded-pill text-left p-1">
+                <Avatar
+                  style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
+                  size={36}
+                >
+                  S
+                </Avatar>
+              </button>
+            </Popover>
+          </li>
+        )}
       </>
     ),
-    [navigationItems, userSettingsContent]
+    [navigationItems, userSettingsContent, isLoggedIn, router]
   );
 
   return (

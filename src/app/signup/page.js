@@ -10,6 +10,7 @@ import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import User from "@/components/SignUp/User";
 import Company from "@/components/SignUp/Company";
+import Expert from "@/components/SignUp/Expert";
 
 const SignUpPage = () => {
   const router = useRouter();
@@ -32,6 +33,8 @@ const SignUpPage = () => {
         return <User />;
       case "company":
         return <Company />;
+      case "expert":
+        return <Expert />;
       default:
         // Default to User registration if no parameter or invalid parameter
         return <User />;
@@ -45,6 +48,8 @@ const SignUpPage = () => {
         return "User Registration";
       case "company":
         return "Company Registration";
+      case "expert":
+        return "Expert Registration";
       default:
         return "User Registration";
     }
