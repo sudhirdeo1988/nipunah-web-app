@@ -145,7 +145,7 @@ export const expertService = {
   /**
    * Get all experts with pagination, sorting, and search
    *
-   * API Endpoint: GET /experts?page=1&limit=10&sortBy=name&order=asc
+   * API Endpoint: GET /experts/getAllExperts?page=1&limit=10&sortBy=name&order=asc
    *
    * @param {Object} params - Query parameters
    * @param {number} params.page - Page number (default: 1)
@@ -156,7 +156,15 @@ export const expertService = {
    * @returns {Promise<Object>} Response with experts data and pagination info
    */
   getExperts: async (params = {}) => {
-    return api.get("/experts/getAllExperts", { params });
+    try {
+      const response = await axiosInstance.get("/experts/getAllExperts", {
+        params: params,
+      });
+      return response;
+    } catch (error) {
+      // Error is already handled by axios interceptor
+      throw error;
+    }
   },
 
   /**
@@ -168,7 +176,12 @@ export const expertService = {
    * @returns {Promise<Object>} Expert data
    */
   getExpertById: async (expertId) => {
-    return api.get(`/experts/${expertId}`);
+    try {
+      const response = await axiosInstance.get(`/experts/${expertId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
@@ -184,7 +197,12 @@ export const expertService = {
    * @returns {Promise<Object>} Created expert response
    */
   createExpert: async (expertData) => {
-    return api.post("/experts", { body: expertData });
+    try {
+      const response = await axiosInstance.post("/experts", expertData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
@@ -197,7 +215,15 @@ export const expertService = {
    * @returns {Promise<Object>} Updated expert response
    */
   updateExpert: async (expertId, expertData) => {
-    return api.put(`/experts/${expertId}`, { body: expertData });
+    try {
+      const response = await axiosInstance.put(
+        `/experts/${expertId}`,
+        expertData
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
@@ -210,9 +236,14 @@ export const expertService = {
    * @returns {Promise<Object>} Updated expert response
    */
   updateApprovalStatus: async (expertId, isApproved) => {
-    return api.patch(`/experts/${expertId}`, {
-      body: { is_expert_approved: isApproved },
-    });
+    try {
+      const response = await axiosInstance.patch(`/experts/${expertId}`, {
+        is_expert_approved: isApproved,
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
@@ -224,7 +255,12 @@ export const expertService = {
    * @returns {Promise<Object>} Deletion response
    */
   deleteExpert: async (expertId) => {
-    return api.delete(`/experts/${expertId}`);
+    try {
+      const response = await axiosInstance.delete(`/experts/${expertId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 };
 
@@ -238,7 +274,7 @@ export const equipmentService = {
   /**
    * Get all equipment with pagination, sorting, and search
    *
-   * API Endpoint: GET /equipment?page=1&limit=10&sortBy=name&order=asc
+   * API Endpoint: GET /equipments/getAllEquipments?page=1&limit=10&sortBy=name&order=asc
    *
    * @param {Object} params - Query parameters
    * @param {number} params.page - Page number (default: 1)
@@ -249,56 +285,87 @@ export const equipmentService = {
    * @returns {Promise<Object>} Response with equipment data and pagination info
    */
   getEquipment: async (params = {}) => {
-    return api.get("/equipments/getAllEquipments", { params });
+    try {
+      const response = await axiosInstance.get("/equipments/getAllEquipments", {
+        params: params,
+      });
+      return response;
+    } catch (error) {
+      // Error is already handled by axios interceptor
+      throw error;
+    }
   },
 
   /**
    * Get equipment by ID
    *
-   * API Endpoint: GET /equipment/{id}
+   * API Endpoint: GET /equipments/{id}
    *
    * @param {number} equipmentId - ID of the equipment
    * @returns {Promise<Object>} Equipment data
    */
   getEquipmentById: async (equipmentId) => {
-    return api.get(`/equipments/${equipmentId}`);
+    try {
+      const response = await axiosInstance.get(`/equipments/${equipmentId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Create a new equipment
    *
-   * API Endpoint: POST /equipment
+   * API Endpoint: POST /equipments
    *
    * @param {Object} equipmentData - Equipment data
    * @returns {Promise<Object>} Created equipment response
    */
   createEquipment: async (equipmentData) => {
-    return api.post("/equipments", { body: equipmentData });
+    try {
+      const response = await axiosInstance.post("/equipments", equipmentData);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Update equipment
    *
-   * API Endpoint: PUT /equipment/{id}
+   * API Endpoint: PUT /equipments/{id}
    *
    * @param {number} equipmentId - ID of the equipment to update
    * @param {Object} equipmentData - Updated equipment data
    * @returns {Promise<Object>} Updated equipment response
    */
   updateEquipment: async (equipmentId, equipmentData) => {
-    return api.put(`/equipments/${equipmentId}`, { body: equipmentData });
+    try {
+      const response = await axiosInstance.put(
+        `/equipments/${equipmentId}`,
+        equipmentData
+      );
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Delete equipment
    *
-   * API Endpoint: DELETE /equipment/{id}
+   * API Endpoint: DELETE /equipments/{id}
    *
    * @param {number} equipmentId - ID of the equipment to delete
    * @returns {Promise<Object>} Deletion response
    */
   deleteEquipment: async (equipmentId) => {
-    return api.delete(`/equipments/${equipmentId}`);
+    try {
+      const response = await axiosInstance.delete(`/equipments/${equipmentId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 };
 
