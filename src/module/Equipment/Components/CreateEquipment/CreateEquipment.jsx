@@ -24,12 +24,9 @@ const CreateEquipment = memo(
   ({ selectedEquipment, modalMode, onCancel, onSubmit, loading = false }) => {
     const [form] = Form.useForm();
     const [selectedCountry, setSelectedCountry] = useState(null);
-    const { categories, fetchCategories } = useCategory();
-
-    // Fetch categories on mount
-    useEffect(() => {
-      fetchCategories();
-    }, [fetchCategories]);
+    const { categories } = useCategory();
+    // Note: fetchCategories is called automatically by useCategory hook on mount
+    // No need to call it again here to avoid duplicate API calls
 
     // Country and state options
     const countries = useMemo(

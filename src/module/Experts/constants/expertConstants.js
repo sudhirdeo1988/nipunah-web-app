@@ -69,6 +69,10 @@ export const EXPERT_CATEGORIES = [
 // Action menu items for expert operations
 export const ACTION_MENU_ITEMS = [
   {
+    key: "view",
+    label: "View",
+  },
+  {
     key: "edit",
     label: "Edit",
   },

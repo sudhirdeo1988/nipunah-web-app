@@ -51,6 +51,7 @@ const ExpertsPage = () => {
     order,
     createExpert,
     updateExpert,
+    updateApprovalStatus,
     deleteExpert,
     fetchExperts,
     handleSort,
@@ -258,6 +259,7 @@ const ExpertsPage = () => {
             onEditExpert={handleEditExpert}
             onDeleteExpert={handleDeleteClick}
             onFetchExperts={fetchExperts}
+            onUpdateApprovalStatus={updateApprovalStatus}
           />
         </div>
       </div>

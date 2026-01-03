@@ -30,6 +30,68 @@ const MOCK_RESPONSE = {
 };
 
 /**
+ * Format date to DD-MM-YYYY
+ * Handles both ISO date strings and timestamps (seconds/milliseconds)
+ */
+const formatDate = (dateValue) => {
+  if (!dateValue) return "N/A";
+
+  let date;
+
+  // Check if it's a string (ISO format) or number (timestamp)
+  if (typeof dateValue === "string") {
+    // Check if it's an ISO date string (contains 'T' or matches ISO pattern)
+    if (dateValue.includes("T") || /^\d{4}-\d{2}-\d{2}/.test(dateValue)) {
+      // Handle ISO date string like "2026-01-03T06:52:45.021014" or "2026-01-03"
+      date = new Date(dateValue);
+    } else {
+      // Try parsing as timestamp string
+      const timestamp = parseInt(dateValue, 10);
+      if (!isNaN(timestamp)) {
+        const timestampLength = timestamp.toString().length;
+        date = timestampLength === 10
+          ? new Date(timestamp * 1000)
+          : new Date(timestamp);
+      } else {
+        return "N/A";
+      }
+    }
+  } else if (typeof dateValue === "number") {
+    // Handle timestamp (seconds or milliseconds)
+    const timestampLength = dateValue.toString().length;
+    if (timestampLength === 10) {
+      // Seconds timestamp - convert to milliseconds
+      date = new Date(dateValue * 1000);
+    } else if (timestampLength === 13) {
+      // Milliseconds timestamp
+      date = new Date(dateValue);
+    } else {
+      // Try as milliseconds if less than a reasonable threshold
+      const year2000 = 946684800000; // Jan 1, 2000 in milliseconds
+      if (dateValue > year2000) {
+        date = new Date(dateValue);
+      } else {
+        // Assume seconds if it's a smaller number
+        date = new Date(dateValue * 1000);
+      }
+    }
+  } else {
+    return "N/A";
+  }
+
+  // Check if date is valid
+  if (isNaN(date.getTime())) {
+    return "N/A";
+  }
+
+  // Format as DD-MM-YYYY
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+};
+
+/**
  * Transform API response data to component format
  *
  * Converts API response structure to the format expected by the UI components.
@@ -38,28 +100,61 @@ const MOCK_RESPONSE = {
  * @param {Object} apiData - API response data object
  * @param {Array} apiData.items - Array of expert items from API
  * @returns {Array} Transformed array of expert objects for UI display
- *
- * @example
- * Input: { items: [{ id: 1, name: "John Doe", email: "john@example.com", createdAt: "1764930501" }] }
- * Output: [{ id: 1, userName: "John Doe", email: "john@example.com", createDate: "1/1/2025", ... }]
  */
 const transformExpertData = (apiData) => {
   if (!apiData?.items) return [];
 
-  return apiData.items.map((item) => ({
-    id: item.id,
-    userName: item.name,
-    email: item.email,
-    contact: item.contact,
-    country: item.country,
-    createDate: item.createdAt
-      ? new Date(parseInt(item.createdAt) * 1000).toLocaleDateString()
-      : "N/A",
-    createdAt: item.createdAt,
-    updatedAt: item.updatedAt,
-    appliedJobsCount: item.appliedJobsCount || 0,
-    action: { id: item.id },
-  }));
+  return apiData.items.map((item) => {
+    // Combine first_name and last_name for Name field
+    const fullName = [item.first_name, item.last_name]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || item.name || "N/A";
+
+    // Handle contact number with country code
+    const contactNumber = item.contact_number || item.contact || "";
+    const contactCountryCode = item.contact_country_code || "";
+    const contactDisplay = contactCountryCode && contactNumber
+      ? `${contactCountryCode} ${contactNumber}`
+      : contactNumber || "N/A";
+
+    // Handle address
+    const address = item.address || {};
+    const country = address.country || item.country || "N/A";
+    const city = address.city || "N/A";
+    const state = address.state || "N/A";
+
+    // Handle created_on date (can be ISO string or timestamp)
+    const createdOn = item.created_on || item.createdAt || item.created_at;
+    const updatedOn = item.updated_on || item.updatedAt || item.updated_at;
+
+    return {
+      id: item.id,
+      name: fullName, // Combined first_name + last_name
+      firstName: item.first_name,
+      lastName: item.last_name,
+      email: item.email || "N/A",
+      contact: contactDisplay,
+      contactNumber: contactNumber,
+      contactCountryCode: contactCountryCode,
+      country: country,
+      city: city,
+      state: state,
+      address: address,
+      expertise: item.expertise || "N/A",
+      subscriptionPlan: item.subscription_plan || "N/A",
+      isExpertApproved: item.is_expert_approved || false,
+      paymentDetails: item.payment_details || {},
+      socialMedia: item.social_media || {},
+      username: item.username || item.email || "N/A",
+      createDate: formatDate(createdOn),
+      createdAt: createdOn,
+      updatedOn: updatedOn,
+      updatedDate: formatDate(updatedOn),
+      appliedJobsCount: item.appliedJobsCount || 0,
+      action: { id: item.id },
+    };
+  });
 };
 
 /**
@@ -163,20 +258,58 @@ export const useExpert = () => {
         }
 
         // Process successful response
-        if (response.success && response.data) {
-          const transformedData = transformExpertData(response.data);
+        // Handle different response structures
+        let responseData = null;
+        if (response?.success && response?.data) {
+          // Check if data has items directly or nested
+          if (response.data.items) {
+            responseData = response.data;
+          } else if (response.data.data && response.data.data.items) {
+            // Nested data structure
+            responseData = response.data.data;
+          } else if (Array.isArray(response.data)) {
+            // If data is directly an array
+            responseData = {
+              items: response.data,
+              total: response.data.length,
+              page: 1,
+              limit: response.data.length,
+              totalPages: 1,
+            };
+          } else {
+            responseData = response.data;
+          }
+        }
+
+        if (responseData && responseData.items) {
+          console.log("🔄 Transforming expert data, items count:", responseData.items.length);
+          const transformedData = transformExpertData(responseData);
+          console.log("✨ Transformed expert data:", transformedData);
           setExperts(transformedData);
 
           // Update pagination state from API response
           setPagination({
-            current: response.data.page || 1,
-            pageSize: response.data.limit || 10,
-            total: response.data.total || 0,
+            current: responseData.page || 1,
+            pageSize: responseData.limit || 10,
+            total: responseData.total || 0,
           });
+
+          // Update search query state
+          if (params.search !== undefined) {
+            setSearchQuery(params.search);
+          }
 
           // Update sorting state if provided in params
           if (params.sortBy) setSortBy(params.sortBy);
           if (params.order) setOrder(params.order);
+        } else {
+          console.warn("⚠️ No items found in expert response. Response structure:", response);
+          setExperts([]);
+          setPagination({
+            current: 1,
+            pageSize: 10,
+            total: 0,
+          });
         }
       } catch (error) {
         // Error handling: Set error state and show user-friendly message
@@ -339,6 +472,76 @@ export const useExpert = () => {
   );
 
   /**
+   * Update expert approval status
+   *
+   * API Endpoint: PATCH /experts/{id}
+   * Payload: { "is_expert_approved": true/false }
+   *
+   * States:
+   * - Loading: Shows loader during API call
+   * - Error: Shows error message on failure
+   * - Success: Shows success message and refreshes list
+   *
+   * @param {number} expertId - ID of the expert
+   * @param {boolean} isApproved - Approval status (true for approved, false for pending)
+   * @returns {Promise<Object>} Updated expert response
+   * @throws {Error} If update fails
+   */
+  const updateApprovalStatus = useCallback(
+    async (expertId, isApproved) => {
+      // ✅ Set loading state - show loader
+      setLoading(true);
+      // ✅ Reset error state
+      setError(null);
+
+      try {
+        let response;
+
+        if (useMockData) {
+          // Mock update - just show success message for development
+          console.log("🔵 MOCK MODE: Update approval status (no API call)", {
+            expertId,
+            isApproved,
+          });
+          response = { success: true };
+        } else {
+          // ✅ Call actual API to update approval status
+          // Endpoint: PATCH /experts/{id}
+          // Payload: { "is_expert_approved": true/false }
+          console.log("🟢 API CALL: PATCH /experts/{id}", {
+            expertId,
+            payload: { is_expert_approved: isApproved },
+          });
+          response = await expertService.updateApprovalStatus(expertId, isApproved);
+          console.log("✅ API Response:", response);
+        }
+
+        // ✅ Success state - show success message
+        message.success(
+          `Expert ${isApproved ? "approved" : "pending"} successfully`
+        );
+
+        // ✅ Refresh list to show updated data
+        await fetchExperts();
+
+        return response;
+      } catch (error) {
+        // ✅ Error state - set error and show error message
+        console.error("Error updating approval status:", error);
+        setError(error);
+        message.error(
+          error.message || "Failed to update expert approval status"
+        );
+        throw error;
+      } finally {
+        // ✅ Always reset loading state
+        setLoading(false);
+      }
+    },
+    [useMockData, fetchExperts]
+  );
+
+  /**
    * Delete an expert
    *
    * API Endpoint: DELETE /experts/{id}
@@ -463,6 +666,7 @@ export const useExpert = () => {
     fetchExperts,
     createExpert,
     updateExpert,
+    updateApprovalStatus,
     deleteExpert,
     handleSort,
 

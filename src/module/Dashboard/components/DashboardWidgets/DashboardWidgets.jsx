@@ -62,7 +62,7 @@ const DashboardWidgets = ({ stats, loading }) => {
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
               background: `linear-gradient(135deg, ${widget.bgColor} 0%, #ffffff 100%)`,
             }}
-            bodyStyle={{ padding: "24px" }}
+            styles={{ body: { padding: "24px" } }}
           >
             <div className="d-flex align-items-center justify-content-between">
               <div className="flex-grow-1">
@@ -82,11 +82,13 @@ const DashboardWidgets = ({ stats, loading }) => {
                       </span>
                     }
                     value={widget.value}
-                    valueStyle={{
-                      color: widget.color,
-                      fontSize: "32px",
-                      fontWeight: "700",
-                      lineHeight: "1.2",
+                    styles={{
+                      content: {
+                        color: widget.color,
+                        fontSize: "32px",
+                        fontWeight: "700",
+                        lineHeight: "1.2",
+                      },
                     }}
                   />
                 </div>

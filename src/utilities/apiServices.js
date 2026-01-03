@@ -156,7 +156,7 @@ export const expertService = {
    * @returns {Promise<Object>} Response with experts data and pagination info
    */
   getExperts: async (params = {}) => {
-    return api.get("/experts", { params });
+    return api.get("/experts/getAllExperts", { params });
   },
 
   /**
@@ -201,6 +201,21 @@ export const expertService = {
   },
 
   /**
+   * Update expert approval status
+   *
+   * API Endpoint: PATCH /experts/{id}
+   *
+   * @param {number} expertId - ID of the expert
+   * @param {boolean} isApproved - Approval status (true for approved, false for pending)
+   * @returns {Promise<Object>} Updated expert response
+   */
+  updateApprovalStatus: async (expertId, isApproved) => {
+    return api.patch(`/experts/${expertId}`, {
+      body: { is_expert_approved: isApproved },
+    });
+  },
+
+  /**
    * Delete expert
    *
    * API Endpoint: DELETE /experts/{id}
@@ -234,7 +249,7 @@ export const equipmentService = {
    * @returns {Promise<Object>} Response with equipment data and pagination info
    */
   getEquipment: async (params = {}) => {
-    return api.get("/equipment", { params });
+    return api.get("/equipments/getAllEquipments", { params });
   },
 
   /**
@@ -246,7 +261,7 @@ export const equipmentService = {
    * @returns {Promise<Object>} Equipment data
    */
   getEquipmentById: async (equipmentId) => {
-    return api.get(`/equipment/${equipmentId}`);
+    return api.get(`/equipments/${equipmentId}`);
   },
 
   /**
@@ -258,7 +273,7 @@ export const equipmentService = {
    * @returns {Promise<Object>} Created equipment response
    */
   createEquipment: async (equipmentData) => {
-    return api.post("/equipment", { body: equipmentData });
+    return api.post("/equipments", { body: equipmentData });
   },
 
   /**
@@ -271,7 +286,7 @@ export const equipmentService = {
    * @returns {Promise<Object>} Updated equipment response
    */
   updateEquipment: async (equipmentId, equipmentData) => {
-    return api.put(`/equipment/${equipmentId}`, { body: equipmentData });
+    return api.put(`/equipments/${equipmentId}`, { body: equipmentData });
   },
 
   /**
@@ -283,7 +298,7 @@ export const equipmentService = {
    * @returns {Promise<Object>} Deletion response
    */
   deleteEquipment: async (equipmentId) => {
-    return api.delete(`/equipment/${equipmentId}`);
+    return api.delete(`/equipments/${equipmentId}`);
   },
 };
 

@@ -31,6 +31,7 @@ import {
   Table,
   Modal,
   Dropdown,
+  Switch,
 } from "antd";
 import { ACTION_MENU_ITEMS } from "../../constants/expertConstants";
 
@@ -94,7 +95,10 @@ const getActionMenuItems = () =>
     ...item,
     label: (
       <Space align="center">
-        <Icon name={item.key} size="small" />
+        <Icon 
+          name={item.key === "view" ? "visibility" : item.key} 
+          size="small" 
+        />
         <span className="C-heading size-xs mb-0">{item.label}</span>
       </Space>
     ),
@@ -130,6 +134,7 @@ const ExpertUserListing = ({
   onEditExpert,
   onDeleteExpert,
   onFetchExperts,
+  onUpdateApprovalStatus,
 }) => {
   // ==================== STATE MANAGEMENT ====================
 
@@ -159,6 +164,15 @@ const ExpertUserListing = ({
 
   /** @type {[Object|null, Function]} Expert object for applied jobs view */
   const [expertForAppliedJobs, setExpertForAppliedJobs] = useState(null);
+
+  /** @type {[boolean, Function]} Controls approval confirmation modal visibility */
+  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
+
+  /** @type {[Object|null, Function]} Expert object for approval status change */
+  const [expertForApproval, setExpertForApproval] = useState(null);
+
+  /** @type {[boolean, Function]} New approval status to be set */
+  const [newApprovalStatus, setNewApprovalStatus] = useState(false);
 
   // ==================== DEBOUNCE REF ====================
   const searchDebounceTimerRef = useRef(null);
@@ -234,7 +248,10 @@ const ExpertUserListing = ({
    */
   const handleMenuClick = useCallback(
     ({ key }, record) => {
-      if (key === "edit") {
+      if (key === "view") {
+        setExpertForDetails(record);
+        setIsExpertDetailsModalOpen(true);
+      } else if (key === "edit") {
         // Call parent handler for edit
         if (onEditExpert) {
           onEditExpert(record);
@@ -244,12 +261,9 @@ const ExpertUserListing = ({
         if (onDeleteExpert) {
           onDeleteExpert(record);
         }
-      } else if (key === "view_details") {
-        setExpertForDetails(record);
-        setIsExpertDetailsModalOpen(true);
       }
     },
-    [onEditExpert]
+    [onEditExpert, onDeleteExpert]
   );
 
   /**
@@ -320,8 +334,12 @@ const ExpertUserListing = ({
       if (sorter.field) {
         // Map table column names to API field names
         const fieldMapping = {
-          userName: "name", // Table uses userName, API expects name
-          createDate: "createdAt", // Table uses createDate, API expects createdAt
+          name: "first_name", // Table uses name, API expects first_name
+          email: "email",
+          expertise: "expertise",
+          subscriptionPlan: "subscription_plan",
+          isExpertApproved: "is_expert_approved",
+          createDate: "created_on", // Table uses createDate, API expects created_on
         };
 
         params.sortBy = fieldMapping[sorter.field] || sorter.field;
@@ -366,10 +384,10 @@ const ExpertUserListing = ({
   // ==================== MEMOIZED RENDER FUNCTIONS ====================
 
   /**
-   * Memoized render function for user name column
+   * Memoized render function for name column
    * Prevents unnecessary re-renders of table cells
    */
-  const renderUserName = useCallback(
+  const renderName = useCallback(
     (text) => <span className="C-heading size-6 mb-1 semiBold">{text}</span>,
     []
   );
@@ -383,19 +401,90 @@ const ExpertUserListing = ({
   );
 
   /**
-   * Memoized render function for contact column
+   * Memoized render function for expertise column
    */
-  const renderContact = useCallback(
-    (text) => <span className="C-heading size-6 mb-0">{text}</span>,
+  const renderExpertise = useCallback(
+    (text) => <span className="C-heading size-6 mb-0">{text || "N/A"}</span>,
     []
   );
 
   /**
-   * Memoized render function for country column
+   * Memoized render function for subscription plan column
    */
-  const renderCountry = useCallback(
-    (text) => <span className="C-heading size-6 mb-0">{text}</span>,
+  const renderSubscriptionPlan = useCallback(
+    (text) => (
+      <span className="C-heading size-6 mb-0 text-capitalize">
+        {text || "N/A"}
+      </span>
+    ),
     []
+  );
+
+  /**
+   * Handle approval status switch change
+   * Opens confirmation modal before changing status
+   * @param {boolean} checked - New approval status
+   * @param {Object} record - Expert record
+   */
+  const handleApprovalStatusChange = useCallback((checked, record) => {
+    setExpertForApproval(record);
+    setNewApprovalStatus(checked);
+    setIsApprovalModalOpen(true);
+  }, []);
+
+  /**
+   * Handle confirm approval status change
+   * Calls the API to update approval status
+   */
+  const handleConfirmApproval = useCallback(async () => {
+    if (expertForApproval && onUpdateApprovalStatus) {
+      try {
+        await onUpdateApprovalStatus(expertForApproval.id, newApprovalStatus);
+        setIsApprovalModalOpen(false);
+        setExpertForApproval(null);
+      } catch (error) {
+        // Error is handled in the hook
+        console.error("Error updating approval status:", error);
+      }
+    }
+  }, [expertForApproval, newApprovalStatus, onUpdateApprovalStatus]);
+
+  /**
+   * Handle cancel approval status change
+   * Closes modal without making changes
+   */
+  const handleCancelApproval = useCallback(() => {
+    setIsApprovalModalOpen(false);
+    setExpertForApproval(null);
+  }, []);
+
+  /**
+   * Memoized render function for approval status column
+   * Renders status text and icon first, then switch component
+   */
+  const renderApprovalStatus = useCallback(
+    (isApproved, record) => (
+      <Space size={8} align="center">
+        {isApproved ? (
+          <Space size={4} align="center">
+            <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
+            <span style={{ color: "#52c41a", fontSize: "12px" }}>Approved</span>
+          </Space>
+        ) : (
+          <Space size={4} align="center">
+            <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
+            <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Pending</span>
+          </Space>
+        )}
+        <Switch
+          checked={isApproved}
+          onChange={(checked) => handleApprovalStatusChange(checked, record)}
+          size="small"
+          disabled={loading}
+        />
+      </Space>
+    ),
+    [handleApprovalStatusChange, loading]
   );
 
   /**
@@ -431,20 +520,7 @@ const ExpertUserListing = ({
     (_, record) => (
       <Dropdown
         menu={{
-          items: [
-            ...getActionMenuItems(),
-            {
-              key: "view_details",
-              label: (
-                <Space align="center">
-                  <Icon name="visibility" size="small" />
-                  <span className="C-heading size-xs mb-0 semiBold">
-                    View Details
-                  </span>
-                </Space>
-              ),
-            },
-          ],
+          items: getActionMenuItems(),
           onClick: (menuInfo) => handleMenuClick(menuInfo, record),
         }}
         trigger={["hover", "click"]}
@@ -466,11 +542,11 @@ const ExpertUserListing = ({
   const columns = useMemo(
     () => [
       {
-        title: "User Name",
-        dataIndex: "userName",
-        key: "userName",
-        width: "20%",
-        render: renderUserName,
+        title: "Name",
+        dataIndex: "name",
+        key: "name",
+        width: "18%",
+        render: renderName,
         sorter: true,
         sortOrder:
           sortBy === "name" ? (order === "asc" ? "ascend" : "descend") : null,
@@ -484,26 +560,34 @@ const ExpertUserListing = ({
         sorter: true,
       },
       {
-        title: "Contact",
-        dataIndex: "contact",
-        key: "contact",
-        width: "15%",
-        render: renderContact,
+        title: "Expertise",
+        dataIndex: "expertise",
+        key: "expertise",
+        width: "18%",
+        render: renderExpertise,
         sorter: true,
       },
       {
-        title: "Country",
-        dataIndex: "country",
-        key: "country",
-        width: "15%",
-        render: renderCountry,
+        title: "Subscription Plan",
+        dataIndex: "subscriptionPlan",
+        key: "subscriptionPlan",
+        width: "12%",
+        render: renderSubscriptionPlan,
+        sorter: true,
+      },
+      {
+        title: "Status",
+        dataIndex: "isExpertApproved",
+        key: "isExpertApproved",
+        width: "12%",
+        render: renderApprovalStatus,
         sorter: true,
       },
       {
         title: "Applied Jobs",
         dataIndex: "appliedJobsCount",
         key: "appliedJobsCount",
-        width: "12%",
+        width: "10%",
         render: renderAppliedJobs,
         sorter: true,
       },
@@ -511,11 +595,11 @@ const ExpertUserListing = ({
         title: "Registered On",
         dataIndex: "createDate",
         key: "createDate",
-        width: "13%",
+        width: "12%",
         render: renderCreateDate,
         sorter: true,
         sortOrder:
-          sortBy === "createdAt"
+          sortBy === "createdAt" || sortBy === "created_on"
             ? order === "asc"
               ? "ascend"
               : "descend"
@@ -530,10 +614,11 @@ const ExpertUserListing = ({
       },
     ],
     [
-      renderUserName,
+      renderName,
       renderEmail,
-      renderContact,
-      renderCountry,
+      renderExpertise,
+      renderSubscriptionPlan,
+      renderApprovalStatus,
       renderAppliedJobs,
       renderCreateDate,
       renderAction,
@@ -650,54 +735,223 @@ const ExpertUserListing = ({
         open={isExpertDetailsModalOpen}
         onCancel={handleCancelExpertDetails}
         footer={null}
-        width={800}
+        width={900}
         centered
       >
+        {expertForDetails && (
+          <div className="py-3">
+            {/* Basic Information Section */}
+            <div className="mb-4">
+              <h6 className="C-heading size-xs bold mb-3 color-dark">Basic Information</h6>
+              <div className="row">
+                <div className="col-6 mb-3 pb-3 border-bottom">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Name</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.name || "N/A"}
+                  </p>
+                </div>
+                <div className="col-6 mb-3 pb-3 border-bottom">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Email</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.email || "N/A"}
+                  </p>
+                </div>
+                <div className="col-6 mb-3 pb-3 border-bottom">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Expertise</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.expertise || "N/A"}
+                  </p>
+                </div>
+                <div className="col-6 mb-3 pb-3 border-bottom">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Subscription Plan</p>
+                  <p className="C-heading size-6 mb-0 text-capitalize">
+                    {expertForDetails.subscriptionPlan || "N/A"}
+                  </p>
+                </div>
+                <div className="col-6 mb-3 pb-3 border-bottom">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Approval Status</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.isExpertApproved ? (
+                      <Space size={4} align="center">
+                        <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
+                        <span style={{ color: "#52c41a" }}>Approved</span>
+                      </Space>
+                    ) : (
+                      <Space size={4} align="center">
+                        <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
+                        <span style={{ color: "#ff4d4f" }}>Pending</span>
+                      </Space>
+                    )}
+                  </p>
+                </div>
+                <div className="col-6 mb-3 pb-3 border-bottom">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Payment Status</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.paymentDetails?.is_paid_user ? (
+                      <span className="text-success">Paid User</span>
+                    ) : (
+                      <span className="text-muted">Free User</span>
+                    )}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Address Section */}
+            {expertForDetails.address && (
+              <div className="mb-4">
+                <h6 className="C-heading size-xs bold mb-3 color-dark">Address</h6>
+                <div className="row pb-3 border-bottom">
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-2 bold color-dark">Country</p>
+                    <p className="C-heading size-6 mb-0">
+                      {expertForDetails.address?.country || "N/A"}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-2 bold color-dark">State/Province</p>
+                    <p className="C-heading size-6 mb-0">
+                      {expertForDetails.address?.state || "N/A"}
+                    </p>
+                  </div>
+                  <div className="col-12 mb-3">
+                    <p className="C-heading size-xs mb-2 bold color-dark">Detail Address</p>
+                    <p className="C-heading size-6 mb-0">
+                      {expertForDetails.address?.location || "N/A"}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-2 bold color-dark">City</p>
+                    <p className="C-heading size-6 mb-0">
+                      {expertForDetails.address?.city || "N/A"}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-2 bold color-dark">Postal Code</p>
+                    <p className="C-heading size-6 mb-0">
+                      {expertForDetails.address?.postal_code || "N/A"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Contact Information Section */}
+            <div className="mb-4">
+              <h6 className="C-heading size-xs bold mb-3 color-dark">Contact Information</h6>
+              <div className="row pb-3 border-bottom">
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Contact Number</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.contactCountryCode && expertForDetails.contactNumber
+                      ? `${expertForDetails.contactCountryCode} ${expertForDetails.contactNumber}`
+                      : expertForDetails.contact || "N/A"}
+                  </p>
+                </div>
+                {expertForDetails.socialMedia?.linkedin && (
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-2 bold color-dark">LinkedIn</p>
+                    <p className="C-heading size-6 mb-0">
+                      <a
+                        href={expertForDetails.socialMedia.linkedin}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary"
+                      >
+                        {expertForDetails.socialMedia.linkedin}
+                      </a>
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Additional Information */}
+            <div>
+              <h6 className="C-heading size-xs bold mb-3 color-dark">Additional Information</h6>
+              <div className="row">
+                <div className="col-6">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Applied Jobs</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.appliedJobsCount || 0}
+                  </p>
+                </div>
+                <div className="col-6">
+                  <p className="C-heading size-xs mb-2 bold color-dark">Registered On</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.createDate || "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* Approval Status Confirmation Modal */}
+      <Modal
+        title={
+          <span className="C-heaidng size-5 mb-0 bold">
+            {newApprovalStatus ? "Approve Expert" : "Set Expert to Pending"}
+          </span>
+        }
+        open={isApprovalModalOpen}
+        onOk={handleConfirmApproval}
+        onCancel={handleCancelApproval}
+        okText={newApprovalStatus ? "Approve" : "Set to Pending"}
+        cancelText="Cancel"
+        okButtonProps={{
+          className: "C-button is-filled",
+          loading: loading,
+        }}
+        cancelButtonProps={{
+          className: "C-button is-bordered",
+          disabled: loading,
+        }}
+        centered
+        confirmLoading={loading}
+      >
         <div className="py-3">
-          {expertForDetails && (
-            <div className="row">
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">
-                  Expert Name:
-                </p>
-                <p className="C-heading size-6 mb-0 bold">
-                  {expertForDetails.userName}
-                </p>
-              </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">Email:</p>
-                <p className="C-heading size-6 mb-0">
-                  {expertForDetails.email}
-                </p>
-              </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">Contact:</p>
-                <p className="C-heading size-6 mb-0">
-                  {expertForDetails.contact}
-                </p>
-              </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">Country:</p>
-                <p className="C-heading size-6 mb-0">
-                  {expertForDetails.country}
-                </p>
-              </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">
-                  Applied Jobs:
-                </p>
-                <p className="C-heading size-6 mb-0">
-                  {expertForDetails.appliedJobsCount}
-                </p>
-              </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">
-                  Registered On:
-                </p>
-                <p className="C-heading size-6 mb-0">
-                  {expertForDetails.createDate}
-                </p>
-              </div>
+          <p className="C-heading size-6 bold mb-3">
+            Are you sure you want to{" "}
+            {newApprovalStatus ? "approve" : "set to pending"} this expert?
+          </p>
+          {expertForApproval && (
+            <div className="bg-light p-3 rounded">
+              <p className="C-heading size-xs mb-1 text-muted">Expert Name:</p>
+              <p className="C-heading size-6 mb-0 bold">
+                {expertForApproval.name}
+              </p>
+              <p className="C-heading size-xs mb-1 text-muted">Email:</p>
+              <p className="C-heading size-6 mb-0">{expertForApproval.email}</p>
+              <p className="C-heading size-xs mb-1 text-muted">Current Status:</p>
+              <p className="C-heading size-6 mb-0">
+                {expertForApproval.isExpertApproved ? (
+                  <Space size={4} align="center">
+                    <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
+                    <span style={{ color: "#52c41a" }}>Approved</span>
+                  </Space>
+                ) : (
+                  <Space size={4} align="center">
+                    <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
+                    <span style={{ color: "#ff4d4f" }}>Pending</span>
+                  </Space>
+                )}
+              </p>
+              <p className="C-heading size-xs mb-1 text-muted">New Status:</p>
+              <p className="C-heading size-6 mb-0">
+                {newApprovalStatus ? (
+                  <Space size={4} align="center">
+                    <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
+                    <span style={{ color: "#52c41a" }}>Approved</span>
+                  </Space>
+                ) : (
+                  <Space size={4} align="center">
+                    <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
+                    <span style={{ color: "#ff4d4f" }}>Pending</span>
+                  </Space>
+                )}
+              </p>
             </div>
           )}
         </div>
@@ -787,6 +1041,7 @@ ExpertUserListing.propTypes = {
   onEditExpert: PropTypes.func,
   onDeleteExpert: PropTypes.func,
   onFetchExperts: PropTypes.func,
+  onUpdateApprovalStatus: PropTypes.func,
 };
 
 // ==================== COMPONENT EXPORT ====================

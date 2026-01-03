@@ -16,16 +16,31 @@ const DashboardDateRangePicker = ({ value, onChange, style = {} }) => {
       placeholder={["Start Date", "End Date"]}
       allowClear={false}
       showToday={true}
-      ranges={{
-        "Last 7 Days": [moment().subtract(7, "days"), moment()],
-        "Last 30 Days": [moment().subtract(30, "days"), moment()],
-        "Last 90 Days": [moment().subtract(90, "days"), moment()],
-        "This Month": [moment().startOf("month"), moment().endOf("month")],
-        "Last Month": [
-          moment().subtract(1, "month").startOf("month"),
-          moment().subtract(1, "month").endOf("month"),
-        ],
-      }}
+      presets={[
+        {
+          label: "Last 7 Days",
+          value: [moment().subtract(7, "days"), moment()],
+        },
+        {
+          label: "Last 30 Days",
+          value: [moment().subtract(30, "days"), moment()],
+        },
+        {
+          label: "Last 90 Days",
+          value: [moment().subtract(90, "days"), moment()],
+        },
+        {
+          label: "This Month",
+          value: [moment().startOf("month"), moment().endOf("month")],
+        },
+        {
+          label: "Last Month",
+          value: [
+            moment().subtract(1, "month").startOf("month"),
+            moment().subtract(1, "month").endOf("month"),
+          ],
+        },
+      ]}
     />
   );
 };

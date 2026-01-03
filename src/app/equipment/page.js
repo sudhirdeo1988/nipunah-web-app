@@ -1,6 +1,6 @@
 "use client"; // ✅ Required for interactive Ant Design components in App Router
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Tag, Space, Drawer } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
@@ -10,109 +10,39 @@ import { map as _map } from "lodash-es";
 import SearchContainer from "@/components/SearchContainer";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
-
-const data = [
-  {
-    id: 1,
-    name: "Equipment Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    type: "Logistics",
-    model: "XYZ-123",
-    category: "Shipping",
-    createdOn: "2023",
-    availableFor: "Sale",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    photoes: [],
-    isApplied: false,
-    isPaid: false,
-  },
-  {
-    id: 2,
-    name: "Equipment Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    type: "Logistics",
-    model: "XYZ-123",
-    category: "Marine",
-    createdOn: "2023",
-    availableFor: "Lease",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    photoes: [],
-    isApplied: false,
-    isPaid: false,
-  },
-  {
-    id: 22,
-    name: "Equipment Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    type: "Ship Building",
-    model: "XYZ-123",
-    category: "Shipping",
-    createdOn: "2023",
-    availableFor: "Lease",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    photoes: [],
-    isApplied: false,
-    isPaid: false,
-  },
-  {
-    id: 21,
-    name: "Equipment Name Here",
-    description:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been Lorem Ipsum is",
-    logo: "",
-    type: "Ship Building",
-    model: "XYZ-123",
-    category: "Engineering",
-    createdOn: "2023",
-    availableFor: "Rental",
-    createdBy: "",
-    location: {
-      state: "London",
-      country: "UK",
-      address: "",
-    },
-    photoes: [],
-    isApplied: false,
-    isPaid: false,
-  },
-];
+import { useEquipment } from "@/module/Equipment/hooks/useEquipment";
 
 const EquipmentListPage = () => {
   const [open, setOpen] = useState(false);
+  const [filters, setFilters] = useState({
+    search: "",
+    equipmentType: "",
+    countrySelect: "",
+  });
+
+  // Use the equipment hook
+  const {
+    equipment,
+    loading,
+    pagination,
+    fetchEquipment,
+  } = useEquipment();
+
   const showDrawer = () => {
     setOpen(true);
   };
+  
   const onClose = () => {
     setOpen(false);
   };
+
   // Search field configuration
   const searchFieldOptions = [
     {
       type: "search",
       label: "",
       formFieldValue: "search",
-      defaultValue: "",
+      defaultValue: filters.search,
       placeholder: "Search",
       icon: "",
     },
@@ -120,20 +50,20 @@ const EquipmentListPage = () => {
       type: "select",
       label: "",
       formFieldValue: "equipmentType",
-      defaultValue: "",
+      defaultValue: filters.equipmentType,
       placeholder: "Select equipment type",
       options: [
-        { value: "Companies", label: "Marine Engineering" },
-        { value: "Equipments", label: "Marine Equipments" },
+        { value: "Ship Building", label: "Ship Building" },
+        { value: "Shipping", label: "Shipping" },
+        { value: "Marine Engineering", label: "Marine Engineering" },
       ],
     },
-
     {
       type: "countrySelect",
       label: "",
       icon: "",
       formFieldValue: "countrySelect",
-      defaultValue: "",
+      defaultValue: filters.countrySelect,
       placeholder: "Select Location",
       options: _map(CountryDetails, (country) => {
         return {
@@ -145,12 +75,58 @@ const EquipmentListPage = () => {
   ];
 
   // Handle search form submission
-  const handleSearch = (values) => {
-    console.log("Search values:", values);
-    // Here you can implement your search logic
-    // Example: filter data based on values
-    // values.equipmentType, values.search, values.countrySelect
-  };
+  const handleSearch = useCallback((values) => {
+    setFilters({
+      search: values.search || "",
+      equipmentType: values.equipmentType || "",
+      countrySelect: values.countrySelect || "",
+    });
+
+    // Build search params
+    const searchParams = {
+      page: 1,
+      search: values.search || "",
+    };
+
+    // Add type filter if selected
+    if (values.equipmentType) {
+      searchParams.type = values.equipmentType;
+    }
+
+    // Add country filter if selected
+    if (values.countrySelect) {
+      searchParams.country = values.countrySelect;
+    }
+
+    fetchEquipment(searchParams);
+  }, [fetchEquipment]);
+
+  // Handle pagination
+  const handlePageChange = useCallback((page, pageSize) => {
+    const searchParams = {
+      page,
+      limit: pageSize,
+      search: filters.search || "",
+    };
+
+    // Add type filter if selected
+    if (filters.equipmentType) {
+      searchParams.type = filters.equipmentType;
+    }
+
+    // Add country filter if selected
+    if (filters.countrySelect) {
+      searchParams.country = filters.countrySelect;
+    }
+
+    fetchEquipment(searchParams);
+  }, [fetchEquipment, filters]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchEquipment();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <PublicLayout>
@@ -185,17 +161,37 @@ const EquipmentListPage = () => {
           <div className="row border-bottom pb-2 mb-3">
             <div className="col-md-4 col-sm-12">
               <span className="C-heading size-6 semiBold mb-0">
-                <strong>12</strong> equipments found
+                <strong>{pagination.total || 0}</strong> equipments found
               </span>
             </div>
             <div className="col-md-8 col-sm-12 text-right">
               <Space>
-                <Tag closeIcon className="C-tag is-low small">
-                  Top Product Development
-                </Tag>
-                <Tag closeIcon className="C-tag is-low small">
-                  Top Product Development
-                </Tag>
+                {filters.equipmentType && (
+                  <Tag
+                    closable
+                    onClose={() => {
+                      const newFilters = { ...filters, equipmentType: "" };
+                      setFilters(newFilters);
+                      handleSearch(newFilters);
+                    }}
+                    className="C-tag is-low small"
+                  >
+                    Type: {filters.equipmentType}
+                  </Tag>
+                )}
+                {filters.countrySelect && (
+                  <Tag
+                    closable
+                    onClose={() => {
+                      const newFilters = { ...filters, countrySelect: "" };
+                      setFilters(newFilters);
+                      handleSearch(newFilters);
+                    }}
+                    className="C-tag is-low small"
+                  >
+                    Location: {filters.countrySelect}
+                  </Tag>
+                )}
               </Space>
             </div>
           </div>
@@ -203,11 +199,14 @@ const EquipmentListPage = () => {
             {/* Main Content */}
             <div className="col-12">
               <CardListing
-                data={data}
+                data={equipment}
                 CardComponent={EquipmentCard}
                 size={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
-                // loading={loading}
-                // onPageChange={loadCompanies}
+                loading={loading}
+                onPageChange={handlePageChange}
+                pageSize={pagination.pageSize}
+                total={pagination.total}
+                current={pagination.current}
               />
             </div>
           </div>

@@ -9,6 +9,8 @@ const CardListing = ({
   loading = false,
   onPageChange,
   size,
+  total,
+  current,
 }) => {
   const itemVariants = {
     hidden: { opacity: 0, y: 20 },
@@ -37,8 +39,10 @@ const CardListing = ({
         </motion.div>
       )}
       pagination={{
-        onChange: (page) => onPageChange?.(page),
+        onChange: (page, pageSize) => onPageChange?.(page, pageSize),
         pageSize,
+        total: total,
+        current: current,
         hideOnSinglePage: false,
         showSizeChanger: true,
         defaultPageSize: pageSize || 20,
