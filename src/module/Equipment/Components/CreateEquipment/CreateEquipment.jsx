@@ -10,6 +10,7 @@ import {
   RENT_TYPE_OPTIONS,
 } from "../../constants/equipmentConstants";
 import { useCategory } from "@/module/Category/hooks/useCategory";
+import { companyService } from "@/utilities/apiServices";
 import dayjs from "dayjs";
 
 const { TextArea } = Input;
@@ -24,6 +25,8 @@ const CreateEquipment = memo(
   ({ selectedEquipment, modalMode, onCancel, onSubmit, loading = false }) => {
     const [form] = Form.useForm();
     const [selectedCountry, setSelectedCountry] = useState(null);
+    const [companies, setCompanies] = useState([]);
+    const [companiesLoading, setCompaniesLoading] = useState(false);
     const { categories } = useCategory();
     // Note: fetchCategories is called automatically by useCategory hook on mount
     // No need to call it again here to avoid duplicate API calls
@@ -88,6 +91,42 @@ const CreateEquipment = memo(
         })),
       [categories]
     );
+
+    // Company options from API
+    const companyOptions = useMemo(
+      () =>
+        _map(companies, (company) => ({
+          label: company.name || company.companyName || company.shortName,
+          value: company.name || company.companyName || company.shortName,
+        })),
+      [companies]
+    );
+
+    // Fetch companies on component mount
+    useEffect(() => {
+      const fetchCompanies = async () => {
+        try {
+          setCompaniesLoading(true);
+          const response = await companyService.getCompanies({
+            page: 1,
+            limit: 1000, // Get all companies
+          });
+          
+          if (response?.success && response?.data?.items) {
+            setCompanies(response.data.items);
+          } else if (Array.isArray(response?.data)) {
+            setCompanies(response.data);
+          }
+        } catch (error) {
+          console.error("Error fetching companies:", error);
+          setCompanies([]);
+        } finally {
+          setCompaniesLoading(false);
+        }
+      };
+
+      fetchCompanies();
+    }, []);
 
     // Update form fields when selectedEquipment changes
     useEffect(() => {
@@ -278,21 +317,26 @@ const CreateEquipment = memo(
               </Form.Item>
             </div>
 
-            {/* Manufacture Company */}
+            {/* Companies */}
             <div className="col-12 col-md-6">
               <Form.Item
                 name="manufacture_company"
                 className="mb-1"
                 label={
                   <span className="C-heading size-xs semiBold mb-0">
-                    Manufacture Company
+                    Companies
                   </span>
                 }
               >
-                <Input
-                  placeholder="Enter Manufacture Company"
+                <Select
+                  placeholder="Select Company"
                   size="large"
-                  prefix={<Icon name="factory" isFilled color="#ccc" />}
+                  showSearch
+                  optionFilterProp="label"
+                  loading={companiesLoading}
+                  notFoundContent={companiesLoading ? "Loading companies..." : "No companies found"}
+                  options={companyOptions}
+                  allowClear
                 />
               </Form.Item>
             </div>

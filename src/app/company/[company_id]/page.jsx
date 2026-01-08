@@ -120,7 +120,7 @@ const CompanyJobs = () => {
                 </Space>
               </div>
               <Divider
-                type="vertical"
+                orientation="vertical"
                 style={{
                   backgroundColor: "#b1b1b1",
                   width: "2px",
@@ -168,7 +168,7 @@ const CompanyJobs = () => {
                 </Space>
               </div>
               <Divider
-                type="vertical"
+                orientation="vertical"
                 style={{
                   backgroundColor: "#b1b1b1",
                   width: "2px",
@@ -216,7 +216,7 @@ const CompanyJobs = () => {
                 </Space>
               </div>
               <Divider
-                type="vertical"
+                orientation="vertical"
                 style={{
                   backgroundColor: "#b1b1b1",
                   width: "2px",
@@ -264,7 +264,7 @@ const CompanyJobs = () => {
                 </Space>
               </div>
               <Divider
-                type="vertical"
+                orientation="vertical"
                 style={{
                   backgroundColor: "#b1b1b1",
                   width: "2px",

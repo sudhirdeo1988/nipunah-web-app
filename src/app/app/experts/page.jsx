@@ -49,7 +49,6 @@ const ExpertsPage = () => {
     pagination,
     sortBy,
     order,
-    createExpert,
     updateExpert,
     updateApprovalStatus,
     deleteExpert,
@@ -60,34 +59,6 @@ const ExpertsPage = () => {
   // Confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [expertToDelete, setExpertToDelete] = useState(null);
-
-  /**
-   * Handle create expert action
-   *
-   * Creates a new expert and closes modal on success.
-   * Error handling is done in the hook with message.error().
-   *
-   * @param {Object} formData - Form data from CreateExpert component
-   * @param {string} formData.name - Name of the expert
-   * @param {string} formData.email - Email of the expert
-   * @param {string} formData.contact - Contact number
-   * @param {string} formData.country - Country
-   */
-  const handleCreateExpert = useCallback(
-    async (formData) => {
-      try {
-        // Create expert (error handling is in the hook)
-        await createExpert(formData);
-        // Close modal only on success
-        closeModal();
-      } catch (error) {
-        // Error is already handled in the hook with message.error()
-        // Keep modal open so user can retry
-        console.error("Error creating expert:", error);
-      }
-    },
-    [createExpert, closeModal]
-  );
 
   /**
    * Handle edit expert action
@@ -116,21 +87,16 @@ const ExpertsPage = () => {
    */
   const handleUpdateExpert = useCallback(
     async (formData) => {
-      try {
-        if (!selectedExpert) {
-          console.error("No expert selected for update");
-          return;
-        }
-
-        // Update expert (error handling is in the hook)
-        await updateExpert(selectedExpert.id, formData);
-        // Close modal only on success
-        closeModal();
-      } catch (error) {
-        // Error is already handled in the hook with message.error()
-        // Keep modal open so user can retry
-        console.error("Error updating expert:", error);
+      if (!selectedExpert) {
+        console.error("No expert selected for update");
+        throw new Error("No expert selected for update");
       }
+
+      // Update expert (error handling is in the hook)
+      // Re-throw error so parent can handle it
+      await updateExpert(selectedExpert.id, formData);
+      // Close modal only on success
+      closeModal();
     },
     [selectedExpert, updateExpert, closeModal]
   );
@@ -195,36 +161,19 @@ const ExpertsPage = () => {
   /**
    * Handle modal form submission
    *
-   * Routes to appropriate handler based on mode (create/edit).
-   * All error handling is done in the individual handler functions.
+   * Only handles edit mode (create is removed).
+   * Re-throws error so form component can handle it properly.
    *
    * @param {Object} formData - Form data from CreateExpert component
    */
   const handleModalSubmit = useCallback(
     async (formData) => {
-      try {
-        if (isEditMode) {
-          // Edit mode: Update existing expert
-          await handleUpdateExpert(formData);
-        } else {
-          // Create mode: Create new expert
-          await handleCreateExpert(formData);
-        }
-      } catch (error) {
-        // Error is already handled in individual handler functions
-        // Log for debugging
-        console.error("Error in modal submit:", error);
-      }
+      // Only edit mode is supported
+      // Re-throw error so form doesn't reset on failure
+      await handleUpdateExpert(formData);
     },
-    [isEditMode, handleCreateExpert, handleUpdateExpert]
+    [handleUpdateExpert]
   );
-
-  /**
-   * Get modal title based on mode and edit state
-   */
-  const getModalTitle = () => {
-    return isEditMode ? MODAL_TITLES.EDIT_EXPERT : MODAL_TITLES.ADD_EXPERT;
-  };
 
   return (
     <>
@@ -237,15 +186,7 @@ const ExpertsPage = () => {
               </span>
             </div>
             <div className="col-4 text-right">
-              <button
-                className="C-button is-filled small"
-                onClick={() => openModal(MODAL_MODES.EXPERT, null)}
-              >
-                <Space>
-                  <Icon name="add" />
-                  Add Expert
-                </Space>
-              </button>
+              {/* Create expert removed - experts can only register via signup */}
             </div>
           </div>
         </div>
@@ -266,11 +207,13 @@ const ExpertsPage = () => {
 
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">{getModalTitle()}</span>
+          <span className="C-heaidng size-5 mb-0 bold">
+            {MODAL_TITLES.EDIT_EXPERT}
+          </span>
         }
         closable={{ "aria-label": "Custom Close Button" }}
         open={isModalOpen}
-        width={600}
+        width={900}
         centered
         footer={null}
         onCancel={closeModal}
@@ -306,18 +249,14 @@ const ExpertsPage = () => {
         confirmLoading={loading} // Show loading spinner in modal
       >
         <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
-            Are you sure you want to delete this expert? <br /> This action
-            cannot be undone.
+          <p className="C-heading size-6 mb-4">
+            Are you sure you want to delete this expert? This action cannot be undone.
           </p>
           {expertToDelete && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-1 text-muted">Expert Name:</p>
-              <p className="C-heading size-6 mb-0 bold">
-                {expertToDelete.userName}
+            <div className="text-center py-3">
+              <p className="C-heading size-5 mb-0 bold">
+                {expertToDelete.userName || expertToDelete.name || "Expert"}
               </p>
-              <p className="C-heading size-xs mb-1 text-muted">Email:</p>
-              <p className="C-heading size-6 mb-0">{expertToDelete.email}</p>
             </div>
           )}
         </div>

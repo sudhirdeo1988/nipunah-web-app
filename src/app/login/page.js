@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import { Form, Input, Select, Space, message } from "antd";
+import { useAppDispatch } from "@/store/hooks";
+import { setUser } from "@/store/slices/userSlice";
 
 import { map as _map } from "lodash-es";
 
@@ -82,6 +84,7 @@ const LoginPage = () => {
   const { setToken: updateContextToken } = useAuth();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const dispatch = useAppDispatch();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
 
@@ -127,9 +130,33 @@ const LoginPage = () => {
         throw new Error("Token not found in response");
       }
 
-      // Store token in cookies (24 hours expiry)
-      setToken(token, 86400);
+      // Extract user type from response or use the type from form
+      const userType =
+        data?.userType ||
+        data?.user_type ||
+        data?.type ||
+        data?.data?.userType ||
+        data?.data?.user_type ||
+        data?.data?.type ||
+        values.type;
+
+      // Extract user data from response
+      const userData = {
+        id: data?.id || data?.data?.id || data?.user?.id,
+        username: data?.username || data?.data?.username || data?.user?.username,
+        email: data?.email || data?.data?.email || data?.user?.email,
+        name: data?.name || data?.data?.name || data?.user?.name,
+        type: userType,
+        role: data?.role || data?.data?.role || data?.user?.role,
+        ...(data?.user || data?.data?.user || data?.data || {}),
+      };
+
+      // Store token and user type in cookies (24 hours expiry)
+      setToken(token, 86400, userType);
       updateContextToken(token);
+
+      // Store user data in Redux
+      dispatch(setUser(userData));
 
       // Show success message
       message.success("Login successful!");

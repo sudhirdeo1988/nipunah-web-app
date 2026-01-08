@@ -1,5 +1,6 @@
 import { Inter, Jost } from "next/font/google";
 import { AuthProvider } from "@/utilities/AuthContext";
+import StoreProvider from "@/store/StoreProvider";
 import { App } from "antd";
 import "@/styles/global.scss";
 
@@ -25,9 +26,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`${inter.variable} ${jost.variable}`}>
-        <AuthProvider>
-          <App>{children}</App>
-        </AuthProvider>
+        <StoreProvider>
+          <AuthProvider>
+            <App>{children}</App>
+          </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   );

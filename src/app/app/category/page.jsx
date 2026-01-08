@@ -380,7 +380,10 @@ const CategoryPage = () => {
         width={600}
         centered
         footer={null}
-        onCancel={closeModal}
+        onCancel={() => {
+          // Reset form when modal is closed via X button or backdrop
+          closeModal();
+        }}
       >
         <CreateCategory
           selectedCategory={selectedCategory}

@@ -623,7 +623,7 @@ export const categoryService = {
     try {
       // Try nested endpoint first, fallback to flat endpoint if needed
       const response = await axiosInstance.put(
-        `/categories/${categoryId}/subcategories/${subCategoryId}`,
+        `/subcategories/${subCategoryId}`,
         subCategoryData
       );
       return response;
@@ -657,7 +657,7 @@ export const categoryService = {
   deleteSubCategory: async (categoryId, subCategoryId) => {
     try {
       const response = await axiosInstance.delete(
-        `/categories/${categoryId}/subcategories/${subCategoryId}`
+        `/subcategories/${subCategoryId}`
       );
       return response;
     } catch (error) {

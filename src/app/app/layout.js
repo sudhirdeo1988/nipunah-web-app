@@ -7,20 +7,24 @@ import AppInitializer from "@/components/AppInitializer";
 import { ROUTES } from "@/constants/routes";
 import { Layout } from "antd";
 import PrivateHeader from "module/PrivateHeader";
+import { useAppDispatch } from "@/store/hooks";
+import { clearUser } from "@/store/slices/userSlice";
 
 const { Header, Footer, Sider, Content } = Layout;
 
 const PrivateSidebar = lazy(() => import("module/PrivateSidebar"));
 
 export default function AppLayout({ children }) {
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, logout } = useAuth();
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   useEffect(() => {
     if (!isLoggedIn) {
+      dispatch(clearUser());
       router.replace(ROUTES?.PUBLIC?.LOGIN);
     }
-  }, [isLoggedIn, router]);
+  }, [isLoggedIn, router, dispatch]);
 
   if (!isLoggedIn) return null;
 

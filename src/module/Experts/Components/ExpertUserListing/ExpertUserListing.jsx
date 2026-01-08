@@ -706,22 +706,21 @@ const ExpertUserListing = ({
         centered
       >
         <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
-            Are you sure you want to delete {selectedExperts.length} expert(s)?{" "}
-            <br /> This action cannot be undone.
+          <p className="C-heading size-6 mb-4">
+            Are you sure you want to delete {selectedExperts.length} expert(s)? This action cannot be undone.
           </p>
           {selectedExperts.length > 0 && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-2 text-muted">
+            <div className="text-center py-3">
+              <p className="C-heading size-xs mb-3 text-muted">
                 Selected Experts:
               </p>
-              {selectedExperts.map((expert) => (
-                <div key={expert.id} className="mb-2">
-                  <p className="C-heading size-6 mb-0 bold">
-                    {expert.userName} - {expert.email}
+              <div className="d-flex flex-column align-items-center gap-2">
+                {selectedExperts.map((expert) => (
+                  <p key={expert.id} className="C-heading size-6 mb-0 bold">
+                    {expert.userName || expert.name || "Expert"}
                   </p>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>
@@ -912,48 +911,16 @@ const ExpertUserListing = ({
         confirmLoading={loading}
       >
         <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
+          <p className="C-heading size-6 mb-0">
             Are you sure you want to{" "}
-            {newApprovalStatus ? "approve" : "set to pending"} this expert?
+            {newApprovalStatus ? "approve" : "set to pending"}{" "}
+            {expertForApproval && (
+              <span className="bold">
+                {expertForApproval.name || expertForApproval.userName || "this expert"}
+              </span>
+            )}
+            ?
           </p>
-          {expertForApproval && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-1 text-muted">Expert Name:</p>
-              <p className="C-heading size-6 mb-0 bold">
-                {expertForApproval.name}
-              </p>
-              <p className="C-heading size-xs mb-1 text-muted">Email:</p>
-              <p className="C-heading size-6 mb-0">{expertForApproval.email}</p>
-              <p className="C-heading size-xs mb-1 text-muted">Current Status:</p>
-              <p className="C-heading size-6 mb-0">
-                {expertForApproval.isExpertApproved ? (
-                  <Space size={4} align="center">
-                    <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
-                    <span style={{ color: "#52c41a" }}>Approved</span>
-                  </Space>
-                ) : (
-                  <Space size={4} align="center">
-                    <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
-                    <span style={{ color: "#ff4d4f" }}>Pending</span>
-                  </Space>
-                )}
-              </p>
-              <p className="C-heading size-xs mb-1 text-muted">New Status:</p>
-              <p className="C-heading size-6 mb-0">
-                {newApprovalStatus ? (
-                  <Space size={4} align="center">
-                    <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
-                    <span style={{ color: "#52c41a" }}>Approved</span>
-                  </Space>
-                ) : (
-                  <Space size={4} align="center">
-                    <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
-                    <span style={{ color: "#ff4d4f" }}>Pending</span>
-                  </Space>
-                )}
-              </p>
-            </div>
-          )}
         </div>
       </Modal>
 

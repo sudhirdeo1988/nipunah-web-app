@@ -48,12 +48,16 @@ const CreateCategory = memo(
      */
     useEffect(() => {
       if (selectedCategory) {
-        console.log({ selectedCategory, modalMode });
         // Editing mode: Pre-populate form with existing data
         if (modalMode === "sub_category") {
+          // Normalize categoryId to match option value type
+          const rawCategoryId = selectedCategory.categoryId || selectedCategory.parentId;
+          const categoryId = rawCategoryId != null ? Number(rawCategoryId) : undefined;
+          
+          // Set form values - categoryId will be set when categories are available
+          // The normalize function in Form.Item will ensure type matching
           form.setFieldsValue({
-            categoryId:
-              selectedCategory.categoryId || selectedCategory.parentId,
+            categoryId,
             subCategoryName: selectedCategory.c_name,
           });
         } else {
@@ -67,14 +71,29 @@ const CreateCategory = memo(
         form.resetFields();
       }
     }, [selectedCategory, modalMode, form]);
+    
+    // Update categoryId when categories are loaded to ensure Select can find the option
+    useEffect(() => {
+      if (modalMode === "sub_category" && selectedCategory && categories.length > 0) {
+        const rawCategoryId = selectedCategory.categoryId || selectedCategory.parentId;
+        const categoryId = rawCategoryId != null ? Number(rawCategoryId) : undefined;
+        
+        if (categoryId != null) {
+          // Verify the category exists in options
+          const categoryExists = categories.some(cat => Number(cat.value) === categoryId);
+          if (categoryExists) {
+            // Update the form value to ensure Select displays the label
+            form.setFieldValue('categoryId', categoryId);
+          }
+        }
+      }
+    }, [categories, modalMode, selectedCategory, form]);
 
     const initialValues = useMemo(() => {
       if (modalMode === "sub_category") {
+        // Don't set categoryId in initialValues - set it in useEffect after categories load
+        // This ensures the Select can find the matching option
         return {
-          categoryId:
-            selectedCategory?.categoryId ||
-            selectedCategory?.parentId ||
-            undefined,
           subCategoryName: selectedCategory?.c_name || "",
         };
       }
@@ -105,6 +124,36 @@ const CreateCategory = memo(
       ),
       []
     );
+
+    /**
+     * Handle cancel button click
+     *
+     * Resets form to original values before closing modal.
+     * This ensures that if user edits and cancels, changes are reverted.
+     */
+    const handleCancel = useCallback(() => {
+      // Reset form to original selectedCategory values or empty state
+      if (selectedCategory) {
+        // Reset to original values from selectedCategory
+        if (modalMode === "sub_category") {
+          const rawCategoryId = selectedCategory.categoryId || selectedCategory.parentId;
+          const categoryId = rawCategoryId != null ? Number(rawCategoryId) : undefined;
+          form.setFieldsValue({
+            categoryId,
+            subCategoryName: selectedCategory.c_name,
+          });
+        } else {
+          form.setFieldsValue({
+            categoryName: selectedCategory.c_name,
+          });
+        }
+      } else {
+        // Reset to empty state for create mode
+        form.resetFields();
+      }
+      // Call parent's onCancel handler
+      onCancel();
+    }, [selectedCategory, modalMode, form, onCancel]);
 
     /**
      * Handle form submission
@@ -148,19 +197,39 @@ const CreateCategory = memo(
         >
           {modalMode === "sub_category" ? (
             <>
-              <Form.Item
-                name="categoryId"
-                label={categorySelectLabel}
-                rules={[
-                  { required: true, message: "Please select a category" },
-                ]}
-              >
-                <Select
-                  placeholder="Select Category"
-                  size="large"
-                  options={categories}
-                />
-              </Form.Item>
+              {/* Show category dropdown only in create mode (when selectedCategory is null) */}
+              {!selectedCategory ? (
+                <Form.Item
+                  name="categoryId"
+                  label={categorySelectLabel}
+                  rules={[
+                    { required: true, message: "Please select a category" },
+                  ]}
+                  getValueFromEvent={(value) => {
+                    // Ensure value is always a number
+                    return value != null ? Number(value) : undefined;
+                  }}
+                  normalize={(value) => {
+                    // Normalize the value to ensure it matches option values
+                    return value != null ? Number(value) : undefined;
+                  }}
+                >
+                  <Select
+                    key={`category-select-${categories.length}`}
+                    placeholder="Select Category"
+                    size="large"
+                    options={categories}
+                    showSearch
+                    optionFilterProp="label"
+                    notFoundContent={categories.length === 0 ? "Loading categories..." : "No categories found"}
+                  />
+                </Form.Item>
+              ) : (
+                // Hide category dropdown in edit mode, but keep categoryId in form
+                <Form.Item name="categoryId" hidden>
+                  <Input type="hidden" />
+                </Form.Item>
+              )}
               <Form.Item
                 name="subCategoryName"
                 label={subCategoryNameLabel}
@@ -188,7 +257,7 @@ const CreateCategory = memo(
               <button
                 className="C-button is-bordered"
                 type="button"
-                onClick={onCancel}
+                onClick={handleCancel}
                 disabled={loading}
               >
                 Cancel

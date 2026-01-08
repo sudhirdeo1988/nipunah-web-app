@@ -9,11 +9,14 @@ import {
   message,
   Divider,
   DatePicker,
+  Upload,
 } from "antd";
 import {
   FacebookOutlined,
   InstagramOutlined,
   LinkedinOutlined,
+  UploadOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 
 import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
@@ -23,33 +26,9 @@ import ThankYouModal from "@/components/ThankYouModal";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import axiosPublicInstance from "@/utilities/axiosPublicInstance";
+import { useEffect } from "react";
 
 const { TextArea } = Input;
-
-const categories = [
-  {
-    title: "Shipping",
-    id: 1,
-    icon: "shipping",
-    list: [
-      "Shipping Companies / Vessel Operators",
-      "Ship Management Companies",
-      "Crew Management & Manning Agencies",
-      "Port Authorities & Terminal Operators",
-    ],
-  },
-  {
-    title: "Logistics",
-    id: 2,
-    icon: "logistics",
-    list: [
-      "Freight Forwarders",
-      "Customs Brokers",
-      "Warehousing Companies",
-      "Last Mile Delivery",
-    ],
-  },
-];
 
 const Company = () => {
   const router = useRouter();
@@ -62,6 +41,12 @@ const Company = () => {
   ]);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
+  const [logoPreview, setLogoPreview] = useState(null); // Preview image URL
+  const [logoUploading, setLogoUploading] = useState(false); // Upload loading state
+  const [categoriesList, setCategoriesList] = useState([]); // Categories from API
+  const [categoriesLoading, setCategoriesLoading] = useState(false); // Loading state for categories
+  const [subcategoriesMap, setSubcategoriesMap] = useState({}); // Map of categoryId -> subcategories
+  const [subcategoriesLoading, setSubcategoriesLoading] = useState({}); // Loading state for subcategories
 
   // Memoize expensive calculations
   const countries = useMemo(
@@ -182,9 +167,12 @@ const Company = () => {
       delete allFields.confirm_password;
 
       // Add default paymentDetails object
-      allFields.paymentDetails = {
+      allFields.payment_details = {
         paidUser: false,
       };
+
+      // Add subscription plan
+      allFields.subscription_plan = "Free";
 
       console.log("=== COMPANY FORM SUBMISSION ===");
       console.log("Payload:", allFields);
@@ -274,14 +262,14 @@ const Company = () => {
           const values = await form.validateFields([
             "name",
             "title",
-            "contactEmail",
+            "email",
             "contact_country_code",
-            "contactNumber",
+            "contact_number",
             ...addressFieldsToValidate,
           ]);
 
           // Capture email from step 0
-          setCapturedEmail(values.contactEmail);
+          setCapturedEmail(values.email);
         } catch (validationError) {
           console.error("Step 0 validation error:", validationError);
           // Ant Design will automatically display field-level validation errors
@@ -322,9 +310,9 @@ const Company = () => {
             "website_url",
             "about_company",
             "employees_count",
-            ["socialMedia", "facebook"],
-            ["socialMedia", "instagram"],
-            ["socialMedia", "linkedin"],
+            ["social_media", "facebook"],
+            ["social_media", "instagram"],
+            ["social_media", "linkedin"],
           ]);
         } catch (validationError) {
           console.error("Step 2 validation error:", validationError);
@@ -334,7 +322,7 @@ const Company = () => {
       if (currentStep === 3) {
         try {
           await form.validateFields([
-            "userName",
+            "username",
             "password",
             "confirm_password",
           ]);
@@ -363,27 +351,235 @@ const Company = () => {
     [currentStep]
   );
 
-  // --- Logo Upload ---
-  const logoUploadProps = {
-    name: "file",
-    multiple: false,
-    action: "https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload",
-    onChange(info) {
-      if (info.file.status === "done") {
-        message.success(`${info.file.name} uploaded successfully.`);
-      } else if (info.file.status === "error") {
-        message.error(`${info.file.name} upload failed.`);
+  // --- Logo Upload Handler ---
+  /**
+   * Handle logo file upload to S3
+   * - Validates file type (png, jpg, webp)
+   * - Uploads to S3 bucket via API
+   * - Stores S3 path in form field
+   * - Shows preview
+   */
+  const handleLogoUpload = useCallback(
+    async (file) => {
+      try {
+        // Validate file type
+        const isValidType =
+          file.type === "image/png" ||
+          file.type === "image/jpeg" ||
+          file.type === "image/jpg" ||
+          file.type === "image/webp";
+
+        if (!isValidType) {
+          message.error("You can only upload PNG, JPG, or WEBP files!");
+          return false;
+        }
+
+        // Validate file size (max 5MB)
+        const isLt5M = file.size / 1024 / 1024 < 5;
+        if (!isLt5M) {
+          message.error("Image must be smaller than 5MB!");
+          return false;
+        }
+
+        // Show preview
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setLogoPreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+
+        // Upload to S3
+        setLogoUploading(true);
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("type", "company-logo");
+
+        // Upload to S3 via API endpoint
+        // Assuming endpoint: /api/upload or /api/companies/upload-logo
+        const response = await axiosPublicInstance.post("/upload", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        // Extract S3 path/URL from response
+        // Adjust based on your API response structure
+        const s3Path =
+          response?.data?.url ||
+          response?.data?.path ||
+          response?.data?.location ||
+          response?.data?.s3Path ||
+          response?.data?.data?.url;
+
+        if (s3Path) {
+          // Set form field value with S3 path
+          form.setFieldValue("logo_url", s3Path);
+          message.success("Logo uploaded successfully!");
+        } else {
+          throw new Error("Upload response missing file path");
+        }
+
+        setLogoUploading(false);
+        return false; // Prevent default upload behavior
+      } catch (error) {
+        console.error("Logo upload error:", error);
+        setLogoUploading(false);
+        setLogoPreview(null);
+        const errorMessage =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Failed to upload logo. Please try again.";
+        message.error(errorMessage);
+        return false;
       }
     },
-    beforeUpload: (file) => {
-      const isJpgOrPng =
-        file.type === "image/jpeg" || file.type === "image/png";
-      if (!isJpgOrPng) {
-        message.error("You can only upload JPG/PNG file!");
+    [form]
+  );
+
+  /**
+   * Handle logo removal
+   */
+  const handleLogoRemove = useCallback(() => {
+    setLogoPreview(null);
+    form.setFieldValue("logo_url", undefined);
+  }, [form]);
+
+  // --- Fetch Categories from API ---
+  /**
+   * Fetch all categories from API
+   */
+  const fetchCategories = useCallback(async () => {
+    try {
+      setCategoriesLoading(true);
+      // axiosPublicInstance returns response.data directly
+      const response = await axiosPublicInstance.get(
+        "/categories/getAllCategories",
+        {
+          params: {
+            page: 1,
+            limit: 100, // Get all categories
+            sortBy: "name",
+            order: "asc",
+          },
+        }
+      );
+
+      // Extract categories from response
+      // API response structure: { success: true, data: { items: [...] } }
+      // axiosPublicInstance returns response.data directly, so response = { success: true, data: { items: [...] } }
+      const categoriesData =
+        response?.data?.items ||
+        response?.items ||
+        response?.categories ||
+        response?.data?.categories ||
+        (Array.isArray(response?.data) ? response.data : []) ||
+        (Array.isArray(response) ? response : []);
+
+      if (Array.isArray(categoriesData) && categoriesData.length > 0) {
+        setCategoriesList(categoriesData);
+        // Also populate subcategories map from nested data if available
+        const subcatsMap = {};
+        categoriesData.forEach((cat) => {
+          if (
+            cat.subCategories?.items &&
+            Array.isArray(cat.subCategories.items)
+          ) {
+            subcatsMap[cat.id] = cat.subCategories.items;
+          }
+        });
+        if (Object.keys(subcatsMap).length > 0) {
+          setSubcategoriesMap((prev) => ({ ...prev, ...subcatsMap }));
+        }
+      } else {
+        console.warn("No categories found in API response:", response);
+        setCategoriesList([]);
       }
-      return isJpgOrPng; // return false will prevent upload
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      message.error(
+        error?.message || "Failed to load categories. Please try again."
+      );
+      setCategoriesList([]);
+    } finally {
+      setCategoriesLoading(false);
+    }
+  }, []);
+
+  /**
+   * Fetch subcategories for a specific category
+   */
+  const fetchSubcategories = useCallback(
+    async (categoryId) => {
+      if (!categoryId) {
+        return;
+      }
+
+      // Check if already loaded (including empty arrays)
+      if (subcategoriesMap.hasOwnProperty(categoryId)) {
+        return;
+      }
+
+      try {
+        setSubcategoriesLoading((prev) => ({ ...prev, [categoryId]: true }));
+        const response = await axiosPublicInstance.get(
+          `/categories/${categoryId}/subcategories`,
+          {
+            params: {
+              page: 1,
+              limit: 100, // Get all subcategories
+              sortBy: "name",
+              order: "asc",
+            },
+          }
+        );
+
+        // Extract subcategories from response
+        // API response structure: { success: true, data: { items: [...] } }
+        // axiosPublicInstance returns response.data directly
+        const subcategoriesData =
+          response?.data?.items ||
+          response?.items ||
+          response?.subcategories ||
+          response?.data?.subcategories ||
+          (Array.isArray(response?.data) ? response.data : []) ||
+          (Array.isArray(response) ? response : []);
+
+        if (Array.isArray(subcategoriesData)) {
+          setSubcategoriesMap((prev) => ({
+            ...prev,
+            [categoryId]: subcategoriesData,
+          }));
+        } else {
+          // Set empty array if not an array
+          setSubcategoriesMap((prev) => ({
+            ...prev,
+            [categoryId]: [],
+          }));
+        }
+      } catch (error) {
+        console.error(
+          `Error fetching subcategories for category ${categoryId}:`,
+          error
+        );
+        // Set empty array on error
+        setSubcategoriesMap((prev) => ({
+          ...prev,
+          [categoryId]: [],
+        }));
+      } finally {
+        setSubcategoriesLoading((prev) => ({
+          ...prev,
+          [categoryId]: false,
+        }));
+      }
     },
-  };
+    [subcategoriesMap]
+  );
+
+  // Fetch categories on component mount
+  useEffect(() => {
+    fetchCategories();
+  }, [fetchCategories]);
 
   // --- Steps Content ---
   // Convert content to functions so Form.Item can access FormContext
@@ -393,7 +589,7 @@ const Company = () => {
       icon: <Icon name="diversity_3" isFilled />,
       content: () => (
         <div className="row g-3">
-          <div className="col-12">
+          <div className="col-md-6 col-12">
             <Form.Item
               label={
                 <span className="C-heading size-6 semiBold color-light mb-0">
@@ -411,7 +607,7 @@ const Company = () => {
               />
             </Form.Item>
           </div>
-          <div className="col-12">
+          <div className="col-md-6 col-12">
             <Form.Item
               name="title"
               label={
@@ -429,14 +625,14 @@ const Company = () => {
               />
             </Form.Item>
           </div>
-          <div className="col-12">
+          <div className="col-md-6 col-12">
             <Form.Item
               label={
                 <span className="C-heading size-6 semiBold color-light mb-0">
                   Company Email ID
                 </span>
               }
-              name="contactEmail"
+              name="email"
               rules={[
                 { required: true, message: "Enter email" },
                 { type: "email", message: "Invalid email" },
@@ -450,7 +646,7 @@ const Company = () => {
               />
             </Form.Item>
           </div>
-          <div className="col-12">
+          <div className="col-md-6 col-12">
             <Form.Item
               label={
                 <span className="C-heading size-6 semiBold color-light mb-0">
@@ -474,7 +670,7 @@ const Company = () => {
                   />
                 </Form.Item>
                 <Form.Item
-                  name="contactNumber"
+                  name="contact_number"
                   noStyle
                   rules={[
                     { required: true, message: "Enter contact number" },
@@ -858,6 +1054,12 @@ const Company = () => {
                         <Select
                           placeholder="Main Category"
                           size="large"
+                          loading={categoriesLoading}
+                          notFoundContent={
+                            categoriesLoading
+                              ? "Loading..."
+                              : "No categories found"
+                          }
                           onChange={(value) => {
                             // Clear subcategory when main category changes
                             form.setFieldValue(
@@ -868,12 +1070,37 @@ const Company = () => {
                             const newValues = [...values];
                             newValues[idx] = { main: value, sub: undefined };
                             setCategoriesData(newValues);
+                            // Fetch subcategories for the selected category if not already loaded
+                            if (value && !subcategoriesMap[value]) {
+                              // Check if category has nested subcategories
+                              const selectedCategory = categoriesList.find(
+                                (cat) => cat.id === value
+                              );
+                              if (
+                                selectedCategory?.subCategories?.items &&
+                                Array.isArray(
+                                  selectedCategory.subCategories.items
+                                )
+                              ) {
+                                // Use nested subcategories
+                                setSubcategoriesMap((prev) => ({
+                                  ...prev,
+                                  [value]: selectedCategory.subCategories.items,
+                                }));
+                              } else {
+                                // Fetch from API
+                                fetchSubcategories(value);
+                              }
+                            }
                           }}
-                          options={categories.map((cat) => ({
-                            label: cat.title,
-                            value: cat.id,
+                          options={categoriesList.map((cat) => ({
+                            label: cat.name || cat.title || cat.categoryName,
+                            value: cat.id || cat.categoryId,
                             disabled: values.some(
-                              (c, i) => i !== idx && c?.main === cat.id
+                              (c, i) =>
+                                i !== idx &&
+                                (c?.main === cat.id ||
+                                  c?.main === cat.categoryId)
                             ),
                           }))}
                         />
@@ -896,18 +1123,39 @@ const Company = () => {
                           placeholder="Subcategory"
                           size="large"
                           disabled={!currentMainCategory}
+                          loading={subcategoriesLoading[currentMainCategory]}
+                          notFoundContent={
+                            subcategoriesLoading[currentMainCategory]
+                              ? "Loading..."
+                              : !currentMainCategory
+                              ? "Select a category first"
+                              : "No subcategories found"
+                          }
                           key={currentMainCategory} // Force re-render when main category changes
                           options={
-                            currentMainCategory
-                              ? categories
-                                  .find((cat) => cat.id === currentMainCategory)
-                                  ?.list.map((sub, i) => ({
-                                    label: sub,
-                                    value: sub,
+                            currentMainCategory &&
+                            subcategoriesMap[currentMainCategory]
+                              ? subcategoriesMap[currentMainCategory].map(
+                                  (sub) => ({
+                                    label:
+                                      sub.name ||
+                                      sub.subcategoryName ||
+                                      sub.title,
+                                    value:
+                                      sub.id ||
+                                      sub.subcategoryId ||
+                                      sub.name ||
+                                      sub.subcategoryName,
                                     disabled: values.some(
-                                      (c, i2) => i2 !== idx && c?.sub === sub
+                                      (c, i2) =>
+                                        i2 !== idx &&
+                                        (c?.sub === sub.id ||
+                                          c?.sub === sub.subcategoryId ||
+                                          c?.sub === sub.name ||
+                                          c?.sub === sub.subcategoryName)
                                     ),
-                                  })) || []
+                                  })
+                                )
                               : []
                           }
                         />
@@ -1074,6 +1322,88 @@ const Company = () => {
               <TextArea rows={3} placeholder="Enter key clients" size="large" />
             </Form.Item>
           </div>
+          <div className="col-12">
+            <Form.Item
+              label={
+                <span className="C-heading size-6 semiBold color-light mb-0">
+                  Company Logo
+                  <span
+                    className="text-muted ms-1"
+                    style={{ fontSize: "12px" }}
+                  >
+                    (Optional)
+                  </span>
+                </span>
+              }
+              name="logo_url"
+              className="mb-2"
+            >
+              <div>
+                {logoPreview && (
+                  <div
+                    style={{
+                      marginBottom: 16,
+                      position: "relative",
+                      display: "inline-block",
+                    }}
+                  >
+                    <img
+                      src={logoPreview}
+                      alt="Logo preview"
+                      style={{
+                        maxWidth: "200px",
+                        maxHeight: "200px",
+                        borderRadius: "8px",
+                        border: "1px solid #d9d9d9",
+                        padding: "8px",
+                        backgroundColor: "#fff",
+                      }}
+                    />
+                    <Button
+                      type="text"
+                      danger
+                      icon={<DeleteOutlined />}
+                      onClick={handleLogoRemove}
+                      style={{
+                        position: "absolute",
+                        top: 0,
+                        right: 0,
+                        backgroundColor: "rgba(255, 255, 255, 0.9)",
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                )}
+                <Upload
+                  name="logo"
+                  beforeUpload={handleLogoUpload}
+                  showUploadList={false}
+                  accept="image/png,image/jpeg,image/jpg,image/webp"
+                  disabled={logoUploading}
+                >
+                  <Button
+                    icon={<UploadOutlined />}
+                    loading={logoUploading}
+                    size="large"
+                    block
+                  >
+                    {logoUploading
+                      ? "Uploading..."
+                      : logoPreview
+                      ? "Change Logo"
+                      : "Upload Company Logo"}
+                  </Button>
+                </Upload>
+                <div
+                  className="mt-2"
+                  style={{ fontSize: "12px", color: "#8c8c8c" }}
+                >
+                  Supported formats: PNG, JPG, WEBP (Max 5MB)
+                </div>
+              </div>
+            </Form.Item>
+          </div>
 
           <div className="col-12">
             <Divider titlePlacement="left" styles={{ content: { margin: 0 } }}>
@@ -1090,7 +1420,7 @@ const Company = () => {
                   Facebook Link
                 </span>
               }
-              name={["socialMedia", "facebook"]}
+              name={["social_media", "facebook"]}
               className="mb-2"
             >
               <Input
@@ -1108,7 +1438,7 @@ const Company = () => {
                   Instagram Link
                 </span>
               }
-              name={["socialMedia", "instagram"]}
+              name={["social_media", "instagram"]}
               className="mb-2"
             >
               <Input
@@ -1126,7 +1456,7 @@ const Company = () => {
                   LinkedIn Link
                 </span>
               }
-              name={["socialMedia", "linkedin"]}
+              name={["social_media", "linkedin"]}
               className="mb-2"
             >
               <Input
@@ -1152,7 +1482,7 @@ const Company = () => {
                   Username
                 </span>
               }
-              name="userName"
+              name="username"
               rules={[{ required: true, message: "Enter username" }]}
               className="mb-2"
               initialValue={capturedEmail}
@@ -1233,7 +1563,7 @@ const Company = () => {
     <>
       {/* Progress Steps */}
       <div className="row justify-content-center">
-        <div className="col-md-10 d-none d-md-block">
+        <div className="col-md-12 d-none d-md-block">
           <Steps
             current={currentStep}
             className="formSteps mb-5"
@@ -1253,7 +1583,7 @@ const Company = () => {
       >
         {/* Step Content */}
         <div className="row justify-content-center">
-          <div className="col-md-7 col-sm-12">
+          <div className="col-md-10 col-sm-12">
             <div className="p-3 pb-0">
               {typeof steps[currentStep]?.content === "function"
                 ? steps[currentStep].content()

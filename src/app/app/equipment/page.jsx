@@ -20,7 +20,10 @@
 
 import React, { useCallback, useState } from "react";
 import Icon from "@/components/Icon";
-import { Space, Modal } from "antd";
+import { Space, Modal, Breadcrumb } from "antd";
+import { useRouter } from "next/navigation";
+import { ROUTES } from "@/constants/routes";
+import { useRole } from "@/hooks/useRole";
 import EquipmentListing from "module/Equipment/Components/EquipmentListing";
 import CreateEquipment from "module/Equipment/Components/CreateEquipment";
 import {
@@ -31,6 +34,8 @@ import { useEquipmentModal } from "module/Equipment/hooks/useEquipmentModal";
 import { useEquipment } from "module/Equipment/hooks/useEquipment";
 
 const EquipmentPage = () => {
+  const router = useRouter();
+  const { isCompany } = useRole();
   const {
     isModalOpen,
     selectedEquipment,
@@ -162,23 +167,57 @@ const EquipmentPage = () => {
     <>
       <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
         <div className="p-3 border-bottom">
+          <Breadcrumb
+            className="mb-3"
+            items={[
+              {
+                title: (
+                  <span
+                    className="C-heading size-xs color-light mb-0"
+                    style={{ cursor: "pointer" }}
+                    onClick={() => router.push(ROUTES.PRIVATE.COMPANY)}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "#1890ff";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "";
+                    }}
+                  >
+                    Companies
+                  </span>
+                ),
+              },
+              {
+                title: (
+                  <span className="C-heading size-xs color-dark mb-0 bold">
+                    Equipment
+                  </span>
+                ),
+              },
+            ]}
+            separator={
+              <Icon name="chevron_right" style={{ fontSize: "12px", color: "#8c8c8c" }} />
+            }
+          />
           <div className="row align-items-center">
             <div className="col-8">
               <span className="C-heaidng size-5 color-light mb-2 extraBold">
                 Equipment List
               </span>
             </div>
-            <div className="col-4 text-right">
-              <button
-                className="C-button is-filled small"
-                onClick={() => openModal(MODAL_MODES.EQUIPMENT, null)}
-              >
-                <Space>
-                  <Icon name="add" />
-                  Add Equipment
-                </Space>
-              </button>
-            </div>
+            {isCompany() && (
+              <div className="col-4 text-right">
+                <button
+                  className="C-button is-filled small"
+                  onClick={() => openModal(MODAL_MODES.EQUIPMENT, null)}
+                >
+                  <Space>
+                    <Icon name="add" />
+                    Add Equipment
+                  </Space>
+                </button>
+              </div>
+            )}
           </div>
         </div>
         <div className="p-3">

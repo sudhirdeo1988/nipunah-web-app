@@ -44,12 +44,5 @@ export const DASHBOARD_ROUTES = {
       id: "jobs-1",
       icon: "assignment_ind",
     },
-    {
-      route: ROUTES?.PRIVATE?.EQUIPMENT,
-      label: "Equipment",
-      subHeading: "Manage equipment listings and details",
-      id: "equipment-1",
-      icon: "precision_manufacturing",
-    },
   ],
 };

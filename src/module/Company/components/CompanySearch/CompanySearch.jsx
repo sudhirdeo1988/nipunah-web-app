@@ -3,6 +3,7 @@
 import React from "react";
 import { DatePicker, Divider, Input, Space, Button } from "antd";
 import Icon from "@/components/Icon";
+import { useRole } from "@/hooks/useRole";
 
 const CompanySearch = ({
   searchQuery,
@@ -11,6 +12,8 @@ const CompanySearch = ({
   onBulkDelete,
   selectedCompanies,
 }) => {
+  const { isAdmin, isAuthenticated, loading } = useRole();
+
   return (
     <div className="row align-items-center mb-4">
       <div className="col-7">
@@ -21,23 +24,26 @@ const CompanySearch = ({
             </span>
             <DatePicker size="large" />
           </Space>
-          <Divider type="vertical" />
+          <Divider orientation="vertical" />
         </Space>
       </div>
 
       <div className="col-5 text-right">
         <Space>
-          <Button
-            type="primary"
-            size="large"
-            onClick={onCreateCompany}
-            className="C-button is-filled small"
-          >
-            <Space>
-              <Icon name="add" />
-              Create Company
-            </Space>
-          </Button>
+          {/* Hide Create Company button for admin users */}
+          {isAuthenticated && !loading && !isAdmin() && (
+            <Button
+              type="primary"
+              size="large"
+              onClick={onCreateCompany}
+              className="C-button is-filled small"
+            >
+              <Space>
+                <Icon name="add" />
+                Create Company
+              </Space>
+            </Button>
+          )}
 
           {!!selectedCompanies.length && (
             <Button

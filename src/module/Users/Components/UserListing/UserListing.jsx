@@ -493,7 +493,7 @@ const UserListing = () => {
                 </span>
                 <DatePicker size="large" />
               </Space>
-              <Divider type="vertical" />
+              <Divider orientation="vertical" />
             </Space>
           </div>
 

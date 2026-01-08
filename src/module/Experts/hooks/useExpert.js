@@ -405,7 +405,28 @@ export const useExpert = () => {
    * Update an existing expert
    *
    * API Endpoint: PUT /experts/{id}
-   * Payload: { "name": "string", "email": "string", "contact": "string", "country": "string" }
+   * Payload matches signup form structure:
+   * {
+   *   "first_name": "string",
+   *   "last_name": "string",
+   *   "email": "string",
+   *   "contact_country_code": "string",
+   *   "contact_number": "string",
+   *   "username": "string",
+   *   "expertise": "string",
+   *   "address": {
+   *     "country": "string",
+   *     "state": "string",
+   *     "location": "string",
+   *     "city": "string",
+   *     "postal_code": "string"
+   *   },
+   *   "social_media": {
+   *     "facebook": "string",
+   *     "instagram": "string",
+   *     "linkedin": "string"
+   *   }
+   * }
    *
    * States:
    * - Loading: Shows loader during API call
@@ -413,11 +434,7 @@ export const useExpert = () => {
    * - Success: Shows success message and refreshes list
    *
    * @param {number} expertId - ID of the expert to update
-   * @param {Object} expertData - Updated expert data from form
-   * @param {string} expertData.name - New name of the expert
-   * @param {string} expertData.email - New email of the expert
-   * @param {string} expertData.contact - New contact number
-   * @param {string} expertData.country - New country
+   * @param {Object} expertData - Updated expert data from form (matches signup form structure)
    * @returns {Promise<Object>} Updated expert response
    * @throws {Error} If update fails
    */
@@ -441,7 +458,7 @@ export const useExpert = () => {
         } else {
           // ✅ Call actual API to update expert
           // Endpoint: PUT /experts/{id}
-          // Payload: { "name": "string", "email": "string", "contact": "string", "country": "string" }
+          // Payload matches signup form structure
           console.log("🟢 API CALL: PUT /experts/{id}", {
             expertId,
             payload: expertData,

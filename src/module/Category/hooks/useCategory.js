@@ -761,7 +761,7 @@ export const useCategory = () => {
    */
   const getCategoriesForSelect = useCallback(() => {
     return categories.map((cat) => ({
-      value: cat.id,
+      value: Number(cat.id), // Ensure value is a number for consistent matching
       label: cat.c_name,
     }));
   }, [categories]);
