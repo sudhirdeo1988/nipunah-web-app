@@ -86,6 +86,8 @@ const SubCategoryListing = memo(
     // Use ref to track which category we've fetched to prevent duplicate calls
     const fetchedCategoryIdRef = useRef(null);
     const isFetchingRef = useRef(false);
+    // Ref to store form reset function
+    const formResetRef = useRef(null);
 
     /**
      * Load subcategories when component mounts or parent record changes
@@ -300,7 +302,7 @@ const SubCategoryListing = memo(
 
             message.success("Subcategory updated!");
 
-            // Call onRefresh immediately after update to fetch all categories
+            // Call onRefresh to fetch all categories after update
             if (onRefresh) {
               console.log("🔄 Calling onRefresh to fetch all categories after update...");
               await onRefresh();
@@ -323,11 +325,11 @@ const SubCategoryListing = memo(
             );
 
             message.success("Subcategory created!");
-          }
 
-          // Refresh data - this will trigger parent to refetch categories
-          if (onRefresh) {
-            await onRefresh();
+            // Call onRefresh to fetch all categories after create
+            if (onRefresh) {
+              await onRefresh();
+            }
           }
 
           // Reset refs to force refresh when parentRecord updates
@@ -440,15 +442,27 @@ const SubCategoryListing = memo(
           width={600}
           centered
           footer={null}
-          onCancel={closeModal}
+          onCancel={() => {
+            // Reset form to original values before closing
+            if (formResetRef.current) {
+              formResetRef.current();
+            }
+            closeModal();
+          }}
         >
           <CreateSubCategoryForm
             selectedSubCategory={selectedCategory}
             categories={[]} // Will be provided by parent if needed
             defaultCategoryId={parentRecord.id}
-            onCancel={closeModal}
+            onCancel={() => {
+              // Reset form is handled inside CreateSubCategoryForm's handleCancel
+              closeModal();
+            }}
             onSubmit={handleModalSubmit}
             loading={loading}
+            onFormReset={(resetFn) => {
+              formResetRef.current = resetFn;
+            }}
           />
         </Modal>
 

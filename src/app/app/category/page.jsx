@@ -194,8 +194,7 @@ const CategoryPage = () => {
             formData.categoryId || record.categoryId || record.parentId;
           await updateSubCategory(categoryId, record.id, formData);
           // fetchCategories is already called in updateSubCategory hook
-          // But we also need to ensure the UI refreshes immediately
-          await fetchCategories();
+          // No need to call it again here
         } else {
           // Edit category
           // API: PUT /categories/{id}

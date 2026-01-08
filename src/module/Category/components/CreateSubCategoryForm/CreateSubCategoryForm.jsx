@@ -1,5 +1,5 @@
 import { Form, Input, Select, Space, Spin } from "antd";
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import PropTypes from "prop-types";
 
 /**
@@ -13,6 +13,7 @@ const CreateSubCategoryForm = ({
   onCancel,
   onSubmit,
   loading = false,
+  onFormReset,
 }) => {
   const [form] = Form.useForm();
 
@@ -38,6 +39,44 @@ const CreateSubCategoryForm = ({
     onSubmit(values);
     form.resetFields();
   };
+
+  /**
+   * Reset form to original values
+   * This function can be called from parent component
+   */
+  const resetForm = useCallback(() => {
+    if (selectedSubCategory) {
+      // Reset to original values from selectedSubCategory
+      form.setFieldsValue({
+        categoryId:
+          selectedSubCategory.categoryId || selectedSubCategory.parentId,
+        subCategoryName: selectedSubCategory.c_name || selectedSubCategory.name,
+      });
+    } else {
+      // Reset to empty state for create mode
+      form.resetFields();
+    }
+  }, [selectedSubCategory, form]);
+
+  /**
+   * Handle cancel button click
+   *
+   * Resets form to original values before closing modal.
+   * This ensures that if user edits and cancels, changes are reverted.
+   */
+  const handleCancel = useCallback(() => {
+    // Reset form to original values
+    resetForm();
+    // Call parent's onCancel handler
+    onCancel();
+  }, [resetForm, onCancel]);
+
+  // Expose reset function to parent via callback
+  useEffect(() => {
+    if (onFormReset) {
+      onFormReset(resetForm);
+    }
+  }, [onFormReset, resetForm]);
 
   return (
     <Spin spinning={loading} tip="Saving...">
@@ -92,7 +131,7 @@ const CreateSubCategoryForm = ({
             <button
               className="C-button is-bordered"
               type="button"
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={loading}
             >
               Cancel
