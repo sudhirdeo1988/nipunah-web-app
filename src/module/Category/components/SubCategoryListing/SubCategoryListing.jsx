@@ -99,6 +99,9 @@ const SubCategoryListing = memo(
      * Note: Subcategories are already included in the main categories API response,
      * so we just extract them from the parentRecord instead of making a separate API call.
      */
+    // Store previous subcategories data to detect changes
+    const prevSubCategoriesRef = useRef(null);
+
     useEffect(() => {
       const loadSubCategories = async () => {
         const categoryId = parentRecord?.id;
@@ -109,20 +112,27 @@ const SubCategoryListing = memo(
           return;
         }
 
+        // Get current subcategories items
+        const currentItems = parentRecord?.subCategories?.items || [];
+        // Create a stringified version to detect changes
+        const currentItemsKey = JSON.stringify(currentItems.map(item => ({ id: item.id, name: item.name })));
+        const prevItemsKey = prevSubCategoriesRef.current;
+
         // Performance: Only process if:
         // 1. We have a category ID
-        // 2. We haven't processed this category yet (prevents duplicate operations)
+        // 2. We haven't processed this category yet OR subcategories data changed
         // 3. We're not currently processing (prevents concurrent operations)
-        if (
-          fetchedCategoryIdRef.current !== categoryId &&
-          !isFetchingRef.current
-        ) {
+        const shouldRefresh = fetchedCategoryIdRef.current === null || 
+                              fetchedCategoryIdRef.current !== categoryId ||
+                              currentItemsKey !== prevItemsKey;
+        
+        if (shouldRefresh && !isFetchingRef.current) {
           isFetchingRef.current = true;
           setLoading(true);
 
           try {
             // Extract and transform subcategories from parentRecord
-            const items = parentRecord?.subCategories?.items || [];
+            const items = currentItems;
 
             // Transform to component format
             const transformedData = items.map((item) => ({
@@ -138,8 +148,9 @@ const SubCategoryListing = memo(
 
             setSubCategories(transformedData);
 
-            // Mark this category as processed to prevent duplicate operations
+            // Mark this category as processed and store current items key
             fetchedCategoryIdRef.current = categoryId;
+            prevSubCategoriesRef.current = currentItemsKey;
           } catch (error) {
             // Error handling: Log error and reset state to allow retry
             console.error("Error loading subcategories:", error);
@@ -156,7 +167,7 @@ const SubCategoryListing = memo(
 
       loadSubCategories();
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [parentRecord?.id]); // Only depend on parentRecord.id to prevent unnecessary re-processing
+    }, [parentRecord?.id, parentRecord?.subCategories]); // Depend on both id and subCategories to refresh when data changes
 
     // Separate delete handler for sub-categories
     const handleDeleteSubCategoryClick = useCallback((record) => {
@@ -277,14 +288,23 @@ const SubCategoryListing = memo(
 
             console.log("✏️ Updating subcategory...");
 
-            // Update subcategory
+            // Update subcategory with payload format: { "categoryId": 0, "subcategoryName": "string" }
             await categoryService.updateSubCategory(
               categoryId,
               selectedCategory.id,
-              { name: formData.subCategoryName }
+              {
+                categoryId: parseInt(categoryId, 10),
+                subcategoryName: formData.subCategoryName,
+              }
             );
 
             message.success("Subcategory updated!");
+
+            // Call onRefresh immediately after update to fetch all categories
+            if (onRefresh) {
+              console.log("🔄 Calling onRefresh to fetch all categories after update...");
+              await onRefresh();
+            }
           } else {
             // ============ CREATE MODE ============
             const categoryId = formData.categoryId || parentRecord.id;
@@ -305,13 +325,16 @@ const SubCategoryListing = memo(
             message.success("Subcategory created!");
           }
 
-          // Refresh data
+          // Refresh data - this will trigger parent to refetch categories
           if (onRefresh) {
             await onRefresh();
           }
 
-          // Reset and close
+          // Reset refs to force refresh when parentRecord updates
           fetchedCategoryIdRef.current = null;
+          prevSubCategoriesRef.current = null;
+          
+          // Close modal
           closeModal();
         } catch (error) {
           console.error("❌ Error creating/updating subcategory:", error);

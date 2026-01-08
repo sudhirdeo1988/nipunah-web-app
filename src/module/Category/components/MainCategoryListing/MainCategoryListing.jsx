@@ -410,13 +410,18 @@ const MainCategoryListing = memo(
           }}
           onChange={handleTableChange}
           expandable={{
-            expandedRowRender: (record) => (
-              <SubCategoryListing
-                key={`subcategory-${record.id}`}
-                parentRecord={record}
-                onDeleteSubCategory={onDeleteSubCategory}
-              />
-            ),
+            expandedRowRender: (record) => {
+              // Create a key that includes subcategories data to force re-render when data changes
+              const subCategoriesKey = JSON.stringify(record.subCategories?.items?.map(item => ({ id: item.id, name: item.name })) || []);
+              return (
+                <SubCategoryListing
+                  key={`subcategory-${record.id}-${subCategoriesKey}`}
+                  parentRecord={record}
+                  onDeleteSubCategory={onDeleteSubCategory}
+                  onRefresh={onFetchCategories}
+                />
+              );
+            },
             // Prevent onChange from being triggered on expand/collapse
             onExpand: (expanded, record) => {
               // Handle expand/collapse without triggering table onChange

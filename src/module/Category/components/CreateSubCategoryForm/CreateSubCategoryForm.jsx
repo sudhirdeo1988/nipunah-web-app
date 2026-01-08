@@ -47,21 +47,31 @@ const CreateSubCategoryForm = ({
         onFinish={handleSubmit}
         className="py-3"
       >
-        <Form.Item
-          name="categoryId"
-          label={
-            <span className="C-heading size-xs semiBold mb-0">
-              Select Category
-            </span>
-          }
-          rules={[{ required: true, message: "Please select a category" }]}
-        >
-          <Select
-            placeholder="Select Category"
-            size="large"
-            options={categories}
-          />
-        </Form.Item>
+        {/* Show category dropdown only in create mode (when selectedSubCategory is null) */}
+        {!selectedSubCategory ? (
+          <Form.Item
+            name="categoryId"
+            label={
+              <span className="C-heading size-xs semiBold mb-0">
+                Select Category
+              </span>
+            }
+            rules={[{ required: true, message: "Please select a category" }]}
+          >
+            <Select
+              placeholder="Select Category"
+              size="large"
+              options={categories}
+              showSearch
+              optionFilterProp="label"
+            />
+          </Form.Item>
+        ) : (
+          // Hide category dropdown in edit mode, but keep categoryId in form
+          <Form.Item name="categoryId" hidden>
+            <Input type="hidden" />
+          </Form.Item>
+        )}
 
         <Form.Item
           name="subCategoryName"

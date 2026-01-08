@@ -610,30 +610,47 @@ export const categoryService = {
    * Update subcategory
    *
    * API Endpoint: PUT /subcategories/{id} or PUT /categories/{categoryId}/subcategories/{subCategoryId}
-   * Payload: { "name": "string" }
+   * Payload: { "categoryId": 0, "subcategoryName": "string" }
    * Requires: Bearer token authentication
    *
    * @param {number} categoryId - ID of the parent category
    * @param {number} subCategoryId - ID of the subcategory to update
    * @param {Object} subCategoryData - Updated subcategory data
-   * @param {string} subCategoryData.name - New name of the subcategory
+   * @param {number} subCategoryData.categoryId - ID of the parent category
+   * @param {string} subCategoryData.subcategoryName - New name of the subcategory
    * @returns {Promise<Object>} Updated subcategory response
    */
   updateSubCategory: async (categoryId, subCategoryId, subCategoryData) => {
     try {
+      // Ensure payload format: { "categoryId": 0, "subcategoryName": "string" }
+      const payload = {
+        categoryId: subCategoryData.categoryId || parseInt(categoryId, 10),
+        subcategoryName:
+          subCategoryData.subcategoryName ||
+          subCategoryData.subCategoryName ||
+          subCategoryData.name,
+      };
+
       // Try nested endpoint first, fallback to flat endpoint if needed
       const response = await axiosInstance.put(
         `/subcategories/${subCategoryId}`,
-        subCategoryData
+        payload
       );
       return response;
     } catch (error) {
       // If nested endpoint fails, try flat endpoint
       if (error.status === 404) {
         try {
+          const payload = {
+            categoryId: subCategoryData.categoryId || parseInt(categoryId, 10),
+            subcategoryName:
+              subCategoryData.subcategoryName ||
+              subCategoryData.subCategoryName ||
+              subCategoryData.name,
+          };
           const response = await axiosInstance.put(
             `/subcategories/${subCategoryId}`,
-            subCategoryData
+            payload
           );
           return response;
         } catch (fallbackError) {

@@ -193,10 +193,14 @@ const CategoryPage = () => {
           const categoryId =
             formData.categoryId || record.categoryId || record.parentId;
           await updateSubCategory(categoryId, record.id, formData);
+          // fetchCategories is already called in updateSubCategory hook
+          // But we also need to ensure the UI refreshes immediately
+          await fetchCategories();
         } else {
           // Edit category
           // API: PUT /categories/{id}
           await updateCategory(record.id, formData);
+          // fetchCategories is already called in updateCategory hook
         }
         // Close modal on success (error handling is done in the hook)
         closeModal();
@@ -206,7 +210,7 @@ const CategoryPage = () => {
         console.error("Error updating category:", error);
       }
     },
-    [updateCategory, updateSubCategory, closeModal]
+    [updateCategory, updateSubCategory, closeModal, fetchCategories]
   );
 
   /**

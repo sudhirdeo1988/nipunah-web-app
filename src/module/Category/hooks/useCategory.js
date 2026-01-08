@@ -662,17 +662,19 @@ export const useCategory = () => {
         } else {
           // ✅ Call actual API to update subcategory
           // Endpoint: PUT /subcategories/{id}
-          // Payload: { "name": "string" }
+          // Payload: { "categoryId": 0, "subcategoryName": "string" }
+          const payload = {
+            categoryId: parseInt(categoryId, 10),
+            subcategoryName: subCategoryData.subCategoryName,
+          };
           console.log("🟢 API CALL: PUT /subcategories/{id}", {
             subCategoryId,
-            payload: { name: subCategoryData.subCategoryName },
+            payload,
           });
           response = await categoryService.updateSubCategory(
             categoryId,
             subCategoryId,
-            {
-              name: subCategoryData.subCategoryName,
-            }
+            payload
           );
           console.log("✅ API Response:", response);
         }
