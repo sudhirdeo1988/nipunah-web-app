@@ -83,9 +83,10 @@ const SubCategoryListing = memo(
     const [subCategoryToDelete, setSubCategoryToDelete] = useState(null);
     const [subCategories, setSubCategories] = useState([]);
     const [loading, setLoading] = useState(false);
-    // Use ref to track which category we've fetched to prevent duplicate calls
+    // Use ref to track which category we've processed to prevent duplicate processing
     const fetchedCategoryIdRef = useRef(null);
-    const isFetchingRef = useRef(false);
+    // Store previous subcategories data to detect changes
+    const prevSubCategoriesRef = useRef(null);
     // Ref to store form reset function
     const formResetRef = useRef(null);
 
@@ -95,17 +96,13 @@ const SubCategoryListing = memo(
      * Performance optimizations:
      * - Uses data from main categories API response (no separate API call)
      * - Uses refs to prevent duplicate processing
-     * - Only processes if category ID changed and not already processing
-     * - Tracks processed category to avoid redundant operations
+     * - Only processes if category ID changed
      *
      * Note: Subcategories are already included in the main categories API response,
      * so we just extract them from the parentRecord instead of making a separate API call.
      */
-    // Store previous subcategories data to detect changes
-    const prevSubCategoriesRef = useRef(null);
-
     useEffect(() => {
-      const loadSubCategories = async () => {
+      const loadSubCategories = () => {
         const categoryId = parentRecord?.id;
 
         // Validation: Only process if we have a valid category ID
@@ -114,35 +111,78 @@ const SubCategoryListing = memo(
           return;
         }
 
-        // Get current subcategories items
+        // Get current subcategories items from parentRecord
         const currentItems = parentRecord?.subCategories?.items || [];
         // Create a stringified version to detect changes
-        const currentItemsKey = JSON.stringify(currentItems.map(item => ({ id: item.id, name: item.name })));
+        const currentItemsKey = JSON.stringify(
+          currentItems.map((item) => ({ id: item.id, name: item.name }))
+        );
         const prevItemsKey = prevSubCategoriesRef.current;
 
         // Performance: Only process if:
         // 1. We have a category ID
         // 2. We haven't processed this category yet OR subcategories data changed
-        // 3. We're not currently processing (prevents concurrent operations)
-        const shouldRefresh = fetchedCategoryIdRef.current === null || 
-                              fetchedCategoryIdRef.current !== categoryId ||
-                              currentItemsKey !== prevItemsKey;
-        
-        if (shouldRefresh && !isFetchingRef.current) {
-          isFetchingRef.current = true;
-          setLoading(true);
+        const shouldRefresh =
+          fetchedCategoryIdRef.current === null ||
+          fetchedCategoryIdRef.current !== categoryId ||
+          currentItemsKey !== prevItemsKey;
 
+        if (shouldRefresh) {
           try {
             // Extract and transform subcategories from parentRecord
             const items = currentItems;
+
+            // Format timestamp to DD/MM/YYYY
+            // Handles both seconds (10 digits) and milliseconds (13 digits) timestamps
+            const formatDate = (timestamp) => {
+              if (!timestamp) return "N/A";
+              try {
+                const ts = typeof timestamp === "string" ? parseInt(timestamp, 10) : timestamp;
+                
+                if (isNaN(ts)) {
+                  return "N/A";
+                }
+                
+                // Determine if timestamp is in seconds or milliseconds
+                const timestampLength = ts.toString().length;
+                let date;
+                
+                if (timestampLength === 10) {
+                  // Seconds timestamp - convert to milliseconds
+                  date = new Date(ts * 1000);
+                } else if (timestampLength === 13) {
+                  // Milliseconds timestamp - use directly
+                  date = new Date(ts);
+                } else {
+                  // For other lengths, try to determine based on value
+                  const year2000 = 946684800000; // Jan 1, 2000 in milliseconds
+                  if (ts > year2000) {
+                    // Likely milliseconds
+                    date = new Date(ts);
+                  } else {
+                    // Likely seconds
+                    date = new Date(ts * 1000);
+                  }
+                }
+                
+                if (isNaN(date.getTime())) return "N/A";
+                
+                // Extract only date components (ignore time)
+                // Use UTC methods to avoid timezone issues
+                const day = String(date.getUTCDate()).padStart(2, "0");
+                const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+                const year = date.getUTCFullYear();
+                return `${day}/${month}/${year}`;
+              } catch (error) {
+                return "N/A";
+              }
+            };
 
             // Transform to component format
             const transformedData = items.map((item) => ({
               id: item.id,
               c_name: item.name,
-              createDate: item.createdAt
-                ? new Date(parseInt(item.createdAt) * 1000).toLocaleDateString()
-                : "N/A",
+              createDate: formatDate(item.createdAt),
               createdBy: "Admin",
               parentId: item.categoryId,
               categoryId: item.categoryId,
@@ -159,10 +199,6 @@ const SubCategoryListing = memo(
 
             // Reset ref on error so we can retry on next render
             fetchedCategoryIdRef.current = null;
-          } finally {
-            // Always reset loading state, even on error
-            setLoading(false);
-            isFetchingRef.current = false;
           }
         }
       };
@@ -226,8 +262,9 @@ const SubCategoryListing = memo(
           await onRefresh();
         }
 
-        // Reset local state
+        // Reset local state to force refresh when parentRecord updates
         fetchedCategoryIdRef.current = null;
+        prevSubCategoriesRef.current = null;
 
         // Close modal
         setIsDeleteModalOpen(false);
@@ -335,7 +372,7 @@ const SubCategoryListing = memo(
           // Reset refs to force refresh when parentRecord updates
           fetchedCategoryIdRef.current = null;
           prevSubCategoriesRef.current = null;
-          
+
           // Close modal
           closeModal();
         } catch (error) {
@@ -426,7 +463,12 @@ const SubCategoryListing = memo(
             dataSource={subCategories}
             rowKey="id"
             loading={loading}
-            pagination={{ hideOnSinglePage: true, defaultPageSize: 5 }}
+            pagination={{
+              defaultPageSize: 5,
+              pageSizeOptions: ["5", "10", "20", "50", "100"],
+              showSizeChanger: true,
+              showTotal: (total) => `Total ${total} subcategories`,
+            }}
             size="small"
           />
         </div>

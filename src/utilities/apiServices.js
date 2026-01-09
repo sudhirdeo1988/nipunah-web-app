@@ -464,11 +464,7 @@ export const categoryService = {
       return response;
     } catch (error) {
       // Error is already handled by axios interceptor with user-friendly messages
-      // Add specific error handling for category creation if needed
-      if (error.status === 404) {
-        error.message =
-          "Category endpoint not found. Please check the API configuration.";
-      }
+      // Just re-throw the error to let the interceptor's message be used
       throw error;
     }
   },
@@ -512,11 +508,7 @@ export const categoryService = {
       return response;
     } catch (error) {
       // Error is already handled by axios interceptor with user-friendly messages
-      // Add specific error handling for subcategory creation if needed
-      if (error.status === 404) {
-        error.message =
-          "Subcategory endpoint not found. Please check the API configuration.";
-      }
+      // Just re-throw the error to let the interceptor's message be used
       throw error;
     }
   },

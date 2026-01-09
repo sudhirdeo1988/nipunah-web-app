@@ -51,6 +51,7 @@ const Company = () => {
     handlePostedJobsClick,
     handleCancelPostedJobs,
     handleCancelCreateCompany,
+    handleUpdateStatus,
   } = useCompanyListing();
 
   return (
@@ -70,6 +71,8 @@ const Company = () => {
             rowSelection={rowSelection}
             onMenuClick={handleMenuClick}
             onPostedJobsClick={handlePostedJobsClick}
+            onUpdateStatus={handleUpdateStatus}
+            loading={false}
           />
         </Suspense>
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useCallback, useMemo, memo } from "react";
-import { Table, Tag, Dropdown, Space } from "antd";
+import React, { useCallback, useMemo, memo, useState } from "react";
+import { Table, Tag, Dropdown, Space, Switch, Modal } from "antd";
 import Icon from "@/components/Icon";
 import { STATUS_COLORS, PLAN_COLORS } from "../../constants/companyConstants";
 
@@ -18,7 +18,11 @@ import { STATUS_COLORS, PLAN_COLORS } from "../../constants/companyConstants";
  * @returns {JSX.Element} The CompanyTable component
  */
 const CompanyTable = memo(
-  ({ companies, rowSelection, onMenuClick, onPostedJobsClick }) => {
+  ({ companies, rowSelection, onMenuClick, onPostedJobsClick, onUpdateStatus, loading = false }) => {
+    // State for status change confirmation modal
+    const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+    const [companyForStatusChange, setCompanyForStatusChange] = useState(null);
+    const [newStatus, setNewStatus] = useState(null);
     // ==================== MEMOIZED RENDER FUNCTIONS ====================
 
     /**
@@ -75,15 +79,77 @@ const CompanyTable = memo(
     }, []);
 
     /**
-     * Memoized render function for status column
+     * Handle status switch change
+     * Opens confirmation modal before changing status
+     * @param {boolean} checked - New status (true for approved, false for pending/blocked)
+     * @param {Object} record - Company record
      */
-    const renderStatus = useCallback((status) => {
-      return (
-        <Tag color={STATUS_COLORS[status] || "default"}>
-          {status.charAt(0).toUpperCase() + status.slice(1)}
-        </Tag>
-      );
+    const handleStatusChange = useCallback((checked, record) => {
+      setCompanyForStatusChange(record);
+      setNewStatus(checked);
+      setIsStatusModalOpen(true);
     }, []);
+
+    /**
+     * Handle confirm status change
+     * Calls the API to update company status
+     */
+    const handleConfirmStatusChange = useCallback(async () => {
+      if (companyForStatusChange && onUpdateStatus) {
+        try {
+          await onUpdateStatus(companyForStatusChange.id, newStatus);
+          setIsStatusModalOpen(false);
+          setCompanyForStatusChange(null);
+        } catch (error) {
+          // Error is handled in the hook
+          console.error("Error updating company status:", error);
+        }
+      }
+    }, [companyForStatusChange, newStatus, onUpdateStatus]);
+
+    /**
+     * Handle cancel status change
+     * Closes modal without making changes
+     */
+    const handleCancelStatusChange = useCallback(() => {
+      setIsStatusModalOpen(false);
+      setCompanyForStatusChange(null);
+    }, []);
+
+    /**
+     * Memoized render function for status column
+     * Renders status text and icon first, then switch component
+     * Only shows "Approved" or "Rejected" status
+     */
+    const renderStatus = useCallback(
+      (status, record) => {
+        // Map status to boolean: "approved" = true, anything else = false (rejected)
+        const isApproved = status === "approved" || status === "Approved";
+        
+        return (
+          <Space size={8} align="center">
+            {isApproved ? (
+              <Space size={4} align="center">
+                <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
+                <span style={{ color: "#52c41a", fontSize: "12px" }}>Approved</span>
+              </Space>
+            ) : (
+              <Space size={4} align="center">
+                <Icon name="cancel" size="small" style={{ color: "#ff4d4f" }} />
+                <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Rejected</span>
+              </Space>
+            )}
+            <Switch
+              checked={isApproved}
+              onChange={(checked) => handleStatusChange(checked, record)}
+              size="small"
+              disabled={loading}
+            />
+          </Space>
+        );
+      },
+      [handleStatusChange, loading]
+    );
 
     /**
      * Memoized render function for posted jobs column
@@ -136,15 +202,15 @@ const CompanyTable = memo(
           ),
         },
         {
-          key: record.status === "approved" ? "block" : "approve",
+          key: record.status === "approved" || record.status === "Approved" ? "reject" : "approve",
           label: (
             <Space align="center">
               <Icon
-                name={record.status === "approved" ? "block" : "check_circle"}
+                name={record.status === "approved" || record.status === "Approved" ? "cancel" : "check_circle"}
                 size="small"
               />
               <span className="C-heading size-xs mb-0 semiBold">
-                {record.status === "approved" ? "Block" : "Approve"}
+                {record.status === "approved" || record.status === "Approved" ? "Reject" : "Approve"}
               </span>
             </Space>
           ),
@@ -232,7 +298,7 @@ const CompanyTable = memo(
           title: "Status",
           dataIndex: "status",
           key: "status",
-          width: "10%",
+          width: "12%",
           render: renderStatus,
           sorter: (a, b) => a.status.localeCompare(b.status),
         },
@@ -274,23 +340,60 @@ const CompanyTable = memo(
     );
 
     return (
-      <Table
-        columns={columns}
-        dataSource={companies}
-        rowKey="id"
-        rowSelection={rowSelection}
-        pagination={{
-          hideOnSinglePage: true,
-          defaultPageSize: 10,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) =>
-            `${range[0]}-${range[1]} of ${total} companies`,
-          pageSizeOptions: ["10", "20", "50", "100"],
-        }}
-        loading={false} // TODO: Add loading state from API calls
-        scroll={{ x: 1000 }} // Enable horizontal scroll for smaller screens
-      />
+      <>
+        <Table
+          columns={columns}
+          dataSource={companies}
+          rowKey="id"
+          rowSelection={rowSelection}
+          pagination={{
+            hideOnSinglePage: true,
+            defaultPageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) =>
+              `${range[0]}-${range[1]} of ${total} companies`,
+            pageSizeOptions: ["10", "20", "50", "100"],
+          }}
+          loading={loading}
+          scroll={{ x: 1000 }} // Enable horizontal scroll for smaller screens
+        />
+
+        {/* Status Change Confirmation Modal */}
+        <Modal
+          title={
+            <span className="C-heaidng size-5 mb-0 bold">
+              {newStatus ? "Approve Company" : "Reject Company"}
+            </span>
+          }
+          open={isStatusModalOpen}
+          onOk={handleConfirmStatusChange}
+          onCancel={handleCancelStatusChange}
+          okText={newStatus ? "Approve" : "Reject"}
+          cancelText="Cancel"
+          okButtonProps={{
+            className: "C-button is-filled",
+            loading: loading,
+          }}
+          cancelButtonProps={{
+            className: "C-button is-bordered",
+            disabled: loading,
+          }}
+          centered
+          confirmLoading={loading}
+        >
+          <div className="py-3 text-center">
+            <p className="C-heading size-6 bold mb-3">
+              Are you sure you want to{" "}
+              {newStatus ? "approve" : "reject"}{" "}
+              <span className="color-dark">
+                {companyForStatusChange?.name || "this company"}
+              </span>
+              ?
+            </p>
+          </div>
+        </Modal>
+      </>
     );
   }
 );

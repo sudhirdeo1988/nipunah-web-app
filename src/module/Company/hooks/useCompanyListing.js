@@ -142,7 +142,7 @@ export const useCompanyListing = () => {
       case "approve":
         handleApproveCompany(record);
         break;
-      case "block":
+      case "reject":
         handleBlockCompany(record);
         break;
       case "delete":
@@ -168,17 +168,36 @@ export const useCompanyListing = () => {
   }, []);
 
   /**
-   * Handles block company action
-   * @param {Object} company - Company to block
+   * Handles reject company action
+   * @param {Object} company - Company to reject
    */
   const handleBlockCompany = useCallback((company) => {
     setCompanies((prevCompanies) =>
       prevCompanies.map((comp) =>
-        comp.id === company.id ? { ...comp, status: "blocked" } : comp
+        comp.id === company.id ? { ...comp, status: "rejected" } : comp
       )
     );
-    message.success(`${company.name} has been blocked`);
+    message.success(`${company.name} has been rejected`);
   }, []);
+
+  /**
+   * Handles update company status via switch
+   * @param {number} companyId - ID of the company
+   * @param {boolean} isApproved - New status (true for approved, false for rejected)
+   */
+  const handleUpdateStatus = useCallback((companyId, isApproved) => {
+    setCompanies((prevCompanies) =>
+      prevCompanies.map((comp) =>
+        comp.id === companyId
+          ? { ...comp, status: isApproved ? "approved" : "rejected" }
+          : comp
+      )
+    );
+    const company = companies.find((c) => c.id === companyId);
+    message.success(
+      `${company?.name || "Company"} has been ${isApproved ? "approved" : "rejected"}`
+    );
+  }, [companies]);
 
   /**
    * Handles single company delete confirmation
@@ -325,6 +344,7 @@ export const useCompanyListing = () => {
     handleCancelCompanyDetails,
     handleCancelPostedJobs,
     handleCancelCreateCompany,
+    handleUpdateStatus,
 
     // Setters
     setCompanies,

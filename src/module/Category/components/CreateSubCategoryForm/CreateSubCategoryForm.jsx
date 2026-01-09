@@ -1,5 +1,5 @@
 import { Form, Input, Select, Space, Spin } from "antd";
-import React, { useEffect, useCallback } from "react";
+import React, { useEffect, useCallback, useState } from "react";
 import PropTypes from "prop-types";
 
 /**
@@ -16,6 +16,7 @@ const CreateSubCategoryForm = ({
   onFormReset,
 }) => {
   const [form] = Form.useForm();
+  const [selectOpen, setSelectOpen] = useState(false);
 
   useEffect(() => {
     if (selectedSubCategory) {
@@ -103,6 +104,16 @@ const CreateSubCategoryForm = ({
               options={categories}
               showSearch
               optionFilterProp="label"
+              open={selectOpen}
+              onDropdownVisibleChange={(open) => {
+                setSelectOpen(open);
+              }}
+              onSelect={() => {
+                // Close dropdown after selection
+                setTimeout(() => {
+                  setSelectOpen(false);
+                }, 0);
+              }}
             />
           </Form.Item>
         ) : (

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { categoryService } from "@/utilities/apiServices";
 import { message } from "antd";
+import { shouldDisplayError } from "@/utilities/errorMessageDeduplicator";
 
 /**
  * Mock data structure matching the API response
@@ -39,6 +40,67 @@ const MOCK_RESPONSE = {
 };
 
 /**
+ * Format timestamp to DD/MM/YYYY format
+ *
+ * Handles both seconds (10 digits) and milliseconds (13 digits) timestamps
+ *
+ * @param {string|number} timestamp - Unix timestamp in seconds or milliseconds
+ * @returns {string} Formatted date as DD/MM/YYYY or "N/A" if invalid
+ */
+const formatDate = (timestamp) => {
+  if (!timestamp) return "N/A";
+
+  try {
+    // Handle string timestamps
+    const ts = typeof timestamp === "string" ? parseInt(timestamp, 10) : timestamp;
+    
+    if (isNaN(ts)) {
+      return "N/A";
+    }
+    
+    // Determine if timestamp is in seconds or milliseconds
+    // Timestamps in seconds are typically 10 digits (before year 2286)
+    // Timestamps in milliseconds are typically 13 digits
+    const timestampLength = ts.toString().length;
+    let date;
+    
+    if (timestampLength === 10) {
+      // Seconds timestamp - convert to milliseconds
+      date = new Date(ts * 1000);
+    } else if (timestampLength === 13) {
+      // Milliseconds timestamp - use directly
+      date = new Date(ts);
+    } else {
+      // For other lengths, try to determine based on value
+      // If it's a reasonable timestamp (after year 2000 in milliseconds)
+      const year2000 = 946684800000; // Jan 1, 2000 in milliseconds
+      if (ts > year2000) {
+        // Likely milliseconds
+        date = new Date(ts);
+      } else {
+        // Likely seconds
+        date = new Date(ts * 1000);
+      }
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return "N/A";
+    }
+    
+    // Extract only date components (ignore time)
+    // Use UTC methods to avoid timezone issues
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const year = date.getUTCFullYear();
+    return `${day}/${month}/${year}`;
+  } catch (error) {
+    console.error("Error formatting date:", error);
+    return "N/A";
+  }
+};
+
+/**
  * Transform API response data to component format
  *
  * Converts API response structure to the format expected by the UI components.
@@ -50,7 +112,7 @@ const MOCK_RESPONSE = {
  *
  * @example
  * Input: { items: [{ id: 1, name: "Tech", createdAt: "1733275564" }] }
- * Output: [{ id: 1, c_name: "Tech", createDate: "1/1/2025", ... }]
+ * Output: [{ id: 1, c_name: "Tech", createDate: "01/12/2024", ... }]
  */
 const transformCategoryData = (apiData) => {
   if (!apiData?.items) return [];
@@ -60,9 +122,7 @@ const transformCategoryData = (apiData) => {
     c_name: item.name,
     createdBy: "Admin", // TODO: Update from API response when available
     sub_categories: item.subCategories?.total || 0,
-    createDate: item.createdAt
-      ? new Date(parseInt(item.createdAt) * 1000).toLocaleDateString()
-      : "N/A",
+    createDate: formatDate(item.createdAt),
     createdAt: item.createdAt,
     updatedAt: item.updatedAt,
     // IMPORTANT: Preserve subCategories data from API response
@@ -84,7 +144,7 @@ const transformCategoryData = (apiData) => {
  *
  * @example
  * Input: { items: [{ id: 1, name: "Web Dev", categoryId: 1, createdAt: "1733275564" }] }
- * Output: [{ id: 1, c_name: "Web Dev", createDate: "1/1/2025", categoryId: 1, ... }]
+ * Output: [{ id: 1, c_name: "Web Dev", createDate: "01/12/2024", categoryId: 1, ... }]
  */
 const transformSubCategoryData = (subCategories) => {
   // Handle both direct array and nested items structure
@@ -97,9 +157,7 @@ const transformSubCategoryData = (subCategories) => {
   return items.map((item) => ({
     id: item.id,
     c_name: item.name,
-    createDate: item.createdAt
-      ? new Date(parseInt(item.createdAt) * 1000).toLocaleDateString()
-      : "N/A",
+    createDate: formatDate(item.createdAt),
     createdBy: "Admin", // TODO: Update from API response when available
     parentId: item.categoryId,
     categoryId: item.categoryId,
@@ -162,6 +220,9 @@ export const useCategory = () => {
 
   // Ref to store debounce timer for search optimization
   const searchDebounceTimerRef = useRef(null);
+  
+  // Ref to track if fetchCategories is currently running to prevent concurrent calls
+  const isFetchingRef = useRef(false);
 
   // Mock data toggle - Set to false to use real API calls
   // When ready to use real API, change this to false or remove the useMockData state
@@ -183,6 +244,13 @@ export const useCategory = () => {
    */
   const fetchCategories = useCallback(
     async (params = {}) => {
+      // Prevent concurrent calls (e.g., from React Strict Mode double renders)
+      if (isFetchingRef.current) {
+        console.log("⏸️ fetchCategories already in progress, skipping duplicate call");
+        return;
+      }
+      
+      isFetchingRef.current = true;
       setLoading(true);
       try {
         let response;
@@ -234,10 +302,15 @@ export const useCategory = () => {
         console.error("Error fetching categories:", error);
         setError(error);
 
-        // Show error message to user
+        // Show error message to user (using global deduplicator to prevent duplicates)
         const errorMessage =
           error.message || "Failed to fetch categories. Please try again.";
-        message.error(errorMessage);
+        
+        // Use global deduplicator to prevent duplicate messages
+        // This handles React Strict Mode double renders and concurrent calls
+        if (shouldDisplayError(errorMessage, 3000)) {
+          message.error(errorMessage);
+        }
 
         // Fallback to mock data on error (only if using real API)
         // This allows UI to continue working even if API fails
@@ -250,8 +323,9 @@ export const useCategory = () => {
           setCategories([]);
         }
       } finally {
-        // Always reset loading state, even on error
+        // Always reset loading state and fetching flag, even on error
         setLoading(false);
+        isFetchingRef.current = false;
       }
     },
     [
@@ -411,7 +485,11 @@ export const useCategory = () => {
           error?.message ||
           error?.error ||
           (typeof error === "string" ? error : "Failed to create category");
-        message.error(errorMessage);
+        
+        // Use global deduplicator to prevent duplicate messages
+        if (shouldDisplayError(errorMessage, 3000)) {
+          message.error(errorMessage);
+        }
         throw error;
       } finally {
         setLoading(false);
@@ -479,7 +557,12 @@ export const useCategory = () => {
         // ✅ Error state - set error and show error message
         console.error("Error updating category:", error);
         setError(error);
-        message.error(error.message || "Failed to update category");
+        const errorMessage = error.message || "Failed to update category";
+        
+        // Use global deduplicator to prevent duplicate messages
+        if (shouldDisplayError(errorMessage, 3000)) {
+          message.error(errorMessage);
+        }
         throw error;
       } finally {
         // ✅ Always reset loading state
@@ -538,7 +621,12 @@ export const useCategory = () => {
         // ✅ Error state - set error and show error message
         console.error("Error deleting category:", error);
         setError(error);
-        message.error(error.message || "Failed to delete category");
+        const errorMessage = error.message || "Failed to delete category";
+        
+        // Use global deduplicator to prevent duplicate messages
+        if (shouldDisplayError(errorMessage, 3000)) {
+          message.error(errorMessage);
+        }
         throw error;
       } finally {
         // ✅ Always reset loading state
@@ -614,7 +702,11 @@ export const useCategory = () => {
           error?.message ||
           error?.error ||
           (typeof error === "string" ? error : "Failed to create subcategory");
-        message.error(errorMessage);
+        
+        // Use global deduplicator to prevent duplicate messages
+        if (shouldDisplayError(errorMessage, 3000)) {
+          message.error(errorMessage);
+        }
         throw error;
       } finally {
         setLoading(false);
@@ -690,7 +782,12 @@ export const useCategory = () => {
         // ✅ Error state - set error and show error message
         console.error("Error updating subcategory:", error);
         setError(error);
-        message.error(error.message || "Failed to update subcategory");
+        const errorMessage = error.message || "Failed to update subcategory";
+        
+        // Use global deduplicator to prevent duplicate messages
+        if (shouldDisplayError(errorMessage, 3000)) {
+          message.error(errorMessage);
+        }
         throw error;
       } finally {
         // ✅ Always reset loading state
@@ -735,7 +832,12 @@ export const useCategory = () => {
       } catch (error) {
         console.error("Error deleting subcategory:", error);
         setError(error);
-        message.error(error.message || "Failed to delete subcategory");
+        const errorMessage = error.message || "Failed to delete subcategory";
+        
+        // Use global deduplicator to prevent duplicate messages
+        if (shouldDisplayError(errorMessage, 3000)) {
+          message.error(errorMessage);
+        }
         throw error;
       } finally {
         setLoading(false);
@@ -809,8 +911,15 @@ export const useCategory = () => {
    *
    * Fetches categories when the hook is first used.
    * Only runs once on mount to avoid unnecessary API calls.
+   * Uses ref to prevent double execution in React Strict Mode.
    */
+  const hasMountedRef = useRef(false);
   useEffect(() => {
+    // Prevent double execution in React Strict Mode
+    if (hasMountedRef.current) {
+      return;
+    }
+    hasMountedRef.current = true;
     fetchCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array ensures this runs only once on mount

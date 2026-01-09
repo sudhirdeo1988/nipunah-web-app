@@ -90,14 +90,9 @@ const CategoryPage = () => {
         closeModal();
       } catch (error) {
         // Error is already handled in the hook with message.error()
-        // But add fallback in case hook doesn't catch it
+        // No need to display it again here to avoid duplicates
         console.error("❌ Error creating category:", error);
-        // Fallback: Show error message if available
-        const errorMessage =
-          error?.message ||
-          error?.error ||
-          (typeof error === "string" ? error : "Failed to create category");
-        message.error(errorMessage);
+        // Don't show error message here - hook already handles it
       }
     },
     [createCategory, closeModal]
@@ -134,14 +129,9 @@ const CategoryPage = () => {
         closeModal();
       } catch (error) {
         // Error is already handled in the hook with message.error()
-        // But add fallback in case hook doesn't catch it
+        // No need to display it again here to avoid duplicates
         console.error("❌ Error creating subcategory:", error);
-        // Fallback: Show error message if available
-        const errorMessage =
-          error?.message ||
-          error?.error ||
-          (typeof error === "string" ? error : "Failed to create subcategory");
-        message.error(errorMessage);
+        // Don't show error message here - hook already handles it
       }
     },
     [createSubCategory, selectedCategory, closeModal]
