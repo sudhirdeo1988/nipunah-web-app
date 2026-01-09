@@ -5,7 +5,6 @@ import {
   ACTION_MENU_ITEMS,
   MODAL_MODES,
 } from "../../constants/categoryConstants";
-import { getModalTitle } from "../../utils/categoryUtils";
 import { useCategoryModal } from "../../hooks/useCategoryModal";
 import { categoryService } from "@/utilities/apiServices";
 import React, {
@@ -43,32 +42,41 @@ const getActionMenuItems = () =>
  * Displays subcategories for a parent category in an expandable table row.
  * Handles CRUD operations for subcategories with proper loading and error states.
  *
- * Performance optimizations:
- * - Uses refs to prevent duplicate API calls
- * - Memoized columns to prevent unnecessary re-renders
- * - Only fetches when parent category changes
+ * API Integration:
+ * - Fetches subcategories from separate API endpoint: GET /subcategories?categoryId={id}&page={page}&limit={limit}
+ * - Only makes API call when row is expanded (lazy loading for better performance)
+ * - Supports pagination with page and limit parameters
  *
- * Error handling:
+ * Performance Optimizations:
+ * - Uses refs (fetchedCategoryIdRef, fetchedPaginationRef) to prevent duplicate API calls
+ * - Uses isFetchingRef to prevent concurrent API calls
+ * - Only fetches when category ID changes (new row expanded)
+ * - Only fetches when pagination actually changes (page or pageSize)
+ * - Memoized columns configuration to prevent unnecessary re-renders
+ * - Component is wrapped in React.memo to prevent re-renders when props haven't changed
+ *
+ * Error Handling:
  * - Shows error messages via Ant Design message component
  * - Handles loading states properly
- * - Allows retry on error
+ * - Resets refs on error to allow retry
+ * - Gracefully handles API failures
  *
  * @param {Object} props - Component props
  * @param {Object} props.parentRecord - Parent category record
  * @param {number} props.parentRecord.id - Parent category ID
  * @param {string} props.parentRecord.c_name - Parent category name
- * @param {Function} props.onDeleteSubCategory - Handler for subcategory deletion
- */
-/**
- * SubCategoryListing Component Props
- *
- * @param {Object} props - Component props
- * @param {Object} props.parentRecord - Parent category record
- * @param {Function} props.onDeleteSubCategory - Handler for subcategory deletion
- * @param {Function} props.onEditSubCategory - Handler for subcategory edit (optional, falls back to parent handler)
+ * @param {Function} props.onDeleteSubCategory - Handler for subcategory deletion (optional)
+ * @param {Function} props.onEditSubCategory - Handler for subcategory edit (optional)
+ * @param {Function} props.onRefresh - Callback to refresh parent categories list (optional)
  */
 const SubCategoryListing = memo(
   ({ parentRecord, onDeleteSubCategory, onEditSubCategory, onRefresh }) => {
+    // Subcategory pagination state
+    const [subPagination, setSubPagination] = useState({
+      current: 1,
+      pageSize: 5,
+      total: 0,
+    });
     const {
       isModalOpen,
       selectedCategory,
@@ -83,92 +91,102 @@ const SubCategoryListing = memo(
     const [subCategoryToDelete, setSubCategoryToDelete] = useState(null);
     const [subCategories, setSubCategories] = useState([]);
     const [loading, setLoading] = useState(false);
-    // Use ref to track which category we've processed to prevent duplicate processing
+    // Performance optimization: Refs to prevent duplicate API calls
+    // Track which category and pagination we've already fetched
     const fetchedCategoryIdRef = useRef(null);
-    // Store previous subcategories data to detect changes
-    const prevSubCategoriesRef = useRef(null);
+    const fetchedPaginationRef = useRef({ page: null, pageSize: null });
+    const isFetchingRef = useRef(false); // Prevent concurrent API calls
     // Ref to store form reset function
     const formResetRef = useRef(null);
 
     /**
-     * Load subcategories when component mounts or parent record changes
+     * Fetch subcategories from API with pagination
      *
      * Performance optimizations:
-     * - Uses data from main categories API response (no separate API call)
-     * - Uses refs to prevent duplicate processing
-     * - Only processes if category ID changed
+     * - Uses refs to prevent duplicate API calls for the same category + pagination
+     * - Prevents concurrent calls using isFetchingRef
+     * - Only makes API call if category or pagination has changed
      *
-     * Note: Subcategories are already included in the main categories API response,
-     * so we just extract them from the parentRecord instead of making a separate API call.
+     * API Endpoint: GET /subcategories?categoryId={categoryId}&page={page}&limit={pageSize}
+     *
+     * @param {number} categoryId - ID of the parent category
+     * @param {number} page - Page number (default: 1)
+     * @param {number} pageSize - Items per page (default: 5)
+     * @returns {Promise<void>}
      */
-    useEffect(() => {
-      const loadSubCategories = () => {
-        const categoryId = parentRecord?.id;
-
-        // Validation: Only process if we have a valid category ID
+    const fetchSubCategories = useCallback(
+      async (categoryId, page = 1, pageSize = 5) => {
         if (!categoryId) {
-          console.warn("No category ID provided to SubCategoryListing");
+          console.warn("No category ID provided to fetchSubCategories");
           return;
         }
 
-        // Get current subcategories items from parentRecord
-        const currentItems = parentRecord?.subCategories?.items || [];
-        // Create a stringified version to detect changes
-        const currentItemsKey = JSON.stringify(
-          currentItems.map((item) => ({ id: item.id, name: item.name }))
-        );
-        const prevItemsKey = prevSubCategoriesRef.current;
+        // Performance: Prevent duplicate API calls for the same category + pagination
+        const paginationKey = `${categoryId}-${page}-${pageSize}`;
+        if (
+          fetchedCategoryIdRef.current === categoryId &&
+          fetchedPaginationRef.current.page === page &&
+          fetchedPaginationRef.current.pageSize === pageSize &&
+          !isFetchingRef.current
+        ) {
+          console.log("⏸️ Subcategories already fetched for this category and pagination, skipping");
+          return;
+        }
 
-        // Performance: Only process if:
-        // 1. We have a category ID
-        // 2. We haven't processed this category yet OR subcategories data changed
-        const shouldRefresh =
-          fetchedCategoryIdRef.current === null ||
-          fetchedCategoryIdRef.current !== categoryId ||
-          currentItemsKey !== prevItemsKey;
+        // Performance: Prevent concurrent API calls
+        if (isFetchingRef.current) {
+          console.log("⏸️ Subcategories fetch already in progress, skipping duplicate call");
+          return;
+        }
 
-        if (shouldRefresh) {
-          try {
-            // Extract and transform subcategories from parentRecord
-            const items = currentItems;
+        isFetchingRef.current = true;
+        setLoading(true);
+        try {
+          console.log("🟢 Fetching subcategories:", {
+            categoryId,
+            page,
+            pageSize,
+          });
+
+          const response = await categoryService.getSubCategories(categoryId, {
+            page,
+            limit: pageSize,
+          });
+
+          if (response.success && response.data) {
+            const items = response.data.items || [];
 
             // Format timestamp to DD/MM/YYYY
-            // Handles both seconds (10 digits) and milliseconds (13 digits) timestamps
             const formatDate = (timestamp) => {
               if (!timestamp) return "N/A";
               try {
-                const ts = typeof timestamp === "string" ? parseInt(timestamp, 10) : timestamp;
-                
+                const ts =
+                  typeof timestamp === "string"
+                    ? parseInt(timestamp, 10)
+                    : timestamp;
+
                 if (isNaN(ts)) {
                   return "N/A";
                 }
-                
-                // Determine if timestamp is in seconds or milliseconds
+
                 const timestampLength = ts.toString().length;
                 let date;
-                
+
                 if (timestampLength === 10) {
-                  // Seconds timestamp - convert to milliseconds
                   date = new Date(ts * 1000);
                 } else if (timestampLength === 13) {
-                  // Milliseconds timestamp - use directly
                   date = new Date(ts);
                 } else {
-                  // For other lengths, try to determine based on value
-                  const year2000 = 946684800000; // Jan 1, 2000 in milliseconds
+                  const year2000 = 946684800000;
                   if (ts > year2000) {
-                    // Likely milliseconds
                     date = new Date(ts);
                   } else {
-                    // Likely seconds
                     date = new Date(ts * 1000);
                   }
                 }
-                
+
                 if (isNaN(date.getTime())) return "N/A";
-                
-                // Extract only date components (ignore time)
-                // Use UTC methods to avoid timezone issues
+
                 const day = String(date.getUTCDate()).padStart(2, "0");
                 const month = String(date.getUTCMonth() + 1).padStart(2, "0");
                 const year = date.getUTCFullYear();
@@ -190,22 +208,88 @@ const SubCategoryListing = memo(
 
             setSubCategories(transformedData);
 
-            // Mark this category as processed and store current items key
+            // Update pagination from API response
+            setSubPagination({
+              current: response.data.page || page,
+              pageSize: response.data.limit || pageSize,
+              total: response.data.total || 0,
+            });
+
+            // Performance: Mark this category + pagination as fetched to prevent duplicate calls
             fetchedCategoryIdRef.current = categoryId;
-            prevSubCategoriesRef.current = currentItemsKey;
-          } catch (error) {
-            // Error handling: Log error and reset state to allow retry
-            console.error("Error loading subcategories:", error);
+            fetchedPaginationRef.current = { page, pageSize };
 
-            // Reset ref on error so we can retry on next render
-            fetchedCategoryIdRef.current = null;
+            console.log("✅ Subcategories fetched:", {
+              count: transformedData.length,
+              total: response.data.total || 0,
+              page: response.data.page || page,
+            });
+          } else {
+            console.warn("Invalid API response structure:", response);
+            setSubCategories([]);
+            setSubPagination({
+              current: 1,
+              pageSize: 5,
+              total: 0,
+            });
           }
+        } catch (error) {
+          console.error("Error fetching subcategories:", error);
+          message.error(
+            error.message || "Failed to load subcategories. Please try again."
+          );
+          setSubCategories([]);
+          setSubPagination({
+            current: 1,
+            pageSize: 5,
+            total: 0,
+          });
+          // Reset refs on error to allow retry
+          fetchedCategoryIdRef.current = null;
+          fetchedPaginationRef.current = { page: null, pageSize: null };
+        } finally {
+          setLoading(false);
+          isFetchingRef.current = false;
         }
-      };
+      },
+      [] // Empty deps - function is stable and doesn't depend on props/state
+    );
 
-      loadSubCategories();
+    /**
+     * Load subcategories when component mounts or parent record changes
+     *
+     * Performance optimizations:
+     * - Only fetches when category ID changes (when row is expanded for a new category)
+     * - Resets pagination to page 1 when switching categories
+     * - Uses refs to prevent duplicate fetches
+     *
+     * Fetches subcategories from separate API endpoint: GET /subcategories?categoryId={id}&page=1&limit=5
+     */
+    useEffect(() => {
+      const categoryId = parentRecord?.id;
+
+      if (!categoryId) {
+        console.warn("No category ID provided to SubCategoryListing");
+        return;
+      }
+
+      // Performance: Only fetch if category changed (new row expanded)
+      // Reset pagination when category changes
+      if (fetchedCategoryIdRef.current !== categoryId) {
+        setSubPagination({
+          current: 1,
+          pageSize: 5,
+          total: 0,
+        });
+        // Reset pagination ref to allow fetch for new category
+        fetchedPaginationRef.current = { page: null, pageSize: null };
+      }
+
+      // Fetch subcategories from API (only if category changed)
+      // fetchSubCategories has its own duplicate prevention logic
+      fetchSubCategories(categoryId, subPagination.current, subPagination.pageSize);
       // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [parentRecord?.id, parentRecord?.subCategories]); // Depend on both id and subCategories to refresh when data changes
+    }, [parentRecord?.id]); // Only depend on category ID - fetch on expand
 
     // Separate delete handler for sub-categories
     const handleDeleteSubCategoryClick = useCallback((record) => {
@@ -216,14 +300,21 @@ const SubCategoryListing = memo(
     /**
      * Handle confirm delete subcategory action
      *
-     * Deletes the subcategory and refreshes the list.
-     * Handles loading state and errors properly.
+     * Deletes the subcategory via API and refreshes both subcategories list and main categories list.
+     * 
+     * Performance optimizations:
+     * - Resets refs after delete to force fresh fetch
+     * - Handles pagination edge case: if deleting last item on page, goes to previous page
+     * - Refreshes main categories list to update subcategory count
      *
-     * Error handling: Shows error message if delete or reload fails.
-     */
-    /**
-     * Handle delete subcategory - SIMPLIFIED VERSION
-     * Calls API service directly
+     * API Endpoint: DELETE /categories/{categoryId}/subcategories/{subCategoryId}
+     *
+     * Error handling:
+     * - Shows error message if delete fails
+     * - Keeps modal open on error so user can retry
+     * - Closes modal only on success
+     *
+     * @returns {Promise<void>}
      */
     const handleConfirmDeleteSubCategory = useCallback(async () => {
       if (!subCategoryToDelete) {
@@ -257,14 +348,36 @@ const SubCategoryListing = memo(
 
         message.success("Subcategory deleted successfully");
 
-        // Refresh data
+        // Performance: Reset refs to force fresh fetch after delete
+        fetchedCategoryIdRef.current = null;
+        fetchedPaginationRef.current = { page: null, pageSize: null };
+
+        // Refresh main categories list first to update subcategory count
+        // This ensures the count is accurate before refreshing subcategories
         if (onRefresh) {
           await onRefresh();
         }
 
-        // Reset local state to force refresh when parentRecord updates
-        fetchedCategoryIdRef.current = null;
-        prevSubCategoriesRef.current = null;
+        // Refresh subcategories after delete
+        // If current page becomes empty after delete (was last item on page), go to previous page
+        const currentItemCount = subCategories.length;
+        const newPage = subPagination.current > 1 && currentItemCount === 1
+          ? subPagination.current - 1
+          : subPagination.current;
+
+        // Update pagination state before fetching
+        if (newPage !== subPagination.current) {
+          setSubPagination((prev) => ({
+            ...prev,
+            current: newPage,
+          }));
+        }
+
+        await fetchSubCategories(
+          parentRecord.id,
+          newPage,
+          subPagination.pageSize
+        );
 
         // Close modal
         setIsDeleteModalOpen(false);
@@ -275,7 +388,7 @@ const SubCategoryListing = memo(
       } finally {
         setLoading(false);
       }
-    }, [subCategoryToDelete, parentRecord.id, onRefresh]);
+    }, [subCategoryToDelete, parentRecord.id, fetchSubCategories, subPagination.current, subPagination.pageSize, subCategories.length, onRefresh]);
 
     const handleCancelDeleteSubCategory = useCallback(() => {
       setIsDeleteModalOpen(false);
@@ -298,17 +411,28 @@ const SubCategoryListing = memo(
     /**
      * Handle modal form submission (create/edit subcategory)
      *
-     * Makes the API call to create or update subcategory, then reloads the list.
+     * Makes the API call to create or update subcategory, then refreshes both lists.
+     *
+     * Performance optimizations:
+     * - Resets refs after create/update to force fresh fetch
+     * - Refreshes main categories list to update subcategory count
+     * - Maintains current pagination after operations
      *
      * API Endpoints:
      * - PUT /subcategories/{id} for edit
-     * - POST /categories/{id}/subcategories for create
+     *   Payload: { "categoryId": number, "subcategoryName": "string" }
+     * - POST /categories/{categoryId}/subcategories for create
+     *   Payload: { "categoryId": number, "subcategoryName": "string" }
      *
-     * @param {Object} formData - Form data from CreateCategory component
-     */
-    /**
-     * Handle modal form submission - SUPER SIMPLE VERSION
-     * Uses dedicated API functions
+     * Error handling:
+     * - Shows error message if operation fails
+     * - Keeps modal open on error so user can retry
+     * - Closes modal only on success
+     *
+     * @param {Object} formData - Form data from CreateSubCategoryForm component
+     * @param {number} formData.categoryId - ID of the parent category
+     * @param {string} formData.subCategoryName - Name of the subcategory
+     * @returns {Promise<void>}
      */
     const handleModalSubmit = useCallback(
       async (formData) => {
@@ -339,9 +463,19 @@ const SubCategoryListing = memo(
 
             message.success("Subcategory updated!");
 
-            // Call onRefresh to fetch all categories after update
+            // Performance: Reset refs to force fresh fetch after update
+            fetchedCategoryIdRef.current = null;
+            fetchedPaginationRef.current = { page: null, pageSize: null };
+
+            // Refresh subcategories after update
+            await fetchSubCategories(
+              parentRecord.id,
+              subPagination.current,
+              subPagination.pageSize
+            );
+
+            // Refresh main categories list to update subcategory count (if needed)
             if (onRefresh) {
-              console.log("🔄 Calling onRefresh to fetch all categories after update...");
               await onRefresh();
             }
           } else {
@@ -363,15 +497,24 @@ const SubCategoryListing = memo(
 
             message.success("Subcategory created!");
 
-            // Call onRefresh to fetch all categories after create
+            // Performance: Reset refs to force fresh fetch after create
+            fetchedCategoryIdRef.current = null;
+            fetchedPaginationRef.current = { page: null, pageSize: null };
+
+            // Refresh subcategories after create
+            // After create, we might want to go to the last page to see the new item
+            // But for now, stay on current page
+            await fetchSubCategories(
+              parentRecord.id,
+              subPagination.current,
+              subPagination.pageSize
+            );
+
+            // Refresh main categories list to update subcategory count
             if (onRefresh) {
               await onRefresh();
             }
           }
-
-          // Reset refs to force refresh when parentRecord updates
-          fetchedCategoryIdRef.current = null;
-          prevSubCategoriesRef.current = null;
 
           // Close modal
           closeModal();
@@ -386,7 +529,7 @@ const SubCategoryListing = memo(
           setLoading(false);
         }
       },
-      [isEditMode, selectedCategory, parentRecord.id, closeModal, onRefresh]
+      [isEditMode, selectedCategory, parentRecord.id, closeModal, fetchSubCategories, subPagination.current, subPagination.pageSize]
     );
 
     /**
@@ -464,10 +607,40 @@ const SubCategoryListing = memo(
             rowKey="id"
             loading={loading}
             pagination={{
-              defaultPageSize: 5,
+              current: subPagination.current,
+              pageSize: subPagination.pageSize,
+              total: subPagination.total,
               pageSizeOptions: ["5", "10", "20", "50", "100"],
               showSizeChanger: true,
               showTotal: (total) => `Total ${total} subcategories`,
+            }}
+            onChange={(newPagination) => {
+              const { current, pageSize } = newPagination;
+              console.log("🔄 Subcategory pagination changed:", {
+                current,
+                pageSize,
+                currentTotal: subPagination.total,
+              });
+              
+              // Performance: Only fetch if pagination actually changed
+              if (
+                current === subPagination.current &&
+                pageSize === subPagination.pageSize
+              ) {
+                console.log("⏸️ Pagination unchanged, skipping API call");
+                return;
+              }
+              
+              // Update local state immediately for better UX
+              setSubPagination((prev) => ({
+                current: current || 1,
+                pageSize: pageSize || 5,
+                total: prev.total, // Keep total until API response updates it
+              }));
+              
+              // Fetch with new pagination
+              // fetchSubCategories has duplicate prevention, but we check here too for better UX
+              fetchSubCategories(parentRecord.id, current || 1, pageSize || 5);
             }}
             size="small"
           />

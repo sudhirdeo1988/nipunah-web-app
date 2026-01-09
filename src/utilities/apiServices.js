@@ -556,21 +556,50 @@ export const categoryService = {
   },
 
   /**
-   * Get all subcategories for a category
+   * Get all subcategories for a category with pagination support
    *
-   * API Endpoint: GET /categories/{categoryId}/subcategories
-   * Requires: Bearer token authentication
+   * Performance: This is a separate API endpoint called only when a category row is expanded.
+   * This prevents loading all subcategories upfront and improves initial page load performance.
+   *
+   * API Endpoint: GET /api/subcategories?categoryId={categoryId}&page={page}&limit={limit}
+   * Example: GET /api/subcategories?categoryId=15&page=1&limit=10
+   * 
+   * Note: This goes through Next.js proxy route (/api/subcategories/route.js) which forwards
+   * the request to the external API (${API_BASE_URL}/subcategories) with proper authentication.
+   * This avoids CORS issues and ensures bearer token is included from cookies.
+   *
+   * Requires: Bearer token authentication (automatically included via axiosInstance and proxy route)
+   *
+   * Response Structure:
+   * {
+   *   success: true,
+   *   data: {
+   *     items: [...],
+   *     total: 7,
+   *     page: 1,
+   *     limit: 10
+   *   }
+   * }
    *
    * @param {number} categoryId - ID of the parent category
    * @param {Object} params - Query parameters (pagination, sorting, etc.)
-   * @returns {Promise<Object>} Subcategories data
+   * @param {number} params.page - Page number (default: 1)
+   * @param {number} params.limit - Items per page (default: 10)
+   * @returns {Promise<Object>} Subcategories data with pagination info
+   *
+   * @example
+   * const response = await categoryService.getSubCategories(15, { page: 1, limit: 10 });
    */
   getSubCategories: async (categoryId, params = {}) => {
     try {
-      const response = await axiosInstance.get(
-        `/categories/${categoryId}/subcategories`,
-        { params }
-      );
+      // Call through Next.js proxy route: /api/subcategories -> ${API_BASE_URL}/subcategories
+      // The proxy route handles CORS and adds bearer token from cookies
+      const response = await axiosInstance.get("/subcategories", {
+        params: {
+          categoryId,
+          ...params,
+        },
+      });
       return response;
     } catch (error) {
       throw error;
@@ -656,15 +685,23 @@ export const categoryService = {
   /**
    * Delete subcategory
    *
-   * API Endpoint: DELETE /categories/{categoryId}/subcategories/{subCategoryId}
-   * Requires: Bearer token authentication
+   * API Endpoint: DELETE /api/subcategories/{subCategoryId}
+   * Example: DELETE /api/subcategories/16
+   * 
+   * Note: This goes through Next.js proxy route (/api/subcategories/[subCategoryId]/route.js)
+   * which forwards the request to the external API (${API_BASE_URL}/subcategories/{subCategoryId})
+   * with proper authentication. This avoids CORS issues and ensures bearer token is included from cookies.
    *
-   * @param {number} categoryId - ID of the parent category
+   * Requires: Bearer token authentication (automatically included via axiosInstance and proxy route)
+   *
+   * @param {number} categoryId - ID of the parent category (for reference, not used in API call)
    * @param {number} subCategoryId - ID of the subcategory to delete
    * @returns {Promise<Object>} Deletion response
    */
   deleteSubCategory: async (categoryId, subCategoryId) => {
     try {
+      // Call through Next.js proxy route: /api/subcategories/{subCategoryId} -> ${API_BASE_URL}/subcategories/{subCategoryId}
+      // The proxy route handles CORS and adds bearer token from cookies
       const response = await axiosInstance.delete(
         `/subcategories/${subCategoryId}`
       );

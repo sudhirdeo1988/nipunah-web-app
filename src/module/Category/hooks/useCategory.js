@@ -42,10 +42,20 @@ const MOCK_RESPONSE = {
 /**
  * Format timestamp to DD/MM/YYYY format
  *
- * Handles both seconds (10 digits) and milliseconds (13 digits) timestamps
+ * Performance: Pure function with no side effects, can be safely memoized.
+ * Handles both seconds (10 digits) and milliseconds (13 digits) timestamps.
+ *
+ * Timestamp Detection Logic:
+ * - 10 digits = Unix timestamp in seconds (e.g., 1733275564)
+ * - 13 digits = Unix timestamp in milliseconds (e.g., 1767800669310)
+ * - Other lengths = Uses heuristic based on value (if > year 2000 in ms, treat as ms)
  *
  * @param {string|number} timestamp - Unix timestamp in seconds or milliseconds
  * @returns {string} Formatted date as DD/MM/YYYY or "N/A" if invalid
+ *
+ * @example
+ * formatDate(1733275564) // Returns "01/12/2024" (10 digits = seconds)
+ * formatDate(1767800669310) // Returns "07/01/2026" (13 digits = milliseconds)
  */
 const formatDate = (timestamp) => {
   if (!timestamp) return "N/A";
@@ -103,16 +113,24 @@ const formatDate = (timestamp) => {
 /**
  * Transform API response data to component format
  *
+ * Performance: Pure function with no side effects. Processes data synchronously.
  * Converts API response structure to the format expected by the UI components.
  * Handles date formatting and ensures all required fields are present.
  *
+ * Important: This function does NOT include subcategories in the transformation.
+ * Subcategories are fetched separately via GET /subcategories API when rows are expanded.
+ * This improves initial page load performance by not loading all subcategories upfront.
+ *
  * @param {Object} apiData - API response data object
  * @param {Array} apiData.items - Array of category items from API
+ * @param {number} apiData.total - Total number of categories
+ * @param {number} apiData.page - Current page number
+ * @param {number} apiData.limit - Items per page
  * @returns {Array} Transformed array of category objects for UI display
  *
  * @example
  * Input: { items: [{ id: 1, name: "Tech", createdAt: "1733275564" }] }
- * Output: [{ id: 1, c_name: "Tech", createDate: "01/12/2024", ... }]
+ * Output: [{ id: 1, c_name: "Tech", createDate: "01/12/2024", sub_categories: 0, ... }]
  */
 const transformCategoryData = (apiData) => {
   if (!apiData?.items) return [];
@@ -232,7 +250,15 @@ export const useCategory = () => {
   /**
    * Fetch categories from API with pagination, sorting, and search support
    *
-   * API Endpoint: GET /categories?page=1&limit=10&sortBy=name&order=asc
+   * Performance optimizations:
+   * - Uses isFetchingRef to prevent concurrent/duplicate API calls
+   * - Memoized with useCallback to prevent unnecessary re-renders
+   * - Only updates state if response is successful
+   *
+   * API Endpoint: GET /categories/getAllCategories?page=1&limit=10&sortBy=name&order=asc
+   *
+   * Note: Subcategories are NOT included in this response. They are fetched separately
+   * via GET /subcategories?categoryId={id}&page={page}&limit={limit} when a row is expanded.
    *
    * @param {Object} params - Query parameters
    * @param {number} params.page - Page number (default: current page)
@@ -244,7 +270,8 @@ export const useCategory = () => {
    */
   const fetchCategories = useCallback(
     async (params = {}) => {
-      // Prevent concurrent calls (e.g., from React Strict Mode double renders)
+      // Performance: Prevent concurrent calls (e.g., from React Strict Mode double renders)
+      // This avoids duplicate API calls when component re-renders
       if (isFetchingRef.current) {
         console.log("⏸️ fetchCategories already in progress, skipping duplicate call");
         return;
@@ -440,7 +467,10 @@ export const useCategory = () => {
   /**
    * Create a new category
    *
-   * API Endpoint: POST /category
+   * Performance: Refreshes categories list after successful creation to show new category.
+   * Error handling: Uses global error deduplicator to prevent duplicate error messages.
+   *
+   * API Endpoint: POST /categories
    * Payload: { "name": "string" }
    *
    * @param {Object} categoryData - Category data from form
@@ -500,6 +530,9 @@ export const useCategory = () => {
 
   /**
    * Update an existing category
+   *
+   * Performance: Refreshes categories list after successful update to show changes.
+   * Error handling: Uses global error deduplicator to prevent duplicate error messages.
    *
    * API Endpoint: PUT /categories/{id}
    * Payload: { "name": "string" }
@@ -575,6 +608,9 @@ export const useCategory = () => {
   /**
    * Delete a category
    *
+   * Performance: Refreshes categories list after successful deletion to remove deleted category.
+   * Error handling: Uses global error deduplicator to prevent duplicate error messages.
+   *
    * API Endpoint: DELETE /categories/{id}
    *
    * States:
@@ -639,15 +675,18 @@ export const useCategory = () => {
   /**
    * Create a new subcategory for a category
    *
+   * Performance: Refreshes categories list after successful creation to update subcategory count.
+   * Error handling: Uses global error deduplicator to prevent duplicate error messages.
+   *
    * API Endpoint: POST /categories/{categoryId}/subcategories
    * Payload Structure: { "categoryId": number, "subcategoryName": "string" }
    *
-   * Note: The categoryService.createSubCategory automatically constructs
+   * Note: The categoryService.createNewSubCategory automatically constructs
    * the correct payload with both categoryId and subcategoryName
    *
    * @param {number} categoryId - ID of the parent category
    * @param {Object} subCategoryData - Subcategory data from form
-   * @param {string} subCategoryData.subcategoryName - Name of the subcategory
+   * @param {string} subCategoryData.subcategoryName - Name of the subcategory (or subCategoryName)
    * @returns {Promise<Object>} Created subcategory response
    * @throws {Error} If creation fails
    */
@@ -718,15 +757,18 @@ export const useCategory = () => {
   /**
    * Update an existing subcategory
    *
+   * Performance: Refreshes categories list after successful update to reflect changes.
+   * Error handling: Uses global error deduplicator to prevent duplicate error messages.
+   *
    * API Endpoint: PUT /subcategories/{id}
-   * Payload: { "name": "string" }
+   * Payload: { "categoryId": number, "subcategoryName": "string" }
    *
    * States:
    * - Loading: Shows loader during API call
    * - Error: Shows error message on failure
    * - Success: Shows success message and refreshes list
    *
-   * @param {number} categoryId - ID of the parent category (for reference)
+   * @param {number} categoryId - ID of the parent category
    * @param {number} subCategoryId - ID of the subcategory to update
    * @param {Object} subCategoryData - Updated subcategory data from form
    * @param {string} subCategoryData.subCategoryName - New name of the subcategory
@@ -800,7 +842,15 @@ export const useCategory = () => {
   /**
    * Delete a subcategory
    *
+   * Performance: Refreshes categories list after successful deletion to update subcategory count.
+   * Error handling: Uses global error deduplicator to prevent duplicate error messages.
+   *
    * API Endpoint: DELETE /categories/{categoryId}/subcategories/{subCategoryId}
+   *
+   * States:
+   * - Loading: Shows loader during API call
+   * - Error: Shows error message on failure
+   * - Success: Shows success message and refreshes list
    *
    * @param {number} categoryId - ID of the parent category
    * @param {number} subCategoryId - ID of the subcategory to delete

@@ -410,27 +410,46 @@ const MainCategoryListing = memo(
           }}
           onChange={handleTableChange}
           expandable={{
+            /**
+             * Render subcategories when a category row is expanded
+             *
+             * Performance optimizations:
+             * - Uses stable key based on category ID only (not subcategories data)
+             * - SubCategoryListing component handles its own API calls and caching
+             * - No need to pass subcategories data since it fetches from separate API
+             *
+             * @param {Object} record - The category record being expanded
+             * @returns {JSX.Element} SubCategoryListing component
+             */
             expandedRowRender: (record) => {
-              // Create a key that includes subcategories data to force re-render when data changes
-              const subCategoriesKey = JSON.stringify(record.subCategories?.items?.map(item => ({ id: item.id, name: item.name })) || []);
+              // Performance: Use stable key based only on category ID
+              // SubCategoryListing will fetch its own data and handle caching
               return (
                 <SubCategoryListing
-                  key={`subcategory-${record.id}-${subCategoriesKey}`}
+                  key={`subcategory-${record.id}`}
                   parentRecord={record}
                   onDeleteSubCategory={onDeleteSubCategory}
                   onRefresh={onFetchCategories}
                 />
               );
             },
-            // Prevent onChange from being triggered on expand/collapse
+            /**
+             * Handle expand/collapse events
+             *
+             * Performance: Prevents table onChange from being triggered on expand/collapse
+             * This avoids unnecessary category API calls when just expanding rows
+             *
+             * @param {boolean} expanded - Whether the row is expanded
+             * @param {Object} record - The category record
+             */
             onExpand: (expanded, record) => {
-              // Handle expand/collapse without triggering table onChange
-              // This prevents the categories API from being called
+              // Performance: Do nothing on expand/collapse
+              // This prevents the categories API from being called unnecessarily
+              // SubCategoryListing will fetch subcategories when it mounts (on expand)
               console.log("🔵 Row expanded/collapsed:", {
                 expanded,
                 categoryId: record.id,
               });
-              // Do nothing - subcategories are already in the response
             },
           }}
         />
