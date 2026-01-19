@@ -60,7 +60,7 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                     Employee Count:
                   </p>
                   <p className="C-heading size-6 mb-0">
-                    {company.employeeCount?.toLocaleString()}
+                    {company.employeeCount || company.employees_count || "N/A"}
                   </p>
                 </div>
                 <div className="col-6 mb-3">

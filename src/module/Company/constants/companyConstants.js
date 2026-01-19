@@ -1,6 +1,21 @@
 "use client";
 
 /**
+ * Employee count range options
+ * @type {Array<Object>}
+ */
+export const EMPLOYEE_COUNT_RANGES = [
+  { label: "1–10", value: "1–10" },
+  { label: "11–50", value: "11–50" },
+  { label: "51–200", value: "51–200" },
+  { label: "201–500", value: "201–500" },
+  { label: "501–1000", value: "501–1000" },
+  { label: "1001–5000", value: "1001–5000" },
+  { label: "5001–10000", value: "5001–10000" },
+  { label: "10000+", value: "10000+" },
+];
+
+/**
  * Mock company data for development/testing purposes
  * TODO: Replace with actual API calls in production
  * @type {Array<Object>}
@@ -16,7 +31,7 @@ export const MOCK_COMPANY_DATA = [
     description:
       "Leading technology solutions provider specializing in enterprise software development and digital transformation services.",
     industry: "Technology",
-    employeeCount: 250,
+    employeeCount: "201–500",
     contactEmail: "contact@techcorp.com",
     contactNumber: "+1-555-0123",
     turnOver: 5000000,
@@ -115,7 +130,7 @@ export const MOCK_COMPANY_DATA = [
     description:
       "International logistics and shipping company providing end-to-end supply chain solutions.",
     industry: "Logistics",
-    employeeCount: 1200,
+    employeeCount: "1001–5000",
     contactEmail: "info@globallogistics.com",
     contactNumber: "+1-555-0456",
     turnOver: 15000000,
@@ -204,7 +219,7 @@ export const MOCK_COMPANY_DATA = [
     description:
       "Innovative startup focused on AI-powered solutions for small businesses.",
     industry: "Technology",
-    employeeCount: 25,
+    employeeCount: "11–50",
     contactEmail: "hello@startupxyz.com",
     contactNumber: "+1-555-0789",
     turnOver: 500000,

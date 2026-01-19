@@ -13,8 +13,11 @@ import {
   Card,
   Button,
   message,
+  Tooltip,
 } from "antd";
+import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
+import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
 
 /**
  * CreateCompanyModal Component
@@ -89,7 +92,7 @@ const CreateCompanyModal = memo(({ isOpen, onCancel, onSubmit }) => {
         initialValues={{
           subscriptionPlan: "free",
           isMnc: false,
-          employeeCount: 1,
+          employeeCount: "",
           turnOver: 0,
         }}
       >
@@ -182,19 +185,17 @@ const CreateCompanyModal = memo(({ isOpen, onCancel, onSubmit }) => {
                     rules={[
                       {
                         required: true,
-                        message: "Please enter employee count",
-                      },
-                      {
-                        type: "number",
-                        min: 1,
-                        message: "Employee count must be at least 1",
+                        message: "Please select employee count range",
                       },
                     ]}
                   >
-                    <InputNumber
-                      placeholder="Enter employee count"
+                    <Select
+                      placeholder="Select employee count range"
                       style={{ width: "100%" }}
-                      min={1}
+                      options={EMPLOYEE_COUNT_RANGES.map((range) => ({
+                        label: range.label,
+                        value: range.value,
+                      }))}
                     />
                   </Form.Item>
                 </Col>
@@ -335,7 +336,18 @@ const CreateCompanyModal = memo(({ isOpen, onCancel, onSubmit }) => {
 
           {/* Location Information */}
           <Col span={24}>
-            <Card title="Primary Location" size="small" className="mb-3">
+            <Card
+              title={
+                <span style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  Primary Location
+                  <Tooltip title="The address you provide in this section will be publicly visible on your profile page.">
+                    <Icon name="info" style={{ cursor: "help", fontSize: "16px", color: "#1890ff" }} />
+                  </Tooltip>
+                </span>
+              }
+              size="small"
+              className="mb-3"
+            >
               <Row gutter={16}>
                 <Col span={8}>
                   <Form.Item

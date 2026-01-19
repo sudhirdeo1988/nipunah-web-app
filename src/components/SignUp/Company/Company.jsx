@@ -10,6 +10,7 @@ import {
   Divider,
   DatePicker,
   Upload,
+  Tooltip,
 } from "antd";
 import {
   FacebookOutlined,
@@ -27,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import axiosPublicInstance from "@/utilities/axiosPublicInstance";
 import { useEffect } from "react";
+import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
 
 const { TextArea } = Input;
 
@@ -693,8 +695,13 @@ const Company = () => {
 
           <div className="col-12">
             <Divider titlePlacement="left" styles={{ content: { margin: 0 } }}>
-              <span className="C-heading size-xss extraBold color-light mb-0">
+              <span className="C-heading size-xss extraBold color-light mb-0" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 ADDRESSES
+                <Tooltip title="The address you provide in this section will be publicly visible on your profile page.">
+                  <button type="button" className="C-settingButton extra-small is-clean">
+                    <Icon name="info" size="small" />
+                  </button>
+                </Tooltip>
               </span>
             </Divider>
           </div>
@@ -1253,12 +1260,18 @@ const Company = () => {
                 </span>
               }
               name="employees_count"
+              rules={[
+                { required: true, message: "Please select employee count range" },
+              ]}
               className="mb-2"
             >
-              <Input
-                placeholder="Employees count"
+              <Select
+                placeholder="Select employee count range"
                 size="large"
-                prefix={<Icon name="groups" isFilled color="#ccc" />}
+                options={EMPLOYEE_COUNT_RANGES.map((range) => ({
+                  label: range.label,
+                  value: range.value,
+                }))}
               />
             </Form.Item>
           </div>
@@ -1303,7 +1316,6 @@ const Company = () => {
                     placeholder="Amount"
                     size="large"
                     style={{ width: "70%" }}
-                    prefix={<Icon name="paid" isFilled color="#ccc" />}
                   />
                 </Form.Item>
               </Space.Compact>

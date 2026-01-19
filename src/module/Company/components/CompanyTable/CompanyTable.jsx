@@ -54,7 +54,9 @@ const CompanyTable = memo(
      */
     const renderEmployeeCount = useCallback(
       (count) => (
-        <span className="C-heading size-6 mb-0">{count.toLocaleString()}</span>
+        <span className="C-heading size-6 mb-0">
+          {count || "N/A"}
+        </span>
       ),
       []
     );
@@ -283,7 +285,20 @@ const CompanyTable = memo(
           key: "employeeCount",
           width: "12%",
           render: renderEmployeeCount,
-          sorter: (a, b) => a.employeeCount - b.employeeCount,
+          sorter: (a, b) => {
+            const aVal = a.employeeCount || "";
+            const bVal = b.employeeCount || "";
+            
+            // Extract numeric values from range strings for proper sorting
+            const getSortValue = (range) => {
+              if (!range) return 0;
+              if (range === "10000+") return 10000;
+              const match = range.match(/^(\d+)/);
+              return match ? parseInt(match[1], 10) : 0;
+            };
+            
+            return getSortValue(aVal) - getSortValue(bVal);
+          },
         },
         {
           title: "Plan",

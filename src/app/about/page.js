@@ -70,7 +70,7 @@ const AboutPage = () => {
             <div className="row mb-5">
               <div className="col-md-4 col-sm-6 cl-xs-12">
                 <Image
-                  src="/assets/images/about-us.png"
+                  src="/assets/images/about-us-banner.jpg"
                   alt="My Logo"
                   width={180}
                   height={60}
