@@ -63,15 +63,14 @@ const BannerSection = () => {
           <div className="col-sm-12 col-md-12 col-lg-8 col-xl-8">
             <div className="hero-content text-left">
               <h1 className="color-dark dont-break extraBold font-family-creative">
-                List. Connect. Grow
+                One Platform for All Maritime Needs
               </h1>
               <p className="C-heading size-6 mb-3 dont-break ">
-                Be seen by the right people. Expand your reach. <br /> Build
-                trusted global partnerships.
+                List your business, reach global partners, and get more opportunities.
               </p>
 
               <p className="C-heading size-6 color-dark mb-0 bold dont-break ">
-                Join Nipunah.com — grow your maritime network, the smart way.
+                 Everything becomes easier with Nipunah.com
               </p>
 
               <Suspense fallback={<></>}>

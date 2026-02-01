@@ -7,24 +7,24 @@ const BannerCards = () => {
   const data = [
     {
       id: 1,
-      title: "Global Maritime Visibility",
+      title: "Join Global Network",
       subTitle:
-        "Join the fastest-growing digital network for marine suppliers, contractors, and consultants worldwide.",
+        "Connect with verified maritime buyers, suppliers, and service providers across international markets.",
       icon: "public",
     },
     {
       id: 2,
-      title: "Showcase Your Expertise",
+      title: "Build Business Profile",
       subTitle:
-        "Highlight services, certifications, past projects, equipment, products, and business strengths effectively.",
+        "Present your services, certifications, projects, equipment, and product capabilities in one detailed profile.",
       icon: "person_raised_hand",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
       id: 3,
-      title: "Build Brand Trust",
+      title: "Validate Your Credibility",
       subTitle:
-        "Verified badges and client reviews boost your credibility and promote secure partnerships.",
+        "Strengthen trust with verification badges, compliance details, and genuine client reviews.",
       icon: "handshake",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
@@ -32,15 +32,15 @@ const BannerCards = () => {
       id: 4,
       title: "Generate Quality Leads",
       subTitle:
-        "Receive direct inquiries and collaboration offers from global maritime clients and partners.",
+        "Get direct inquiries and partnership requests from maritime clients searching for reliable suppliers and service providers.",
       icon: "approval_delegation",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
     {
       id: 5,
-      title: "Complete Industry Coverage",
+      title: "Industry-Wide Access",
       subTitle:
-        "Connect with all maritime sectors—from shipbuilding to tourism—on one comprehensive platform.",
+        "Explore and engage with all maritime sectors—including shipbuilding, offshore, ports, logistics, safety, tourism, and more—on one platform.",
       icon: "encrypted_add_circle",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
@@ -48,7 +48,7 @@ const BannerCards = () => {
       id: 6,
       title: "Smart Search Filters",
       subTitle:
-        "Let buyers find you easily by service type, sector, or global location.",
+        "Let buyers find you quickly using targeted filters by service, sector, certification, or location.",
       icon: "search_check_2",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },

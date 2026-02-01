@@ -11,8 +11,8 @@ const OurProcess = () => {
             <span>WORKING PROCESS</span>
           </div>
           <h2 className="C-heading size-4 color-white extraBold color-dark pb-3 font-family-creative">
-            We ensure transparency, real-time updates,
-            <br /> and quality control at every stage.
+          Providing end-to-end transparency, 
+            <br /> real-time tracking, and assured quality at every stage.
           </h2>
         </div>
 
@@ -27,11 +27,10 @@ const OurProcess = () => {
               </div>
               <div className="text-center">
                 <h4 className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
-                  List Company
+                List Your Company
                 </h4>
                 <p className="C-heading size-6 mb-0">
-                  Create your profile and add services, equipment, and products
-                  offered.
+                Create a detailed Business (Company )profile with your services, equipment, and product offerings.
                 </p>
               </div>
             </div>
@@ -49,8 +48,7 @@ const OurProcess = () => {
                   Get Verified
                 </h4>
                 <p className="C-heading size-6 mb-0">
-                  Provide authentic details to build trust and boost
-                  credibility.
+                Increase visibility, attract qualified leads, and position your company for worldwide discovery.
                 </p>
               </div>
             </div>
