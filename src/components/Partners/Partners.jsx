@@ -160,7 +160,7 @@ const Partners = () => {
               <span>PARTNERS</span>
             </div>
             <h2 className="C-heading size-4 extraBold color-dark font-family-creative">
-              Discover top maritime companies
+            Leading Companies in Our Network:
             </h2>
           </div>
 
@@ -248,7 +248,7 @@ const Partners = () => {
           {/* ✅ Section Header */}
           <div className="section-title text-center mb-4">
             <h2 className="C-heading size-4 extraBold color-dark font-family-creative">
-              Recently Onboarded Companies
+            Recently Onboarded Companies
             </h2>
           </div>
           <div className="py-4">

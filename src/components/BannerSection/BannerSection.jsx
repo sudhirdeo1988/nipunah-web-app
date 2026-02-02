@@ -63,7 +63,7 @@ const BannerSection = () => {
           <div className="col-sm-12 col-md-12 col-lg-8 col-xl-8">
             <div className="hero-content text-left">
               <h1 className="color-dark dont-break extraBold font-family-creative">
-                One Platform for All Maritime Needs
+              List. Connect. Grow
               </h1>
               <p className="C-heading size-6 mb-3 dont-break ">
                 List your business, reach global partners, and get more opportunities.

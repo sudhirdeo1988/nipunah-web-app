@@ -27,10 +27,10 @@ const OurProcess = () => {
               </div>
               <div className="text-center">
                 <h4 className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
-                List Your Company
+                List Your Profile
                 </h4>
                 <p className="C-heading size-6 mb-0">
-                Create a detailed Business (Company )profile with your services, equipment, and product offerings.
+                Create your profile and add services, equipment, and products you offer.
                 </p>
               </div>
             </div>
@@ -45,10 +45,10 @@ const OurProcess = () => {
               </div>
               <div className="text-center">
                 <h4 className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
-                  Get Verified
+                Platform Verification
                 </h4>
                 <p className="C-heading size-6 mb-0">
-                Increase visibility, attract qualified leads, and position your company for worldwide discovery.
+                Listed details are reviewed and verified by the platform to build profile trust.
                 </p>
               </div>
             </div>
@@ -60,11 +60,10 @@ const OurProcess = () => {
               </div>
               <div className="text-center">
                 <h4 className="C-heading size-5 semiBold color-dark mb-2 font-family-creative">
-                  Be Discovered Globally
+                Be Discovered Globally 
                 </h4>
                 <p className="C-heading size-6 mb-0">
-                  Increase visibility, attract leads, and showcase your company
-                  worldwide.
+                Increase visibility, attract global leads, and collaborate worldwide.
                 </p>
               </div>
             </div>

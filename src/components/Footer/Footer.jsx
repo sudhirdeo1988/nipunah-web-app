@@ -38,10 +38,7 @@ const Footer = () => {
                 </div>
                 <div className="footer-content">
                   <p className="C-heading size-6 color-white mb-3">
-                    Nipunah.com is the world's first integrated digital platform
-                    for the maritime and ocean economy — connecting shipowners,
-                    dredging firms, ports, offshore service providers, and
-                    marine tech companies.
+                  Nipunah.com is an integrated digital platform for the maritime and ocean economy—bringing together shipowners, dredging firms, ports, offshore services, and marine tech to help the industry connect and grow together.
                   </p>
 
                   <div className="social-icon d-flex align-items-center mt-3 gap-2">

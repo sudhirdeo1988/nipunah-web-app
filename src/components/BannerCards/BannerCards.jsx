@@ -7,14 +7,14 @@ const BannerCards = () => {
   const data = [
     {
       id: 1,
-      title: "Join Global Network",
+      title: "Global Maritime Reach",
       subTitle:
-        "Connect with verified maritime buyers, suppliers, and service providers across international markets.",
+        "Join the fastest-growing digital maritime platform built for global visibility and connections",
       icon: "public",
     },
     {
       id: 2,
-      title: "Build Business Profile",
+      title: "Highlight Your Offerings",
       subTitle:
         "Present your services, certifications, projects, equipment, and product capabilities in one detailed profile.",
       icon: "person_raised_hand",
@@ -22,7 +22,7 @@ const BannerCards = () => {
     },
     {
       id: 3,
-      title: "Validate Your Credibility",
+      title: "Build Visible Trust",
       subTitle:
         "Strengthen trust with verification badges, compliance details, and genuine client reviews.",
       icon: "handshake",
@@ -30,9 +30,9 @@ const BannerCards = () => {
     },
     {
       id: 4,
-      title: "Generate Quality Leads",
+      title: "Get Direct Inquiries",
       subTitle:
-        "Get direct inquiries and partnership requests from maritime clients searching for reliable suppliers and service providers.",
+        "Receive direct inquiries and collaboration interest from maritime networks globally.",
       icon: "approval_delegation",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
@@ -40,7 +40,7 @@ const BannerCards = () => {
       id: 5,
       title: "Industry-Wide Access",
       subTitle:
-        "Explore and engage with all maritime sectors—including shipbuilding, offshore, ports, logistics, safety, tourism, and more—on one platform.",
+        "Connect across all maritime sectors, from shipbuilding to tourism, on one platform.",
       icon: "encrypted_add_circle",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
@@ -48,7 +48,7 @@ const BannerCards = () => {
       id: 6,
       title: "Smart Search Filters",
       subTitle:
-        "Let buyers find you quickly using targeted filters by service, sector, certification, or location.",
+        "Make your profile easy to find by category and location.",
       icon: "search_check_2",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },
