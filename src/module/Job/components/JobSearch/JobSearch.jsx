@@ -9,6 +9,7 @@ const JobSearch = ({
   onSearchChange,
   onBulkDelete,
   selectedJobs,
+  onPostJob,
 }) => {
   return (
     <div className="row align-items-center mb-4">
@@ -24,6 +25,17 @@ const JobSearch = ({
 
       <div className="col-5 text-right">
         <Space>
+          <Button
+            size="large"
+            onClick={onPostJob}
+            className="C-button is-filled small"
+          >
+            <Space>
+              <Icon name="work" />
+              Post a job
+            </Space>
+          </Button>
+
           {!!selectedJobs.length && (
             <Button
               size="large"

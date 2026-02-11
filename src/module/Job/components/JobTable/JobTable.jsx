@@ -17,9 +17,12 @@ import {
  * @param {Array} props.jobs - List of jobs to display
  * @param {Object} props.rowSelection - Row selection configuration
  * @param {Function} props.onMenuClick - Handler for action menu clicks
+ * @param {boolean} props.loading - Loading state
+ * @param {Object} props.pagination - Pagination configuration
+ * @param {Function} props.onChange - Handler for table changes (pagination, sorting)
  * @returns {JSX.Element} The JobTable component
  */
-const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
+const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagination: paginationConfig, onChange }) => {
   // ==================== MEMOIZED RENDER FUNCTIONS ====================
 
   /**
@@ -28,9 +31,9 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
   const renderJobTitle = useCallback(
     (text, record) => (
       <div>
-        <span className="C-heading size-6 mb-1 semiBold">{text}</span>
+        <span className="C-heading size-6 mb-1 semiBold">{text || "N/A"}</span>
         <div className="C-heading size-xss mb-0 text-muted">
-          {record.employmentType}
+          {record.employmentType || "N/A"}
         </div>
       </div>
     ),
@@ -41,16 +44,19 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
    * Memoized render function for posted by company column
    */
   const renderPostedBy = useCallback(
-    (postedBy) => (
-      <div>
-        <span className="C-heading size-6 mb-1 semiBold">
-          {postedBy.companyName}
-        </span>
-        <div className="C-heading size-xss mb-0 text-muted">
-          {postedBy.companyShortName}
+    (postedBy) => {
+      if (!postedBy) return <span className="C-heading size-6 mb-0">N/A</span>;
+      return (
+        <div>
+          <span className="C-heading size-6 mb-1 semiBold">
+            {postedBy.companyName || "N/A"}
+          </span>
+          <div className="C-heading size-xss mb-0 text-muted">
+            {postedBy.companyShortName || ""}
+          </div>
         </div>
-      </div>
-    ),
+      );
+    },
     []
   );
 
@@ -58,6 +64,8 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
    * Memoized render function for experience required column
    */
   const renderExperience = useCallback((experience) => {
+    if (!experience) return <span className="C-heading size-6 mb-0">N/A</span>;
+    
     // Extract years from experience string for color mapping
     const years = experience.match(/\d+/)?.[0];
     const colorKey = years
@@ -86,7 +94,7 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
         className="C-heading size-6 mb-0 semiBold"
         style={{ color: "#52c41a" }}
       >
-        {salary}
+        {salary || "N/A"}
       </span>
     ),
     []
@@ -96,7 +104,7 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
    * Memoized render function for location column
    */
   const renderLocation = useCallback(
-    (location) => <span className="C-heading size-6 mb-0">{location}</span>,
+    (location) => <span className="C-heading size-6 mb-0">{location || "N/A"}</span>,
     []
   );
 
@@ -104,28 +112,54 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
    * Memoized render function for people applied column
    */
   const renderPeopleApplied = useCallback(
-    (count, record) => (
-      <button
-        className="C-button is-clean small"
-        onClick={() => onMenuClick({ key: "view_applied_users" }, record)}
-        style={{
-          color: "#1890ff",
-          textDecoration: "underline",
-          fontWeight: "bold",
-          fontSize: "14px",
-        }}
-      >
-        {count}
-      </button>
-    ),
+    (count, record) => {
+      const appliedCount = count || 0;
+      return (
+        <button
+          className="C-button is-clean small"
+          onClick={() => onMenuClick({ key: "view_applied_users" }, record)}
+          style={{
+            color: "#1890ff",
+            textDecoration: "underline",
+            fontWeight: "bold",
+            fontSize: "14px",
+          }}
+        >
+          {appliedCount}
+        </button>
+      );
+    },
     [onMenuClick]
   );
 
   /**
    * Memoized render function for posted on column
+   * Formats and displays the date
    */
   const renderPostedOn = useCallback(
-    (date) => <span className="C-heading size-6 mb-0">{date}</span>,
+    (date) => {
+      if (!date) return <span className="C-heading size-6 mb-0">N/A</span>;
+      
+      // If date is already formatted (YYYY-MM-DD), display as is
+      // Otherwise try to format it
+      try {
+        const dateStr = typeof date === "string" ? date : String(date);
+        // If it's already in YYYY-MM-DD format, use it
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          return <span className="C-heading size-6 mb-0">{dateStr}</span>;
+        }
+        // Otherwise try to parse and format
+        const dateObj = new Date(dateStr);
+        if (!isNaN(dateObj.getTime())) {
+          const formatted = dateObj.toISOString().split("T")[0];
+          return <span className="C-heading size-6 mb-0">{formatted}</span>;
+        }
+      } catch (error) {
+        console.error("Error formatting date:", error);
+      }
+      
+      return <span className="C-heading size-6 mb-0">{date || "N/A"}</span>;
+    },
     []
   );
 
@@ -305,15 +339,30 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick }) => {
       dataSource={jobs}
       rowKey="id"
       rowSelection={rowSelection}
-      pagination={{
-        hideOnSinglePage: true,
-        defaultPageSize: 10,
-        showSizeChanger: true,
-        showQuickJumper: true,
-        showTotal: (total, range) => `${range[0]}-${range[1]} of ${total} jobs`,
-        pageSizeOptions: ["10", "20", "50", "100"],
-      }}
-      loading={false} // TODO: Add loading state from API calls
+      pagination={
+        paginationConfig
+          ? {
+              current: paginationConfig.current,
+              pageSize: paginationConfig.pageSize,
+              total: paginationConfig.total,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} jobs`,
+              pageSizeOptions: ["10", "20", "50", "100"],
+            }
+          : {
+              hideOnSinglePage: true,
+              defaultPageSize: 10,
+              showSizeChanger: true,
+              showQuickJumper: true,
+              showTotal: (total, range) =>
+                `${range[0]}-${range[1]} of ${total} jobs`,
+              pageSizeOptions: ["10", "20", "50", "100"],
+            }
+      }
+      loading={loading}
+      onChange={onChange}
       scroll={{ x: 1200 }} // Enable horizontal scroll for smaller screens
     />
   );

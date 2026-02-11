@@ -1,0 +1,315 @@
+import { NextResponse } from "next/server";
+import { API_BASE_URL } from "@/constants/api";
+
+/**
+ * GET /api/jobs
+ * Proxy endpoint for fetching jobs list to avoid CORS issues
+ * Automatically includes bearer token from cookies
+ */
+export async function GET(request) {
+  console.log("\n🔷 =================================");
+  console.log("🔷 GET ALL JOBS API ROUTE CALLED");
+  console.log("🔷 =================================\n");
+
+  try {
+    // Get query parameters from the request
+    const { searchParams } = new URL(request.url);
+    const params = Object.fromEntries(searchParams.entries());
+
+    let url = `${API_BASE_URL}/jobs`;
+
+    // Add query parameters if they exist
+    if (Object.keys(params).length > 0) {
+      const queryString = new URLSearchParams(
+        Object.entries(params).filter(
+          ([_, value]) => value !== null && value !== undefined && value !== ""
+        )
+      ).toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
+    console.log("🎯 Final API URL:", url);
+    console.log("📋 Query params:", params);
+
+    // Get access token from request cookies
+    const cookieHeader = request.headers.get("cookie") || "";
+    let token = null;
+
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+        const trimmedCookie = cookie.trim();
+        const equalIndex = trimmedCookie.indexOf("=");
+        if (equalIndex > 0) {
+          const key = trimmedCookie.substring(0, equalIndex).trim();
+          const value = trimmedCookie.substring(equalIndex + 1).trim();
+          if (key && value) {
+            try {
+              acc[key] = decodeURIComponent(value);
+            } catch {
+              acc[key] = value;
+            }
+          }
+        }
+        return acc;
+      }, {});
+
+      token = cookies["access_token"] || cookies.access_token || null;
+    }
+
+    // Prepare headers
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
+    // Add authorization header if token exists
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+      console.log("🔐 Authorization header added with Bearer token");
+    } else {
+      console.warn("❌ No token found in cookies");
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "Authentication token is required",
+        },
+        { status: 401 }
+      );
+    }
+
+    // Make the request to the external API
+    console.log("🌐 Making GET request to:", url);
+    
+    let response;
+    try {
+      response = await fetch(url, {
+        method: "GET",
+        headers,
+      });
+      console.log("📥 Fetch response received, status:", response.status);
+    } catch (fetchError) {
+      console.error("❌ Fetch request failed:", fetchError);
+      throw new Error(`Failed to connect to external API: ${fetchError.message}`);
+    }
+
+    // Get response data
+    const contentType = response.headers.get("content-type");
+    let data;
+
+    try {
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { message: text || response.statusText };
+        }
+      }
+    } catch (parseError) {
+      console.error("❌ Failed to parse response:", parseError);
+      data = {
+        error: "Failed to parse response",
+        message: response.statusText || "Unknown error",
+        status: response.status,
+      };
+    }
+
+    console.log("📡 PROXY: External API response status:", response.status);
+    console.log("✅ PROXY: Successfully forwarded response to client\n");
+
+    // Return the response with the same status
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
+  } catch (error) {
+    console.error("\n❌ =================================");
+    console.error("❌ GET ALL JOBS API PROXY ERROR");
+    console.error("❌ =================================");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("❌ =================================\n");
+
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to fetch jobs",
+        details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/jobs
+ * Proxy endpoint for creating jobs to avoid CORS issues
+ * Automatically includes bearer token from cookies
+ * 
+ * This is a Next.js API route that acts as a proxy:
+ * - Client calls: POST /api/jobs
+ * - Proxy forwards to: POST ${API_BASE_URL}/jobs
+ * - Handles CORS automatically (server-side request)
+ * - Extracts token from cookies and adds to Authorization header
+ */
+export async function POST(request) {
+  console.log("\n🔷 =================================");
+  console.log("🔷 PROXY ROUTE: POST /api/jobs");
+  console.log("🔷 This is the Next.js proxy route");
+  console.log("🔷 =================================\n");
+
+  try {
+    // Get request body with error handling
+    let body;
+    try {
+      body = await request.json();
+    } catch (parseError) {
+      console.error("❌ Failed to parse request body:", parseError);
+      return NextResponse.json(
+        {
+          error: "Invalid request body",
+          message: "Request body must be valid JSON",
+          details: parseError.message,
+        },
+        { status: 400 }
+      );
+    }
+
+    // Use API base URL from constants
+    const url = `${API_BASE_URL}/jobs`;
+
+    console.log("📡 PROXY: Forwarding request to external API");
+    console.log("🎯 External API URL:", url);
+    console.log("📝 Request body:", JSON.stringify(body, null, 2));
+
+    // Get access token from request cookies
+    const cookieHeader = request.headers.get("cookie") || "";
+    let token = null;
+
+    // Parse cookies from the cookie header
+    if (cookieHeader) {
+      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+        const trimmedCookie = cookie.trim();
+        const equalIndex = trimmedCookie.indexOf("=");
+        if (equalIndex > 0) {
+          const key = trimmedCookie.substring(0, equalIndex).trim();
+          const value = trimmedCookie.substring(equalIndex + 1).trim();
+          if (key && value) {
+            try {
+              acc[key] = decodeURIComponent(value);
+            } catch {
+              acc[key] = value; // Use raw value if decoding fails
+            }
+          }
+        }
+        return acc;
+      }, {});
+
+      token = cookies["access_token"] || cookies.access_token || null;
+    }
+
+    // Log for debugging
+    console.log("Create Job - Cookie header present:", !!cookieHeader);
+    console.log("Create Job - Token found:", !!token);
+
+    // Prepare headers
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+
+    // Add authorization header if token exists
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+      console.log("🔐 Authorization header added with Bearer token");
+      console.log("🪙 Token (first 20 chars):", token.substring(0, 20) + "...");
+    } else {
+      console.warn("❌ No token found in cookies");
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "Authentication token is required",
+        },
+        { status: 401 }
+      );
+    }
+
+    // Make the request to the external API
+    console.log("🌐 Making fetch request to:", url);
+    console.log("📤 Request headers:", JSON.stringify(headers, null, 2));
+    
+    let response;
+    try {
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(body),
+      });
+      console.log("📥 Fetch response received, status:", response.status);
+    } catch (fetchError) {
+      console.error("❌ Fetch request failed:", fetchError);
+      throw new Error(`Failed to connect to external API: ${fetchError.message}`);
+    }
+
+    // Get response data with error handling
+    const contentType = response.headers.get("content-type");
+    let data;
+
+    try {
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { message: text || response.statusText };
+        }
+      }
+    } catch (parseError) {
+      console.error("❌ Failed to parse response:", parseError);
+      // Return error response from external API even if parsing fails
+      data = {
+        error: "Failed to parse response",
+        message: response.statusText || "Unknown error",
+        status: response.status,
+      };
+    }
+
+    console.log("📡 PROXY: External API response status:", response.status);
+    console.log("📡 PROXY: External API response data:", JSON.stringify(data, null, 2));
+    console.log("✅ PROXY: Successfully forwarded response to client\n");
+
+    // Return the response with the same status
+    // If external API returned an error, forward it to client
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
+  } catch (error) {
+    // Handle errors with detailed logging
+    console.error("\n❌ =================================");
+    console.error("❌ CREATE JOB API PROXY ERROR");
+    console.error("❌ =================================");
+    console.error("Error name:", error.name);
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    console.error("Full error object:", JSON.stringify(error, Object.getOwnPropertyNames(error), 2));
+    console.error("❌ =================================\n");
+
+    // Return detailed error response
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to create job",
+        details: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      },
+      { status: 500 }
+    );
+  }
+}

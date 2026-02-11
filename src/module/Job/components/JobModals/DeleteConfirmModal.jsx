@@ -16,10 +16,11 @@ import Icon from "@/components/Icon";
  * @param {Array} props.jobs - Multiple jobs to delete (for bulk delete)
  * @param {Function} props.onConfirm - Handler for confirm action
  * @param {Function} props.onCancel - Handler for cancel action
+ * @param {boolean} props.loading - Loading state for delete operation
  * @returns {JSX.Element} The DeleteConfirmModal component
  */
 const DeleteConfirmModal = memo(
-  ({ isOpen, isBulk = false, job, jobs = [], onConfirm, onCancel }) => {
+  ({ isOpen, isBulk = false, job, jobs = [], onConfirm, onCancel, loading = false }) => {
     if (!isOpen) return null;
 
     const getModalTitle = () => {
@@ -113,7 +114,11 @@ const DeleteConfirmModal = memo(
         onCancel={onCancel}
         footer={
           <div className="d-flex justify-content-end gap-2">
-            <Button onClick={onCancel} className="C-button is-bordered small">
+            <Button 
+              onClick={onCancel} 
+              className="C-button is-bordered small"
+              disabled={loading}
+            >
               Cancel
             </Button>
             <Button
@@ -121,6 +126,7 @@ const DeleteConfirmModal = memo(
               danger
               onClick={onConfirm}
               className="C-button is-filled small"
+              loading={loading}
             >
               <Space>
                 <Icon name="delete" />
@@ -132,6 +138,7 @@ const DeleteConfirmModal = memo(
             </Button>
           </div>
         }
+        confirmLoading={loading}
         width={isBulk ? 500 : 400}
         className="delete-confirm-modal"
       >

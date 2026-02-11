@@ -8,6 +8,9 @@
 import api from "./api";
 import axiosInstance from "./axiosInstance";
 
+// Note: jobService uses axiosInstance to leverage Next.js proxy routes (/api/jobs)
+// which handle CORS and authentication automatically
+
 /**
  * User API Services
  */
@@ -97,41 +100,148 @@ export const companyService = {
 
 /**
  * Job API Services
+ *
+ * Uses Next.js proxy routes (/api/jobs) to avoid CORS issues.
+ * The proxy route automatically includes bearer token from cookies.
  */
 export const jobService = {
   /**
    * Get all jobs with filters
+   *
+   * API Endpoint: GET /api/jobs
+   * Proxy route: /api/jobs -> ${API_BASE_URL}/jobs
+   *
+   * @param {Object} params - Query parameters for filtering jobs (page, limit, search, etc.)
+   * @returns {Promise<Object>} Response with jobs data
    */
   getJobs: async (params = {}) => {
-    return api.get("/jobs", { params });
+    try {
+      console.log("📝 Fetching jobs via proxy route /api/jobs");
+      console.log("📋 Query params:", params);
+      const response = await axiosInstance.get("/jobs", { params });
+      console.log("✅ Jobs fetched successfully:", response);
+      return response;
+    } catch (error) {
+      console.error("❌ Error fetching jobs:", error);
+      throw error;
+    }
   },
 
   /**
    * Get job by ID
+   *
+   * API Endpoint: GET /api/jobs/{jobId}
+   * Proxy route: /api/jobs/{jobId} -> ${API_BASE_URL}/jobs/{jobId}
+   *
+   * @param {number|string} jobId - ID of the job
+   * @returns {Promise<Object>} Job data
    */
   getJobById: async (jobId) => {
-    return api.get(`/jobs/${jobId}`);
+    try {
+      const response = await axiosInstance.get(`/jobs/${jobId}`);
+      return response;
+    } catch (error) {
+      throw error;
+    }
   },
 
   /**
    * Create a new job
+   *
+   * API Endpoint: POST /api/jobs
+   * Proxy route: /api/jobs -> ${API_BASE_URL}/jobs
+   * Requires: Bearer token authentication (automatically included via proxy route)
+   *
+   * @param {Object} jobData - Job data payload
+   * @param {string} jobData.title - Job title
+   * @param {Object} jobData.posted_by - Company information
+   * @param {string} jobData.experience_required - Experience requirement
+   * @param {Object} jobData.salary_range - Salary range with min and max
+   * @param {Object} jobData.location - Location details
+   * @param {string} jobData.description - Job description
+   * @param {string} jobData.employment_type - Employment type
+   * @param {string[]} jobData.skills_required - Required skills array
+   * @param {number} jobData.application_deadline - Application deadline timestamp
+   * @param {string} jobData.status - Job status (pending/approved/blocked)
+   * @param {boolean} jobData.isActive - Whether job is active
+   * @returns {Promise<Object>} Created job response
+   *
+   * @example
+   * await jobService.createJob({
+   *   title: "Senior Software Engineer",
+   *   posted_by: { company_id: 1, company_name: "TechCorp", company_short_name: "TC" },
+   *   experience_required: "5-8 years",
+   *   salary_range: { min: "$120,000", max: "$150,000" },
+   *   location: { city: "San Francisco", state: "California", pincode: "94102" },
+   *   description: "Full-stack development role",
+   *   employment_type: "Full-time",
+   *   skills_required: ["React", "Node.js"],
+   *   application_deadline: 1708214400000,
+   *   status: "pending",
+   *   isActive: true
+   * });
    */
   createJob: async (jobData) => {
-    return api.post("/jobs", { body: jobData });
+    try {
+      console.log("📝 Client: Calling Next.js proxy route /api/jobs");
+      console.log("📦 Client: Job payload:", JSON.stringify(jobData, null, 2));
+      console.log("🔄 Client: Request will be proxied to external API server-side");
+      
+      // Call proxy route which handles CORS and authentication
+      // axiosInstance has baseURL: "/api", so "/jobs" becomes "/api/jobs"
+      // This hits the Next.js API route at /src/app/api/jobs/route.js
+      const response = await axiosInstance.post("/jobs", jobData);
+      
+      console.log("✅ Client: Job created successfully via proxy:", response);
+      return response;
+    } catch (error) {
+      console.error("❌ Client: Error creating job:", error);
+      throw error;
+    }
   },
 
   /**
    * Update job
+   *
+   * API Endpoint: PUT /api/jobs/{jobId}
+   * Proxy route: /api/jobs/{jobId} -> ${API_BASE_URL}/jobs/{jobId}
+   *
+   * @param {number|string} jobId - ID of the job to update
+   * @param {Object} jobData - Updated job data (same format as createJob)
+   * @returns {Promise<Object>} Updated job response
    */
   updateJob: async (jobId, jobData) => {
-    return api.patch(`/jobs/${jobId}`, { body: jobData });
+    try {
+      console.log("✏️ Updating job via proxy route /api/jobs/" + jobId);
+      console.log("📦 Job payload:", JSON.stringify(jobData, null, 2));
+      const response = await axiosInstance.put(`/jobs/${jobId}`, jobData);
+      console.log("✅ Job updated successfully:", response);
+      return response;
+    } catch (error) {
+      console.error("❌ Error updating job:", error);
+      throw error;
+    }
   },
 
   /**
    * Delete job
+   *
+   * API Endpoint: DELETE /api/jobs/{jobId}
+   * Proxy route: /api/jobs/{jobId} -> ${API_BASE_URL}/jobs/{jobId}
+   *
+   * @param {number|string} jobId - ID of the job to delete
+   * @returns {Promise<Object>} Deletion response
    */
   deleteJob: async (jobId) => {
-    return api.delete(`/jobs/${jobId}`);
+    try {
+      console.log("🗑️ Deleting job via proxy route /api/jobs/" + jobId);
+      const response = await axiosInstance.delete(`/jobs/${jobId}`);
+      console.log("✅ Job deleted successfully:", response);
+      return response;
+    } catch (error) {
+      console.error("❌ Error deleting job:", error);
+      throw error;
+    }
   },
 };
 

@@ -1,10 +1,12 @@
 "use client";
 
-import React, { Suspense, lazy } from "react";
-import { Spin } from "antd";
+import React, { Suspense, lazy, useCallback } from "react";
+import { Spin, Modal } from "antd";
 import JobSearch from "./components/JobSearch";
 import JobTable from "./components/JobTable";
 import { useJobListing } from "./hooks/useJobListing";
+import CreateJobModal from "./components/JobModals/CreateJobModal";
+import EditJobModal from "./components/JobModals/EditJobModal";
 
 // Lazy load modal components for better performance
 const AppliedUsersModal = lazy(() =>
@@ -25,15 +27,22 @@ const Job = () => {
     selectedJobs,
     searchQuery,
     rowSelection,
+    loading,
+    error,
+    pagination,
 
     // Modal states
     isDeleteModalOpen,
     isBulkDeleteModalOpen,
     isJobDetailsModalOpen,
     isAppliedUsersModalOpen,
+    isEditModalOpen,
+    isCreateJobModalOpen,
     jobToDelete,
     jobForDetails,
     jobForAppliedUsers,
+    selectedJob,
+    isEditMode,
 
     // Handlers
     handleSearchChange,
@@ -45,7 +54,31 @@ const Job = () => {
     handleCancelBulkDelete,
     handleCancelJobDetails,
     handleCancelAppliedUsers,
+    handleCreateJob,
+    handleUpdateJob,
+    openCreateJobModal,
+    closeCreateJobModal,
+    closeEditModal,
+    fetchJobs,
+    handleSort,
   } = useJobListing();
+
+  /**
+   * Handle table changes (pagination, sorting)
+   */
+  const handleTableChange = useCallback(
+    (newPagination, filters, sorter) => {
+      if (sorter && sorter.field) {
+        handleSort(sorter.field);
+      } else if (newPagination) {
+        fetchJobs({
+          page: newPagination.current,
+          limit: newPagination.pageSize,
+        });
+      }
+    },
+    [fetchJobs, handleSort]
+  );
 
   return (
     <>
@@ -55,6 +88,7 @@ const Job = () => {
           onSearchChange={handleSearchChange}
           onBulkDelete={handleBulkDelete}
           selectedJobs={selectedJobs}
+          onPostJob={openCreateJobModal}
         />
 
         <Suspense fallback={<Spin size="small" />}>
@@ -62,6 +96,9 @@ const Job = () => {
             jobs={filteredJobs}
             rowSelection={rowSelection}
             onMenuClick={handleMenuClick}
+            loading={loading}
+            pagination={pagination}
+            onChange={handleTableChange}
           />
         </Suspense>
       </div>
@@ -83,6 +120,7 @@ const Job = () => {
           job={jobToDelete}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
+          loading={loading}
         />
         <DeleteConfirmModal
           isOpen={isBulkDeleteModalOpen}
@@ -90,6 +128,22 @@ const Job = () => {
           jobs={selectedJobs}
           onConfirm={handleConfirmBulkDelete}
           onCancel={handleCancelBulkDelete}
+          loading={loading}
+        />
+        
+        {/* Create Job Modal - POST only */}
+        <CreateJobModal
+          isOpen={isCreateJobModalOpen}
+          onCancel={closeCreateJobModal}
+          onSubmit={handleCreateJob}
+        />
+        
+        {/* Edit Job Modal - PUT only */}
+        <EditJobModal
+          isOpen={isEditModalOpen}
+          selectedJob={selectedJob}
+          onCancel={closeEditModal}
+          onUpdate={handleUpdateJob}
         />
       </Suspense>
     </>
