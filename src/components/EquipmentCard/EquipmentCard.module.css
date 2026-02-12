@@ -1,0 +1,21 @@
+.equipmentCardButtonWrapper {
+  width: 100%;
+  text-align: left;
+}
+
+.equipmentCardButton {
+  width: 100%;
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  .equipmentCardButtonWrapper {
+    width: auto;
+    text-align: right;
+  }
+  
+  .equipmentCardButton {
+    width: auto;
+    text-align: right;
+  }
+}
