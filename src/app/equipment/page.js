@@ -1,7 +1,7 @@
 "use client"; // ✅ Required for interactive Ant Design components in App Router
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Tag, Space, Drawer } from "antd";
+import { Tag, Space, Drawer, Spin, Empty, message } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import EquipmentCard from "@/components/EquipmentCard";
@@ -24,6 +24,7 @@ const EquipmentListPage = () => {
   const {
     equipment,
     loading,
+    error,
     pagination,
     fetchEquipment,
   } = useEquipment();
@@ -198,16 +199,43 @@ const EquipmentListPage = () => {
           <div className="row g-3">
             {/* Main Content */}
             <div className="col-12">
-              <CardListing
-                data={equipment}
-                CardComponent={EquipmentCard}
-                size={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
-                loading={loading}
-                onPageChange={handlePageChange}
-                pageSize={pagination.pageSize}
-                total={pagination.total}
-                current={pagination.current}
-              />
+              {loading ? (
+                <div className="text-center py-5">
+                  <Spin size="large" />
+                  <p className="C-heading size-6 color-light mt-3">Loading equipments...</p>
+                </div>
+              ) : error ? (
+                <div className="text-center py-5">
+                  <Empty
+                    description={
+                      <span className="C-heading size-6 color-light">
+                        Unable to load equipments. Please try again later.
+                      </span>
+                    }
+                  />
+                </div>
+              ) : equipment.length === 0 ? (
+                <div className="text-center py-5">
+                  <Empty
+                    description={
+                      <span className="C-heading size-6 color-light">
+                        No equipments found.
+                      </span>
+                    }
+                  />
+                </div>
+              ) : (
+                <CardListing
+                  data={equipment}
+                  CardComponent={EquipmentCard}
+                  size={{ xxl: 2, xl: 2, lg: 2, md: 2, sm: 1, xs: 1 }}
+                  loading={loading}
+                  onPageChange={handlePageChange}
+                  pageSize={pagination.pageSize}
+                  total={pagination.total}
+                  current={pagination.current}
+                />
+              )}
             </div>
           </div>
         </div>

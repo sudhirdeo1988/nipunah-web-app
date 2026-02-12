@@ -1,0 +1,21 @@
+.expertCardButtonWrapper {
+  width: 100%;
+  text-align: left;
+}
+
+.expertCardButton {
+  width: 100%;
+  text-align: left;
+}
+
+@media (min-width: 768px) {
+  .expertCardButtonWrapper {
+    width: auto;
+    text-align: right;
+  }
+  
+  .expertCardButton {
+    width: auto;
+    text-align: right;
+  }
+}
