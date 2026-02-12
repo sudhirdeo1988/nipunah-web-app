@@ -11,8 +11,8 @@ const OurProcess = () => {
             <span>WORKING PROCESS</span>
           </div>
           <h2 className="C-heading size-4 color-white extraBold color-dark pb-3 font-family-creative">
-          Providing end-to-end transparency, 
-            <br /> real-time tracking, and assured quality at every stage.
+          Built for the global maritime industry,
+            <br /> designed to help you connect and grow.
           </h2>
         </div>
 

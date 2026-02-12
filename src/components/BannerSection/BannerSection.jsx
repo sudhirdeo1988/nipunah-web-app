@@ -66,11 +66,11 @@ const BannerSection = () => {
               List. Connect. Grow
               </h1>
               <p className="C-heading size-6 mb-3 dont-break ">
-                List your business, reach global partners, and get more opportunities.
+              Nipunah connects maritime businesses and experts with verified service providers, equipment suppliers, and solution partners worldwide.
               </p>
 
               <p className="C-heading size-6 color-dark mb-0 bold dont-break ">
-                 Everything becomes easier with Nipunah.com
+              Join Nipunah — grow your maritime network
               </p>
 
               <Suspense fallback={<></>}>

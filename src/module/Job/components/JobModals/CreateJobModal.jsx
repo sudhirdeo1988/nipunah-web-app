@@ -213,7 +213,6 @@ const CreateJobModal = memo(
             city: values.location?.city || "",
             state: values.location?.state || "",
             pinCode: values.location?.pincode || "",
-            address: values.location?.address || "",
             countryCode: countryCode,
             country: countryName, // Store country name as well
           },
@@ -520,27 +519,6 @@ const CreateJobModal = memo(
                   </Form.Item>
                 </Col>
               )}
-
-              {/* Detail Address */}
-              <Col span={24}>
-                <Form.Item
-                  label={
-                    <span className="C-heading size-xs semiBold mb-0">
-                      Detail Address
-                    </span>
-                  }
-                  name={["location", "address"]}
-                  rules={[
-                    { required: true, message: "Please enter address" },
-                  ]}
-                >
-                  <TextArea
-                    rows={3}
-                    placeholder="Enter detailed address"
-                    size="large"
-                  />
-                </Form.Item>
-              </Col>
 
               {/* City */}
               <Col span={12}>

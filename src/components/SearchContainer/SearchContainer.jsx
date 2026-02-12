@@ -112,8 +112,11 @@ const SearchContainer = (props) => {
         case "select":
           return (
             <div key={formFieldValue} className={colClasses}>
-              <Form.Item name={formFieldValue} style={{ marginBottom: 0 }}>
-                {label && <label className="mb-2 d-block">{label}</label>}
+              <Form.Item 
+                name={formFieldValue} 
+                style={{ marginBottom: 0 }}
+                label={label}
+              >
                 <Select
                   placeholder={placeholder}
                   variant="borderless"
@@ -129,8 +132,11 @@ const SearchContainer = (props) => {
         case "search":
           return (
             <div key={formFieldValue} className={colClasses}>
-              <Form.Item name={formFieldValue} style={{ marginBottom: 0 }}>
-                {label && <label className="mb-2 d-block">{label}</label>}
+              <Form.Item 
+                name={formFieldValue} 
+                style={{ marginBottom: 0 }}
+                label={label}
+              >
                 <Input
                   size="large"
                   placeholder={placeholder}
@@ -146,8 +152,11 @@ const SearchContainer = (props) => {
         case "countrySelect":
           return (
             <div key={formFieldValue} className={colClasses}>
-              <Form.Item name={formFieldValue} style={{ marginBottom: 0 }}>
-                {label && <label className="mb-2 d-block">{label}</label>}
+              <Form.Item 
+                name={formFieldValue} 
+                style={{ marginBottom: 0 }}
+                label={label}
+              >
                 <Select
                   showSearch
                   optionFilterProp="label"
