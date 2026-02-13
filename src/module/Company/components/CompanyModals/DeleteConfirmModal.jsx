@@ -1,7 +1,8 @@
 "use client";
 
 import React, { memo } from "react";
-import { Modal, Button } from "antd";
+import { Modal, Button, Space } from "antd";
+import Icon from "@/components/Icon";
 
 /**
  * DeleteConfirmModal Component
@@ -15,56 +16,66 @@ import { Modal, Button } from "antd";
  * @param {Array} props.companies - Companies to delete (bulk delete)
  * @param {Function} props.onConfirm - Handler for confirm action
  * @param {Function} props.onCancel - Handler for cancel action
+ * @param {boolean} props.loading - Loading state for delete operation
  * @returns {JSX.Element} The DeleteConfirmModal component
  */
 const DeleteConfirmModal = memo(
-  ({ isOpen, isBulk, company, companies, onConfirm, onCancel }) => {
-    const title = isBulk ? "Delete Selected Companies" : "Delete Company";
-    const okText = isBulk ? "Delete All" : "Delete";
-    const count = isBulk ? companies.length : 1;
+  ({ isOpen, isBulk = false, company, companies = [], onConfirm, onCancel, loading = false }) => {
+    if (!isOpen) return null;
+
+    const getModalTitle = () => {
+      if (isBulk) {
+        return `Delete ${companies.length} Compan${companies.length > 1 ? "ies" : "y"}`;
+      }
+      return `Delete Company: ${company?.name || ""}`;
+    };
+
+    const getModalSubtitle = () => {
+      if (isBulk) {
+        return `Are you sure you want to delete ${companies.length} compan${companies.length > 1 ? "ies" : "y"}? This action cannot be undone.`;
+      }
+      return "Are you sure you want to delete this company? This action cannot be undone.";
+    };
 
     return (
       <Modal
-        title={<span className="C-heaidng size-5 mb-0 bold">{title}</span>}
+        title={
+          <div className="d-flex align-items-center">
+            <Icon name="delete" className="me-2" style={{ color: "#ff4d4f" }} />
+            <span className="C-heading size-5 semiBold mb-0">
+              {getModalTitle()}
+            </span>
+          </div>
+        }
         open={isOpen}
-        onOk={onConfirm}
         onCancel={onCancel}
-        okText={okText}
-        cancelText="Cancel"
-        okButtonProps={{ className: "C-button is-filled" }}
-        cancelButtonProps={{ className: "C-button is-bordered" }}
-        centered
+        footer={
+          <div className="d-flex justify-content-end gap-2">
+            <Button 
+              onClick={onCancel} 
+              className="C-button is-bordered small"
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              onClick={onConfirm}
+              className="C-button is-filled small"
+              loading={loading}
+            >
+              Delete
+            </Button>
+          </div>
+        }
+        confirmLoading={loading}
+        width={400}
+        className="delete-confirm-modal"
       >
-        <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
-            Are you sure you want to delete {count} company
-            {count > 1 ? "(ies)" : ""}? <br /> This action cannot be undone.
-          </p>
-
-          {isBulk && companies.length > 0 && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-2 text-muted">
-                Selected Companies:
-              </p>
-              {companies.map((comp) => (
-                <div key={comp.id} className="mb-2">
-                  <p className="C-heading size-6 mb-0 bold">
-                    {comp.name} - {comp.industry}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {!isBulk && company && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-1 text-muted">Company Name:</p>
-              <p className="C-heading size-6 mb-0 bold">{company.name}</p>
-              <p className="C-heading size-xs mb-1 text-muted">Industry:</p>
-              <p className="C-heading size-6 mb-0">{company.industry}</p>
-            </div>
-          )}
-        </div>
+        <p className="C-heading size-xs text-muted mb-0">
+          {getModalSubtitle()}
+        </p>
       </Modal>
     );
   }

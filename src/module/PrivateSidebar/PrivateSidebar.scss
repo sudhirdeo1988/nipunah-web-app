@@ -1,44 +1,6 @@
 .c-privateSidebar {
-  padding: 72px 0;
+  padding: 0;
   height: 100%;
-
-  .sidebar {
-    &-header {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-    }
-    &-footer {
-      background-color: #f6fafd;
-      position: absolute;
-      bottom: 0;
-      height: 72px;
-      left: 0;
-      width: 100%;
-
-      & > button {
-        background-color: transparent;
-        display: flex;
-        text-align: left;
-        width: 100%;
-      }
-
-      .userProfile {
-        background-color: transparent;
-        display: flex;
-        gap: 12px;
-        flex-direction: row;
-        text-align: left;
-        width: 100%;
-        .details {
-          display: flex;
-          flex-direction: column;
-          flex-grow: 1;
-        }
-      }
-    }
-  }
 }
 
 .sidebarNav {

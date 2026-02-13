@@ -26,6 +26,7 @@ import {
   Modal,
   message,
   Dropdown,
+  Button,
 } from "antd";
 
 /**
@@ -543,75 +544,83 @@ const UserListing = () => {
 
       {/* Single User Delete Confirmation Modal */}
       <Modal
-        title={<span className="C-heaidng size-5 mb-0 bold">Delete User</span>}
+        title={
+          <div className="d-flex align-items-center">
+            <Icon name="delete" className="me-2" style={{ color: "#ff4d4f" }} />
+            <span className="C-heading size-5 semiBold mb-0">
+              Delete User: {userToDelete?.userName || ""}
+            </span>
+          </div>
+        }
         open={isDeleteModalOpen}
-        onOk={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        okText="Delete"
-        cancelText="Cancel"
-        okButtonProps={{ className: "C-button is-filled" }}
-        cancelButtonProps={{ className: "C-button is-bordered" }}
-        centered
+        footer={
+          <div className="d-flex justify-content-end gap-2">
+            <Button 
+              onClick={handleCancelDelete} 
+              className="C-button is-bordered small"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              onClick={handleConfirmDelete}
+              className="C-button is-filled small"
+            >
+              Delete
+            </Button>
+          </div>
+        }
+        width={400}
+        className="delete-confirm-modal"
       >
-        <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
-            Are you sure you want to delete this user? <br /> This action cannot
-            be undone.
-          </p>
-          {userToDelete && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-1 text-muted">User Name:</p>
-              <p className="C-heading size-6 mb-0 bold">
-                {userToDelete.userName}
-              </p>
-              <p className="C-heading size-xs mb-1 text-muted">Email:</p>
-              <p className="C-heading size-6 mb-0">{userToDelete.email}</p>
-            </div>
-          )}
-        </div>
+        <p className="C-heading size-xs text-muted mb-0">
+          Are you sure you want to delete this user? This action cannot be undone.
+        </p>
       </Modal>
 
       {/* Bulk Delete Confirmation Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
-            Delete Selected Users
-          </span>
+          <div className="d-flex align-items-center">
+            <Icon name="delete" className="me-2" style={{ color: "#ff4d4f" }} />
+            <span className="C-heading size-5 semiBold mb-0">
+              Delete {selectedUsers.length} User{selectedUsers.length > 1 ? "s" : ""}
+            </span>
+          </div>
         }
         open={isBulkDeleteModalOpen}
-        onOk={handleConfirmBulkDelete}
         onCancel={handleCancelBulkDelete}
-        okText="Delete All"
-        cancelText="Cancel"
-        okButtonProps={{ className: "C-button is-filled" }}
-        cancelButtonProps={{ className: "C-button is-bordered" }}
-        centered
+        footer={
+          <div className="d-flex justify-content-end gap-2">
+            <Button 
+              onClick={handleCancelBulkDelete} 
+              className="C-button is-bordered small"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              onClick={handleConfirmBulkDelete}
+              className="C-button is-filled small"
+            >
+              Delete
+            </Button>
+          </div>
+        }
+        width={400}
+        className="delete-confirm-modal"
       >
-        <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
-            Are you sure you want to delete {selectedUsers.length} user(s)?{" "}
-            <br /> This action cannot be undone.
-          </p>
-          {selectedUsers.length > 0 && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-2 text-muted">
-                Selected Users:
-              </p>
-              {selectedUsers.map((user) => (
-                <div key={user.id} className="mb-2">
-                  <p className="C-heading size-6 mb-0 bold">
-                    {user.userName} - {user.email}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        <p className="C-heading size-xs text-muted mb-0">
+          Are you sure you want to delete {selectedUsers.length} user{selectedUsers.length > 1 ? "s" : ""}? This action cannot be undone.
+        </p>
       </Modal>
 
       {/* User Details Modal */}
       <Modal
-        title={<span className="C-heaidng size-5 mb-0 bold">User Details</span>}
+        title={<span className="C-heading size-5 mb-0 bold">User Details</span>}
         open={isUserDetailsModalOpen}
         onCancel={handleCancelUserDetails}
         footer={null}
@@ -667,7 +676,7 @@ const UserListing = () => {
       {/* Applied Jobs Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
+          <span className="C-heading size-5 mb-0 bold">
             Applied Jobs - {userForAppliedJobs?.userName}
           </span>
         }

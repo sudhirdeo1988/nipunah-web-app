@@ -1,7 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
+import { Space } from "antd";
+import Icon from "@/components/Icon";
 import Job from "@/module/Job";
+import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 
 /**
  * JobPage Component
@@ -13,18 +16,33 @@ import Job from "@/module/Job";
  * @returns {JSX.Element} The JobPage component
  */
 const JobPage = () => {
+  const postJobHandlerRef = useRef(null);
+
+  const handlePostJobClick = () => {
+    if (postJobHandlerRef.current) {
+      postJobHandlerRef.current();
+    }
+  };
+
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
-      <div className="p-3 border-bottom">
-        <span className="C-heading size-5 color-light mb-2 extraBold">
-          Job Management
-        </span>
-        <p className="C-heading size-xs text-muted mb-0">
-          Manage and monitor all job postings across the platform
-        </p>
-      </div>
+      <AppPageHeader
+        title="Job Management"
+        subtitle="Manage and monitor all job postings across the platform"
+        children={
+          <button
+            className="C-button is-filled small"
+            onClick={handlePostJobClick}
+          >
+            <Space>
+              <Icon name="work" />
+              Post a job
+            </Space>
+          </button>
+        }
+      />
       <div className="p-3">
-        <Job />
+        <Job onPostJobClickRef={postJobHandlerRef} />
       </div>
     </div>
   );

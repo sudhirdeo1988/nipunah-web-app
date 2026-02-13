@@ -26,7 +26,8 @@
 
 import React, { useCallback, useState } from "react";
 import Icon from "@/components/Icon";
-import { Dropdown, Space, Modal, message } from "antd";
+import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
+import { Dropdown, Space, Modal, message, Button } from "antd";
 import MainCategoryListing from "module/Category/components/MainCategoryListing";
 import CreateCategory from "module/Category/components/CreateCategory/CreateCategory";
 import CategoryErrorBoundary from "module/Category/components/ErrorBoundary/CategoryErrorBoundary";
@@ -310,39 +311,34 @@ const CategoryPage = () => {
   return (
     <>
       <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
-        <div className="p-3 border-bottom">
-          <div className="row align-items-center">
-            <div className="col-8">
-              <span className="C-heaidng size-5 color-light mb-2 extraBold">
-                Categories List
-              </span>
-            </div>
-            <div className="col-4 text-right">
-              <Dropdown
-                menu={{
-                  items: ADD_MENU_ITEMS.map((item) => ({
-                    ...item,
-                    label: (
-                      <span className="C-heading size-xs mb-0 semiBold py-2">
-                        {item.label}
-                      </span>
-                    ),
-                  })),
-                  onClick: (menuInfo) => handleAddCategory(menuInfo),
-                }}
-                trigger={["hover", "click"]}
-              >
-                <button className="C-button is-filled small">
-                  <Space>
-                    <Icon name="add" />
-                    Add
-                    <Icon name="arrow_drop_down" />
-                  </Space>
-                </button>
-              </Dropdown>
-            </div>
-          </div>
-        </div>
+        <AppPageHeader
+          title="Categories List"
+          subtitle="Organize and manage categories and subcategories"
+          children={
+            <Dropdown
+              menu={{
+                items: ADD_MENU_ITEMS.map((item) => ({
+                  ...item,
+                  label: (
+                    <span className="C-heading size-xs mb-0 semiBold py-2">
+                      {item.label}
+                    </span>
+                  ),
+                })),
+                onClick: (menuInfo) => handleAddCategory(menuInfo),
+              }}
+              trigger={["hover", "click"]}
+            >
+              <button className="C-button is-filled small">
+                <Space>
+                  <Icon name="add" />
+                  Add
+                  <Icon name="arrow_drop_down" />
+                </Space>
+              </button>
+            </Dropdown>
+          }
+        />
         <div className="p-3">
           <CategoryErrorBoundary>
             <MainCategoryListing
@@ -364,7 +360,7 @@ const CategoryPage = () => {
 
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
+          <span className="C-heading size-5 mb-0 bold">
             {getModalTitle(modalMode, isEditMode)}
           </span>
         }
@@ -391,42 +387,44 @@ const CategoryPage = () => {
       {/* Delete Confirmation Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
-            {isSubCategoryDelete ? "Delete Sub-Category" : "Delete Category"}
-          </span>
+          <div className="d-flex align-items-center">
+            <Icon name="delete" className="me-2" style={{ color: "#ff4d4f" }} />
+            <span className="C-heading size-5 semiBold mb-0">
+              {isSubCategoryDelete 
+                ? `Delete Sub-Category: ${categoryToDelete?.c_name || ""}`
+                : `Delete Category: ${categoryToDelete?.c_name || ""}`}
+            </span>
+          </div>
         }
         open={isDeleteModalOpen}
-        onOk={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        okText="Delete"
-        cancelText="Cancel"
-        okButtonProps={{
-          className: "C-button is-filled",
-          loading: loading, // Show loading state on delete button
-        }}
-        cancelButtonProps={{
-          className: "C-button is-bordered",
-          disabled: loading, // Disable cancel during deletion
-        }}
-        centered
-        confirmLoading={loading} // Show loading spinner in modal
+        footer={
+          <div className="d-flex justify-content-end gap-2">
+            <Button 
+              onClick={handleCancelDelete} 
+              className="C-button is-bordered small"
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              onClick={handleConfirmDelete}
+              className="C-button is-filled small"
+              loading={loading}
+            >
+              Delete
+            </Button>
+          </div>
+        }
+        confirmLoading={loading}
+        width={400}
+        className="delete-confirm-modal"
       >
-        <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
-            Are you sure you want to delete this category? <br /> This action
-            cannot be undone.
-          </p>
-          {categoryToDelete && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-1 text-muted">
-                {isSubCategoryDelete ? "Sub-Category Name:" : "Category Name:"}
-              </p>
-              <p className="C-heading size-6 mb-0 bold">
-                {categoryToDelete.c_name}
-              </p>
-            </div>
-          )}
-        </div>
+        <p className="C-heading size-xs text-muted mb-0">
+          Are you sure you want to delete this {isSubCategoryDelete ? "sub-category" : "category"}? This action cannot be undone.
+        </p>
       </Modal>
     </>
   );

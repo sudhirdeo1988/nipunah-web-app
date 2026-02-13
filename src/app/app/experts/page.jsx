@@ -21,7 +21,8 @@
 
 import React, { useCallback, useState } from "react";
 import Icon from "@/components/Icon";
-import { Dropdown, Space, Modal } from "antd";
+import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
+import { Dropdown, Space, Modal, Button } from "antd";
 import ExpertUserListing from "module/Experts/Components/ExpertUserListing";
 import CreateExpert from "module/Experts/Components/CreateExpert";
 import {
@@ -178,18 +179,10 @@ const ExpertsPage = () => {
   return (
     <>
       <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
-        <div className="p-3 border-bottom">
-          <div className="row align-items-center">
-            <div className="col-8">
-              <span className="C-heaidng size-5 color-light mb-2 extraBold">
-                Experts List
-              </span>
-            </div>
-            <div className="col-4 text-right">
-              {/* Create expert removed - experts can only register via signup */}
-            </div>
-          </div>
-        </div>
+        <AppPageHeader
+        title="Experts List"
+        subtitle="View and manage expert profiles and approval status"
+      />
         <div className="p-3">
           <ExpertUserListing
             experts={experts}
@@ -207,7 +200,7 @@ const ExpertsPage = () => {
 
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
+          <span className="C-heading size-5 mb-0 bold">
             {MODAL_TITLES.EDIT_EXPERT}
           </span>
         }
@@ -230,36 +223,42 @@ const ExpertsPage = () => {
       {/* Delete Confirmation Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">Delete Expert</span>
+          <div className="d-flex align-items-center">
+            <Icon name="delete" className="me-2" style={{ color: "#ff4d4f" }} />
+            <span className="C-heading size-5 semiBold mb-0">
+              Delete Expert: {expertToDelete?.userName || expertToDelete?.name || ""}
+            </span>
+          </div>
         }
         open={isDeleteModalOpen}
-        onOk={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        okText="Delete"
-        cancelText="Cancel"
-        okButtonProps={{
-          className: "C-button is-filled",
-          loading: loading, // Show loading state on delete button
-        }}
-        cancelButtonProps={{
-          className: "C-button is-bordered",
-          disabled: loading, // Disable cancel during deletion
-        }}
-        centered
-        confirmLoading={loading} // Show loading spinner in modal
+        footer={
+          <div className="d-flex justify-content-end gap-2">
+            <Button 
+              onClick={handleCancelDelete} 
+              className="C-button is-bordered small"
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              onClick={handleConfirmDelete}
+              className="C-button is-filled small"
+              loading={loading}
+            >
+              Delete
+            </Button>
+          </div>
+        }
+        confirmLoading={loading}
+        width={400}
+        className="delete-confirm-modal"
       >
-        <div className="py-3">
-          <p className="C-heading size-6 mb-4">
-            Are you sure you want to delete this expert? This action cannot be undone.
-          </p>
-          {expertToDelete && (
-            <div className="text-center py-3">
-              <p className="C-heading size-5 mb-0 bold">
-                {expertToDelete.userName || expertToDelete.name || "Expert"}
-              </p>
-            </div>
-          )}
-        </div>
+        <p className="C-heading size-xs text-muted mb-0">
+          Are you sure you want to delete this expert? This action cannot be undone.
+        </p>
       </Modal>
     </>
   );

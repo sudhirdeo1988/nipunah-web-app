@@ -692,7 +692,7 @@ const ExpertUserListing = ({
       {/* Bulk Delete Confirmation Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
+          <span className="C-heading size-5 mb-0 bold">
             Delete Selected Experts
           </span>
         }
@@ -729,7 +729,7 @@ const ExpertUserListing = ({
       {/* Expert Details Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">Expert Details</span>
+          <span className="C-heading size-5 mb-0 bold">Expert Details</span>
         }
         open={isExpertDetailsModalOpen}
         onCancel={handleCancelExpertDetails}
@@ -890,7 +890,7 @@ const ExpertUserListing = ({
       {/* Approval Status Confirmation Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
+          <span className="C-heading size-5 mb-0 bold">
             {newApprovalStatus ? "Approve Expert" : "Set Expert to Pending"}
           </span>
         }
@@ -927,7 +927,7 @@ const ExpertUserListing = ({
       {/* Applied Jobs Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
+          <span className="C-heading size-5 mb-0 bold">
             Applied Jobs - {expertForAppliedJobs?.userName}
           </span>
         }

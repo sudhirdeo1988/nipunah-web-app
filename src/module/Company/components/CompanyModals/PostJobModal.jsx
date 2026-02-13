@@ -650,7 +650,7 @@ const PostJobModal = memo(
     return (
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">
+          <span className="C-heading size-5 mb-0 bold">
             {isEditMode ? "Edit Job" : "Post a Job"}
           </span>
         }

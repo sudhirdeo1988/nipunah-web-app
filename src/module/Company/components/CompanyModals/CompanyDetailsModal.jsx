@@ -18,7 +18,7 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
   return (
     <Modal
       title={
-        <span className="C-heaidng size-5 mb-0 bold">Company Details</span>
+        <span className="C-heading size-5 mb-0 bold">Company Details</span>
       }
       open={isOpen}
       onCancel={onCancel}

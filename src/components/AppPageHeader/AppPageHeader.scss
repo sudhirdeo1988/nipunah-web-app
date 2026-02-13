@@ -1,0 +1,29 @@
+// Matches C-heading size-5 color-light extraBold for title, size-xs text-muted for subtitle
+.app-page-header {
+  padding: 1rem;
+  border-bottom: 1px solid #f0f0f0;
+
+  &__breadcrumb {
+    margin-bottom: 0.75rem;
+  }
+
+  &__title {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.3rem;
+    line-height: 1.7rem;
+    font-weight: 700;
+    color: #6b7176;
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: 0.84rem;
+    line-height: 1.1rem;
+    color: #6c757d;
+    font-weight: 400;
+  }
+
+  &__actions {
+    flex-shrink: 0;
+  }
+}

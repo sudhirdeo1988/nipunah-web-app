@@ -190,6 +190,12 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         deadlineValue = dayjs(job.application_deadline);
       }
 
+      // Ensure skills array is unique and properly formatted
+      const skillsArray = job.skillsRequired || job.skills_required || [];
+      const uniqueSkills = Array.isArray(skillsArray) 
+        ? [...new Set(skillsArray.filter(Boolean))] 
+        : [];
+
       // Set form values
       form.setFieldsValue({
         title: job.title || "",
@@ -198,7 +204,7 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         currency: "USD",
         salary_range: salaryRangeValue,
         description: job.description || "",
-        skills_required: job.skillsRequired || job.skills_required || [],
+        skills_required: uniqueSkills,
         application_deadline: deadlineValue,
         status: job.status || "pending",
         isActive: job.isActive !== undefined ? job.isActive : job.is_active !== undefined ? job.is_active : true,
@@ -713,6 +719,8 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                   placeholder="Add skills (press Enter to add)"
                   size="large"
                   tokenSeparators={[","]}
+                  maxTagCount="responsive"
+                  allowClear
                 />
               </Form.Item>
             </Col>

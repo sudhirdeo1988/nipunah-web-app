@@ -20,7 +20,8 @@
 
 import React, { useCallback, useState } from "react";
 import Icon from "@/components/Icon";
-import { Space, Modal, Breadcrumb } from "antd";
+import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
+import { Space, Modal, Breadcrumb, Button } from "antd";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import { useRole } from "@/hooks/useRole";
@@ -166,60 +167,56 @@ const EquipmentPage = () => {
   return (
     <>
       <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
-        <div className="p-3 border-bottom">
-          <Breadcrumb
-            className="mb-3"
-            items={[
-              {
-                title: (
-                  <span
-                    className="C-heading size-xs color-light mb-0"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => router.push(ROUTES.PRIVATE.COMPANY)}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "#1890ff";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "";
-                    }}
-                  >
-                    Companies
-                  </span>
-                ),
-              },
-              {
-                title: (
-                  <span className="C-heading size-xs color-dark mb-0 bold">
-                    Equipment
-                  </span>
-                ),
-              },
-            ]}
-            separator={
-              <Icon name="chevron_right" style={{ fontSize: "12px", color: "#8c8c8c" }} />
+        <AppPageHeader
+          title="Equipment List"
+          subtitle="Manage equipment and assets linked to your company"
+          breadcrumb={
+            <Breadcrumb
+              items={[
+                {
+                  title: (
+                    <span
+                      className="C-heading size-xs color-light mb-0"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => router.push(ROUTES.PRIVATE.COMPANY)}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.color = "#1890ff";
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.color = "";
+                      }}
+                    >
+                      Companies
+                    </span>
+                  ),
+                },
+                {
+                  title: (
+                    <span className="C-heading size-xs color-dark mb-0 bold">
+                      Equipment
+                    </span>
+                  ),
+                },
+              ]}
+              separator={
+                <Icon name="chevron_right" style={{ fontSize: "12px", color: "#8c8c8c" }} />
+              }
+            />
+          }
+          children={
+            isCompany() ? (
+              <button
+                className="C-button is-filled small"
+                onClick={() => openModal(MODAL_MODES.EQUIPMENT, null)}
+              >
+                <Space>
+                  <Icon name="add" />
+                  Add Equipment
+                </Space>
+              </button>
+            ) : undefined
             }
-          />
-          <div className="row align-items-center">
-            <div className="col-8">
-              <span className="C-heaidng size-5 color-light mb-2 extraBold">
-                Equipment List
-              </span>
-            </div>
-            {isCompany() && (
-              <div className="col-4 text-right">
-                <button
-                  className="C-button is-filled small"
-                  onClick={() => openModal(MODAL_MODES.EQUIPMENT, null)}
-                >
-                  <Space>
-                    <Icon name="add" />
-                    Add Equipment
-                  </Space>
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        />
         <div className="p-3">
           <EquipmentListing
             equipment={equipment}
@@ -236,7 +233,7 @@ const EquipmentPage = () => {
 
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">{getModalTitle()}</span>
+          <span className="C-heading size-5 mb-0 bold">{getModalTitle()}</span>
         }
         closable={{ "aria-label": "Custom Close Button" }}
         open={isModalOpen}
@@ -257,40 +254,42 @@ const EquipmentPage = () => {
       {/* Delete Confirmation Modal */}
       <Modal
         title={
-          <span className="C-heaidng size-5 mb-0 bold">Delete Equipment</span>
+          <div className="d-flex align-items-center">
+            <Icon name="delete" className="me-2" style={{ color: "#ff4d4f" }} />
+            <span className="C-heading size-5 semiBold mb-0">
+              Delete Equipment: {equipmentToDelete?.name || ""}
+            </span>
+          </div>
         }
         open={isDeleteModalOpen}
-        onOk={handleConfirmDelete}
         onCancel={handleCancelDelete}
-        okText="Delete"
-        cancelText="Cancel"
-        okButtonProps={{
-          className: "C-button is-filled",
-          loading: loading,
-        }}
-        cancelButtonProps={{
-          className: "C-button is-bordered",
-          disabled: loading,
-        }}
-        centered
+        footer={
+          <div className="d-flex justify-content-end gap-2">
+            <Button 
+              onClick={handleCancelDelete} 
+              className="C-button is-bordered small"
+              disabled={loading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="primary"
+              danger
+              onClick={handleConfirmDelete}
+              className="C-button is-filled small"
+              loading={loading}
+            >
+              Delete
+            </Button>
+          </div>
+        }
         confirmLoading={loading}
+        width={400}
+        className="delete-confirm-modal"
       >
-        <div className="py-3">
-          <p className="C-heading size-6 bold mb-3">
-            Are you sure you want to delete this equipment? <br /> This action
-            cannot be undone.
-          </p>
-          {equipmentToDelete && (
-            <div className="bg-light p-3 rounded">
-              <p className="C-heading size-xs mb-1 text-muted">Equipment Name:</p>
-              <p className="C-heading size-6 mb-0 bold">
-                {equipmentToDelete.name}
-              </p>
-              <p className="C-heading size-xs mb-1 text-muted">Category:</p>
-              <p className="C-heading size-6 mb-0">{equipmentToDelete.category}</p>
-            </div>
-          )}
-        </div>
+        <p className="C-heading size-xs text-muted mb-0">
+          Are you sure you want to delete this equipment? This action cannot be undone.
+        </p>
       </Modal>
     </>
   );

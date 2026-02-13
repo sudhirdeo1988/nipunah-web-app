@@ -1,5 +1,5 @@
 import Icon from "@/components/Icon";
-import { Dropdown, Table, Modal, Space, message } from "antd";
+import { Dropdown, Table, Modal, Space, message, Button } from "antd";
 import CreateSubCategoryForm from "../CreateSubCategoryForm";
 import {
   ACTION_MENU_ITEMS,
@@ -648,7 +648,7 @@ const SubCategoryListing = memo(
 
         <Modal
           title={
-            <span className="C-heaidng size-5 mb-0 bold">
+            <span className="C-heading size-5 mb-0 bold">
               {isEditMode ? "Edit Sub Category" : "Add Sub Category"}
             </span>
           }
@@ -684,41 +684,39 @@ const SubCategoryListing = memo(
         {/* Delete Confirmation Modal for Sub-Category */}
         <Modal
           title={
-            <span className="C-heaidng size-5 mb-0 bold">
-              Delete sub-category
-            </span>
+            <div className="d-flex align-items-center">
+              <Icon name="delete" className="me-2" style={{ color: "#ff4d4f" }} />
+              <span className="C-heading size-5 semiBold mb-0">
+                Delete Sub-Category: {subCategoryToDelete?.c_name || ""}
+              </span>
+            </div>
           }
           open={isDeleteModalOpen}
-          onOk={handleConfirmDeleteSubCategory}
           onCancel={handleCancelDeleteSubCategory}
-          okText="Delete"
-          cancelText="Cancel"
-          okButtonProps={{ className: "C-button is-filled" }}
-          cancelButtonProps={{ className: "C-button is-bordered" }}
-          centered
+          footer={
+            <div className="d-flex justify-content-end gap-2">
+              <Button 
+                onClick={handleCancelDeleteSubCategory} 
+                className="C-button is-bordered small"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                danger
+                onClick={handleConfirmDeleteSubCategory}
+                className="C-button is-filled small"
+              >
+                Delete
+              </Button>
+            </div>
+          }
+          width={400}
+          className="delete-confirm-modal"
         >
-          <div className="py-3">
-            <p className="C-heading size-6 bold mb-3">
-              Are you sure you want to delete this sub-category? <br /> This
-              action cannot be undone.
-            </p>
-            {subCategoryToDelete && (
-              <div className="bg-light p-3 rounded">
-                <p className="C-heading size-xs mb-1 text-muted">
-                  Sub-Category Name:
-                </p>
-                <p className="C-heading size-6 mb-4 bold">
-                  {subCategoryToDelete.c_name}
-                </p>
-                <p className="C-heading size-xs mb-1 text-muted">
-                  Parent Category:
-                </p>
-                <p className="C-heading size-xs mb-0 bold mt-2">
-                  {parentRecord.c_name}
-                </p>
-              </div>
-            )}
-          </div>
+          <p className="C-heading size-xs text-muted mb-0">
+            Are you sure you want to delete this sub-category? This action cannot be undone.
+          </p>
         </Modal>
       </>
     );

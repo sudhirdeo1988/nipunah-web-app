@@ -61,7 +61,7 @@ const CreateCompanyModal = memo(({ isOpen, onCancel, onSubmit }) => {
   return (
     <Modal
       title={
-        <span className="C-heaidng size-5 mb-0 bold">Create New Company</span>
+        <span className="C-heading size-5 mb-0 bold">Create New Company</span>
       }
       open={isOpen}
       onCancel={handleCancel}

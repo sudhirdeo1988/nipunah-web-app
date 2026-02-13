@@ -30,74 +30,11 @@ const DeleteConfirmModal = memo(
       return `Delete Job: ${job?.title}`;
     };
 
-    const getModalContent = () => {
+    const getModalSubtitle = () => {
       if (isBulk) {
-        return (
-          <div>
-            <p className="C-heading size-xs mb-3">
-              Are you sure you want to delete the following {jobs.length} job
-              {jobs.length > 1 ? "s" : ""}?
-            </p>
-            <div
-              className="job-list mb-3"
-              style={{ maxHeight: "200px", overflowY: "auto" }}
-            >
-              {jobs.map((jobItem) => (
-                <div
-                  key={jobItem.id}
-                  className="d-flex align-items-center justify-content-between p-2 border-bottom"
-                >
-                  <div>
-                    <span className="C-heading size-xs semiBold">
-                      {jobItem.title}
-                    </span>
-                    <div className="C-heading size-xss text-muted">
-                      {jobItem.jobId} - {jobItem.postedBy.companyName}
-                    </div>
-                  </div>
-                  <Icon
-                    name="delete"
-                    size="small"
-                    style={{ color: "#ff4d4f" }}
-                  />
-                </div>
-              ))}
-            </div>
-            <p className="C-heading size-xs text-danger mb-0">
-              <Icon name="warning" className="me-1" />
-              This action cannot be undone.
-            </p>
-          </div>
-        );
+        return `Are you sure you want to delete ${jobs.length} job${jobs.length > 1 ? "s" : ""}? This action cannot be undone.`;
       }
-
-      return (
-        <div>
-          <p className="C-heading size-xs mb-3">
-            Are you sure you want to delete this job?
-          </p>
-          <div className="job-details p-3 border rounded mb-3">
-            <div className="d-flex align-items-center justify-content-between">
-              <div>
-                <h5 className="C-heading size-xs semiBold mb-1">
-                  {job?.title}
-                </h5>
-                <div className="C-heading size-xss text-muted mb-1">
-                  Job ID: {job?.jobId}
-                </div>
-                <div className="C-heading size-xss text-muted mb-0">
-                  Posted by: {job?.postedBy?.companyName}
-                </div>
-              </div>
-              <Icon name="delete" size="large" style={{ color: "#ff4d4f" }} />
-            </div>
-          </div>
-          <p className="C-heading size-xs text-danger mb-0">
-            <Icon name="warning" className="me-1" />
-            This action cannot be undone.
-          </p>
-        </div>
-      );
+      return "Are you sure you want to delete this job? This action cannot be undone.";
     };
 
     return (
@@ -128,21 +65,17 @@ const DeleteConfirmModal = memo(
               className="C-button is-filled small"
               loading={loading}
             >
-              <Space>
-                <Icon name="delete" />
-                Delete{" "}
-                {isBulk
-                  ? `${jobs.length} Job${jobs.length > 1 ? "s" : ""}`
-                  : "Job"}
-              </Space>
+              Delete
             </Button>
           </div>
         }
         confirmLoading={loading}
-        width={isBulk ? 500 : 400}
+        width={400}
         className="delete-confirm-modal"
       >
-        {getModalContent()}
+        <p className="C-heading size-xs text-muted mb-0">
+          {getModalSubtitle()}
+        </p>
       </Modal>
     );
   }

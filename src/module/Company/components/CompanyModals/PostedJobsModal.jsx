@@ -81,7 +81,7 @@ const PostedJobsModal = memo(({ isOpen, company, onCancel }) => {
   return (
     <Modal
       title={
-        <span className="C-heaidng size-5 mb-0 bold">
+        <span className="C-heading size-5 mb-0 bold">
           Posted Jobs - {company?.name}
         </span>
       }

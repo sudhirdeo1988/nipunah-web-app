@@ -377,7 +377,7 @@ const CompanyTable = memo(
         {/* Status Change Confirmation Modal */}
         <Modal
           title={
-            <span className="C-heaidng size-5 mb-0 bold">
+            <span className="C-heading size-5 mb-0 bold">
               {newStatus ? "Approve Company" : "Reject Company"}
             </span>
           }

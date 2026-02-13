@@ -82,17 +82,32 @@ const handleResponse = async (response, onAuthError = null) => {
 
   // Try to parse JSON, fallback to text if not JSON
   const contentType = response.headers.get("content-type");
-  let data;
+  let data = {};
 
-  if (contentType && contentType.includes("application/json")) {
-    data = await response.json();
-  } else {
-    const text = await response.text();
-    try {
-      data = JSON.parse(text);
-    } catch {
-      data = { message: text || response.statusText };
+  try {
+    if (contentType && contentType.includes("application/json")) {
+      const jsonData = await response.json();
+      data = jsonData || {};
+    } else {
+      const text = await response.text();
+      if (text) {
+        try {
+          data = JSON.parse(text);
+        } catch {
+          data = { message: text || response.statusText };
+        }
+      } else {
+        data = { message: response.statusText || "Unknown error" };
+      }
     }
+  } catch (parseError) {
+    // If parsing fails completely, create a default error object
+    data = { message: response.statusText || "Unknown error" };
+  }
+
+  // Ensure data is always an object
+  if (!data || typeof data !== "object") {
+    data = { message: response.statusText || "Unknown error" };
   }
 
   // Handle non-2xx responses
@@ -110,11 +125,29 @@ const handleResponse = async (response, onAuthError = null) => {
       }
     }
 
-    const error = new Error(
-      data.message ||
-        data.error ||
-        `HTTP ${response.status}: ${response.statusText}`
-    );
+    // Create user-friendly error messages for common status codes
+    let errorMessage = data.message || data.error;
+    
+    if (!errorMessage) {
+      switch (response.status) {
+        case 404:
+          errorMessage = "Resource not found";
+          break;
+        case 403:
+          errorMessage = "Access forbidden";
+          break;
+        case 500:
+          errorMessage = "Internal server error";
+          break;
+        case 503:
+          errorMessage = "Service unavailable";
+          break;
+        default:
+          errorMessage = `HTTP ${response.status}: ${response.statusText || "Unknown error"}`;
+      }
+    }
+
+    const error = new Error(errorMessage);
     error.status = response.status;
     error.statusText = response.statusText;
     error.data = data;

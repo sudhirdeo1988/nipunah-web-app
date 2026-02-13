@@ -23,20 +23,30 @@ const navItems = [
 
 /**
  * User settings dropdown component
- * Displays user profile information and action buttons
- * @component
- * @param {Object} props - Component props
- * @param {string} props.userName - User's display name
- * @param {string} props.userRole - User's role/title
- * @returns {JSX.Element} User settings dropdown content
+ * Displays user profile information and action buttons (Profile, Settings, Logout)
+ * Matches the profile actions previously in the sidebar.
  */
 const UserSettingsDropdown = memo(
-  ({ userName = "Sudhir Deolalikar", userRole = "Marine Engineer Expert" }) => {
+  ({ userName = "Sudhir Deolalikar", userRole = "Admin Head", onClose }) => {
+    const router = useRouter();
+    const { logout } = useAuth();
+
     const userActions = [
-      { icon: "dashboard", label: "Dashboard", className: "text-secondary" },
-      { icon: "settings", label: "Settings" },
-      { icon: "logout", label: "Logout" },
+      { icon: "dashboard", label: "Dashboard", route: ROUTES.PRIVATE.DASHBOARD },
+      { icon: "person", label: "Profile", route: ROUTES.PRIVATE.PROFILE },
+      { icon: "settings", label: "Settings", route: ROUTES.PRIVATE.SETTINGS },
     ];
+
+    const handleAction = (route) => {
+      onClose?.();
+      if (route) router.push(route);
+    };
+
+    const handleLogout = () => {
+      onClose?.();
+      logout();
+      router.push(ROUTES.PUBLIC.LOGIN);
+    };
 
     return (
       <div
@@ -60,9 +70,9 @@ const UserSettingsDropdown = memo(
           {userActions.map((action, index) => (
             <button
               key={index}
-              className={`C-button is-link p-0 py-2 small w-100 text-left ${
-                action.className || ""
-              }`}
+              type="button"
+              className="C-button is-link p-0 py-2 small w-100 text-left"
+              onClick={() => handleAction(action.route)}
             >
               <Space>
                 <Icon name={action.icon} />
@@ -70,6 +80,16 @@ const UserSettingsDropdown = memo(
               </Space>
             </button>
           ))}
+          <button
+            type="button"
+            className="C-button is-link p-0 py-2 small w-100 text-left"
+            onClick={handleLogout}
+          >
+            <Space>
+              <Icon name="logout" />
+              <span>Logout</span>
+            </Space>
+          </button>
         </div>
       </div>
     );
@@ -92,6 +112,7 @@ const HeaderBeta = memo(() => {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const [open, setOpen] = useState(false);
+  const [profilePopoverOpen, setProfilePopoverOpen] = useState(false);
 
   // Memoized drawer toggle handlers
   const handleDrawerOpen = useCallback(() => {
@@ -102,8 +123,13 @@ const HeaderBeta = memo(() => {
     setOpen(false);
   }, []);
 
-  // Memoized user settings dropdown content
-  const userSettingsContent = useMemo(() => <UserSettingsDropdown />, []);
+  // Memoized user settings dropdown content (close popover on action so navigation works)
+  const userSettingsContent = useMemo(
+    () => (
+      <UserSettingsDropdown onClose={() => setProfilePopoverOpen(false)} />
+    ),
+    []
+  );
 
   // Memoized navigation items to prevent recreation
   const navigationItems = useMemo(
@@ -146,8 +172,18 @@ const HeaderBeta = memo(() => {
         {/* User Account Dropdown - Only show if user is logged in */}
         {isLoggedIn && (
           <li>
-            <Popover content={userSettingsContent} placement="bottomRight">
-              <button className="userAccount rounded-pill text-left p-1">
+            <Popover
+              content={userSettingsContent}
+              placement="bottomRight"
+              open={profilePopoverOpen}
+              onOpenChange={setProfilePopoverOpen}
+              trigger="click"
+            >
+              <button
+                type="button"
+                className="userAccount rounded-pill text-left p-1"
+                aria-label="User menu"
+              >
                 <Avatar
                   style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
                   size={36}
@@ -160,14 +196,23 @@ const HeaderBeta = memo(() => {
         )}
       </>
     ),
-    [navigationItems, userSettingsContent, isLoggedIn, router]
+    [
+      navigationItems,
+      userSettingsContent,
+      isLoggedIn,
+      router,
+      profilePopoverOpen,
+    ]
   );
+
+  const isSecurePage = pathname?.startsWith("/app");
+  const containerClass = isSecurePage ? "container-fluid" : "container";
 
   return (
     <>
       {/* Main Header */}
       <header className="c-headerBeta">
-        <div className="container">
+        <div className={containerClass}>
           <div className="row align-items-center">
             {/* Logo and Mobile Menu Button */}
             <div className="col-xl-3 col-md-4 col-sm-12">

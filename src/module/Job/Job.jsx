@@ -19,7 +19,7 @@ const JobDetailsModal = lazy(() =>
   import("./components/JobModals/JobDetailsModal")
 );
 
-const Job = () => {
+const Job = ({ onPostJobClickRef }) => {
   const {
     // State
     jobs,
@@ -63,6 +63,13 @@ const Job = () => {
     handleSort,
   } = useJobListing();
 
+  // Expose openCreateJobModal to parent via ref if provided
+  React.useEffect(() => {
+    if (onPostJobClickRef) {
+      onPostJobClickRef.current = openCreateJobModal;
+    }
+  }, [onPostJobClickRef, openCreateJobModal]);
+
   /**
    * Handle table changes (pagination, sorting)
    */
@@ -88,7 +95,6 @@ const Job = () => {
           onSearchChange={handleSearchChange}
           onBulkDelete={handleBulkDelete}
           selectedJobs={selectedJobs}
-          onPostJob={openCreateJobModal}
         />
 
         <Suspense fallback={<Spin size="small" />}>
