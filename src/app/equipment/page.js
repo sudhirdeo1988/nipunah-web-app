@@ -14,14 +14,29 @@ import Icon from "@/components/Icon";
 import { useEquipment } from "@/module/Equipment/hooks/useEquipment";
 import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
 
+const MIN_SEARCH_LENGTH = 4;
+const AVAILABLE_FOR_ALL = "all";
+const DEFAULT_LOCATION = "India";
+
+/** Available for options: Sale, Rent, Lease. All is default. */
+const AVAILABLE_FOR_OPTIONS = [
+  { value: AVAILABLE_FOR_ALL, label: "All" },
+  { value: "Sale", label: "Sale" },
+  { value: "Rent", label: "Rent" },
+  { value: "Lease", label: "Lease" },
+];
+
 /**
- * Parse URL query into filter state for equipment (search, type, location).
+ * Parse URL query into filter state (search, availableFor, location).
+ * Defaults: availableFor "all", location "India".
  */
 function getFiltersFromSearchParams(searchParams) {
   return {
     search: searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "",
-    equipmentType: searchParams.get(HOME_SEARCH_PARAMS.TYPE) || "",
-    countrySelect: searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || "",
+    availableFor:
+      searchParams.get(HOME_SEARCH_PARAMS.TYPE) || AVAILABLE_FOR_ALL,
+    countrySelect:
+      searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || DEFAULT_LOCATION,
   };
 }
 
@@ -30,35 +45,56 @@ function getFiltersFromSearchParams(searchParams) {
  */
 function buildEquipmentParams(filters, page = 1, limit = 10) {
   const params = { page, limit, search: filters.search || "" };
-  if (filters.equipmentType) params.type = filters.equipmentType;
-  if (filters.countrySelect) params.country = filters.countrySelect;
+  params.availableFor = filters.availableFor || AVAILABLE_FOR_ALL;
+  if (filters.countrySelect) params.location = filters.countrySelect;
   return params;
 }
 
 const EquipmentListPage = () => {
   const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [filters, setFilters] = useState(() => getFiltersFromSearchParams(searchParams));
+  const [filters, setFilters] = useState(() =>
+    getFiltersFromSearchParams(searchParams)
+  );
 
   const { equipment, loading, error, pagination, fetchEquipment } = useEquipment();
 
   const showDrawer = () => setOpen(true);
   const onClose = () => setOpen(false);
 
-  /* Pre-fill filters from URL and run search API on mount / when filters from URL present */
+  /** Resolve "Available for" label for title */
+  const availableForLabel = useMemo(() => {
+    const opt = AVAILABLE_FOR_OPTIONS.find(
+      (o) => o.value === (filters.availableFor || AVAILABLE_FOR_ALL)
+    );
+    return opt?.label ?? "All";
+  }, [filters.availableFor]);
+
+  /** Section title: "Equipment {search} - Available for {availableFor} in {location}" */
+  const searchSectionTitle = useMemo(() => {
+    const availablePart = availableForLabel;
+    const locationPart = filters.countrySelect?.trim()
+      ? ` in ${filters.countrySelect.trim()}`
+      : "";
+    const hasSearch =
+      filters.search?.trim().length >= MIN_SEARCH_LENGTH;
+    if (hasSearch) {
+      return `Equipment ${filters.search.trim()} - Available for ${availablePart}${locationPart}`;
+    }
+    return `Equipment - Available for ${availablePart}${locationPart}`;
+  }, [filters.search, availableForLabel, filters.countrySelect]);
+
+  /* Run search on mount and when filters change */
   useEffect(() => {
     const fromUrl = getFiltersFromSearchParams(searchParams);
-    const hasParams = fromUrl.search || fromUrl.equipmentType || fromUrl.countrySelect;
+    const hasParams =
+      fromUrl.search || fromUrl.availableFor || fromUrl.countrySelect;
     setFilters(fromUrl);
-    if (hasParams) {
-      fetchEquipment(buildEquipmentParams(fromUrl, 1, pagination.pageSize));
-    } else {
-      fetchEquipment({ page: 1, limit: pagination.pageSize });
-    }
+    fetchEquipment(buildEquipmentParams(fromUrl, 1, pagination.pageSize));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /** Memoized search field options with default values from filters */
+  /** Memoized search field options: search (min 4), Available for (Sale/Rent/Lease/All), Location optional */
   const searchFieldOptions = useMemo(
     () => [
       {
@@ -66,20 +102,24 @@ const EquipmentListPage = () => {
         label: "",
         formFieldValue: "search",
         defaultValue: filters.search,
-        placeholder: "Search",
+        placeholder: `Search (min ${MIN_SEARCH_LENGTH} characters)`,
         icon: "",
+        rules: [
+          { required: true, message: "Search is required" },
+          {
+            min: MIN_SEARCH_LENGTH,
+            message: `Enter at least ${MIN_SEARCH_LENGTH} characters`,
+          },
+        ],
       },
       {
         type: "select",
         label: "",
-        formFieldValue: "equipmentType",
-        defaultValue: filters.equipmentType,
-        placeholder: "Select equipment type",
-        options: [
-          { value: "Ship Building", label: "Ship Building" },
-          { value: "Shipping", label: "Shipping" },
-          { value: "Marine Engineering", label: "Marine Engineering" },
-        ],
+        formFieldValue: "availableFor",
+        defaultValue: filters.availableFor || AVAILABLE_FOR_ALL,
+        placeholder: "Available for",
+        options: AVAILABLE_FOR_OPTIONS,
+        rules: [{ required: true, message: "Available for is required" }],
       },
       {
         type: "countrySelect",
@@ -87,18 +127,24 @@ const EquipmentListPage = () => {
         icon: "",
         formFieldValue: "countrySelect",
         defaultValue: filters.countrySelect,
-        placeholder: "Select Location",
-        options: _map(CountryDetails, (c) => ({ value: c?.countryName, label: c?.countryName })),
+        placeholder: "Select Location (optional)",
+        options: _map(CountryDetails, (c) => ({
+          value: c?.countryName,
+          label: c?.countryName,
+        })),
       },
     ],
-    [filters.search, filters.equipmentType, filters.countrySelect]
+    [filters.search, filters.availableFor, filters.countrySelect]
   );
 
   const handleSearch = useCallback(
     (values) => {
       const next = {
         search: values.search || "",
-        equipmentType: values.equipmentType || "",
+        availableFor:
+          values.availableFor === undefined || values.availableFor === null
+            ? AVAILABLE_FOR_ALL
+            : values.availableFor,
         countrySelect: values.countrySelect || "",
       };
       setFilters(next);
@@ -134,7 +180,7 @@ const EquipmentListPage = () => {
           <div className="row align-items-center my-2">
             <div className="col-10">
               <h3 className="C-heading size-4 bold mb-4 font-family-creative">
-                Top equipments in marine Engineering
+                {searchSectionTitle}
               </h3>
             </div>
             <div className="col-2 text-right d-md-none">
@@ -152,17 +198,20 @@ const EquipmentListPage = () => {
             </div>
             <div className="col-md-8 col-sm-12 text-right">
               <Space>
-                {filters.equipmentType && (
+                {filters.availableFor && filters.availableFor !== AVAILABLE_FOR_ALL && (
                   <Tag
                     closable
                     onClose={() => {
-                      const newFilters = { ...filters, equipmentType: "" };
+                      const newFilters = {
+                        ...filters,
+                        availableFor: AVAILABLE_FOR_ALL,
+                      };
                       setFilters(newFilters);
                       handleSearch(newFilters);
                     }}
                     className="C-tag is-low small"
                   >
-                    Type: {filters.equipmentType}
+                    Available for: {filters.availableFor}
                   </Tag>
                 )}
                 {filters.countrySelect && (
@@ -187,7 +236,9 @@ const EquipmentListPage = () => {
               {loading ? (
                 <div className="text-center py-5">
                   <Spin size="large" />
-                  <p className="C-heading size-6 color-light mt-3">Loading equipments...</p>
+                  <p className="C-heading size-6 color-light mt-3">
+                    Loading equipments...
+                  </p>
                 </div>
               ) : error ? (
                 <div className="text-center py-5">
@@ -235,7 +286,10 @@ const EquipmentListPage = () => {
           forListingPage
           floatingEnable
           searchFieldOptions={searchFieldOptions}
-          onSearch={handleSearch}
+          onSearch={(values) => {
+            handleSearch(values);
+            onClose();
+          }}
           inSidebar
         />
       </Drawer>

@@ -21,8 +21,14 @@ export const useCompanyListing = () => {
   /** @type {[Object[], Function]} Current list of companies to display */
   const [companies, setCompanies] = useState(MOCK_COMPANY_DATA);
 
-  /** @type {[string, Function]} Search query for filtering companies */
+  /** @type {[string, Function]} Search query for filtering companies (min 4 chars for search filter) */
   const [searchQuery, setSearchQuery] = useState("");
+
+  /** @type {[string, Function]} Company type / category filter; "all" = All categories */
+  const [companyType, setCompanyType] = useState("all");
+
+  /** @type {[string, Function]} Optional location filter */
+  const [location, setLocation] = useState("");
 
   // ==================== MODAL STATE MANAGEMENT ====================
 
@@ -55,21 +61,69 @@ export const useCompanyListing = () => {
   // ==================== COMPUTED VALUES ====================
 
   /**
-   * Memoized filtered companies based on search query
-   * Optimizes performance by preventing unnecessary re-filtering
+   * Memoized filtered companies: search (min 4 chars), company type (category), location (optional).
+   * Search and company type are mandatory (default company type = "all"); location is optional.
    */
   const filteredCompanies = useMemo(() => {
-    if (!searchQuery.trim()) return companies;
+    let result = companies;
 
-    const query = searchQuery.toLowerCase();
-    return companies.filter(
-      (company) =>
-        company.name.toLowerCase().includes(query) ||
-        company.shortName.toLowerCase().includes(query) ||
-        company.industry.toLowerCase().includes(query) ||
-        company.contactEmail.toLowerCase().includes(query)
-    );
-  }, [companies, searchQuery]);
+    const query = searchQuery.trim();
+    const categoryId = companyType === "all" ? null : companyType;
+    const loc = location.trim();
+
+    // Search: apply only if query has min 4 characters
+    if (query.length >= 4) {
+      const q = query.toLowerCase();
+      result = result.filter(
+        (company) =>
+          (company.name && company.name.toLowerCase().includes(q)) ||
+          (company.shortName && company.shortName.toLowerCase().includes(q)) ||
+          (company.industry && company.industry.toLowerCase().includes(q)) ||
+          (company.contactEmail &&
+            company.contactEmail.toLowerCase().includes(q))
+      );
+    }
+
+    // Company type (category): filter by category id if not "all"
+    if (categoryId) {
+      const idNum = Number(categoryId);
+      const idStr = String(categoryId);
+      result = result.filter((company) => {
+        const cats = company.categories || [];
+        return cats.some(
+          (c) =>
+            c === categoryId ||
+            c === idNum ||
+            c === idStr ||
+            (typeof c === "object" &&
+              (c.id === categoryId ||
+                c.id === idNum ||
+                c.categoryId === categoryId ||
+                c.categoryId === idNum))
+        );
+      });
+    }
+
+    // Location: optional filter
+    if (loc) {
+      const locLower = loc.toLowerCase();
+      result = result.filter(
+        (company) =>
+          (company.locations &&
+            Array.isArray(company.locations) &&
+            company.locations.some(
+              (l) =>
+                (typeof l === "string" && l.toLowerCase().includes(locLower)) ||
+                (l?.name && l.name.toLowerCase().includes(locLower)) ||
+                (l?.location && l.location.toLowerCase().includes(locLower))
+            )) ||
+          (company.location && company.location.toLowerCase().includes(locLower)) ||
+          (company.address && company.address.toLowerCase().includes(locLower))
+      );
+    }
+
+    return result;
+  }, [companies, searchQuery, companyType, location]);
 
   /**
    * Memoized row selection configuration
@@ -89,11 +143,20 @@ export const useCompanyListing = () => {
   // ==================== EVENT HANDLERS ====================
 
   /**
-   * Handles search input change
-   * @param {Event} e - Input change event
+   * Handles search input change (min 4 chars required for search to apply)
    */
   const handleSearchChange = useCallback((e) => {
-    setSearchQuery(e.target.value);
+    setSearchQuery(e.target.value ?? "");
+  }, []);
+
+  /** Handles company type (category) dropdown change; "all" = All. */
+  const handleCompanyTypeChange = useCallback((value) => {
+    setCompanyType(value === undefined || value === null ? "all" : value);
+  }, []);
+
+  /** Handles optional location filter change. */
+  const handleLocationChange = useCallback((e) => {
+    setLocation(e.target.value ?? "");
   }, []);
 
   /**
@@ -318,7 +381,13 @@ export const useCompanyListing = () => {
     selectedRowKeys,
     selectedCompanies,
     searchQuery,
+    companyType,
+    location,
     rowSelection,
+
+    // Search handlers
+    handleCompanyTypeChange,
+    handleLocationChange,
 
     // Modal states
     isDeleteModalOpen,

@@ -22,73 +22,108 @@ const navItems = [
 ];
 
 /**
- * User settings dropdown component
- * Displays user profile information and action buttons (Profile, Settings, Logout)
- * Matches the profile actions previously in the sidebar.
+ * Settings submenu items (shown on hover of Settings in profile dropdown).
+ * Change password → /app/changepassword; Subscription details → /app/subscription-details.
+ */
+const SETTINGS_SUBMENU_ITEMS = [
+  { label: "Change password", routeKey: "CHANGE_PASSWORD", icon: "lock_reset" },
+  { label: "Subscription details", routeKey: "SUBSCRIPTION_DETAILS", icon: "subscriptions" },
+];
+
+/**
+ * User settings dropdown component.
+ * Displays user profile and actions: Dashboard, Profile, Settings (hover submenu: Change password, Subscription details), Logout.
  */
 const UserSettingsDropdown = memo(
   ({ userName = "Sudhir Deolalikar", userRole = "Admin Head", onClose }) => {
     const router = useRouter();
     const { logout } = useAuth();
 
-    const userActions = [
-      { icon: "dashboard", label: "Dashboard", route: ROUTES.PRIVATE.DASHBOARD },
-      { icon: "person", label: "Profile", route: ROUTES.PRIVATE.PROFILE },
-      { icon: "settings", label: "Settings", route: ROUTES.PRIVATE.SETTINGS },
-    ];
+    const handleAction = useCallback(
+      (route) => {
+        onClose?.();
+        if (route) router.push(route);
+      },
+      [onClose, router]
+    );
 
-    const handleAction = (route) => {
-      onClose?.();
-      if (route) router.push(route);
-    };
-
-    const handleLogout = () => {
+    const handleLogout = useCallback(() => {
       onClose?.();
       logout();
       router.push(ROUTES.PUBLIC.LOGIN);
-    };
+    }, [onClose, logout, router]);
+
+    const handleSubmenuClick = useCallback(
+      (routeKey) => {
+        const route = ROUTES.PRIVATE?.[routeKey];
+        if (route) handleAction(route);
+      },
+      [handleAction]
+    );
 
     return (
-      <div
-        className="d-flex flex-column align-items-center"
-        style={{ width: "220px" }}
-      >
-        <Avatar
-          style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
-          size={36}
-          className="mb-1"
-        >
-          {userName.charAt(0)}
-        </Avatar>
-        <span className="C-heading size-6 bold color-dark mb-0">
-          {userName}
-        </span>
-        <span className="C-heading size-xs color-light semiBold mb-2">
-          {userRole}
-        </span>
-        <div className="border-top w-100">
-          {userActions.map((action, index) => (
-            <button
-              key={index}
-              type="button"
-              className="C-button is-link p-0 py-2 small w-100 text-left"
-              onClick={() => handleAction(action.route)}
-            >
-              <Space>
-                <Icon name={action.icon} />
-                <span>{action.label}</span>
-              </Space>
-            </button>
-          ))}
+      <div className="userSettings-dropdown">
+        <div className="userSettings-dropdown__profile">
+          <Avatar
+            style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
+            size={44}
+            className="userSettings-dropdown__avatar"
+          >
+            {userName.charAt(0)}
+          </Avatar>
+          <div className="userSettings-dropdown__info">
+            <span className="userSettings-dropdown__name">{userName}</span>
+            <span className="userSettings-dropdown__role">{userRole}</span>
+          </div>
+        </div>
+        <div className="userSettings-dropdown__menu userSettings-actions">
           <button
             type="button"
-            className="C-button is-link p-0 py-2 small w-100 text-left"
+            className="userSettings-dropdown__item C-button is-link"
+            onClick={() => handleAction(ROUTES.PRIVATE.DASHBOARD)}
+          >
+            <Icon name="dashboard" />
+            <span>Dashboard</span>
+          </button>
+          <button
+            type="button"
+            className="userSettings-dropdown__item C-button is-link"
+            onClick={() => handleAction(ROUTES.PRIVATE.PROFILE)}
+          >
+            <Icon name="person" />
+            <span>Profile</span>
+          </button>
+          <div className="userSettings-settingsWrap">
+            <div className="userSettings-settingsTrigger userSettings-dropdown__item">
+              <Space size={8}>
+                <Icon name="settings" />
+                <span>Settings</span>
+              </Space>
+              <Icon name="chevron_right" className="userSettings-chevron" />
+            </div>
+            <div className="userSettings-submenu" role="menu">
+              {SETTINGS_SUBMENU_ITEMS.map((item) => (
+                <button
+                  key={item.routeKey}
+                  type="button"
+                  className="userSettings-dropdown__subitem C-button is-link"
+                  onClick={() => handleSubmenuClick(item.routeKey)}
+                  role="menuitem"
+                >
+                  <Icon name={item.icon} />
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="userSettings-dropdown__divider" />
+          <button
+            type="button"
+            className="userSettings-dropdown__item userSettings-dropdown__item--logout C-button is-link"
             onClick={handleLogout}
           >
-            <Space>
-              <Icon name="logout" />
-              <span>Logout</span>
-            </Space>
+            <Icon name="logout" />
+            <span>Logout</span>
           </button>
         </div>
       </div>
@@ -178,6 +213,7 @@ const HeaderBeta = memo(() => {
               open={profilePopoverOpen}
               onOpenChange={setProfilePopoverOpen}
               trigger="click"
+              overlayClassName="userSettings-popover"
             >
               <button
                 type="button"

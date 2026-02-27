@@ -11,16 +11,20 @@ import { map as _map } from "lodash-es";
 import SearchContainer from "@/components/SearchContainer";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
-import { EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
 import { expertService } from "@/utilities/apiServices";
 import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
+import { EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
 
-/** Parse URL query into filter state for experts page */
+const MIN_SEARCH_LENGTH = 4;
+const DEFAULT_LOCATION = "India";
+
+/** Parse URL query into filter state. Defaults: location "India". */
 function getFiltersFromSearchParams(searchParams) {
   return {
     search: searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "",
     expertType: searchParams.get(HOME_SEARCH_PARAMS.TYPE) || "",
-    countrySelect: searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || "",
+    countrySelect:
+      searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || DEFAULT_LOCATION,
   };
 }
 
@@ -30,90 +34,128 @@ const ExpertsPage = () => {
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
-  const [filters, setFilters] = useState(() => getFiltersFromSearchParams(searchParams));
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
+  const [filters, setFilters] = useState(() =>
+    getFiltersFromSearchParams(searchParams)
+  );
 
   const showDrawer = () => setOpen(true);
   const onClose = () => setOpen(false);
 
-  /**
-   * Fetch experts with optional search and location filters.
-   * Memoized to avoid unnecessary effect re-runs.
-   */
-  const fetchExperts = useCallback(async (page = 1, limit = 10, filterOverrides = null) => {
-    const f = filterOverrides ?? filters;
-    try {
-      setLoading(true);
-      setError(null);
+  /** Resolve expert type label for title (from EXPERT_CATEGORIES) */
+  const expertTypeLabel = useMemo(() => {
+    if (!filters.expertType) return "";
+    const cat = EXPERT_CATEGORIES.find((c) => c.value === filters.expertType);
+    return cat?.label || "";
+  }, [filters.expertType]);
 
-      const params = { page, limit };
-      if (f.search) params.search = f.search;
-      if (f.countrySelect) params.country = f.countrySelect;
-      if (f.expertType) params.expertType = f.expertType;
-
-      const response = await expertService.getExperts(params);
-
-      // Handle different response structures
-      let expertsData = [];
-      let total = 0;
-
-      if (response?.success && response?.data) {
-        if (response.data.items && Array.isArray(response.data.items)) {
-          expertsData = response.data.items;
-          total = response.data.total || response.data.totalItems || expertsData.length;
-        } else if (Array.isArray(response.data)) {
-          expertsData = response.data;
-          total = expertsData.length;
-        }
-      } else if (Array.isArray(response)) {
-        expertsData = response;
-        total = response.length;
-      } else if (response?.data && Array.isArray(response.data)) {
-        expertsData = response.data;
-        total = response.total || expertsData.length;
-      }
-
-      // Transform expert data to match component format
-      const transformedExperts = expertsData.map((expert) => {
-        const fullName = [expert.first_name, expert.last_name]
-          .filter(Boolean)
-          .join(" ")
-          .trim() || expert.name || "Expert";
-
-        return {
-          id: expert.id,
-          name: fullName,
-          firstName: expert.first_name,
-          lastName: expert.last_name,
-          email: expert.email || "",
-          expertise: expert.expertise || expert.expert_type || "Expert",
-          city: expert.address?.city || expert.city || "",
-          state: expert.address?.state || expert.state || "",
-          country: expert.address?.country || expert.country || "",
-          socialMedia: expert.social_media || expert.socialMedia || {},
-          createdAt: expert.created_on || expert.createdAt || expert.created_at,
-          createDate: expert.created_on || expert.createdAt || expert.created_at,
-        };
-      });
-
-      setExperts(transformedExperts);
-      setPagination((prev) => ({
-        ...prev,
-        current: page,
-        pageSize: limit,
-        total: total,
-      }));
-    } catch (err) {
-      console.error("Error fetching experts:", err);
-      setError(err);
-      message.error("Failed to load experts. Please try again later.");
-      setExperts([]);
-    } finally {
-      setLoading(false);
+  /** Title: "Expert in {search text} {expert type} in {location}" */
+  const searchSectionTitle = useMemo(() => {
+    const typePart = expertTypeLabel;
+    const locationPart = filters.countrySelect?.trim()
+      ? ` in ${filters.countrySelect.trim()}`
+      : "";
+    const hasSearch = filters.search?.trim().length >= MIN_SEARCH_LENGTH;
+    if (hasSearch && typePart) {
+      return `Expert in ${filters.search.trim()} ${typePart}${locationPart}`;
     }
-  }, [filters.search, filters.countrySelect, filters.expertType]);
+    if (hasSearch) {
+      return `Expert in ${filters.search.trim()}${locationPart}`;
+    }
+    if (typePart) {
+      return `Expert in ${typePart}${locationPart}`;
+    }
+    return `Expert in${locationPart}`;
+  }, [filters.search, expertTypeLabel, filters.countrySelect]);
 
-  /* On mount: pre-fill filters from URL and run search API */
+  /**
+   * Fetch experts with search, availableFor, and location.
+   * Uses location (not country) in API params, same as company/equipment.
+   */
+  const fetchExperts = useCallback(
+    async (page = 1, limit = 10, filterOverrides = null) => {
+      const f = filterOverrides ?? filters;
+      try {
+        setLoading(true);
+        setError(null);
+
+        const params = { page, limit };
+        if (f.search?.trim().length >= MIN_SEARCH_LENGTH)
+          params.search = f.search.trim();
+        if (f.expertType) params.expertType = f.expertType;
+        if (f.countrySelect?.trim()) params.location = f.countrySelect.trim();
+
+        const response = await expertService.getExperts(params);
+
+        let expertsData = [];
+        let total = 0;
+
+        if (response?.success && response?.data) {
+          if (response.data.items && Array.isArray(response.data.items)) {
+            expertsData = response.data.items;
+            total =
+              response.data.total ||
+              response.data.totalItems ||
+              expertsData.length;
+          } else if (Array.isArray(response.data)) {
+            expertsData = response.data;
+            total = expertsData.length;
+          }
+        } else if (Array.isArray(response)) {
+          expertsData = response;
+          total = response.length;
+        } else if (response?.data && Array.isArray(response.data)) {
+          expertsData = response.data;
+          total = response.total || expertsData.length;
+        }
+
+        const transformedExperts = expertsData.map((expert) => {
+          const fullName = [expert.first_name, expert.last_name]
+            .filter(Boolean)
+            .join(" ")
+            .trim() || expert.name || "Expert";
+
+          return {
+            id: expert.id,
+            name: fullName,
+            firstName: expert.first_name,
+            lastName: expert.last_name,
+            email: expert.email || "",
+            expertise: expert.expertise || expert.expert_type || "Expert",
+            city: expert.address?.city || expert.city || "",
+            state: expert.address?.state || expert.state || "",
+            country: expert.address?.country || expert.country || "",
+            socialMedia: expert.social_media || expert.socialMedia || {},
+            createdAt:
+              expert.created_on || expert.createdAt || expert.created_at,
+            createDate:
+              expert.created_on || expert.createdAt || expert.created_at,
+          };
+        });
+
+        setExperts(transformedExperts);
+        setPagination((prev) => ({
+          ...prev,
+          current: page,
+          pageSize: limit,
+          total,
+        }));
+      } catch (err) {
+        console.error("Error fetching experts:", err);
+        setError(err);
+        message.error("Failed to load experts. Please try again later.");
+        setExperts([]);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [filters.search, filters.countrySelect, filters.expertType]
+  );
+
   useEffect(() => {
     const fromUrl = getFiltersFromSearchParams(searchParams);
     setFilters(fromUrl);
@@ -123,12 +165,12 @@ const ExpertsPage = () => {
 
   const handlePageChange = useCallback(
     (page, pageSize) => {
-      fetchExperts(page, pageSize);
+      fetchExperts(page, pageSize, filters);
     },
-    [fetchExperts]
+    [fetchExperts, filters]
   );
 
-  /** Memoized search field options with default values from filters */
+  /** Search field options: search (min 4), expert type (from EXPERT_CATEGORIES), location optional */
   const searchFieldOptions = useMemo(
     () => [
       {
@@ -136,8 +178,15 @@ const ExpertsPage = () => {
         label: "",
         formFieldValue: "search",
         defaultValue: filters.search,
-        placeholder: "Search",
+        placeholder: `Search (min ${MIN_SEARCH_LENGTH} characters)`,
         icon: "",
+        rules: [
+          { required: true, message: "Search is required" },
+          {
+            min: MIN_SEARCH_LENGTH,
+            message: `Enter at least ${MIN_SEARCH_LENGTH} characters`,
+          },
+        ],
       },
       {
         type: "select",
@@ -145,7 +194,10 @@ const ExpertsPage = () => {
         formFieldValue: "expertType",
         defaultValue: filters.expertType,
         placeholder: "Select expert type",
-        options: _map(EXPERT_CATEGORIES, (cat) => ({ value: cat.value, label: cat.label })),
+        options: _map(EXPERT_CATEGORIES, (cat) => ({
+          value: cat.value,
+          label: cat.label,
+        })),
       },
       {
         type: "countrySelect",
@@ -153,29 +205,35 @@ const ExpertsPage = () => {
         icon: "",
         formFieldValue: "countrySelect",
         defaultValue: filters.countrySelect,
-        placeholder: "Select Location",
-        options: _map(CountryDetails, (c) => ({ value: c?.countryName, label: c?.countryName })),
+        placeholder: "Select Location (optional)",
+        options: _map(CountryDetails, (c) => ({
+          value: c?.countryName,
+          label: c?.countryName,
+        })),
       },
     ],
     [filters.search, filters.expertType, filters.countrySelect]
   );
 
-  const handleSearch = useCallback((values) => {
-    const next = {
-      search: values.search || "",
-      expertType: values.expertType || "",
-      countrySelect: values.countrySelect || "",
-    };
-    setFilters(next);
-    fetchExperts(1, pagination.pageSize, next);
-  }, [fetchExperts, pagination.pageSize]);
+  const handleSearch = useCallback(
+    (values) => {
+      const next = {
+        search: values.search || "",
+        expertType: values.expertType || "",
+        countrySelect: values.countrySelect || "",
+      };
+      setFilters(next);
+      fetchExperts(1, pagination.pageSize, next);
+    },
+    [fetchExperts, pagination.pageSize]
+  );
 
   return (
     <>
       <PublicLayout>
         <PageHeadingBanner
           heading="Experts"
-          currentPageTitle="List of companies"
+          currentPageTitle="List of Experts"
         />
         <section className="section-padding small pt-0">
           <div className="container">
@@ -191,7 +249,7 @@ const ExpertsPage = () => {
             <div className="row align-items-center my-2">
               <div className="col-10">
                 <h3 className="C-heading size-4 bold mb-4 font-family-creative">
-                  Top shipping experts in india
+                  {searchSectionTitle}
                 </h3>
               </div>
               <div className="col-2 text-right d-md-none">
@@ -209,22 +267,47 @@ const ExpertsPage = () => {
               </div>
               <div className="col-md-8 col-sm-12 text-right">
                 <Space>
-                  <Tag closeIcon className="C-tag is-low small">
-                    Top Product Development
-                  </Tag>
-                  <Tag closeIcon className="C-tag is-low small">
-                    Top Product Development
-                  </Tag>
+                  {filters.availableFor &&
+                    filters.availableFor !== AVAILABLE_FOR_ALL && (
+                      <Tag
+                        closable
+                        onClose={() => {
+                          const newFilters = {
+                            ...filters,
+                            availableFor: AVAILABLE_FOR_ALL,
+                          };
+                          setFilters(newFilters);
+                          handleSearch(newFilters);
+                        }}
+                        className="C-tag is-low small"
+                      >
+                        Available for: {filters.availableFor}
+                      </Tag>
+                    )}
+                  {filters.countrySelect && (
+                    <Tag
+                      closable
+                      onClose={() => {
+                        const newFilters = { ...filters, countrySelect: "" };
+                        setFilters(newFilters);
+                        handleSearch(newFilters);
+                      }}
+                      className="C-tag is-low small"
+                    >
+                      Location: {filters.countrySelect}
+                    </Tag>
+                  )}
                 </Space>
               </div>
             </div>
             <div className="row">
-              {/* Main Content */}
               <div className="col-12 col-md-12">
                 {loading ? (
                   <div className="text-center py-5">
                     <Spin size="large" />
-                    <p className="C-heading size-6 color-light mt-3">Loading experts...</p>
+                    <p className="C-heading size-6 color-light mt-3">
+                      Loading experts...
+                    </p>
                   </div>
                 ) : error ? (
                   <div className="text-center py-5">
@@ -272,7 +355,10 @@ const ExpertsPage = () => {
             forListingPage
             floatingEnable
             searchFieldOptions={searchFieldOptions}
-            onSearch={handleSearch}
+            onSearch={(values) => {
+              handleSearch(values);
+              onClose();
+            }}
             inSidebar
           />
         </Drawer>

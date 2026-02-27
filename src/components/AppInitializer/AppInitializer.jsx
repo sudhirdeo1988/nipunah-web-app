@@ -5,8 +5,26 @@ import { useAuth } from "@/utilities/AuthContext";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
 import { setUser, clearUser } from "@/store/slices/userSlice";
+import {
+  setCategories,
+  setCategoriesLoading,
+  setCategoriesError,
+  clearCategories,
+} from "@/store/slices/categoriesSlice";
 import api from "@/utilities/api";
 import { ROUTES } from "@/constants/routes";
+
+/** Parse categories from API response (same shape as SignUp Company / getAllCategories) */
+function parseCategoriesFromResponse(response) {
+  return (
+    response?.data?.items ||
+    response?.items ||
+    response?.categories ||
+    response?.data?.categories ||
+    (Array.isArray(response?.data) ? response.data : []) ||
+    (Array.isArray(response) ? response : [])
+  );
+}
 
 const AppInitializer = ({ children }) => {
   const [loading, setLoading] = useState(false);
@@ -15,14 +33,33 @@ const AppInitializer = ({ children }) => {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
+    const fetchCategories = async () => {
+      dispatch(setCategoriesLoading(true));
+      try {
+        const res = await fetch(
+          "/api/categories/getAllCategories?page=1&limit=500&sortBy=name&order=asc",
+          { credentials: "include" }
+        );
+        const data = await res.json().catch(() => ({}));
+        const list = Array.isArray(parseCategoriesFromResponse(data))
+          ? parseCategoriesFromResponse(data)
+          : [];
+        dispatch(setCategories(list));
+      } catch (err) {
+        console.error("Failed to load categories", err);
+        dispatch(setCategoriesError(err?.message || "Failed to load categories"));
+        dispatch(setCategories([]));
+      }
+    };
+
     const fetchInitialData = async () => {
       try {
         // Fetch user profile, settings, notifications, etc.
         const data = await api.get("/me", {
           onAuthError: (response, errorData) => {
-            // Handle 401 error - token expired or invalid
             console.warn("Authentication failed, logging out...", errorData);
             dispatch(clearUser());
+            dispatch(clearCategories());
             logout();
             router.push(ROUTES?.PUBLIC?.LOGIN || "/login");
           },
@@ -43,23 +80,27 @@ const AppInitializer = ({ children }) => {
           dispatch(setUser(userData));
         }
 
+        // Load categories on app init (company search dropdown, etc.)
+        await fetchCategories();
+
         setLoading(false);
       } catch (err) {
         console.error("Failed to load initial data", err);
-        // If it's an auth error, logout and redirect
         if (err.isAuthError) {
           dispatch(clearUser());
+          dispatch(clearCategories());
           logout();
           router.push(ROUTES?.PUBLIC?.LOGIN || "/login");
         }
+        setLoading(false);
       }
     };
 
     if (token) {
       fetchInitialData();
     } else {
-      // Clear user data if no token
       dispatch(clearUser());
+      dispatch(clearCategories());
     }
   }, [token, logout, router, dispatch]);
 

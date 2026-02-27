@@ -1,0 +1,67 @@
+.becomeExpertModal {
+  .ant-modal-body {
+    max-height: 70vh;
+    overflow-y: auto;
+  }
+
+  &__section {
+    margin-bottom: 0;
+  }
+
+  &__sectionTitle {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.88);
+    margin-bottom: 1rem;
+  }
+
+  &__listRow {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+
+    .ant-form-item {
+      flex: 1;
+      margin-bottom: 0;
+    }
+  }
+
+  &__deleteBtn {
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  &__educationBlock {
+    background: #fafafa;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border: 1px solid #f0f0f0;
+  }
+
+  &__educationActions {
+    margin-top: 8px;
+    margin-bottom: 0;
+  }
+
+  &__footer {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  &__twoColRow {
+    display: flex;
+    gap: 12px;
+
+    .ant-form-item {
+      flex: 1;
+    }
+
+    @media (max-width: 576px) {
+      flex-direction: column;
+      gap: 0;
+    }
+  }
+}

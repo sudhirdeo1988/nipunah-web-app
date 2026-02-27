@@ -27,6 +27,8 @@ const Company = ({ permissions = {} }) => {
     filteredCompanies,
     selectedCompanies,
     searchQuery,
+    companyType,
+    location,
     rowSelection,
 
     // Modal states
@@ -41,6 +43,8 @@ const Company = ({ permissions = {} }) => {
 
     // Handlers
     handleSearchChange,
+    handleCompanyTypeChange,
+    handleLocationChange,
     handleMenuClick,
     handleCreateCompany,
     handleCreateCompanySubmit,
@@ -59,7 +63,11 @@ const Company = ({ permissions = {} }) => {
       <div className="mb-3">
         <CompanySearch
           searchQuery={searchQuery}
+          companyType={companyType}
+          location={location}
           onSearchChange={handleSearchChange}
+          onCompanyTypeChange={handleCompanyTypeChange}
+          onLocationChange={handleLocationChange}
           onCreateCompany={handleCreateCompany}
           onBulkDelete={handleBulkDelete}
           selectedCompanies={selectedCompanies}

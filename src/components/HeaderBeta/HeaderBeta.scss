@@ -63,6 +63,235 @@
   border: 0;
 }
 
+/* Popover container: rounded corners, no extra padding, allow submenu to show outside */
+.userSettings-popover.ant-popover {
+  .ant-popover-inner {
+    border-radius: 12px;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .ant-popover-content {
+    overflow: visible;
+  }
+}
+
+/* User profile popover: layout and gray links only (avatar stays blue) */
+.userSettings-dropdown {
+  min-width: 240px;
+  padding: 0;
+  border-radius: 12px;
+  /* overflow: visible so Settings submenu (positioned left) is not clipped */
+  overflow: visible;
+
+  /* Force all menu links and submenu to gray (override C-button.is-link blue) */
+  .userSettings-actions button.C-button,
+  .userSettings-actions .userSettings-settingsTrigger,
+  .userSettings-submenu button.C-button {
+    color: #595959 !important;
+
+    &,
+    span,
+    .g-icon,
+    i,
+    * {
+      color: #595959 !important;
+    }
+  }
+}
+
+.userSettings-dropdown__profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background: linear-gradient(180deg, #f8f9fa 0%, $white 100%);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.userSettings-dropdown__avatar {
+  flex-shrink: 0;
+}
+
+.userSettings-dropdown__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.userSettings-dropdown__name {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: rgba(0, 0, 0, 0.88);
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userSettings-dropdown__role {
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.45);
+  line-height: 1.3;
+}
+
+.userSettings-dropdown__menu {
+  padding: 8px 0;
+  position: relative;
+}
+
+.userSettings-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 0.875rem;
+  color: #595959 !important;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  .g-icon {
+    font-size: 1.125rem;
+    color: #595959 !important;
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    color: rgba(0, 0, 0, 0.75) !important;
+
+    .g-icon {
+      color: rgba(0, 0, 0, 0.65) !important;
+    }
+  }
+}
+
+.userSettings-dropdown__item--logout {
+  color: #595959 !important;
+
+  .g-icon {
+    color: #595959 !important;
+  }
+
+  &:hover {
+    background-color: rgba(245, 34, 45, 0.06) !important;
+    color: #cf1322 !important;
+
+    .g-icon {
+      color: #cf1322 !important;
+    }
+  }
+}
+
+.userSettings-dropdown__divider {
+  height: 1px;
+  margin: 6px 12px;
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.userSettings-dropdown__subitem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px !important;
+  margin: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-size: 0.8125rem;
+  color: #595959 !important;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+
+  .g-icon {
+    font-size: 1.125rem;
+    color: #595959 !important;
+    flex-shrink: 0;
+  }
+
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.04) !important;
+    color: rgba(0, 0, 0, 0.75) !important;
+
+    .g-icon {
+      color: rgba(0, 0, 0, 0.65) !important;
+    }
+  }
+}
+
+/* Settings row: submenu on hover to the left */
+.userSettings-actions {
+  position: relative;
+}
+
+.userSettings-settingsWrap {
+  position: relative;
+  display: block;
+
+  /* Invisible bridge so hover stays active when moving mouse to submenu */
+  &::before {
+    content: "";
+    position: absolute;
+    right: 100%;
+    top: 0;
+    bottom: 0;
+    width: 190px;
+    pointer-events: auto;
+  }
+
+  &:hover .userSettings-submenu {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+.userSettings-settingsTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  pointer-events: auto;
+
+  .userSettings-chevron {
+    font-size: 1rem;
+    color: rgba(0, 0, 0, 0.45);
+  }
+}
+
+.userSettings-submenu {
+  position: absolute;
+  right: 100%;
+  left: auto;
+  top: 0;
+  min-width: 180px;
+  background: $white;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  padding: 6px 0;
+  margin-right: 2px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+
+  .userSettings-dropdown__subitem {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+}
+
 .authOverlay {
   .ant-dropdown-menu {
     padding: 0 !important;

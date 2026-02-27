@@ -24,6 +24,8 @@ export const ROUTES = {
     ROLES: "/app/roles",
     SETTINGS: "/app/settings",
     PROFILE: "/app/profile",
+    CHANGE_PASSWORD: "/app/changepassword",
+    SUBSCRIPTION_DETAILS: "/app/subscription-details",
     SEC_COMPANY: {
       EQUIPMENT: "/sec/company/equipment",
       JOBS: "/sec/company/equipment",

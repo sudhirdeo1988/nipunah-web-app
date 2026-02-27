@@ -192,6 +192,10 @@ export const useEquipment = () => {
           order: params.order || order,
           search: params.search !== undefined ? params.search : searchQuery,
         };
+        if (params.availableFor !== undefined && params.availableFor !== "")
+          apiParams.availableFor = params.availableFor;
+        if (params.location !== undefined && params.location !== "")
+          apiParams.location = params.location;
 
         // Call API with pagination, sorting, and search parameters
         console.log("🟢 API CALL: GET /equipment", { params: apiParams });
