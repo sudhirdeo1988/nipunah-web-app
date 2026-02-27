@@ -20,23 +20,6 @@ import {
 import { ACTION_MENU_ITEMS } from "../../constants/equipmentConstants";
 
 /**
- * Transform action menu items to include icons
- */
-const getActionMenuItems = () =>
-  ACTION_MENU_ITEMS.map((item) => ({
-    ...item,
-    label: (
-      <Space align="center">
-        <Icon 
-          name={item.key === "view" ? "visibility" : item.key} 
-          size="small" 
-        />
-        <span className="C-heading size-xs mb-0">{item.label}</span>
-      </Space>
-    ),
-  }));
-
-/**
  * EquipmentListing Component
  *
  * A comprehensive equipment management component that provides:
@@ -53,7 +36,27 @@ const EquipmentListing = ({
   onEditEquipment,
   onDeleteEquipment,
   onFetchEquipment,
+  permissions = {},
 }) => {
+  const canView = Boolean(permissions.view);
+  const canEdit = Boolean(permissions.edit);
+  const canDelete = Boolean(permissions.delete);
+
+  const getActionMenuItems = useCallback(
+    () => {
+      const permMap = { view: canView, edit: canEdit, delete: canDelete };
+      return ACTION_MENU_ITEMS.filter((item) => permMap[item.key]).map((item) => ({
+        ...item,
+        label: (
+          <Space align="center">
+            <Icon name={item.key === "view" ? "visibility" : item.key} size="small" />
+            <span className="C-heading size-xs mb-0">{item.label}</span>
+          </Space>
+        ),
+      }));
+    },
+    [canView, canEdit, canDelete]
+  );
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState([]);
   const [searchValue, setSearchValue] = useState("");
@@ -204,20 +207,24 @@ const EquipmentListing = ({
   );
 
   const renderAction = useCallback(
-    (_, record) => (
-      <Dropdown
-        menu={{
-          items: getActionMenuItems(),
-          onClick: (menuInfo) => handleMenuClick(menuInfo, record),
-        }}
-        trigger={["hover", "click"]}
-      >
-        <button className="C-settingButton is-clean small">
-          <Icon name="more_vert" />
-        </button>
-      </Dropdown>
-    ),
-    [handleMenuClick]
+    (_, record) => {
+      const items = getActionMenuItems();
+      if (items.length === 0) return null;
+      return (
+        <Dropdown
+          menu={{
+            items,
+            onClick: (menuInfo) => handleMenuClick(menuInfo, record),
+          }}
+          trigger={["hover", "click"]}
+        >
+          <button className="C-settingButton is-clean small">
+            <Icon name="more_vert" />
+          </button>
+        </Dropdown>
+      );
+    },
+    [getActionMenuItems, handleMenuClick]
   );
 
   // Table columns

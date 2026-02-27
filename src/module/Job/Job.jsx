@@ -19,7 +19,7 @@ const JobDetailsModal = lazy(() =>
   import("./components/JobModals/JobDetailsModal")
 );
 
-const Job = ({ onPostJobClickRef }) => {
+const Job = ({ onPostJobClickRef, permissions = {} }) => {
   const {
     // State
     jobs,
@@ -63,12 +63,13 @@ const Job = ({ onPostJobClickRef }) => {
     handleSort,
   } = useJobListing();
 
-  // Expose openCreateJobModal to parent via ref if provided
+  // Expose openCreateJobModal to parent via ref if provided (only when add allowed)
+  const canAdd = Boolean(permissions.add);
   React.useEffect(() => {
     if (onPostJobClickRef) {
-      onPostJobClickRef.current = openCreateJobModal;
+      onPostJobClickRef.current = canAdd ? openCreateJobModal : null;
     }
-  }, [onPostJobClickRef, openCreateJobModal]);
+  }, [onPostJobClickRef, openCreateJobModal, canAdd]);
 
   /**
    * Handle table changes (pagination, sorting)
@@ -95,16 +96,18 @@ const Job = ({ onPostJobClickRef }) => {
           onSearchChange={handleSearchChange}
           onBulkDelete={handleBulkDelete}
           selectedJobs={selectedJobs}
+          permissions={permissions}
         />
 
         <Suspense fallback={<Spin size="small" />}>
           <JobTable
             jobs={filteredJobs}
-            rowSelection={rowSelection}
+            rowSelection={permissions.delete ? rowSelection : undefined}
             onMenuClick={handleMenuClick}
             loading={loading}
             pagination={pagination}
             onChange={handleTableChange}
+            permissions={permissions}
           />
         </Suspense>
       </div>

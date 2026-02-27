@@ -1,7 +1,8 @@
-"use client"; // ✅ Required for interactive Ant Design components in App Router
+"use client";
 
-import React, { useState, useEffect, useCallback } from "react";
-import { Tag, Space, Drawer, Spin, Empty, message } from "antd";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import { Tag, Space, Drawer, Spin, Empty } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import EquipmentCard from "@/components/EquipmentCard";
@@ -11,123 +12,107 @@ import SearchContainer from "@/components/SearchContainer";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
 import { useEquipment } from "@/module/Equipment/hooks/useEquipment";
+import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
+
+/**
+ * Parse URL query into filter state for equipment (search, type, location).
+ */
+function getFiltersFromSearchParams(searchParams) {
+  return {
+    search: searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "",
+    equipmentType: searchParams.get(HOME_SEARCH_PARAMS.TYPE) || "",
+    countrySelect: searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || "",
+  };
+}
+
+/**
+ * Build API params from filters for useEquipment.fetchEquipment
+ */
+function buildEquipmentParams(filters, page = 1, limit = 10) {
+  const params = { page, limit, search: filters.search || "" };
+  if (filters.equipmentType) params.type = filters.equipmentType;
+  if (filters.countrySelect) params.country = filters.countrySelect;
+  return params;
+}
 
 const EquipmentListPage = () => {
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
-  const [filters, setFilters] = useState({
-    search: "",
-    equipmentType: "",
-    countrySelect: "",
-  });
+  const [filters, setFilters] = useState(() => getFiltersFromSearchParams(searchParams));
 
-  // Use the equipment hook
-  const {
-    equipment,
-    loading,
-    error,
-    pagination,
-    fetchEquipment,
-  } = useEquipment();
+  const { equipment, loading, error, pagination, fetchEquipment } = useEquipment();
 
-  const showDrawer = () => {
-    setOpen(true);
-  };
-  
-  const onClose = () => {
-    setOpen(false);
-  };
+  const showDrawer = () => setOpen(true);
+  const onClose = () => setOpen(false);
 
-  // Search field configuration
-  const searchFieldOptions = [
-    {
-      type: "search",
-      label: "",
-      formFieldValue: "search",
-      defaultValue: filters.search,
-      placeholder: "Search",
-      icon: "",
-    },
-    {
-      type: "select",
-      label: "",
-      formFieldValue: "equipmentType",
-      defaultValue: filters.equipmentType,
-      placeholder: "Select equipment type",
-      options: [
-        { value: "Ship Building", label: "Ship Building" },
-        { value: "Shipping", label: "Shipping" },
-        { value: "Marine Engineering", label: "Marine Engineering" },
-      ],
-    },
-    {
-      type: "countrySelect",
-      label: "",
-      icon: "",
-      formFieldValue: "countrySelect",
-      defaultValue: filters.countrySelect,
-      placeholder: "Select Location",
-      options: _map(CountryDetails, (country) => {
-        return {
-          value: country?.countryName,
-          label: country?.countryName,
-        };
-      }),
-    },
-  ];
-
-  // Handle search form submission
-  const handleSearch = useCallback((values) => {
-    setFilters({
-      search: values.search || "",
-      equipmentType: values.equipmentType || "",
-      countrySelect: values.countrySelect || "",
-    });
-
-    // Build search params
-    const searchParams = {
-      page: 1,
-      search: values.search || "",
-    };
-
-    // Add type filter if selected
-    if (values.equipmentType) {
-      searchParams.type = values.equipmentType;
-    }
-
-    // Add country filter if selected
-    if (values.countrySelect) {
-      searchParams.country = values.countrySelect;
-    }
-
-    fetchEquipment(searchParams);
-  }, [fetchEquipment]);
-
-  // Handle pagination
-  const handlePageChange = useCallback((page, pageSize) => {
-    const searchParams = {
-      page,
-      limit: pageSize,
-      search: filters.search || "",
-    };
-
-    // Add type filter if selected
-    if (filters.equipmentType) {
-      searchParams.type = filters.equipmentType;
-    }
-
-    // Add country filter if selected
-    if (filters.countrySelect) {
-      searchParams.country = filters.countrySelect;
-    }
-
-    fetchEquipment(searchParams);
-  }, [fetchEquipment, filters]);
-
-  // Initial fetch
+  /* Pre-fill filters from URL and run search API on mount / when filters from URL present */
   useEffect(() => {
-    fetchEquipment();
+    const fromUrl = getFiltersFromSearchParams(searchParams);
+    const hasParams = fromUrl.search || fromUrl.equipmentType || fromUrl.countrySelect;
+    setFilters(fromUrl);
+    if (hasParams) {
+      fetchEquipment(buildEquipmentParams(fromUrl, 1, pagination.pageSize));
+    } else {
+      fetchEquipment({ page: 1, limit: pagination.pageSize });
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  /** Memoized search field options with default values from filters */
+  const searchFieldOptions = useMemo(
+    () => [
+      {
+        type: "search",
+        label: "",
+        formFieldValue: "search",
+        defaultValue: filters.search,
+        placeholder: "Search",
+        icon: "",
+      },
+      {
+        type: "select",
+        label: "",
+        formFieldValue: "equipmentType",
+        defaultValue: filters.equipmentType,
+        placeholder: "Select equipment type",
+        options: [
+          { value: "Ship Building", label: "Ship Building" },
+          { value: "Shipping", label: "Shipping" },
+          { value: "Marine Engineering", label: "Marine Engineering" },
+        ],
+      },
+      {
+        type: "countrySelect",
+        label: "",
+        icon: "",
+        formFieldValue: "countrySelect",
+        defaultValue: filters.countrySelect,
+        placeholder: "Select Location",
+        options: _map(CountryDetails, (c) => ({ value: c?.countryName, label: c?.countryName })),
+      },
+    ],
+    [filters.search, filters.equipmentType, filters.countrySelect]
+  );
+
+  const handleSearch = useCallback(
+    (values) => {
+      const next = {
+        search: values.search || "",
+        equipmentType: values.equipmentType || "",
+        countrySelect: values.countrySelect || "",
+      };
+      setFilters(next);
+      fetchEquipment(buildEquipmentParams(next, 1, pagination.pageSize));
+    },
+    [fetchEquipment, pagination.pageSize]
+  );
+
+  const handlePageChange = useCallback(
+    (page, pageSize) => {
+      fetchEquipment(buildEquipmentParams(filters, page, pageSize));
+    },
+    [fetchEquipment, filters]
+  );
 
   return (
     <PublicLayout>

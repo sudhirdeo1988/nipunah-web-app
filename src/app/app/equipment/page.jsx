@@ -24,7 +24,6 @@ import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import { Space, Modal, Breadcrumb, Button } from "antd";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
-import { useRole } from "@/hooks/useRole";
 import EquipmentListing from "module/Equipment/Components/EquipmentListing";
 import CreateEquipment from "module/Equipment/Components/CreateEquipment";
 import {
@@ -33,10 +32,11 @@ import {
 } from "module/Equipment/constants/equipmentConstants";
 import { useEquipmentModal } from "module/Equipment/hooks/useEquipmentModal";
 import { useEquipment } from "module/Equipment/hooks/useEquipment";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 const EquipmentPage = () => {
   const router = useRouter();
-  const { isCompany } = useRole();
+  const { allowed, permissions } = useModuleAccess("equipments");
   const {
     isModalOpen,
     selectedEquipment,
@@ -164,6 +164,10 @@ const EquipmentPage = () => {
       : MODAL_TITLES.ADD_EQUIPMENT;
   };
 
+  if (!allowed) return null;
+
+  const canAdd = Boolean(permissions.add);
+
   return (
     <>
       <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
@@ -204,7 +208,7 @@ const EquipmentPage = () => {
             />
           }
           children={
-            isCompany() ? (
+            canAdd ? (
               <button
                 className="C-button is-filled small"
                 onClick={() => openModal(MODAL_MODES.EQUIPMENT, null)}
@@ -227,6 +231,7 @@ const EquipmentPage = () => {
             onEditEquipment={handleEditEquipment}
             onDeleteEquipment={handleDeleteClick}
             onFetchEquipment={fetchEquipment}
+            permissions={permissions}
           />
         </div>
       </div>

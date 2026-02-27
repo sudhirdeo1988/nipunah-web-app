@@ -38,8 +38,10 @@ import {
 import { getModalTitle } from "module/Category/utils/categoryUtils";
 import { useCategoryModal } from "module/Category/hooks/useCategoryModal";
 import { useCategory } from "module/Category/hooks/useCategory";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 const CategoryPage = () => {
+  const { allowed, permissions } = useModuleAccess("categories");
   const {
     isModalOpen,
     selectedCategory,
@@ -308,6 +310,17 @@ const CategoryPage = () => {
     ]
   );
 
+  if (!allowed) return null;
+
+  const canAddCategory = Boolean(permissions.add);
+  const canAddSubCategory = Boolean(permissions.add_sub_category);
+  const addMenuItemsFiltered = ADD_MENU_ITEMS.filter((item) => {
+    if (item.key === "category") return canAddCategory;
+    if (item.key === "sub_category") return canAddSubCategory;
+    return false;
+  });
+  const showAddDropdown = canAddCategory || canAddSubCategory;
+
   return (
     <>
       <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
@@ -315,28 +328,30 @@ const CategoryPage = () => {
           title="Categories List"
           subtitle="Organize and manage categories and subcategories"
           children={
-            <Dropdown
-              menu={{
-                items: ADD_MENU_ITEMS.map((item) => ({
-                  ...item,
-                  label: (
-                    <span className="C-heading size-xs mb-0 semiBold py-2">
-                      {item.label}
-                    </span>
-                  ),
-                })),
-                onClick: (menuInfo) => handleAddCategory(menuInfo),
-              }}
-              trigger={["hover", "click"]}
-            >
-              <button className="C-button is-filled small">
-                <Space>
-                  <Icon name="add" />
-                  Add
-                  <Icon name="arrow_drop_down" />
-                </Space>
-              </button>
-            </Dropdown>
+            showAddDropdown && addMenuItemsFiltered.length > 0 && (
+              <Dropdown
+                menu={{
+                  items: addMenuItemsFiltered.map((item) => ({
+                    ...item,
+                    label: (
+                      <span className="C-heading size-xs mb-0 semiBold py-2">
+                        {item.label}
+                      </span>
+                    ),
+                  })),
+                  onClick: (menuInfo) => handleAddCategory(menuInfo),
+                }}
+                trigger={["hover", "click"]}
+              >
+                <button className="C-button is-filled small">
+                  <Space>
+                    <Icon name="add" />
+                    Add
+                    <Icon name="arrow_drop_down" />
+                  </Space>
+                </button>
+              </Dropdown>
+            )
           }
         />
         <div className="p-3">
@@ -353,6 +368,7 @@ const CategoryPage = () => {
               onFetchCategories={fetchCategories}
               onDeleteSubCategory={handleDeleteCategory}
               onSort={handleSort}
+              permissions={permissions}
             />
           </CategoryErrorBoundary>
         </div>

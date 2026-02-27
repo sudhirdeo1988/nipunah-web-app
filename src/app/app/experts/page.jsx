@@ -31,8 +31,10 @@ import {
 } from "module/Experts/constants/expertConstants";
 import { useExpertModal } from "module/Experts/hooks/useExpertModal";
 import { useExpert } from "module/Experts/hooks/useExpert";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
 const ExpertsPage = () => {
+  const { allowed, permissions } = useModuleAccess("experts");
   const {
     isModalOpen,
     selectedExpert,
@@ -176,6 +178,8 @@ const ExpertsPage = () => {
     [handleUpdateExpert]
   );
 
+  if (!allowed) return null;
+
   return (
     <>
       <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
@@ -194,6 +198,7 @@ const ExpertsPage = () => {
             onDeleteExpert={handleDeleteClick}
             onFetchExperts={fetchExperts}
             onUpdateApprovalStatus={updateApprovalStatus}
+            permissions={permissions}
           />
         </div>
       </div>

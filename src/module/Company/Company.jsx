@@ -20,7 +20,7 @@ const PostedJobsModal = lazy(() =>
   import("./components/CompanyModals/PostedJobsModal")
 );
 
-const Company = () => {
+const Company = ({ permissions = {} }) => {
   const {
     // State
     companies,
@@ -63,16 +63,18 @@ const Company = () => {
           onCreateCompany={handleCreateCompany}
           onBulkDelete={handleBulkDelete}
           selectedCompanies={selectedCompanies}
+          permissions={permissions}
         />
 
         <Suspense fallback={<Spin size="small" />}>
           <CompanyTable
             companies={filteredCompanies}
-            rowSelection={rowSelection}
+            rowSelection={permissions.delete ? rowSelection : undefined}
             onMenuClick={handleMenuClick}
             onPostedJobsClick={handlePostedJobsClick}
             onUpdateStatus={handleUpdateStatus}
             loading={false}
+            permissions={permissions}
           />
         </Suspense>
       </div>

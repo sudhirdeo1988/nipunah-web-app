@@ -21,6 +21,7 @@ export const ROUTES = {
     COMPANY: "/app/company",
     EXPERTS: "/app/experts",
     EQUIPMENT: "/app/equipment",
+    ROLES: "/app/roles",
     SETTINGS: "/app/settings",
     PROFILE: "/app/profile",
     SEC_COMPANY: {

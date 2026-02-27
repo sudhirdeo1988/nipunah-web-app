@@ -22,7 +22,12 @@ import {
  * @param {Function} props.onChange - Handler for table changes (pagination, sorting)
  * @returns {JSX.Element} The JobTable component
  */
-const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagination: paginationConfig, onChange }) => {
+const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagination: paginationConfig, onChange, permissions = {} }) => {
+  const canView = Boolean(permissions.view);
+  const canEdit = Boolean(permissions.edit);
+  const canApprove = Boolean(permissions.approve);
+  const canDelete = Boolean(permissions.delete);
+
   // ==================== MEMOIZED RENDER FUNCTIONS ====================
 
   /**
@@ -164,55 +169,60 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagin
   );
 
   /**
-   * Memoized dropdown menu items for action column
+   * Memoized dropdown menu items for action column (filtered by permissions)
    */
   const getActionMenuItems = useCallback(
-    (record) => [
-      {
-        key: "view_details",
-        label: (
-          <Space align="center">
-            <Icon name="visibility" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">
-              View Details
-            </span>
-          </Space>
-        ),
-      },
-      {
-        key: "edit",
-        label: (
-          <Space align="center">
-            <Icon name="edit" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">Edit</span>
-          </Space>
-        ),
-      },
-      {
-        key: record.status === "approved" ? "block" : "approve",
-        label: (
-          <Space align="center">
-            <Icon
-              name={record.status === "approved" ? "block" : "check_circle"}
-              size="small"
-            />
-            <span className="C-heading size-xs mb-0 semiBold">
-              {record.status === "approved" ? "Block" : "Approve"}
-            </span>
-          </Space>
-        ),
-      },
-      {
-        key: "delete",
-        label: (
-          <Space align="center">
-            <Icon name="delete" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">Delete</span>
-          </Space>
-        ),
-      },
-    ],
-    []
+    (record) => {
+      const items = [];
+      if (canView) {
+        items.push({
+          key: "view_details",
+          label: (
+            <Space align="center">
+              <Icon name="visibility" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">View Details</span>
+            </Space>
+          ),
+        });
+      }
+      if (canEdit) {
+        items.push({
+          key: "edit",
+          label: (
+            <Space align="center">
+              <Icon name="edit" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">Edit</span>
+            </Space>
+          ),
+        });
+      }
+      if (canApprove) {
+        items.push({
+          key: record.status === "approved" ? "block" : "approve",
+          label: (
+            <Space align="center">
+              <Icon name={record.status === "approved" ? "block" : "check_circle"} size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">
+                {record.status === "approved" ? "Block" : "Approve"}
+              </span>
+            </Space>
+          ),
+        });
+      }
+      if (canDelete) {
+        items.push({
+          key: "delete",
+          label: (
+            <Space align="center">
+              <Icon name="delete" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">Delete</span>
+            </Space>
+          ),
+        });
+      }
+      return items;
+    },
+    [canView, canEdit, canApprove, canDelete]
   );
 
   /**
@@ -220,23 +230,27 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagin
    * Creates dropdown menu with view details, edit, approve/block, and delete options
    */
   const renderAction = useCallback(
-    (_, record) => (
-      <Dropdown
-        menu={{
-          items: getActionMenuItems(record),
-          onClick: (menuInfo) => onMenuClick(menuInfo, record),
-        }}
-        trigger={["hover"]}
-        placement="bottomRight"
-      >
-        <button
-          className="C-settingButton is-clean small"
-          onClick={(e) => e.stopPropagation()}
+    (_, record) => {
+      const items = getActionMenuItems(record);
+      if (items.length === 0) return null;
+      return (
+        <Dropdown
+          menu={{
+            items,
+            onClick: (menuInfo) => onMenuClick(menuInfo, record),
+          }}
+          trigger={["hover"]}
+          placement="bottomRight"
         >
-          <Icon name="more_vert" />
-        </button>
-      </Dropdown>
-    ),
+          <button
+            className="C-settingButton is-clean small"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Icon name="more_vert" />
+          </button>
+        </Dropdown>
+      );
+    },
     [getActionMenuItems, onMenuClick]
   );
 

@@ -5,18 +5,11 @@ import { Space } from "antd";
 import Icon from "@/components/Icon";
 import Job from "@/module/Job";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
+import { useModuleAccess } from "@/hooks/useModuleAccess";
 
-/**
- * JobPage Component
- *
- * Main page component for job management
- * Displays the job listing with all job management functionality
- *
- * @component
- * @returns {JSX.Element} The JobPage component
- */
 const JobPage = () => {
   const postJobHandlerRef = useRef(null);
+  const { allowed, permissions } = useModuleAccess("jobs");
 
   const handlePostJobClick = () => {
     if (postJobHandlerRef.current) {
@@ -24,25 +17,31 @@ const JobPage = () => {
     }
   };
 
+  if (!allowed) return null;
+
+  const canAdd = Boolean(permissions.add);
+
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
       <AppPageHeader
         title="Job Management"
         subtitle="Manage and monitor all job postings across the platform"
         children={
-          <button
-            className="C-button is-filled small"
-            onClick={handlePostJobClick}
-          >
-            <Space>
-              <Icon name="work" />
-              Post a job
-            </Space>
-          </button>
+          canAdd && (
+            <button
+              className="C-button is-filled small"
+              onClick={handlePostJobClick}
+            >
+              <Space>
+                <Icon name="work" />
+                Post a job
+              </Space>
+            </button>
+          )
         }
       />
       <div className="p-3">
-        <Job onPostJobClickRef={postJobHandlerRef} />
+        <Job onPostJobClickRef={postJobHandlerRef} permissions={permissions} />
       </div>
     </div>
   );

@@ -19,8 +19,10 @@ import "./SearchContainer.scss";
  * @param {Object} props - Component props
  * @param {boolean} props.forListingPage - Applies listing page specific styling
  * @param {boolean} props.floatingEnable - Enables fixed positioning on scroll
- * @param {Array} props.searchFieldOptions - Array of field configuration objects
+ * @param {Array} props.searchFieldOptions - Array of field configuration objects.
+ *   Each field may include optional `rules` (Ant Design Form.Item rules) for validation.
  * @param {Function} props.onSearch - Callback function called when form is submitted
+ * @param {boolean} [props.submitLoading] - If true, submit button shows "Searching..." and is disabled
  *
  * @example
  * <SearchContainer
@@ -37,10 +39,11 @@ import "./SearchContainer.scss";
 const SearchContainer = (props) => {
   const {
     forListingPage,
-    floatingEnable, // Enables fixed positioning when scrolling past the container
-    searchFieldOptions = [], // Array of field configurations from props
-    onSearch, // Callback function when form is submitted
+    floatingEnable,
+    searchFieldOptions = [],
+    onSearch,
     inSidebar,
+    submitLoading = false, // Optional: show loading state on submit button (e.g. home page API + redirect)
   } = props;
 
   const [form] = Form.useForm();
@@ -98,24 +101,29 @@ const SearchContainer = (props) => {
    * @param {number} index - Field index in the array
    * @returns {JSX.Element|null} Rendered form field component
    */
+  /**
+   * Renders a form field with optional validation rules from fieldConfig.rules
+   */
   const renderField = useCallback(
     (fieldConfig, index) => {
-      const { type, formFieldValue, placeholder, options, icon, label } =
+      const { type, formFieldValue, placeholder, options, icon, label, rules } =
         fieldConfig;
 
       const colClasses = getColumnClasses(index);
-
-      // Check if icon is provided and not empty
       const hasIcon = icon && icon.trim() !== "";
+
+      /* Form.Item rules: optional Ant Design validation rules per field */
+      const itemRules = Array.isArray(rules) ? rules : undefined;
 
       switch (type) {
         case "select":
           return (
             <div key={formFieldValue} className={colClasses}>
-              <Form.Item 
-                name={formFieldValue} 
+              <Form.Item
+                name={formFieldValue}
                 style={{ marginBottom: 0 }}
                 label={label}
+                rules={itemRules}
               >
                 <Select
                   placeholder={placeholder}
@@ -132,10 +140,11 @@ const SearchContainer = (props) => {
         case "search":
           return (
             <div key={formFieldValue} className={colClasses}>
-              <Form.Item 
-                name={formFieldValue} 
+              <Form.Item
+                name={formFieldValue}
                 style={{ marginBottom: 0 }}
                 label={label}
+                rules={itemRules}
               >
                 <Input
                   size="large"
@@ -152,10 +161,11 @@ const SearchContainer = (props) => {
         case "countrySelect":
           return (
             <div key={formFieldValue} className={colClasses}>
-              <Form.Item 
-                name={formFieldValue} 
+              <Form.Item
+                name={formFieldValue}
                 style={{ marginBottom: 0 }}
                 label={label}
+                rules={itemRules}
               >
                 <Select
                   showSearch
@@ -281,8 +291,12 @@ const SearchContainer = (props) => {
         {renderedFields}
         <div className="col-lg-2 col-md-2 col-sm-6 col-xs-12 text-center">
           <Form.Item style={{ marginBottom: 0 }}>
-            <button type="submit" className="C-button is-filled w-100 p-3">
-              Search
+            <button
+              type="submit"
+              className="C-button is-filled w-100 p-3"
+              disabled={submitLoading}
+            >
+              {submitLoading ? "Searching..." : "Search"}
             </button>
           </Form.Item>
         </div>

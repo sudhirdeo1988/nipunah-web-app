@@ -18,25 +18,6 @@ import React, {
 import PropTypes from "prop-types";
 
 /**
- * Transform action menu items to include icons
- *
- * Performance: Defined outside component to prevent recreation on every render.
- * Menu items are static, so they don't need to be recreated.
- *
- * @returns {Array} Array of menu items with icon labels
- */
-const getActionMenuItems = () =>
-  ACTION_MENU_ITEMS.map((item) => ({
-    ...item,
-    label: (
-      <Space align="center">
-        <Icon name={item.key} size="small" />
-        <span className="C-heading size-xs mb-0">{item.label}</span>
-      </Space>
-    ),
-  }));
-
-/**
  * SubCategoryListing Component
  *
  * Displays subcategories for a parent category in an expandable table row.
@@ -70,7 +51,23 @@ const getActionMenuItems = () =>
  * @param {Function} props.onRefresh - Callback to refresh parent categories list (optional)
  */
 const SubCategoryListing = memo(
-  ({ parentRecord, onDeleteSubCategory, onEditSubCategory, onRefresh }) => {
+  ({ parentRecord, onDeleteSubCategory, onEditSubCategory, onRefresh, permissions = {} }) => {
+    const canEditSubCategory = Boolean(permissions.edit_sub_category);
+    const canDeleteSubCategory = Boolean(permissions.delete_sub_category);
+
+    const getActionMenuItems = useCallback(() => {
+      const permMap = { edit: canEditSubCategory, delete: canDeleteSubCategory };
+      return ACTION_MENU_ITEMS.filter((item) => permMap[item.key]).map((item) => ({
+        ...item,
+        label: (
+          <Space align="center">
+            <Icon name={item.key} size="small" />
+            <span className="C-heading size-xs mb-0">{item.label}</span>
+          </Space>
+        ),
+      }));
+    }, [canEditSubCategory, canDeleteSubCategory]);
+
     // Subcategory pagination state
     const [subPagination, setSubPagination] = useState({
       current: 1,
@@ -578,23 +575,27 @@ const SubCategoryListing = memo(
           dataIndex: "action",
           key: "action",
           width: "80",
-          render: (_, record) => (
-            <Dropdown
-              menu={{
-                items: getActionMenuItems(),
-                onClick: (menuInfo) =>
-                  handleSubCategoryMenuClick(menuInfo, record),
-              }}
-              trigger={["hover", "click"]}
-            >
-              <button className="C-settingButton is-clean small">
-                <Icon name="more_vert" />
-              </button>
-            </Dropdown>
-          ),
+          render: (_, record) => {
+            const items = getActionMenuItems();
+            if (items.length === 0) return null;
+            return (
+              <Dropdown
+                menu={{
+                  items,
+                  onClick: (menuInfo) =>
+                    handleSubCategoryMenuClick(menuInfo, record),
+                }}
+                trigger={["hover", "click"]}
+              >
+                <button className="C-settingButton is-clean small">
+                  <Icon name="more_vert" />
+                </button>
+              </Dropdown>
+            );
+          },
         },
       ],
-      [handleSubCategoryMenuClick]
+      [handleSubCategoryMenuClick, getActionMenuItems]
     );
 
     return (
@@ -729,7 +730,8 @@ SubCategoryListing.propTypes = {
   parentRecord: PropTypes.object.isRequired,
   onDeleteSubCategory: PropTypes.func,
   onEditSubCategory: PropTypes.func,
-  onRefresh: PropTypes.func, // Callback to refresh parent data
+  onRefresh: PropTypes.func,
+  permissions: PropTypes.object,
 };
 
 export default SubCategoryListing;

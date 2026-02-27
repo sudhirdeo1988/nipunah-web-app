@@ -116,7 +116,9 @@ export const MOCK_USER_DATA = [
  * @component
  * @returns {JSX.Element} The UserListing component
  */
-const UserListing = () => {
+const UserListing = ({ permissions = {} }) => {
+  const canView = Boolean(permissions.view);
+  const canDelete = Boolean(permissions.delete);
   // ==================== STATE MANAGEMENT ====================
 
   /** @type {[string[], Function]} Selected row keys for bulk operations */
@@ -358,53 +360,63 @@ const UserListing = () => {
   );
 
   /**
-   * Memoized dropdown menu items for action column
+   * Memoized dropdown menu items for action column (filtered by permissions)
    */
   const getActionMenuItems = useCallback(
-    () => [
-      {
-        key: "view_details",
-        label: (
-          <Space align="center">
-            <Icon name="visibility" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">
-              View Details
-            </span>
-          </Space>
-        ),
-      },
-      {
-        key: "delete",
-        label: (
-          <Space align="center">
-            <Icon name="delete" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">Delete</span>
-          </Space>
-        ),
-      },
-    ],
-    []
+    () => {
+      const items = [];
+      if (canView) {
+        items.push({
+          key: "view_details",
+          label: (
+            <Space align="center">
+              <Icon name="visibility" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">
+                View Details
+              </span>
+            </Space>
+          ),
+        });
+      }
+      if (canDelete) {
+        items.push({
+          key: "delete",
+          label: (
+            <Space align="center">
+              <Icon name="delete" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">Delete</span>
+            </Space>
+          ),
+        });
+      }
+      return items;
+    },
+    [canView, canDelete]
   );
 
   /**
    * Memoized render function for action column
    * Creates dropdown menu with view details and delete options
    */
+  const actionMenuItems = getActionMenuItems();
   const renderAction = useCallback(
-    (_, record) => (
-      <Dropdown
-        menu={{
-          items: getActionMenuItems(),
-          onClick: (menuInfo) => handleMenuClick(menuInfo, record),
-        }}
-        trigger={["hover", "click"]}
-      >
-        <button className="C-settingButton is-clean small">
-          <Icon name="more_vert" />
-        </button>
-      </Dropdown>
-    ),
-    [getActionMenuItems, handleMenuClick]
+    (_, record) => {
+      if (actionMenuItems.length === 0) return null;
+      return (
+        <Dropdown
+          menu={{
+            items: actionMenuItems,
+            onClick: (menuInfo) => handleMenuClick(menuInfo, record),
+          }}
+          trigger={["hover", "click"]}
+        >
+          <button className="C-settingButton is-clean small">
+            <Icon name="more_vert" />
+          </button>
+        </Dropdown>
+      );
+    },
+    [actionMenuItems, handleMenuClick]
   );
 
   // ==================== TABLE CONFIGURATION ====================
@@ -500,7 +512,7 @@ const UserListing = () => {
 
           <div className="col-5 text-right">
             <Space>
-              {!!selectedUsers.length && (
+              {canDelete && !!selectedUsers.length && (
                 <button
                   className="C-button is-bordered small"
                   onClick={handleBulkDelete}
@@ -527,7 +539,7 @@ const UserListing = () => {
           columns={columns}
           dataSource={filteredUsers}
           rowKey="id"
-          rowSelection={rowSelection}
+          rowSelection={canDelete ? rowSelection : undefined}
           pagination={{
             hideOnSinglePage: true,
             defaultPageSize: 10,

@@ -83,27 +83,6 @@ export const MOCK_APPLIED_JOBS_DATA = {
 };
 
 /**
- * Transform action menu items to include icons
- *
- * Performance: Defined outside component to prevent recreation on every render.
- * Menu items are static, so they don't need to be recreated.
- *
- * @returns {Array} Array of menu items with icon labels
- */
-const getActionMenuItems = () =>
-  ACTION_MENU_ITEMS.map((item) => ({
-    ...item,
-    label: (
-      <Space align="center">
-        <Icon 
-          name={item.key === "view" ? "visibility" : item.key} 
-          size="small" 
-        />
-        <span className="C-heading size-xs mb-0">{item.label}</span>
-      </Space>
-    ),
-  }));
-
 /**
  * ExpertUserListing Component
  *
@@ -135,7 +114,27 @@ const ExpertUserListing = ({
   onDeleteExpert,
   onFetchExperts,
   onUpdateApprovalStatus,
+  permissions = {},
 }) => {
+  const canView = Boolean(permissions.view);
+  const canEdit = Boolean(permissions.edit);
+  const canDelete = Boolean(permissions.delete);
+  const canApprove = Boolean(permissions.approve);
+
+  const getActionMenuItems = useCallback(() => {
+    const permMap = { view: canView, edit: canEdit, delete: canDelete };
+    return ACTION_MENU_ITEMS.filter((item) => permMap[item.key])
+      .map((item) => ({
+        ...item,
+        label: (
+          <Space align="center">
+            <Icon name={item.key === "view" ? "visibility" : item.key} size="small" />
+            <span className="C-heading size-xs mb-0">{item.label}</span>
+          </Space>
+        ),
+      }));
+  }, [canView, canEdit, canDelete]);
+
   // ==================== STATE MANAGEMENT ====================
 
   /** @type {[string[], Function]} Selected row keys for bulk operations */
@@ -476,15 +475,17 @@ const ExpertUserListing = ({
             <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Pending</span>
           </Space>
         )}
-        <Switch
-          checked={isApproved}
-          onChange={(checked) => handleApprovalStatusChange(checked, record)}
-          size="small"
-          disabled={loading}
-        />
+        {canApprove && (
+          <Switch
+            checked={isApproved}
+            onChange={(checked) => handleApprovalStatusChange(checked, record)}
+            size="small"
+            disabled={loading}
+          />
+        )}
       </Space>
     ),
-    [handleApprovalStatusChange, loading]
+    [handleApprovalStatusChange, loading, canApprove]
   );
 
   /**
@@ -514,23 +515,27 @@ const ExpertUserListing = ({
 
   /**
    * Memoized render function for action column
-   * Creates dropdown menu with view details, edit, and delete options
+   * Creates dropdown menu with view details, edit, and delete options (filtered by permissions)
    */
+  const actionMenuItems = getActionMenuItems();
   const renderAction = useCallback(
-    (_, record) => (
-      <Dropdown
-        menu={{
-          items: getActionMenuItems(),
-          onClick: (menuInfo) => handleMenuClick(menuInfo, record),
-        }}
-        trigger={["hover", "click"]}
-      >
-        <button className="C-settingButton is-clean small">
-          <Icon name="more_vert" />
-        </button>
-      </Dropdown>
-    ),
-    [handleMenuClick]
+    (_, record) => {
+      if (actionMenuItems.length === 0) return null;
+      return (
+        <Dropdown
+          menu={{
+            items: actionMenuItems,
+            onClick: (menuInfo) => handleMenuClick(menuInfo, record),
+          }}
+          trigger={["hover", "click"]}
+        >
+          <button className="C-settingButton is-clean small">
+            <Icon name="more_vert" />
+          </button>
+        </Dropdown>
+      );
+    },
+    [actionMenuItems, handleMenuClick]
   );
 
   // ==================== TABLE CONFIGURATION ====================
@@ -645,7 +650,7 @@ const ExpertUserListing = ({
 
           <div className="col-5 text-right">
             <Space>
-              {!!selectedExperts.length && (
+              {canDelete && !!selectedExperts.length && (
                 <button
                   className="C-button is-bordered small"
                   onClick={handleBulkDelete}
@@ -672,7 +677,7 @@ const ExpertUserListing = ({
           columns={columns}
           dataSource={experts}
           rowKey="id"
-          rowSelection={rowSelection}
+          rowSelection={canDelete ? rowSelection : undefined}
           loading={loading}
           pagination={{
             current: pagination.current,

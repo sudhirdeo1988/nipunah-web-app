@@ -9,7 +9,9 @@ const JobSearch = ({
   onSearchChange,
   onBulkDelete,
   selectedJobs,
+  permissions = {},
 }) => {
+  const canDelete = Boolean(permissions.delete);
   return (
     <div className="row align-items-center mb-4">
       <div className="col-7">
@@ -24,7 +26,7 @@ const JobSearch = ({
 
       <div className="col-5 text-right">
         <Space>
-          {!!selectedJobs.length && (
+          {canDelete && !!selectedJobs.length && (
             <Button
               size="large"
               onClick={onBulkDelete}

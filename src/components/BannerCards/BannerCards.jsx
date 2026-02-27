@@ -16,7 +16,7 @@ const BannerCards = () => {
       id: 2,
       title: "Highlight Your Offerings",
       subTitle:
-        "Present your services, certifications, projects, equipment, and product capabilities in one detailed profile.",
+        "Present your services, projects, equipment, and product capabilities in one detailed profile.",
       icon: "person_raised_hand",
       // list: ['Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text', 'Lorem Ipsum is dummy text']
     },

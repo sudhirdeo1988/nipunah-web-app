@@ -83,25 +83,28 @@ const AboutPage = () => {
               >
                 <div className="position-relative" style={{ zIndex: "1" }}>
                   <span className="C-heading size-6 mb-3">
-                    <strong>Nipunah.com</strong> is not just a listing site —
-                    it’s a specialized digital ecosystem built exclusively for
-                    the maritime and ocean sectors.
+                    Nipunah is a specialised digital platform built exclusively
+                    for the maritime and ocean sectors. It brings verified
+                    companies, institutions, and experts together on one trusted
+                    platform to support discovery and connections across
+                    regions.
                   </span>
                   <p className="C-heading size-6 mb-3">
-                    Our platform unites a traditionally fragmented industry by
-                    enabling verified companies, professionals, and institutions
-                    to connect, collaborate, and grow — all in one trusted,
-                    smart, and global space.
+                    The platform improves visibility for maritime businesses and
+                    experts, making it easier to connect with verified service
+                    providers, equipment suppliers, and solution partners.
+                    Greater visibility supports wider reach and enables
+                    businesses to grow their presence across global markets.
                   </p>
                   <p className="C-heading size-6 mb-3">
                     Whether you operate in shipping, ports, dredging, offshore
-                    energy, marine technology, shipbuilding, tourism, training,
-                    or regulation, Nipunah.com helps you showcase your services,
-                    gain visibility, and build meaningful partnerships across
-                    the globe.
+                    energy, marine technology, shipbuilding, tourism, training
+                    institutions, or regulatory services, Nipunah enables you to
+                    showcase your offerings, strengthen visibility and build
+                    strong connections across regions.
                   </p>
                   <p className="C-heading size-5 mb-1 extraBold color-dark font-family-creative">
-                    We help maritime businesses:
+                    We Help You Grow
                   </p>
 
                   <div className="C-bulletList mb-3">
@@ -109,25 +112,28 @@ const AboutPage = () => {
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading color-dark size-6 mb-0 dont-break">
-                          Be seen and trusted globally
+                          Gain visibility and credibility across global maritime
+                          markets
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading color-dark size-6 mb-0 dont-break">
-                          Build reliable, long-term partnerships
+                          Build direct connections with companies and industry
+                          partners
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading color-dark size-6 mb-0 dont-break">
-                          Support sustainable and transparent supply chains
+                          Create sustainable business opportunities that drive
+                          long-term growthchains
                         </span>
                       </li>
                     </ul>
                   </div>
                   <p className="C-heading size-5 mb-1 extraBold color-dark font-family-creative">
-                    What makes us unique
+                    What Makes Us Different
                   </p>
                   <div className="C-bulletList mb-0">
                     <ul>
@@ -140,26 +146,25 @@ const AboutPage = () => {
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading color-dark size-6 mb-0 dont-break">
-                          All profiles are verified for credibility and trust
+                          Verified profiles that help build trust
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading color-dark size-6 mb-0 dont-break">
-                          Smart filters, tags, and location-based search for
-                          easy discovery
+                          Easy discovery using filters, tags, and location
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading color-dark size-6 mb-0 dont-break">
-                          Live 24/7, 365 days — your business is always working
+                          Live 24/7, 365 days — visibility never stops
                         </span>
                       </li>
                       <li>
                         <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
                         <span className="C-heading color-dark size-6 mb-0 dont-break">
-                          Driven by visibility, trust, and global growth
+                          Designed for reach, trust, and long-term connections
                         </span>
                       </li>
                     </ul>
@@ -197,8 +202,8 @@ const AboutPage = () => {
                     className="C-heading size-6 mb-0"
                     style={{ minHeight: "80px" }}
                   >
-                    To become the most trusted global hub for maritime
-                    discovery, connection, and innovation.
+                    To build a trusted global space for maritime discovery and
+                    collaboration
                   </span>
                 </div>
               </div>
@@ -214,7 +219,7 @@ const AboutPage = () => {
                     className="C-heading size-6 mb-0"
                     style={{ minHeight: "80px" }}
                   >
-                    To digitally connect and empower the global blue economy.
+                    To digitally connect and strengthen the blue economy
                   </span>
                 </div>
               </div>
@@ -224,14 +229,14 @@ const AboutPage = () => {
                     <Icon name="approval_delegation" />
                   </div>
                   <span className="C-heading size-5 color-dark extraBold mb-0 font-family-creative">
-                    Business process
+                    How We Work
                   </span>
                   <span
                     className="C-heading size-6 mb-0"
                     style={{ minHeight: "80px" }}
                   >
-                    An activity or set of activities that can accomplish a
-                    specific organizational goal.
+                    We enable visibility and connections using verified profiles
+                    and discovery tools
                   </span>
                 </div>
               </div>
@@ -294,7 +299,7 @@ const AboutPage = () => {
         <section className="section-padding pattern-3">
           <div className="container ">
             <h2 className="C-heading size-4 extraBold color-dark font-family-creative text-center mb-5">
-              What You Can Do on Nipunah.com
+              Get Started with Nipunah.com
             </h2>
             <div className="process-loader mb-5">
               <div className="process-card d-flex flex-column bg-white rounded shadow p-3">
@@ -305,7 +310,7 @@ const AboutPage = () => {
                   List your company
                 </span>
                 <span className="C-heading size-6 mb-0 text-center">
-                  List your company and showcase your services
+                  Create your profile and join the global maritime platform
                 </span>
               </div>
 
@@ -314,10 +319,10 @@ const AboutPage = () => {
                   02
                 </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
-                  Highlight certifications
+                  Highlight Offerings
                 </span>
                 <span className="C-heading size-6 mb-0 text-center">
-                  Highlight certifications, projects, and areas of expertise
+                  Show services, equipment, products, and areas of expertise
                 </span>
               </div>
 
@@ -326,11 +331,11 @@ const AboutPage = () => {
                   03
                 </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
-                  Receive direct inquiries
+                  Receive Direct Inquiries
                 </span>
                 <span className="C-heading size-6 mb-0 text-center">
-                  Receive direct inquiries from clients, collaborators, and
-                  partners
+                  Receive direct inquiries for collaboration and new
+                  opportunities
                 </span>
               </div>
 
@@ -339,11 +344,10 @@ const AboutPage = () => {
                   04
                 </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
-                  Discover new suppliers
+                  Industry-Wide Access
                 </span>
                 <span className="C-heading size-6 mb-0 text-center">
-                  Discover new suppliers or subcontractors using smart filters
-                  and geo-location
+                  Connect across all maritime sectors using smart filters
                 </span>
               </div>
 
@@ -352,11 +356,11 @@ const AboutPage = () => {
                   05
                 </div>
                 <span className="C-heading size-6 extraBold color-dark mb-3 text-center font-family-creative">
-                  Stay visible 24/7
+                  Stay Visible 24/7
                 </span>
                 <span className="C-heading size-6 mb-0 text-center">
-                  Stay visible 24/7 with a profile that works year-round —
-                  anywhere in the world
+                  Stay visible year-round with a profile that works across
+                  regions
                 </span>
               </div>
             </div>
@@ -365,8 +369,8 @@ const AboutPage = () => {
               Who We Serve
             </h2>
             <span className="C-heading size-6 mb-4 text-center">
-              Nipunah.com supports every part of the maritime value chain. Our
-              platform is built for:
+              Nipunah.com supports a wide range of maritime services and
+              operations, including:
             </span>
             <Carousel
               autoplay

@@ -17,25 +17,6 @@ import React, {
 import PropTypes from "prop-types";
 
 /**
- * Transform action menu items to include icons
- *
- * Performance: Defined outside component to prevent recreation on every render.
- * Menu items are static, so they don't need to be recreated.
- *
- * @returns {Array} Array of menu items with icon labels
- */
-const getActionMenuItems = () =>
-  ACTION_MENU_ITEMS.map((item) => ({
-    ...item,
-    label: (
-      <Space align="center">
-        <Icon name={item.key} size="small" />
-        <span className="C-heading size-xs mb-0">{item.label}</span>
-      </Space>
-    ),
-  }));
-
-/**
  * MainCategoryListing Component
  *
  * Displays a table of categories with pagination, sorting, search, and date filter functionality.
@@ -70,7 +51,24 @@ const MainCategoryListing = memo(
     onSort,
     sortBy = "name",
     order = "asc",
+    permissions = {},
   }) => {
+    const canEdit = Boolean(permissions.edit);
+    const canDelete = Boolean(permissions.delete);
+
+    const getActionMenuItems = useCallback(() => {
+      const permMap = { edit: canEdit, delete: canDelete };
+      return ACTION_MENU_ITEMS.filter((item) => permMap[item.key]).map((item) => ({
+        ...item,
+        label: (
+          <Space align="center">
+            <Icon name={item.key} size="small" />
+            <span className="C-heading size-xs mb-0">{item.label}</span>
+          </Space>
+        ),
+      }));
+    }, [canEdit, canDelete]);
+
     // Search input value state
     const [searchValue, setSearchValue] = useState("");
     // On edit handler for main categories
@@ -355,22 +353,26 @@ const MainCategoryListing = memo(
           key: "action",
           width: "80",
           // Action column is not sortable
-          render: (_, record) => (
-            <Dropdown
-              menu={{
-                items: getActionMenuItems(),
-                onClick: (menuInfo) => handleMenuClick(menuInfo, record),
-              }}
-              trigger={["hover", "click"]}
-            >
-              <button className="C-settingButton is-clean small">
-                <Icon name="more_vert" />
-              </button>
-            </Dropdown>
-          ),
+          render: (_, record) => {
+            const items = getActionMenuItems();
+            if (items.length === 0) return null;
+            return (
+              <Dropdown
+                menu={{
+                  items,
+                  onClick: (menuInfo) => handleMenuClick(menuInfo, record),
+                }}
+                trigger={["hover", "click"]}
+              >
+                <button className="C-settingButton is-clean small">
+                  <Icon name="more_vert" />
+                </button>
+              </Dropdown>
+            );
+          },
         },
       ],
-      [handleMenuClick, sortBy, order]
+      [handleMenuClick, sortBy, order, getActionMenuItems]
     );
 
     return (
@@ -422,14 +424,13 @@ const MainCategoryListing = memo(
              * @returns {JSX.Element} SubCategoryListing component
              */
             expandedRowRender: (record) => {
-              // Performance: Use stable key based only on category ID
-              // SubCategoryListing will fetch its own data and handle caching
               return (
                 <SubCategoryListing
                   key={`subcategory-${record.id}`}
                   parentRecord={record}
                   onDeleteSubCategory={onDeleteSubCategory}
                   onRefresh={onFetchCategories}
+                  permissions={permissions}
                 />
               );
             },

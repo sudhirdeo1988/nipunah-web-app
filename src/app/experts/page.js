@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { Tag, Space, Drawer, Spin, Empty, message } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
@@ -10,39 +11,47 @@ import { map as _map } from "lodash-es";
 import SearchContainer from "@/components/SearchContainer";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
-import {
-  EXPERT_CATEGORIES,
-} from "@/module/Experts/constants/expertConstants";
+import { EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
 import { expertService } from "@/utilities/apiServices";
+import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
+
+/** Parse URL query into filter state for experts page */
+function getFiltersFromSearchParams(searchParams) {
+  return {
+    search: searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "",
+    expertType: searchParams.get(HOME_SEARCH_PARAMS.TYPE) || "",
+    countrySelect: searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || "",
+  };
+}
 
 const ExpertsPage = () => {
+  const searchParams = useSearchParams();
   const [open, setOpen] = useState(false);
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [pagination, setPagination] = useState({
-    current: 1,
-    pageSize: 10,
-    total: 0,
-  });
+  const [pagination, setPagination] = useState({ current: 1, pageSize: 10, total: 0 });
+  const [filters, setFilters] = useState(() => getFiltersFromSearchParams(searchParams));
 
-  const showDrawer = () => {
-    setOpen(true);
-  };
-  const onClose = () => {
-    setOpen(false);
-  };
+  const showDrawer = () => setOpen(true);
+  const onClose = () => setOpen(false);
 
-  // Fetch experts from API
-  const fetchExperts = useCallback(async (page = 1, limit = 10) => {
+  /**
+   * Fetch experts with optional search and location filters.
+   * Memoized to avoid unnecessary effect re-runs.
+   */
+  const fetchExperts = useCallback(async (page = 1, limit = 10, filterOverrides = null) => {
+    const f = filterOverrides ?? filters;
     try {
       setLoading(true);
       setError(null);
 
-      const response = await expertService.getExperts({
-        page,
-        limit,
-      });
+      const params = { page, limit };
+      if (f.search) params.search = f.search;
+      if (f.countrySelect) params.country = f.countrySelect;
+      if (f.expertType) params.expertType = f.expertType;
+
+      const response = await expertService.getExperts(params);
 
       // Handle different response structures
       let expertsData = [];
@@ -102,62 +111,64 @@ const ExpertsPage = () => {
     } finally {
       setLoading(false);
     }
+  }, [filters.search, filters.countrySelect, filters.expertType]);
+
+  /* On mount: pre-fill filters from URL and run search API */
+  useEffect(() => {
+    const fromUrl = getFiltersFromSearchParams(searchParams);
+    setFilters(fromUrl);
+    fetchExperts(1, 10, fromUrl);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Fetch experts on component mount
-  useEffect(() => {
-    fetchExperts(1, 10);
-  }, [fetchExperts]);
-
-  // Handle pagination change
-  const handlePageChange = useCallback((page, pageSize) => {
-    fetchExperts(page, pageSize);
-  }, [fetchExperts]);
-  // Search field configuration
-  const searchFieldOptions = [
-    {
-      type: "search",
-      label: "",
-      formFieldValue: "search",
-      defaultValue: "",
-      placeholder: "Search",
-      icon: "",
+  const handlePageChange = useCallback(
+    (page, pageSize) => {
+      fetchExperts(page, pageSize);
     },
-    {
-      type: "select",
-      label: "",
-      formFieldValue: "expertType",
-      defaultValue: "",
-      placeholder: "Select expert type",
-      options: _map(EXPERT_CATEGORIES, (category) => ({
-        value: category.value,
-        label: category.label,
-      })),
-    },
+    [fetchExperts]
+  );
 
-    {
-      type: "countrySelect",
-      label: "",
-      icon: "",
-      formFieldValue: "countrySelect",
-      defaultValue: "",
-      placeholder: "Select Location",
-      options: _map(CountryDetails, (country) => {
-        return {
-          value: country?.countryName,
-          label: country?.countryName,
-        };
-      }),
-    },
-  ];
+  /** Memoized search field options with default values from filters */
+  const searchFieldOptions = useMemo(
+    () => [
+      {
+        type: "search",
+        label: "",
+        formFieldValue: "search",
+        defaultValue: filters.search,
+        placeholder: "Search",
+        icon: "",
+      },
+      {
+        type: "select",
+        label: "",
+        formFieldValue: "expertType",
+        defaultValue: filters.expertType,
+        placeholder: "Select expert type",
+        options: _map(EXPERT_CATEGORIES, (cat) => ({ value: cat.value, label: cat.label })),
+      },
+      {
+        type: "countrySelect",
+        label: "",
+        icon: "",
+        formFieldValue: "countrySelect",
+        defaultValue: filters.countrySelect,
+        placeholder: "Select Location",
+        options: _map(CountryDetails, (c) => ({ value: c?.countryName, label: c?.countryName })),
+      },
+    ],
+    [filters.search, filters.expertType, filters.countrySelect]
+  );
 
-  // Handle search form submission
-  const handleSearch = (values) => {
-    console.log("Search values:", values);
-    // Here you can implement your search logic
-    // Example: filter data based on values
-    // values.expertType, values.search, values.countrySelect
-  };
+  const handleSearch = useCallback((values) => {
+    const next = {
+      search: values.search || "",
+      expertType: values.expertType || "",
+      countrySelect: values.countrySelect || "",
+    };
+    setFilters(next);
+    fetchExperts(1, pagination.pageSize, next);
+  }, [fetchExperts, pagination.pageSize]);
 
   return (
     <>

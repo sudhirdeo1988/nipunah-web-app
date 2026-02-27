@@ -25,13 +25,6 @@ const SignupPopoverContent = memo(({ onNavigate }) => {
       buttonText: "Register",
     },
     {
-      icon: "bi bi-person-lines-fill",
-      title: "Create expert profile",
-      description: "Showcase your expertise and get discovered.",
-      route: `${ROUTES?.PUBLIC?.SIGNUP}?for=expert`,
-      buttonText: "Create profile",
-    },
-    {
       icon: "bi bi-building-fill-check",
       title: "List my company",
       description: "Subscribe and get listed your company",
@@ -50,9 +43,9 @@ const SignupPopoverContent = memo(({ onNavigate }) => {
       </span>
       <div className="row g-2 mb-4">
         {signupOptions.map((option, index) => (
-          <div className="col" key={index}>
+          <div className="col-md-6 col-12" key={index}>
             <div
-              className="signupCard p-3 h-100 text-center rounded-3 shadow border"
+              className="signupCard p-3 h-100 text-center rounded-3 shadow border d-flex flex-column"
               role="button"
             >
               <div className="profile rounded-circle mb-3">
@@ -61,11 +54,14 @@ const SignupPopoverContent = memo(({ onNavigate }) => {
               <span className="C-heading size-6 extraBold mb-3 color-dark">
                 {option.title}
               </span>
-              <span className="C-heading size-6 color-light mb-3 color-light">
+              <span
+                className="C-heading size-6 color-light mb-3 color-light flex-grow-1"
+                style={{ minHeight: "4.5rem" }}
+              >
                 {option.description}
               </span>
               <button
-                className="C-button is-filled w-100"
+                className="C-button is-filled w-100 mt-auto"
                 onClick={() => onNavigate(option.route)}
               >
                 {option?.buttonText}
