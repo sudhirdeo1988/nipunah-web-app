@@ -29,6 +29,9 @@ const Company = ({ permissions = {} }) => {
     searchQuery,
     companyType,
     location,
+    registeredOnRange,
+    startDate,
+    endDate,
     rowSelection,
 
     // Modal states
@@ -45,6 +48,7 @@ const Company = ({ permissions = {} }) => {
     handleSearchChange,
     handleCompanyTypeChange,
     handleLocationChange,
+    handleRegisteredOnRangeChange,
     handleMenuClick,
     handleCreateCompany,
     handleCreateCompanySubmit,
@@ -65,9 +69,11 @@ const Company = ({ permissions = {} }) => {
           searchQuery={searchQuery}
           companyType={companyType}
           location={location}
+          registeredOnRange={registeredOnRange}
           onSearchChange={handleSearchChange}
           onCompanyTypeChange={handleCompanyTypeChange}
           onLocationChange={handleLocationChange}
+          onRegisteredOnRangeChange={handleRegisteredOnRangeChange}
           onCreateCompany={handleCreateCompany}
           onBulkDelete={handleBulkDelete}
           selectedCompanies={selectedCompanies}

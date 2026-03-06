@@ -80,6 +80,7 @@ const Company = () => {
           </span>
         ),
         value: c.dailCode,
+        searchLabel: `${c.countryName} ${c.dailCode}`,
       })),
     []
   );
@@ -665,10 +666,18 @@ const Company = () => {
                   rules={[{ required: true, message: "Select code" }]}
                 >
                   <Select
+                    showSearch
                     placeholder="Code"
                     size="large"
                     style={{ width: "30%" }}
                     options={countryOptions}
+                    filterOption={(input, option) =>
+                      (option?.searchLabel ?? "")
+                        .toString()
+                        .toLowerCase()
+                        .startsWith(input.toLowerCase())
+                    }
+                    optionFilterProp="label"
                   />
                 </Form.Item>
                 <Form.Item

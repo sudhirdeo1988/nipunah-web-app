@@ -30,6 +30,12 @@ export const useCompanyListing = () => {
   /** @type {[string, Function]} Optional location filter */
   const [location, setLocation] = useState("");
 
+  /**
+   * Registered-on date range: [startDate, endDate] as "YYYY-MM-DD", or null when not set.
+   * Used for filtering and for API params (startDate, endDate).
+   */
+  const [registeredOnRange, setRegisteredOnRange] = useState(null);
+
   // ==================== MODAL STATE MANAGEMENT ====================
 
   /** @type {[boolean, Function]} Controls single company delete modal visibility */
@@ -60,9 +66,21 @@ export const useCompanyListing = () => {
 
   // ==================== COMPUTED VALUES ====================
 
+  /** startDate and endDate for API: "YYYY-MM-DD" or null when no range selected */
+  const { startDate, endDate } = useMemo(() => {
+    if (!registeredOnRange || !Array.isArray(registeredOnRange) || registeredOnRange.length !== 2) {
+      return { startDate: null, endDate: null };
+    }
+    const [start, end] = registeredOnRange;
+    return {
+      startDate: start && typeof start === "string" ? start : null,
+      endDate: end && typeof end === "string" ? end : null,
+    };
+  }, [registeredOnRange]);
+
   /**
-   * Memoized filtered companies: search (min 4 chars), company type (category), location (optional).
-   * Search and company type are mandatory (default company type = "all"); location is optional.
+   * Memoized filtered companies: search (min 4 chars), company type (category), location (optional), registered date range.
+   * Search and company type are mandatory (default company type = "all"); location and date range are optional.
    */
   const filteredCompanies = useMemo(() => {
     let result = companies;
@@ -70,6 +88,14 @@ export const useCompanyListing = () => {
     const query = searchQuery.trim();
     const categoryId = companyType === "all" ? null : companyType;
     const loc = location.trim();
+
+    // Registered on date range: filter by company createdAt
+    if (startDate && endDate) {
+      result = result.filter((company) => {
+        const created = company.createdAt || company.registeredAt || "";
+        return created >= startDate && created <= endDate;
+      });
+    }
 
     // Search: apply only if query has min 4 characters
     if (query.length >= 4) {
@@ -123,7 +149,7 @@ export const useCompanyListing = () => {
     }
 
     return result;
-  }, [companies, searchQuery, companyType, location]);
+  }, [companies, searchQuery, companyType, location, startDate, endDate]);
 
   /**
    * Memoized row selection configuration
@@ -157,6 +183,20 @@ export const useCompanyListing = () => {
   /** Handles optional location filter change. */
   const handleLocationChange = useCallback((e) => {
     setLocation(e.target.value ?? "");
+  }, []);
+
+  /**
+   * Handles registered-on date range change from RangePicker.
+   * Accepts (dates, dateStrings) from Ant Design RangePicker; stores [startDate, endDate] as "YYYY-MM-DD" for API.
+   * @param {[unknown, unknown]} dates - dayjs instances from RangePicker (unused, we use dateStrings)
+   * @param {[string, string]|null} dateStrings - [startDate, endDate] as "YYYY-MM-DD"
+   */
+  const handleRegisteredOnRangeChange = useCallback((dates, dateStrings) => {
+    if (!dateStrings || !Array.isArray(dateStrings) || !dateStrings[0] || !dateStrings[1]) {
+      setRegisteredOnRange(null);
+      return;
+    }
+    setRegisteredOnRange([dateStrings[0], dateStrings[1]]);
   }, []);
 
   /**
@@ -383,11 +423,15 @@ export const useCompanyListing = () => {
     searchQuery,
     companyType,
     location,
+    registeredOnRange,
+    startDate,
+    endDate,
     rowSelection,
 
     // Search handlers
     handleCompanyTypeChange,
     handleLocationChange,
+    handleRegisteredOnRangeChange,
 
     // Modal states
     isDeleteModalOpen,

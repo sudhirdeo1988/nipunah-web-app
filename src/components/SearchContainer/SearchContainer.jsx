@@ -170,6 +170,12 @@ const SearchContainer = (props) => {
                 <Select
                   showSearch
                   optionFilterProp="label"
+                  filterOption={(input, option) =>
+                    (option?.label ?? "")
+                      .toString()
+                      .toLowerCase()
+                      .startsWith(input.toLowerCase())
+                  }
                   placeholder={placeholder}
                   variant="borderless"
                   options={options}

@@ -1,9 +1,12 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { DatePicker, Divider, Input, Space, Button, Form, Select } from "antd";
+import dayjs from "dayjs";
+import { DatePicker, Input, Space, Button, Form, Select } from "antd";
 import Icon from "@/components/Icon";
 import { useAppSelector } from "@/store/hooks";
+import { map as _map } from "lodash-es";
+import countryDetails from "@/utilities/CountryDetails.json";
 
 const MIN_SEARCH_LENGTH = 4;
 const COMPANY_TYPE_ALL_VALUE = "all";
@@ -12,9 +15,11 @@ const CompanySearch = ({
   searchQuery,
   companyType,
   location,
+  registeredOnRange,
   onSearchChange,
   onCompanyTypeChange,
   onLocationChange,
+  onRegisteredOnRangeChange,
   onCreateCompany,
   onBulkDelete,
   selectedCompanies,
@@ -35,6 +40,15 @@ const CompanySearch = ({
     ].filter((o) => o.value !== undefined && o.value !== "");
     return list;
   }, [categories]);
+
+  const countryOptions = useMemo(
+    () =>
+      _map(countryDetails, (c) => ({
+        label: c.countryName,
+        value: c.countryName,
+      })),
+    []
+  );
 
   const companyTypeLabel = useMemo(() => {
     const opt = companyTypeOptions.find(
@@ -61,19 +75,68 @@ const CompanySearch = ({
 
   return (
     <div className="mb-4">
-      <h2 className="C-heading size-5 semiBold color-dark mb-3">
-        {searchSectionTitle}
-      </h2>
-      <div className="row align-items-center">
-      <div className="col-12 col-lg-7">
-        <Space wrap size="middle">
-          <Space>
-            <span className="C-heading size-xs semiBold mb-0">
-              Registered On:
-            </span>
-            <DatePicker size="large" />
-          </Space>
-          <Divider orientation="vertical" />
+      <div className="row align-items-center justify-content-center">
+      <div className="col-12">
+        <div className="d-flex flex-nowrap align-items-center gap-3">
+          <Form.Item
+            label={<span className="C-heading size-xs semiBold mb-0">Registered On</span>}
+            style={{ marginBottom: 0 }}
+          >
+            <DatePicker.RangePicker
+              size="large"
+              value={
+                registeredOnRange?.[0] && registeredOnRange?.[1]
+                  ? [dayjs(registeredOnRange[0]), dayjs(registeredOnRange[1])]
+                  : null
+              }
+              onChange={onRegisteredOnRangeChange}
+              style={{ maxWidth: 280 }}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={<span className="C-heading size-xs semiBold mb-0">Company type</span>}
+            style={{ marginBottom: 0 }}
+            required
+          >
+            <Select
+              size="large"
+              placeholder="Select company type"
+              value={companyType || COMPANY_TYPE_ALL_VALUE}
+              onChange={onCompanyTypeChange}
+              options={companyTypeOptions}
+              style={{ minWidth: 130 }}
+              showSearch
+              optionFilterProp="label"
+              loading={!categories.length && undefined}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label={<span className="C-heading size-xs semiBold mb-0">Location</span>}
+            style={{ marginBottom: 0 }}
+          >
+            <Select
+              size="large"
+              placeholder="Select country"
+              value={location || undefined}
+              onChange={(value) =>
+                onLocationChange({ target: { value: value ?? "" } })
+              }
+              options={countryOptions}
+              style={{ minWidth: 180 }}
+              showSearch
+              optionFilterProp="label"
+              allowClear
+              filterOption={(input, option) =>
+                (option?.label ?? "")
+                  .toString()
+                  .toLowerCase()
+                  .startsWith(input.toLowerCase())
+              }
+              suffixIcon={<Icon name="keyboard_arrow_down" />}
+            />
+          </Form.Item>
 
           <Form.Item
             noStyle
@@ -92,43 +155,10 @@ const CompanySearch = ({
               />
             </Space.Compact>
           </Form.Item>
-
-          <Form.Item
-            label={<span className="C-heading size-xs semiBold mb-0">Company type</span>}
-            style={{ marginBottom: 0 }}
-            required
-          >
-            <Select
-              size="large"
-              placeholder="Select company type"
-              value={companyType || COMPANY_TYPE_ALL_VALUE}
-              onChange={onCompanyTypeChange}
-              options={companyTypeOptions}
-              style={{ minWidth: 200 }}
-              showSearch
-              optionFilterProp="label"
-              loading={!categories.length && undefined}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label={<span className="C-heading size-xs semiBold mb-0">Location</span>}
-            style={{ marginBottom: 0 }}
-          >
-            <Input
-              size="large"
-              placeholder="Location (optional)"
-              prefix={<Icon name="location_on" />}
-              value={location}
-              onChange={(e) => onLocationChange(e)}
-              allowClear
-              style={{ width: 200 }}
-            />
-          </Form.Item>
-        </Space>
+        </div>
       </div>
 
-      <div className="col-12 col-lg-5 text-lg-end mt-2 mt-lg-0">
+      <div className="col-12 text-lg-end mt-2 mt-lg-0">
         <Space wrap>
           {canAdd && (
             <Button
