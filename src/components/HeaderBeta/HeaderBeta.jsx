@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Avatar, Drawer, Popover, Space } from "antd";
 import Icon from "../Icon";
 import { useAuth } from "@/utilities/AuthContext";
+import { useLogout } from "@/hooks/useLogout";
 import "./HeaderBeta.scss";
 
 /**
@@ -37,7 +38,7 @@ const SETTINGS_SUBMENU_ITEMS = [
 const UserSettingsDropdown = memo(
   ({ userName = "Sudhir Deolalikar", userRole = "Admin Head", onClose }) => {
     const router = useRouter();
-    const { logout } = useAuth();
+    const { logout } = useLogout();
 
     const handleAction = useCallback(
       (route) => {
@@ -50,8 +51,7 @@ const UserSettingsDropdown = memo(
     const handleLogout = useCallback(() => {
       onClose?.();
       logout();
-      router.push(ROUTES.PUBLIC.LOGIN);
-    }, [onClose, logout, router]);
+    }, [onClose, logout]);
 
     const handleSubmenuClick = useCallback(
       (routeKey) => {

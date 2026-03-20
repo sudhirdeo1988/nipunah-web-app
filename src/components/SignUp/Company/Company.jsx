@@ -39,7 +39,7 @@ const Company = () => {
   const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 0
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [categoriesData, setCategoriesData] = useState([
-    { main: undefined, sub: undefined },
+    { mainCategoryId: undefined, subCategoryId: undefined },
   ]);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
@@ -167,18 +167,34 @@ const Company = () => {
       }
 
       // Remove confirm_password from payload (only used for frontend validation)
-      delete allFields.confirm_password;
+      const payload = { ...allFields };
+      delete payload.confirm_password;
 
-      // Add default paymentDetails object
-      allFields.payment_details = {
-        paidUser: false,
+      // Ignore logo_url as requested (and avoid sending any raw Upload object if present)
+      delete payload.logo_url;
+      delete payload.logo;
+
+      // Ensure payment_details matches API contract
+      payload.payment_details = {
+        is_paid_user: false,
       };
 
       // Add subscription plan
-      allFields.subscription_plan = "Free";
+      payload.subscription_plan = "Free";
+
+      // Sanitize addresses to only allowed keys
+      payload.addresses = Array.isArray(payload.addresses)
+        ? payload.addresses.map((addr) => ({
+            isPrimary: !!addr?.isPrimary,
+            country: addr?.country,
+            address: addr?.address,
+            city: addr?.city,
+            postal_code: addr?.postal_code,
+          }))
+        : payload.addresses;
 
       console.log("=== COMPANY FORM SUBMISSION ===");
-      console.log("Payload:", allFields);
+      console.log("Payload:", payload);
 
       // Make POST request to company registration API (insecure/public endpoint)
       // Endpoint: /companies/register
@@ -186,7 +202,7 @@ const Company = () => {
       // Payload: All form values object
       const response = await axiosPublicInstance.post(
         "/companies/register",
-        allFields
+        payload
       );
 
       console.log("=== COMPANY REGISTRATION SUCCESS ===");
@@ -292,8 +308,8 @@ const Company = () => {
           // Build validation paths for all category fields
           const categoryFieldsToValidate = [];
           categories.forEach((_, index) => {
-            categoryFieldsToValidate.push(["categories", index, "main"]);
-            categoryFieldsToValidate.push(["categories", index, "sub"]);
+            categoryFieldsToValidate.push(["categories", index, "mainCategoryId"]);
+            categoryFieldsToValidate.push(["categories", index, "subCategoryId"]);
           });
 
           // Validate all category fields using Ant Design validation
@@ -1052,14 +1068,14 @@ const Company = () => {
             <>
               {fields.map(({ key, name, ...restField }, idx) => {
                 const values = form.getFieldValue("categories") || [];
-                const currentMainCategory = values[idx]?.main;
+                const currentMainCategory = values[idx]?.mainCategoryId;
 
                 return (
                   <div className="row g-2 align-items-center" key={key}>
                     <div className="col-md-5">
                       <Form.Item
                         {...restField}
-                        name={[name, "main"]}
+                        name={[name, "mainCategoryId"]}
                         rules={[{ required: true, message: "Select category" }]}
                         label={
                           <span className="C-heading size-xs semiBold color-light mb-0">
@@ -1079,12 +1095,12 @@ const Company = () => {
                           onChange={(value) => {
                             // Clear subcategory when main category changes
                             form.setFieldValue(
-                              ["categories", name, "sub"],
+                              ["categories", name, "subCategoryId"],
                               undefined
                             );
                             // Update local state to trigger re-render
                             const newValues = [...values];
-                            newValues[idx] = { main: value, sub: undefined };
+                            newValues[idx] = { mainCategoryId: value, subCategoryId: undefined };
                             setCategoriesData(newValues);
                             // Fetch subcategories for the selected category if not already loaded
                             if (value && !subcategoriesMap[value]) {
@@ -1115,8 +1131,8 @@ const Company = () => {
                             disabled: values.some(
                               (c, i) =>
                                 i !== idx &&
-                                (c?.main === cat.id ||
-                                  c?.main === cat.categoryId)
+                                (c?.mainCategoryId === cat.id ||
+                                  c?.mainCategoryId === cat.categoryId)
                             ),
                           }))}
                         />
@@ -1125,7 +1141,7 @@ const Company = () => {
                     <div className="col-md-5">
                       <Form.Item
                         {...restField}
-                        name={[name, "sub"]}
+                        name={[name, "subCategoryId"]}
                         rules={[
                           { required: true, message: "Select subcategory" },
                         ]}
@@ -1165,10 +1181,10 @@ const Company = () => {
                                     disabled: values.some(
                                       (c, i2) =>
                                         i2 !== idx &&
-                                        (c?.sub === sub.id ||
-                                          c?.sub === sub.subcategoryId ||
-                                          c?.sub === sub.name ||
-                                          c?.sub === sub.subcategoryName)
+                                        (c?.subCategoryId === sub.id ||
+                                          c?.subCategoryId === sub.subcategoryId ||
+                                          c?.subCategoryId === sub.name ||
+                                          c?.subCategoryId === sub.subcategoryName)
                                     ),
                                   })
                                 )
@@ -1197,7 +1213,7 @@ const Company = () => {
                     add();
                     setCategoriesData([
                       ...categoriesData,
-                      { main: undefined, sub: undefined },
+                      { mainCategoryId: undefined, subCategoryId: undefined },
                     ]);
                   }}
                   className="C-button is-link small"
@@ -1598,7 +1614,7 @@ const Company = () => {
         layout="vertical"
         autoComplete="off"
         initialValues={{
-          categories: [{ main: undefined, sub: undefined }],
+          categories: [{ mainCategoryId: undefined, subCategoryId: undefined }],
           contact_country_code: "+91",
         }}
       >

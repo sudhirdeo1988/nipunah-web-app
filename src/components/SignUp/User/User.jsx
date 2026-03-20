@@ -77,6 +77,7 @@ const UserRegistration = () => {
           </span>
         ),
         value: c.dailCode,
+        searchLabel: `${c.countryName} ${c.dailCode}`,
       })),
     []
   );
@@ -217,7 +218,7 @@ const UserRegistration = () => {
         contact_country_code: allFields.contact_country_code,
         username: allFields.username || allFields.email, // Use email as username if not set
         password: allFields.password,
-        is_user_approved: false,
+        is_user_approved: true,
         address: {
           country: allFields.address?.country || "",
           state: allFields.address?.state || "",
@@ -338,6 +339,9 @@ const UserRegistration = () => {
         autoComplete="off"
         onFinish={onFinish}
         className="mb-4"
+        initialValues={{
+          contact_country_code: "+91",
+        }}
       >
         <div className="row justify-content-center">
           <div className="col-md-9 col-sm-12">
@@ -429,10 +433,18 @@ const UserRegistration = () => {
                         rules={[{ required: true, message: "Select code" }]}
                       >
                         <Select
+                          showSearch
                           placeholder="Code"
                           size="large"
                           style={{ width: "30%" }}
                           options={countryOptions}
+                          filterOption={(input, option) =>
+                            (option?.searchLabel ?? "")
+                              .toString()
+                              .toLowerCase()
+                              .startsWith(input.toLowerCase())
+                          }
+                          optionFilterProp="label"
                         />
                       </Form.Item>
                       <Form.Item

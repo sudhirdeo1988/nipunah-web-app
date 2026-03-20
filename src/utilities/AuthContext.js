@@ -7,7 +7,8 @@ import {
   useState,
   useCallback,
 } from "react";
-import { getClientToken, clearToken } from "./auth";
+import { getClientToken } from "./auth";
+import { clearAllClientStorage } from "./sessionUser";
 
 const AuthContext = createContext(null);
 
@@ -51,7 +52,7 @@ export const AuthProvider = ({ children }) => {
   }, [validateToken]);
 
   const logout = useCallback(() => {
-    clearToken();
+    clearAllClientStorage();
     setToken(null);
   }, []);
 

@@ -3,13 +3,20 @@
 import { useEffect, memo, useCallback, useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import { useAuth } from "@/utilities/AuthContext";
-import { setToken, userTypes } from "@/utilities/auth";
+import { setToken } from "@/utilities/auth";
 import { useRouter } from "next/navigation";
 import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
-import { Form, Input, Select, Space, message } from "antd";
+import { Form, Input, Select, Space, message, Modal, Result } from "antd";
 import { useAppDispatch } from "@/store/hooks";
 import { setUser } from "@/store/slices/userSlice";
+import {
+  saveUserSession,
+  fetchUserDetailsByRole,
+  getIdFromStoredUser,
+  getRoleFromStoredUser,
+  applyRolePermissionsToUser,
+} from "@/utilities/sessionUser";
 
 import { map as _map } from "lodash-es";
 
@@ -83,6 +90,66 @@ const LoginPage = () => {
   const dispatch = useAppDispatch();
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
+  const [forgotOpen, setForgotOpen] = useState(false);
+  const [forgotSubmitting, setForgotSubmitting] = useState(false);
+  const [forgotSuccess, setForgotSuccess] = useState(false);
+  const [forgotForm] = Form.useForm();
+
+  const openForgotModal = useCallback(() => {
+    setForgotSuccess(false);
+    forgotForm.resetFields();
+    setForgotOpen(true);
+  }, [forgotForm]);
+
+  const closeForgotModal = useCallback(() => {
+    setForgotOpen(false);
+  }, []);
+
+  const handleForgotSubmit = useCallback(
+    async (values) => {
+      try {
+        setForgotSubmitting(true);
+        const payload = {
+          email: values.email,
+          username: values.email, // email and username are same by requirement
+        };
+        const res = await fetch("/api/auth/forgot-password", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        let data = {};
+        try {
+          data = await res.json();
+        } catch (_) {}
+
+        if (!res.ok) {
+          const msg =
+            data?.message ||
+            data?.error ||
+            "Failed to process forgot password request.";
+          message.error(msg);
+          return;
+        }
+
+        setForgotSuccess(true);
+        message.success(
+          data?.message ||
+            "Temporary password sent on registered email id."
+        );
+        setTimeout(() => {
+          setForgotOpen(false);
+        }, 5000);
+      } catch (err) {
+        message.error(
+          err?.message || "Failed to process forgot password request."
+        );
+      } finally {
+        setForgotSubmitting(false);
+      }
+    },
+    []
+  );
 
   const handleLogin = async (values) => {
     try {
@@ -98,7 +165,6 @@ const LoginPage = () => {
         body: JSON.stringify({
           username: values.username,
           password: values.password,
-          type: values.type,
         }),
       });
 
@@ -126,33 +192,86 @@ const LoginPage = () => {
         throw new Error("Token not found in response");
       }
 
-      // Extract user type from response or use the type from form
-      const userType =
-        data?.userType ||
-        data?.user_type ||
-        data?.type ||
-        data?.data?.userType ||
-        data?.data?.user_type ||
-        data?.data?.type ||
-        values.type;
+      // Extract the actual user payload from common API shapes
+      // (some backends return: { token, user }, or { access_token, data: { ...user } }, etc.)
+      const userDetailsRaw =
+        (data?.user && typeof data.user === "object" && data.user) ||
+        (data?.data?.user &&
+          typeof data.data.user === "object" &&
+          data.data.user) ||
+        (data?.data && typeof data.data === "object" && data.data) ||
+        (data && typeof data === "object" && data) ||
+        {};
 
-      // Extract user data from response
-      const userData = {
-        id: data?.id || data?.data?.id || data?.user?.id,
-        username: data?.username || data?.data?.username || data?.user?.username,
-        email: data?.email || data?.data?.email || data?.user?.email,
-        name: data?.name || data?.data?.name || data?.user?.name,
-        type: userType,
-        role: data?.role || data?.data?.role || data?.user?.role,
-        ...(data?.user || data?.data?.user || data?.data || {}),
+      // Remove token-like fields so storage/Redux only keeps user details
+      // (avoid nested token/data/user wrappers).
+      const {
+        token: _t,
+        access_token: _at,
+        status: _status,
+        ...userWithoutTokensBase
+      } = userDetailsRaw || {};
+
+      const userWithoutTokens = {
+        ...userWithoutTokensBase,
+        id:
+          userWithoutTokensBase?.id ||
+          data?.id ||
+          data?.data?.id ||
+          data?.user?.id,
+        username:
+          userWithoutTokensBase?.username ||
+          data?.username ||
+          data?.data?.username ||
+          data?.user?.username ||
+          values.username,
+        email:
+          userWithoutTokensBase?.email ||
+          data?.email ||
+          data?.data?.email ||
+          data?.user?.email,
+        name:
+          userWithoutTokensBase?.name ||
+          data?.name ||
+          data?.data?.name ||
+          data?.user?.name,
+        role:
+          userWithoutTokensBase?.role ||
+          data?.role ||
+          data?.data?.role ||
+          data?.user?.role,
+        type:
+          userWithoutTokensBase?.type ||
+          data?.type ||
+          data?.data?.type ||
+          data?.user?.type,
       };
 
-      // Store token and user type in cookies (24 hours expiry)
-      setToken(token, 86400, userType);
+      // Store token in cookies (24 hours expiry)
+      setToken(token, 86400);
       updateContextToken(token);
 
-      // Store user data in Redux
-      dispatch(setUser(userData));
+      const userWithPermissions = applyRolePermissionsToUser(userWithoutTokens);
+      saveUserSession(userWithPermissions);
+      dispatch(setUser(userWithPermissions));
+
+      // If details are missing in login response, hydrate via role-based GET calls
+      const role = getRoleFromStoredUser(userWithPermissions);
+      const id = getIdFromStoredUser(userWithPermissions);
+      if (role && id) {
+        try {
+          const details = await fetchUserDetailsByRole({ role, id });
+          const merged = applyRolePermissionsToUser({
+            ...userWithPermissions,
+            ...details,
+          });
+          saveUserSession(merged);
+          dispatch(setUser(merged));
+        } catch (e) {
+          // Ignore hydration errors; user is still logged in with token
+          console.warn("Failed to hydrate user details after login:", e);
+        }
+      }
 
       // Show success message
       message.success("Login successful!");
@@ -210,30 +329,6 @@ const LoginPage = () => {
                 <Form.Item
                   label={
                     <span className="C-heading size-xs semiBold mb-0">
-                      Login As
-                    </span>
-                  }
-                  name="type"
-                  rules={[
-                    {
-                      required: true,
-                      message: "Please select user type!",
-                    },
-                  ]}
-                  className="mb-3"
-                >
-                  <Select
-                    placeholder="Select user type"
-                    size="large"
-                    options={userTypes}
-                    prefix={
-                      <Icon name="admin_panel_settings" isFilled color="#ccc" />
-                    }
-                  />
-                </Form.Item>
-                <Form.Item
-                  label={
-                    <span className="C-heading size-xs semiBold mb-0">
                       User Name
                     </span>
                   }
@@ -277,7 +372,11 @@ const LoginPage = () => {
                 </Form.Item>
 
                 <div className="text-right mb-3">
-                  <button className="C-button is-link p-0 small" type="button">
+                  <button
+                    className="C-button is-link p-0 small"
+                    type="button"
+                    onClick={openForgotModal}
+                  >
                     <Space size={4}>
                       <Icon name="lock" size="small" />
                       Forgot Password?
@@ -304,6 +403,54 @@ const LoginPage = () => {
             <SignupPopoverContent onNavigate={handleNavigation} />
           </div>
         </div>
+
+        <Modal
+          open={forgotOpen}
+          onCancel={closeForgotModal}
+          footer={null}
+          title="Forgot password"
+          destroyOnClose
+        >
+          {forgotSuccess ? (
+            <Result
+              status="success"
+              title="Temporary password sent on registered email id"
+            />
+          ) : (
+            <Form
+              form={forgotForm}
+              layout="vertical"
+              onFinish={handleForgotSubmit}
+              autoComplete="off"
+            >
+              <Form.Item
+                label="Email ID"
+                name="email"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter your email id.",
+                  },
+                  {
+                    type: "email",
+                    message: "Please enter a valid email address.",
+                  },
+                ]}
+              >
+                <Input placeholder="Enter your registered email id" size="large" />
+              </Form.Item>
+              <Form.Item className="mb-0">
+                <button
+                  className="C-button is-filled w-100"
+                  type="submit"
+                  disabled={forgotSubmitting}
+                >
+                  {forgotSubmitting ? "Submitting..." : "Submit"}
+                </button>
+              </Form.Item>
+            </Form>
+          )}
+        </Modal>
       </div>
     </PublicLayout>
   );

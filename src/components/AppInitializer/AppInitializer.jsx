@@ -13,6 +13,15 @@ import {
 } from "@/store/slices/categoriesSlice";
 import api from "@/utilities/api";
 import { ROUTES } from "@/constants/routes";
+import {
+  loadUserSession,
+  saveUserSession,
+  clearUserSession,
+  fetchUserDetailsByRole,
+  getIdFromStoredUser,
+  getRoleFromStoredUser,
+  applyRolePermissionsToUser,
+} from "@/utilities/sessionUser";
 
 /** Parse categories from API response (same shape as SignUp Company / getAllCategories) */
 function parseCategoriesFromResponse(response) {
@@ -54,30 +63,28 @@ const AppInitializer = ({ children }) => {
 
     const fetchInitialData = async () => {
       try {
-        // Fetch user profile, settings, notifications, etc.
-        const data = await api.get("/me", {
-          onAuthError: (response, errorData) => {
-            console.warn("Authentication failed, logging out...", errorData);
-            dispatch(clearUser());
-            dispatch(clearCategories());
-            logout();
-            router.push(ROUTES?.PUBLIC?.LOGIN || "/login");
-          },
-        });
-        console.log("User Info:", data);
+        // Load any cached user session first (fast UI)
+        const cached = loadUserSession();
+        if (cached) {
+          dispatch(setUser(applyRolePermissionsToUser(cached)));
+        }
 
-        // Store user data in Redux
-        if (data) {
-          const userData = {
-            id: data?.id || data?.user?.id,
-            username: data?.username || data?.user?.username,
-            email: data?.email || data?.user?.email,
-            name: data?.name || data?.user?.name,
-            type: data?.type || data?.userType || data?.user?.type,
-            role: data?.role || data?.user?.role,
-            ...(data?.user || data || {}),
-          };
-          dispatch(setUser(userData));
+        // Always refresh profile from backend on page refresh / app init
+        // Decide which endpoint to call based on role + id stored in session
+        const role = getRoleFromStoredUser(cached);
+        const id = getIdFromStoredUser(cached);
+        if (role && id) {
+          console.log("🔷 Hydrating user details:", { role, id });
+          const details = await fetchUserDetailsByRole({ role, id });
+          const merged = applyRolePermissionsToUser({
+            ...(cached || {}),
+            ...(details || {}),
+          });
+          saveUserSession(merged);
+          dispatch(setUser(merged));
+        } else {
+          // If we can't determine role/id, keep cached data only (if any)
+          console.warn("No role/id found in stored user session; skipping hydration.");
         }
 
         // Load categories on app init (company search dropdown, etc.)
@@ -89,6 +96,7 @@ const AppInitializer = ({ children }) => {
         if (err.isAuthError) {
           dispatch(clearUser());
           dispatch(clearCategories());
+          clearUserSession();
           logout();
           router.push(ROUTES?.PUBLIC?.LOGIN || "/login");
         }
@@ -101,6 +109,7 @@ const AppInitializer = ({ children }) => {
     } else {
       dispatch(clearUser());
       dispatch(clearCategories());
+      clearUserSession();
     }
   }, [token, logout, router, dispatch]);
 

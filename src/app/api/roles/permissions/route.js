@@ -3,7 +3,8 @@ import { ROLE_MANAGEMENT_MOCK } from "@/constants/roleManagementMock";
 
 /**
  * GET /api/roles/permissions
- * Returns array of all roles with their permissions: [{ role: { key, label }, modules }, ...]
+ * Returns flat role-permissions map:
+ * { admin: { key: boolean }, user: { ... }, expert: { ... }, company: { ... } }
  */
 export async function GET() {
   try {
@@ -20,15 +21,14 @@ export async function GET() {
 
 /**
  * PUT /api/roles/permissions
- * Body: [{ role: { key, label }, modules }, ...] (array of all roles)
+ * Body: flat role-permissions map
  */
 export async function PUT(request) {
   try {
     const body = await request.json();
-    const list = Array.isArray(body) ? body : body?.data;
-    if (!list?.length) {
+    if (!body || typeof body !== "object" || Array.isArray(body)) {
       return NextResponse.json(
-        { error: "Payload must be an array of role configs" },
+        { error: "Payload must be an object with role keys" },
         { status: 400 }
       );
     }

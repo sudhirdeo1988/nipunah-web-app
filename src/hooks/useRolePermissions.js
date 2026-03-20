@@ -2,49 +2,110 @@
 
 import { useMemo } from "react";
 import { useAppSelector } from "@/store/hooks";
-import { getConfigForRole } from "@/constants/rolePermissionsConfig";
+import { getRolePermissionObject, normalizeRoleKey } from "@/constants/roleManagementMock";
+import { loadUserSession, getRoleFromStoredUser } from "@/utilities/sessionUser";
 
-/** Static default when Redux role is null (e.g. on refresh). Change to any key in ROLE_PERMISSIONS_CONFIG. */
 const DEFAULT_ROLE = "expert";
+const MODULE_KEY_TO_NAV_KEY = {
+  dashboard: "nav_dashboard",
+  categories: "nav_categories",
+  experts: "nav_experts",
+  users: "nav_users",
+  company: "nav_companies",
+  jobs: "nav_jobs",
+  equipments: "nav_equipments",
+  role_management: "nav_role_management",
+};
+
+const MODULE_PERMISSION_NAMES = {
+  dashboard: ["view"],
+  users: ["view", "add", "edit", "delete", "approve"],
+  experts: ["view", "add", "edit", "delete", "approve"],
+  company: ["view", "add", "edit", "delete", "approve"],
+  jobs: ["view", "add", "edit", "delete", "apply", "approve"],
+  equipments: ["view", "add", "edit", "delete"],
+  categories: [
+    "view",
+    "add",
+    "edit",
+    "delete",
+    "view_sub_category",
+    "add_sub_category",
+    "edit_sub_category",
+    "delete_sub_category",
+  ],
+  role_management: ["view", "add", "edit", "delete"],
+};
+
+const DASHBOARD_COMPONENT_KEY_MAP = {
+  registered_companies: "dashboard_registered_companies",
+  total_users: "dashboard_total_users",
+  total_experts: "dashboard_total_experts",
+  active_jobs: "dashboard_active_jobs",
+};
 
 /**
- * Hook for role-based permissions. Fully driven by ROLE_PERMISSIONS_CONFIG.
- * Add new roles/permissions in config only; no code changes needed here.
+ * Hook for role-based permissions using flat role permissions object.
+ * Role source priority: Redux -> localStorage session -> DEFAULT_ROLE.
  */
 export function useRolePermissions() {
   const roleFromRedux = useAppSelector((state) => state.user.role);
-  const role = roleFromRedux ?? DEFAULT_ROLE;
+  const userFromRedux = useAppSelector((state) => state.user.user);
+  const roleFromUser = useAppSelector((state) => state.user.user?.role);
+  const typeFromUser = useAppSelector((state) => state.user.user?.type);
 
   return useMemo(() => {
-    const config = getConfigForRole(role);
-    const modules = config?.modules ?? {};
+    const stored = loadUserSession();
+    const resolvedRole = normalizeRoleKey(
+      roleFromRedux ||
+        roleFromUser ||
+        typeFromUser ||
+        getRoleFromStoredUser(stored) ||
+        DEFAULT_ROLE
+    );
+    const roleFlat = getRolePermissionObject(resolvedRole) || {};
+    // Keep user profile fields, with static role permissions merged in.
+    const flat =
+      userFromRedux && typeof userFromRedux === "object"
+        ? { ...userFromRedux, ...roleFlat }
+        : roleFlat;
 
     const visibleModuleKeys = new Set(
-      Object.keys(modules).filter((k) => modules[k]?.visible)
+      Object.keys(MODULE_KEY_TO_NAV_KEY).filter((moduleKey) =>
+        Boolean(flat[MODULE_KEY_TO_NAV_KEY[moduleKey]])
+      )
     );
 
     const isModuleVisible = (moduleKey) => visibleModuleKeys.has(moduleKey);
 
     const can = (moduleKey, permissionKey) => {
-      const mod = modules[moduleKey];
-      const perms = mod?.permissions ?? {};
-      return Boolean(perms[permissionKey]);
+      return Boolean(flat[`${moduleKey}_${permissionKey}`]);
     };
 
-    const dashboardMod = modules.dashboard;
-    const dashboardComps = dashboardMod?.components ?? {};
     const visibleDashboardComponentKeys = new Set(
-      Object.keys(dashboardComps).filter((k) => dashboardComps[k]?.visible)
+      Object.keys(DASHBOARD_COMPONENT_KEY_MAP).filter((componentKey) =>
+        Boolean(flat[DASHBOARD_COMPONENT_KEY_MAP[componentKey]])
+      )
     );
 
     const getDashboardVisibleComponentKeys = () =>
       Array.from(visibleDashboardComponentKeys);
 
-    const getModuleConfig = (moduleKey) => modules[moduleKey] ?? null;
+    const getModuleConfig = (moduleKey) => {
+      const permissionNames = MODULE_PERMISSION_NAMES[moduleKey] ?? [];
+      const permissions = permissionNames.reduce((acc, permissionName) => {
+        acc[permissionName] = Boolean(flat[`${moduleKey}_${permissionName}`]);
+        return acc;
+      }, {});
+      return {
+        visible: Boolean(flat[MODULE_KEY_TO_NAV_KEY[moduleKey]]),
+        permissions,
+      };
+    };
 
     return {
-      role: (role || DEFAULT_ROLE).toLowerCase(),
-      modules,
+      role: resolvedRole,
+      flatPermissions: flat,
       visibleModuleKeys,
       visibleDashboardComponentKeys,
       isModuleVisible,
@@ -52,5 +113,5 @@ export function useRolePermissions() {
       getDashboardVisibleComponentKeys,
       getModuleConfig,
     };
-  }, [role]);
+  }, [roleFromRedux, roleFromUser, typeFromUser, userFromRedux]);
 }

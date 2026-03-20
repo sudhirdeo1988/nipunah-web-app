@@ -7,10 +7,10 @@ import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
 
 /**
- * API endpoint for change password. Override via env: NEXT_PUBLIC_CHANGE_PASSWORD_API
+ * API endpoint for reset password. Override via env: NEXT_PUBLIC_RESET_PASSWORD_API
  */
-const CHANGE_PASSWORD_API =
-  process.env.NEXT_PUBLIC_CHANGE_PASSWORD_API || "/api/auth/change-password";
+const RESET_PASSWORD_API =
+  process.env.NEXT_PUBLIC_RESET_PASSWORD_API || "/api/auth/reset-password";
 
 /**
  * Change password form layout and validation.
@@ -25,11 +25,26 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
     async (values) => {
       setLoading(true);
       try {
+        // Read reset token from cookies (accessToken)
+        const cookieString = typeof document !== "undefined" ? document.cookie : "";
+        const token =
+          cookieString
+            .split(";")
+            .map((c) => c.trim())
+            .find((c) => c.startsWith("accessToken="))
+            ?.split("=")[1] || null;
+
+        if (!token) {
+          message.error("Unable to find reset token in cookies.");
+          setLoading(false);
+          return;
+        }
+
         const payload = {
-          currentPassword: values.currentPassword,
+          token,
           newPassword: values.newPassword,
         };
-        const res = await fetch(CHANGE_PASSWORD_API, {
+        const res = await fetch(RESET_PASSWORD_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
