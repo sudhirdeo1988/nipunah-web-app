@@ -261,24 +261,35 @@ const SubscriptionPage = () => {
                                 itemLayout="horizontal"
                                 dataSource={planCard?.features}
                                 bordered={false}
-                                renderItem={(item) => (
-                                  <List.Item>
-                                    <List.Item.Meta
-                                      avatar={
-                                        <Icon
-                                          name="check_circle"
-                                          isFilled
-                                          color="#dadada"
-                                        />
-                                      }
-                                      title={
-                                        <span className="C-heading size-6 color-light mb-0">
-                                          {item}
-                                        </span>
-                                      }
-                                    />
-                                  </List.Item>
-                                )}
+                                renderItem={(item) => {
+                                  const featureLabel =
+                                    typeof item === "string"
+                                      ? item
+                                      : item?.label || item?.key || "";
+
+                                  if (!featureLabel || item?.included === false) {
+                                    return null;
+                                  }
+
+                                  return (
+                                    <List.Item>
+                                      <List.Item.Meta
+                                        avatar={
+                                          <Icon
+                                            name="check_circle"
+                                            isFilled
+                                            color="#dadada"
+                                          />
+                                        }
+                                        title={
+                                          <span className="C-heading size-6 color-light mb-0">
+                                            {featureLabel}
+                                          </span>
+                                        }
+                                      />
+                                    </List.Item>
+                                  );
+                                }}
                               />
                             </div>
                           )}
