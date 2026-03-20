@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Tag, Space, Drawer, Spin, Empty } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
@@ -17,6 +17,11 @@ import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
 const MIN_SEARCH_LENGTH = 4;
 const AVAILABLE_FOR_ALL = "all";
 const DEFAULT_LOCATION = "India";
+const DEFAULT_FILTERS = {
+  search: "",
+  availableFor: AVAILABLE_FOR_ALL,
+  countrySelect: DEFAULT_LOCATION,
+};
 
 /** Available for options: Sale, Rent, Lease. All is default. */
 const AVAILABLE_FOR_OPTIONS = [
@@ -52,6 +57,8 @@ function buildEquipmentParams(filters, page = 1, limit = 10) {
 
 const EquipmentListPage = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [filters, setFilters] = useState(() =>
     getFiltersFromSearchParams(searchParams)
@@ -160,6 +167,20 @@ const EquipmentListPage = () => {
     [fetchEquipment, filters]
   );
 
+  const handleClearFilters = useCallback(
+    (values) => {
+      const next = {
+        search: values.search || "",
+        availableFor: values.availableFor || AVAILABLE_FOR_ALL,
+        countrySelect: values.countrySelect || DEFAULT_LOCATION,
+      };
+      setFilters(next);
+      fetchEquipment(buildEquipmentParams(next, 1, pagination.pageSize));
+      router.replace(pathname);
+    },
+    [fetchEquipment, pagination.pageSize, router, pathname]
+  );
+
   return (
     <PublicLayout>
       <PageHeadingBanner
@@ -174,6 +195,8 @@ const EquipmentListPage = () => {
               floatingEnable
               searchFieldOptions={searchFieldOptions}
               onSearch={handleSearch}
+              onClear={handleClearFilters}
+              clearValues={DEFAULT_FILTERS}
             />
           </div>
 
@@ -290,6 +313,11 @@ const EquipmentListPage = () => {
             handleSearch(values);
             onClose();
           }}
+          onClear={(values) => {
+            handleClearFilters(values);
+            onClose();
+          }}
+          clearValues={DEFAULT_FILTERS}
           inSidebar
         />
       </Drawer>

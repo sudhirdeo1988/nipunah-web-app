@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Tag, Space, Drawer, Spin, Empty, message } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
@@ -23,6 +23,11 @@ import {
 const MIN_SEARCH_LENGTH = 4;
 const COMPANY_TYPE_ALL_VALUE = "all";
 const DEFAULT_LOCATION = "India";
+const DEFAULT_FILTERS = {
+  search: "",
+  companyType: COMPANY_TYPE_ALL_VALUE,
+  countrySelect: DEFAULT_LOCATION,
+};
 
 /**
  * Parses URL search params into filter state (search, type, location).
@@ -51,6 +56,8 @@ function parseCategoriesFromResponse(response) {
 
 const CompanyListPage = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const dispatch = useAppDispatch();
   const categories = useAppSelector((state) => state.categories?.list ?? []);
 
@@ -255,6 +262,20 @@ const CompanyListPage = () => {
     setPagination((prev) => ({ ...prev, current: 1 }));
   }, []);
 
+  const handleClearFilters = useCallback(
+    (values) => {
+      const next = {
+        search: values.search || "",
+        companyType: values.companyType || COMPANY_TYPE_ALL_VALUE,
+        countrySelect: values.countrySelect || DEFAULT_LOCATION,
+      };
+      setFilters(next);
+      setPagination((prev) => ({ ...prev, current: 1 }));
+      router.replace(pathname);
+    },
+    [router, pathname]
+  );
+
   const handlePageChange = useCallback(
     (page, pageSize) => {
       setPagination((prev) => ({ ...prev, current: page, pageSize }));
@@ -277,6 +298,8 @@ const CompanyListPage = () => {
               floatingEnable
               searchFieldOptions={searchFieldOptions}
               onSearch={handleSearch}
+              onClear={handleClearFilters}
+              clearValues={DEFAULT_FILTERS}
             />
           </div>
 
@@ -378,6 +401,11 @@ const CompanyListPage = () => {
             handleSearch(values);
             onClose();
           }}
+          onClear={(values) => {
+            handleClearFilters(values);
+            onClose();
+          }}
+          clearValues={DEFAULT_FILTERS}
           inSidebar
         />
       </Drawer>

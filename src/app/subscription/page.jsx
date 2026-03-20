@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Icon from "@/components/Icon";
-import { Divider, Space, List, message, Select } from "antd";
+import { Divider, Space, List, message, Select, Spin, Alert } from "antd";
 import { map as _map } from "lodash-es";
 import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
@@ -10,119 +10,68 @@ import RazorpayScriptLoader from "@/components/RazorpayScriptLoader";
 import PaymentGatewayModal from "@/components/PaymentGatewayModal";
 import { initiateRazorpayPayment } from "@/utilities/razorpay";
 
-// Currency conversion rate (1 USD = 83 INR)
-const USD_TO_INR_RATE = 83;
-
-// Base plans in USD
-const basePlansUSD = [
-  {
-    id: 1,
-    plan_name: "Starter Plan",
-    monthlyPrice: 9.99,
-    yearlyPrice: 119.88,
-    yearlyOfferPrice: 110,
-    description: "Small or new companies taking first step online",
-    most_popular: false,
-    features: [
-      "Full Company Profile",
-      "Showcase up to 3 services/equipment with 1 image each",
-      "Verified Badge",
-      "List in 1 category & 1 location/port",
-      "Analytics Dashboard",
-      "Social Media Sharing",
-    ],
-  },
-  {
-    id: 2,
-    plan_name: "Growth Plan",
-    monthlyPrice: 24.99,
-    yearlyPrice: 299.88,
-    yearlyOfferPrice: 270,
-    description: "Expanding companies with multiple services/ports",
-    most_popular: true,
-    features: [
-      "Full Company Profile",
-      "Showcase up to 15 services/equipment with up to 1 image for Services and 5 images for equipment each",
-      "Verified Badge",
-      "List in 5 category & 5 location/port",
-      "Analytics Dashboard",
-      "Social Media Sharing",
-    ],
-  },
-  {
-    id: 3,
-    plan_name: "Premium Plan",
-    monthlyPrice: 49.99,
-    yearlyPrice: 599.88,
-    yearlyOfferPrice: 540,
-    description: "Established brands seeking high credibility",
-    most_popular: false,
-    features: [
-      "Full Company Profile",
-      "Showcase up to 25 services/equipment with up to 1 image for Services and 5 images for equipment each",
-      "Verified + Premium Badge",
-      "List in 10 category & 10 location/port",
-      "Analytics Dashboard",
-      "Social Media Sharing",
-      "Featured in Category Highlights",
-    ],
-  },
-];
-
 const SubscriptionPage = () => {
-  const [selectedCurrency, setSelectedCurrency] = useState("USD"); // Default currency
-  const [selectedFrequency, setSelectedFrequency] = useState("month"); // month or year
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [selectedFrequency, setSelectedFrequency] = useState("monthly");
+  const [plans, setPlans] = useState([]);
+  const [apiCurrency, setApiCurrency] = useState("USD");
+  const [loadingPlans, setLoadingPlans] = useState(false);
+  const [pricingError, setPricingError] = useState("");
   const [processingPayment, setProcessingPayment] = useState(null); // Track which plan ID is being processed
   const [paymentModalData, setPaymentModalData] = useState(null); // Store payment modal data
 
-  // Convert plans based on selected currency
-  const plans = useMemo(() => {
-    return basePlansUSD.map((plan) => {
-      const monthlyPrice =
-        selectedCurrency === "USD"
-          ? plan.monthlyPrice
-          : Math.round(plan.monthlyPrice * USD_TO_INR_RATE);
-      const yearlyPrice =
-        selectedCurrency === "USD"
-          ? plan.yearlyPrice
-          : Math.round(plan.yearlyPrice * USD_TO_INR_RATE);
-      const yearlyOfferPrice =
-        selectedCurrency === "USD"
-          ? plan.yearlyOfferPrice
-          : Math.round(plan.yearlyOfferPrice * USD_TO_INR_RATE);
+  const fetchPricing = useCallback(async () => {
+    setLoadingPlans(true);
+    setPricingError("");
 
-      return {
-        ...plan,
-        monthlyPrice,
-        yearlyPrice,
-        yearlyOfferPrice,
-        currency: selectedCurrency,
-        price: selectedFrequency === "month" ? monthlyPrice : yearlyOfferPrice,
-        displayPrice:
-          selectedFrequency === "month" ? monthlyPrice : yearlyOfferPrice,
-        originalYearlyPrice: yearlyPrice,
-      };
-    });
+    try {
+      const response = await fetch(
+        `/api/pricing?currency=${encodeURIComponent(
+          selectedCurrency
+        )}&cycle=${encodeURIComponent(selectedFrequency)}`
+      );
+
+      if (!response.ok) {
+        let errorMessage = "Unable to fetch pricing plans.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData?.message || errorData?.error || errorMessage;
+        } catch {
+          // Fallback to default message when response is not JSON
+        }
+        throw new Error(errorMessage);
+      }
+
+      const data = await response.json();
+      setApiCurrency(data?.currency || selectedCurrency);
+      setPlans(Array.isArray(data?.plans) ? data.plans : []);
+    } catch (error) {
+      setPlans([]);
+      const errorMessage = error?.message || "Failed to fetch pricing plans.";
+      setPricingError(errorMessage);
+      message.error(errorMessage);
+    } finally {
+      setLoadingPlans(false);
+    }
   }, [selectedCurrency, selectedFrequency]);
+
+  useEffect(() => {
+    fetchPricing();
+  }, [fetchPricing]);
 
   const handleChoosePlan = async (plan) => {
     try {
       setProcessingPayment(plan.id); // Set the specific plan ID being processed
 
-      const paymentAmount =
-        selectedFrequency === "month"
-          ? plan.monthlyPrice
-          : plan.yearlyOfferPrice;
-
       await initiateRazorpayPayment({
-        amount: paymentAmount,
-        currency: plan.currency,
+        amount: plan?.price,
+        currency: apiCurrency,
         planId: plan.id,
-        planName: plan.plan_name,
+        planName: plan.name,
         onSuccess: (response) => {
           setProcessingPayment(null); // Clear processing state
           setPaymentModalData(null); // Close modal
-          message.success(`Payment successful! Plan: ${plan.plan_name}`);
+          message.success(`Payment successful! Plan: ${plan.name}`);
           console.log("Payment success response:", response);
           // Payment flow completed - no redirect needed
         },
@@ -188,6 +137,7 @@ const SubscriptionPage = () => {
                         onChange={setSelectedCurrency}
                         style={{ width: 120 }}
                         size="large"
+                        disabled={loadingPlans}
                         options={[
                           { label: "USD ($)", value: "USD" },
                           { label: "INR (₹)", value: "INR" },
@@ -203,9 +153,10 @@ const SubscriptionPage = () => {
                         onChange={setSelectedFrequency}
                         style={{ width: 120 }}
                         size="large"
+                        disabled={loadingPlans}
                         options={[
-                          { label: "Monthly", value: "month" },
-                          { label: "Yearly", value: "year" },
+                          { label: "Monthly", value: "monthly" },
+                          { label: "Yearly", value: "yearly" },
                         ]}
                       />
                     </div>
@@ -213,132 +164,138 @@ const SubscriptionPage = () => {
                 </div>
               </div>
 
-              <div className="row g-4">
-                {_map(plans, (planCard) => {
-                  return (
-                    <div
-                      className="col-md-4 col-sm-6 col-xs-12"
-                      key={planCard?.id}
-                    >
+              {loadingPlans && (
+                <div className="d-flex justify-content-center align-items-center py-5">
+                  <Spin size="large" />
+                </div>
+              )}
+
+              {!loadingPlans && !!pricingError && (
+                <div className="mt-3">
+                  <Alert
+                    message="Unable to load pricing plans"
+                    description={pricingError}
+                    type="error"
+                    showIcon
+                    action={
+                      <button className="C-button is-outlined" onClick={fetchPricing}>
+                        Retry
+                      </button>
+                    }
+                  />
+                </div>
+              )}
+
+              {!loadingPlans && !pricingError && (
+                <div className="row g-4">
+                  {_map(plans, (planCard) => {
+                    return (
                       <div
-                        className={`h-100 rounded-3 d-flex flex-column bg-white shadow ${
-                          planCard?.most_popular ? "gradient-wrapper" : ""
-                        }`}
+                        className="col-md-4 col-sm-6 col-xs-12"
+                        key={planCard?.id}
                       >
-                        <div className="head p-3">
-                          <div className="mb-3">
-                            <Space align="center">
-                              <h3 className="C-heading size-5 extraBold gradient-text font-secondary mb-0">
-                                {planCard?.plan_name}
-                              </h3>
-                              {planCard?.most_popular && (
-                                <span className="badge bg-secondary color-white p-2 px-3 rounded-pill">
-                                  Most Popular 🔥
-                                </span>
-                              )}
-                            </Space>
-                          </div>
-                          <div className="mb-3">
-                            <Space align="center" size={12} className="mb-2">
-                              <h3 className="C-heading size-4 extraBold color-dark font-secondary mb-0">
-                                {planCard?.currency === "USD" ? "$" : "₹"}{" "}
-                                {planCard?.displayPrice?.toLocaleString(
-                                  undefined,
-                                  {
-                                    minimumFractionDigits:
-                                      planCard?.currency === "USD" ? 2 : 0,
-                                    maximumFractionDigits:
-                                      planCard?.currency === "USD" ? 2 : 0,
-                                  }
+                        <div
+                          className={`h-100 rounded-3 d-flex flex-column bg-white shadow ${
+                            planCard?.popular ? "gradient-wrapper" : ""
+                          }`}
+                        >
+                          <div className="head p-3">
+                            <div className="mb-3">
+                              <Space align="center">
+                                <h3 className="C-heading size-5 extraBold gradient-text font-secondary mb-0">
+                                  {planCard?.name}
+                                </h3>
+                                {planCard?.popular && (
+                                  <span className="badge bg-secondary color-white p-2 px-3 rounded-pill">
+                                    {(planCard?.badge || "Most Popular").includes("🔥")
+                                      ? planCard?.badge || "Most Popular"
+                                      : `${planCard?.badge || "Most Popular"} 🔥`}
+                                  </span>
                                 )}
-                              </h3>
-                              <span className="C-heading size-6 color-light mb-0">
-                                /{" "}
-                                {selectedFrequency === "month"
-                                  ? "Month"
-                                  : "Year"}
-                              </span>
-                            </Space>
-                            {selectedFrequency === "year" && (
-                              <div className="mt-2">
-                                <span className="C-heading size-xs color-light text-decoration-line-through">
-                                  {planCard?.currency === "USD" ? "$" : "₹"}
-                                  {planCard?.originalYearlyPrice?.toLocaleString(
+                              </Space>
+                            </div>
+                            <div className="mb-3">
+                              <Space align="center" size={12} className="mb-2">
+                                <h3 className="C-heading size-4 extraBold color-dark font-secondary mb-0">
+                                  {apiCurrency === "USD" ? "$" : "₹"}{" "}
+                                  {planCard?.price?.toLocaleString(
                                     undefined,
                                     {
                                       minimumFractionDigits:
-                                        planCard?.currency === "USD" ? 2 : 0,
+                                        apiCurrency === "USD" ? 2 : 0,
                                       maximumFractionDigits:
-                                        planCard?.currency === "USD" ? 2 : 0,
+                                        apiCurrency === "USD" ? 2 : 0,
                                     }
                                   )}
-                                  /Year
+                                </h3>
+                                <span className="C-heading size-6 color-light mb-0">
+                                  /{" "}
+                                  {selectedFrequency === "monthly" ? "Month" : "Year"}
                                 </span>
-                                <span className="C-heading size-xs color-success ms-2">
-                                  Save{" "}
-                                  {planCard?.currency === "USD" ? "$" : "₹"}
-                                  {(
-                                    planCard?.originalYearlyPrice -
-                                    planCard?.yearlyOfferPrice
-                                  )?.toLocaleString(undefined, {
-                                    minimumFractionDigits:
-                                      planCard?.currency === "USD" ? 2 : 0,
-                                    maximumFractionDigits:
-                                      planCard?.currency === "USD" ? 2 : 0,
-                                  })}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <span className="C-heading size-6 color-light mb-3">
-                            {planCard?.description}
-                          </span>
-
-                          <button
-                            className="C-button is-filled w-100"
-                            onClick={() => handleChoosePlan(planCard)}
-                            disabled={processingPayment === planCard.id}
-                          >
-                            {processingPayment === planCard.id
-                              ? "Processing..."
-                              : "Choose plan"}
-                          </button>
-                        </div>
-                        <div className="body p-3 pt-0">
-                          <Divider titlePlacement="left">
-                            <span className="C-heading size-6 color-light mb-0 text-uppercase bold">
-                              Features
+                              </Space>
+                            </div>
+                            <span className="C-heading size-6 color-light mb-3">
+                              {planCard?.description}
                             </span>
-                          </Divider>
-                          <List
-                            itemLayout="horizontal"
-                            dataSource={planCard?.features}
-                            bordered={false}
-                            renderItem={(item) => (
-                              <List.Item>
-                                <List.Item.Meta
-                                  avatar={
-                                    <Icon
-                                      name="check_circle"
-                                      isFilled
-                                      color="#dadada"
+
+                            <button
+                              className="C-button is-filled w-100"
+                              onClick={() => handleChoosePlan(planCard)}
+                              disabled={
+                                processingPayment === planCard.id || loadingPlans
+                              }
+                            >
+                              {processingPayment === planCard.id
+                                ? "Processing..."
+                                : planCard?.cta_text || "Choose plan"}
+                            </button>
+                          </div>
+                          {!!planCard?.features?.length && (
+                            <div className="body p-3 pt-0">
+                              <Divider titlePlacement="left">
+                                <span className="C-heading size-6 color-light mb-0 text-uppercase bold">
+                                  Features
+                                </span>
+                              </Divider>
+                              <List
+                                itemLayout="horizontal"
+                                dataSource={planCard?.features}
+                                bordered={false}
+                                renderItem={(item) => (
+                                  <List.Item>
+                                    <List.Item.Meta
+                                      avatar={
+                                        <Icon
+                                          name="check_circle"
+                                          isFilled
+                                          color="#dadada"
+                                        />
+                                      }
+                                      title={
+                                        <span className="C-heading size-6 color-light mb-0">
+                                          {item}
+                                        </span>
+                                      }
                                     />
-                                  }
-                                  title={
-                                    <span className="C-heading size-6 color-light mb-0">
-                                      {item}
-                                    </span>
-                                  }
-                                />
-                              </List.Item>
-                            )}
-                          />
+                                  </List.Item>
+                                )}
+                              />
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {!loadingPlans && !pricingError && !plans?.length && (
+                <div className="text-center mt-4">
+                  <span className="C-heading size-6 color-light mb-0">
+                    No plans available for selected currency and billing cycle.
+                  </span>
+                </div>
+              )}
             </div>
           </section>
         </PublicLayout>

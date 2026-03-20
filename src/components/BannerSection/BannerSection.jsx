@@ -10,41 +10,16 @@ import {
   HOME_SEARCH_TYPE_MAP,
   HOME_SEARCH_PARAMS,
 } from "@/constants/homeSearch";
-import { companyService, equipmentService, expertService } from "@/utilities/apiServices";
 
 import "./BannerSection.scss";
 
 const SearchContainer = lazy(() => import("../SearchContainer"));
 
 /**
- * Fetches search results from the API for the given type.
- * Used to validate that the search returns successfully before redirecting.
- * @param {string} type - One of 'Companies' | 'Equipments' | 'Experts'
- * @param {Object} params - { search, location (country) }
- * @returns {Promise<Object>} API response
- */
-async function fetchSearchByType(type, params) {
-  const { search, location } = params;
-  const baseParams = { page: 1, limit: 10 };
-  if (search) baseParams.search = search;
-  if (location) baseParams.country = location;
-
-  switch (type) {
-    case "Companies":
-      return companyService.getCompanies(baseParams);
-    case "Equipments":
-      return equipmentService.getEquipment({ ...baseParams, type: params.type || undefined });
-    case "Experts":
-      return expertService.getExperts(baseParams);
-    default:
-      throw new Error(`Unknown search type: ${type}`);
-  }
-}
-
-/**
  * Builds listing page URL with search filters as query params.
+ * "Type" here decides destination page only.
  * @param {string} type - Companies | Equipments | Experts
- * @param {Object} values - { search, equipmentType, countrySelect }
+ * @param {Object} values - { search, countrySelect }
  */
 function buildSearchUrl(type, values) {
   const config = HOME_SEARCH_TYPE_MAP[type];
@@ -56,7 +31,6 @@ function buildSearchUrl(type, values) {
   const query = new URLSearchParams();
   if (search) query.set(HOME_SEARCH_PARAMS.SEARCH, search);
   if (location) query.set(HOME_SEARCH_PARAMS.LOCATION, location);
-  if (values.equipmentType) query.set(HOME_SEARCH_PARAMS.TYPE, values.equipmentType);
 
   const qs = query.toString();
   return qs ? `${config.route}?${qs}` : config.route;
@@ -118,7 +92,8 @@ const BannerSection = () => {
   );
 
   /**
-   * On submit: validate (handled by Form), call API for selected type, then redirect with filters in URL.
+   * On submit: validate (handled by Form), redirect to selected listing page,
+   * destination page reads URL filters and calls its own API.
    * Performance: useCallback to avoid recreating handler and unnecessary re-renders of SearchContainer.
    */
   const handleSearch = useCallback(
@@ -131,14 +106,6 @@ const BannerSection = () => {
 
       setSearching(true);
       try {
-        const params = {
-          search: values.search?.trim() || "",
-          location: values.countrySelect || "",
-          type: values.equipmentType,
-        };
-
-        await fetchSearchByType(type, params);
-
         const url = buildSearchUrl(type, values);
         if (url) {
           router.push(url);

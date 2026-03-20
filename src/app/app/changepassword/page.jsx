@@ -25,17 +25,19 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
     async (values) => {
       setLoading(true);
       try {
-        // Read reset token from cookies (accessToken)
+        // Read access token from cookies
         const cookieString = typeof document !== "undefined" ? document.cookie : "";
-        const token =
-          cookieString
-            .split(";")
-            .map((c) => c.trim())
-            .find((c) => c.startsWith("accessToken="))
-            ?.split("=")[1] || null;
+        const cookies = cookieString
+          .split(";")
+          .map((c) => c.trim())
+          .filter(Boolean);
+        const tokenCookie = cookies.find(
+          (c) => c.startsWith("access_token=") || c.startsWith("accessToken=")
+        );
+        const token = tokenCookie ? tokenCookie.split("=")[1] : null;
 
         if (!token) {
-          message.error("Unable to find reset token in cookies.");
+          message.error("Unable to find access token in cookies.");
           setLoading(false);
           return;
         }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { Tag, Space, Drawer, Spin, Empty, message } from "antd";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
@@ -17,6 +17,11 @@ import { EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
 
 const MIN_SEARCH_LENGTH = 4;
 const DEFAULT_LOCATION = "India";
+const DEFAULT_FILTERS = {
+  search: "",
+  expertType: "",
+  countrySelect: DEFAULT_LOCATION,
+};
 
 /** Parse URL query into filter state. Defaults: location "India". */
 function getFiltersFromSearchParams(searchParams) {
@@ -30,6 +35,8 @@ function getFiltersFromSearchParams(searchParams) {
 
 const ExpertsPage = () => {
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [experts, setExperts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -228,6 +235,20 @@ const ExpertsPage = () => {
     [fetchExperts, pagination.pageSize]
   );
 
+  const handleClearFilters = useCallback(
+    (values) => {
+      const next = {
+        search: values.search || "",
+        expertType: values.expertType || "",
+        countrySelect: values.countrySelect || DEFAULT_LOCATION,
+      };
+      setFilters(next);
+      fetchExperts(1, pagination.pageSize, next);
+      router.replace(pathname);
+    },
+    [fetchExperts, pagination.pageSize, router, pathname]
+  );
+
   return (
     <>
       <PublicLayout>
@@ -243,6 +264,8 @@ const ExpertsPage = () => {
                 floatingEnable
                 searchFieldOptions={searchFieldOptions}
                 onSearch={handleSearch}
+                onClear={handleClearFilters}
+                clearValues={DEFAULT_FILTERS}
               />
             </div>
 
@@ -359,6 +382,11 @@ const ExpertsPage = () => {
               handleSearch(values);
               onClose();
             }}
+            onClear={(values) => {
+              handleClearFilters(values);
+              onClose();
+            }}
+            clearValues={DEFAULT_FILTERS}
             inSidebar
           />
         </Drawer>

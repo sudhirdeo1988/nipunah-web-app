@@ -42,11 +42,14 @@ const SearchContainer = (props) => {
     floatingEnable,
     searchFieldOptions = [],
     onSearch,
+    onClear,
+    clearValues,
     inSidebar,
     submitLoading = false, // Optional: show loading state on submit button (e.g. home page API + redirect)
   } = props;
 
   const [form] = Form.useForm();
+  const [openSelectKey, setOpenSelectKey] = useState(null);
 
   const containerRef = useRef(null);
   const [isFixed, setIsFixed] = useState(false);
@@ -67,6 +70,22 @@ const SearchContainer = (props) => {
     },
     [onSearch]
   );
+
+  const handleClear = useCallback(() => {
+    const resetValues =
+      clearValues && typeof clearValues === "object"
+        ? clearValues
+        : searchFieldOptions.reduce((acc, field) => {
+            acc[field.formFieldValue] =
+              field.defaultValue !== undefined ? field.defaultValue : "";
+            return acc;
+          }, {});
+
+    form.setFieldsValue(resetValues);
+    if (onClear && typeof onClear === "function") {
+      onClear(resetValues);
+    }
+  }, [form, onClear, searchFieldOptions]);
 
   /**
    * Memoized column classes based on field index
@@ -132,6 +151,13 @@ const SearchContainer = (props) => {
                   className="selectInSearch"
                   suffixIcon={<Icon name="keyboard_arrow_down" />}
                   prefix={hasIcon ? <Icon name={icon} /> : <Icon name="apps" />}
+                  open={openSelectKey === formFieldValue}
+                  onDropdownVisibleChange={(open) => {
+                    setOpenSelectKey(open ? formFieldValue : null);
+                  }}
+                  onSelect={() => {
+                    setOpenSelectKey(null);
+                  }}
                 />
               </Form.Item>
             </div>
@@ -184,6 +210,13 @@ const SearchContainer = (props) => {
                     hasIcon ? <Icon name={icon} /> : <Icon name="location_on" />
                   }
                   className="selectInSearch"
+                  open={openSelectKey === formFieldValue}
+                  onDropdownVisibleChange={(open) => {
+                    setOpenSelectKey(open ? formFieldValue : null);
+                  }}
+                  onSelect={() => {
+                    setOpenSelectKey(null);
+                  }}
                 />
               </Form.Item>
             </div>
@@ -193,7 +226,7 @@ const SearchContainer = (props) => {
           return null;
       }
     },
-    [getColumnClasses]
+    [getColumnClasses, openSelectKey]
   );
 
   /**
@@ -297,13 +330,27 @@ const SearchContainer = (props) => {
         {renderedFields}
         <div className="col-lg-2 col-md-2 col-sm-6 col-xs-12 text-center">
           <Form.Item style={{ marginBottom: 0 }}>
-            <button
-              type="submit"
-              className="C-button is-filled w-100 p-3"
-              disabled={submitLoading}
-            >
-              {submitLoading ? "Searching..." : "Search"}
-            </button>
+            <div className="d-flex gap-2">
+              {forListingPage && (
+                <button
+                  type="button"
+                  className="C-button is-outlined p-3"
+                  onClick={handleClear}
+                  aria-label="Clear filters"
+                  title="Clear filters"
+                  style={{ minWidth: 48 }}
+                >
+                  <Icon name="close" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="C-button is-filled w-100 p-3"
+                disabled={submitLoading}
+              >
+                {submitLoading ? "Searching..." : "Search"}
+              </button>
+            </div>
           </Form.Item>
         </div>
       </Form>
