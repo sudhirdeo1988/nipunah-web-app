@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
@@ -13,6 +13,7 @@ import {
   getIdFromStoredUser,
   updateUserDetailsByRole,
   fetchUserDetailsByRole,
+  applyUserIdFromCookieIfMissing,
 } from "@/utilities/sessionUser";
 
 const ProfilePage = () => {
@@ -26,6 +27,15 @@ const ProfilePage = () => {
     if (role === "company") return PROFILE_SCHEMAS.company;
     return PROFILE_SCHEMAS.user;
   }, [role]);
+
+  // If Redux user has null id but `user_id` cookie was set at login, sync id into Redux + storage
+  useEffect(() => {
+    const patched = applyUserIdFromCookieIfMissing(user);
+    if (patched === user) return;
+    const merged = applyRolePermissionsToUser(patched);
+    saveUserSession(merged);
+    dispatch(setUser(merged));
+  }, [user, dispatch]);
 
   const handleSave = useCallback(
     async (updated) => {

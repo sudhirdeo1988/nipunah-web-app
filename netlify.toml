@@ -3,15 +3,17 @@
 
 
 
-# Redirects for API proxying
-# Proxies /api/* requests to external API server
-# status = 200 means rewrite (proxy), not redirect
-# force = true means this takes precedence over other rules
-[[redirects]]
-  from = "/api/*"
-  to = "http://64.227.184.238/api/:splat"
-  status = 200
-  force = true
-  # Headers are automatically forwarded by Netlify
-  # Authorization header from axios will be preserved
+# IMPORTANT: Do not use a blanket /api/* rewrite to the remote server.
+# - Next.js routes in src/app/api/** must run (they add auth, remap paths, etc.).
+# - A rewrite like /api/auth/change-password → remote .../api/auth/change-password
+#   hits the wrong backend path (backend expects POST .../api/change-password).
+# - netlify dev and Netlify edge can also intercept /api/* before Next.js.
+#
+# API proxying is implemented in src/app/api/*/route.js (e.g. change-password → /change-password).
+#
+# [[redirects]]
+#   from = "/api/*"
+#   to = "http://64.227.184.238/api/:splat"
+#   status = 200
+#   force = true
 

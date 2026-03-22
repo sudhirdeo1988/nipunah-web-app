@@ -16,6 +16,7 @@ import {
   getIdFromStoredUser,
   getRoleFromStoredUser,
   applyRolePermissionsToUser,
+  applyUserIdFromCookieIfMissing,
 } from "@/utilities/sessionUser";
 
 import { map as _map } from "lodash-es";
@@ -247,11 +248,21 @@ const LoginPage = () => {
           data?.user?.type,
       };
 
-      // Store token in cookies (24 hours expiry)
-      setToken(token, 86400);
+      // Store token + user id in cookies (24 hours expiry; id from login success)
+      const resolvedUserType =
+        userWithoutTokens.type || userWithoutTokens.role || null;
+      const resolvedUserId =
+        userWithoutTokens.id ??
+        data?.id ??
+        data?.data?.id ??
+        data?.user?.id ??
+        null;
+
+      setToken(token, 86400, resolvedUserType, resolvedUserId);
       updateContextToken(token);
 
-      const userWithPermissions = applyRolePermissionsToUser(userWithoutTokens);
+      let userWithPermissions = applyRolePermissionsToUser(userWithoutTokens);
+      userWithPermissions = applyUserIdFromCookieIfMissing(userWithPermissions);
       saveUserSession(userWithPermissions);
       dispatch(setUser(userWithPermissions));
 
@@ -261,10 +272,11 @@ const LoginPage = () => {
       if (role && id) {
         try {
           const details = await fetchUserDetailsByRole({ role, id });
-          const merged = applyRolePermissionsToUser({
+          let merged = applyRolePermissionsToUser({
             ...userWithPermissions,
             ...details,
           });
+          merged = applyUserIdFromCookieIfMissing(merged);
           saveUserSession(merged);
           dispatch(setUser(merged));
         } catch (e) {

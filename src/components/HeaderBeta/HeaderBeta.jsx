@@ -7,7 +7,87 @@ import { Avatar, Drawer, Popover, Space } from "antd";
 import Icon from "../Icon";
 import { useAuth } from "@/utilities/AuthContext";
 import { useLogout } from "@/hooks/useLogout";
+import { useAppSelector } from "@/store/hooks";
 import "./HeaderBeta.scss";
+
+/**
+ * Derive display fields for header / profile popover from Redux user object.
+ * Row 1: First name + Last name · Row 2: Role · Row 3: Email
+ * Avatar initial: first letter of first name only.
+ */
+function getHeaderUserDisplay(user) {
+  const empty = {
+    line1: "User",
+    roleLabel: "Member",
+    email: "",
+    initials: "U",
+    avatarUrl: null,
+  };
+
+  if (!user || typeof user !== "object") {
+    return empty;
+  }
+
+  let firstName =
+    user.first_name != null ? String(user.first_name).trim() : "";
+  let lastName = user.last_name != null ? String(user.last_name).trim() : "";
+
+  if (!firstName && !lastName && user.name) {
+    const parts = String(user.name).trim().split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      firstName = parts[0];
+      lastName = parts.slice(1).join(" ");
+    } else if (parts.length === 1) {
+      firstName = parts[0];
+    }
+  }
+
+  if (!firstName && !lastName) {
+    const company = user.companyName || user.company_name;
+    if (company) {
+      firstName = String(company).trim();
+    } else if (user.username) {
+      firstName = String(user.username).trim();
+    } else if (user.email) {
+      firstName = String(user.email).split("@")[0];
+    }
+  }
+
+  const line1 =
+    [firstName, lastName].filter(Boolean).join(" ").trim() || "User";
+
+  const rawRole = user.role || user.type || user.userType || user.user_type;
+  const roleLabel = rawRole
+    ? String(rawRole)
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+    : "Member";
+
+  const email = user.email ? String(user.email).trim() : "";
+
+  // Single initial: first character of first name (first name only)
+  const initials = firstName ? firstName.charAt(0).toUpperCase() : "U";
+
+  const avatarUrl =
+    user.logoUrl ||
+    user.logo_url ||
+    user.avatar ||
+    user.avatarUrl ||
+    user.profilePicture ||
+    user.profile_image_url ||
+    null;
+
+  return {
+    line1,
+    roleLabel,
+    email,
+    initials,
+    avatarUrl:
+      typeof avatarUrl === "string" && avatarUrl.trim()
+        ? avatarUrl.trim()
+        : null,
+  };
+}
 
 /**
  * Navigation items configuration for the header
@@ -35,48 +115,62 @@ const SETTINGS_SUBMENU_ITEMS = [
  * User settings dropdown component.
  * Displays user profile and actions: Dashboard, Profile, Settings (hover submenu: Change password, Subscription details), Logout.
  */
-const UserSettingsDropdown = memo(
-  ({ userName = "Sudhir Deolalikar", userRole = "Admin Head", onClose }) => {
-    const router = useRouter();
-    const { logout } = useLogout();
+const UserSettingsDropdown = memo(({ onClose }) => {
+  const router = useRouter();
+  const { logout } = useLogout();
+  const user = useAppSelector((state) => state.user.user);
+  const { line1, roleLabel, email, initials, avatarUrl } = useMemo(
+    () => getHeaderUserDisplay(user),
+    [user]
+  );
 
-    const handleAction = useCallback(
-      (route) => {
-        onClose?.();
-        if (route) router.push(route);
-      },
-      [onClose, router]
-    );
-
-    const handleLogout = useCallback(() => {
+  const handleAction = useCallback(
+    (route) => {
       onClose?.();
-      logout();
-    }, [onClose, logout]);
+      if (route) router.push(route);
+    },
+    [onClose, router]
+  );
 
-    const handleSubmenuClick = useCallback(
-      (routeKey) => {
-        const route = ROUTES.PRIVATE?.[routeKey];
-        if (route) handleAction(route);
-      },
-      [handleAction]
-    );
+  const handleLogout = useCallback(() => {
+    onClose?.();
+    logout();
+  }, [onClose, logout]);
 
-    return (
-      <div className="userSettings-dropdown">
-        <div className="userSettings-dropdown__profile">
-          <Avatar
-            style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
-            size={44}
-            className="userSettings-dropdown__avatar"
-          >
-            {userName.charAt(0)}
-          </Avatar>
-          <div className="userSettings-dropdown__info">
-            <span className="userSettings-dropdown__name">{userName}</span>
-            <span className="userSettings-dropdown__role">{userRole}</span>
-          </div>
+  const handleSubmenuClick = useCallback(
+    (routeKey) => {
+      const route = ROUTES.PRIVATE?.[routeKey];
+      if (route) handleAction(route);
+    },
+    [handleAction]
+  );
+
+  return (
+    <div className="userSettings-dropdown">
+      <div className="userSettings-dropdown__profile">
+        <Avatar
+          src={avatarUrl || undefined}
+          style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
+          size={44}
+          className="userSettings-dropdown__avatar"
+        >
+          {!avatarUrl ? initials : null}
+        </Avatar>
+        <div className="userSettings-dropdown__info">
+          <span className="userSettings-dropdown__name" title={line1}>
+            {line1}
+          </span>
+          <span className="userSettings-dropdown__role" title={roleLabel}>
+            {roleLabel}
+          </span>
+          {email ? (
+            <span className="userSettings-dropdown__email" title={email}>
+              {email}
+            </span>
+          ) : null}
         </div>
-        <div className="userSettings-dropdown__menu userSettings-actions">
+      </div>
+      <div className="userSettings-dropdown__menu userSettings-actions">
           <button
             type="button"
             className="userSettings-dropdown__item C-button is-link"
@@ -125,11 +219,10 @@ const UserSettingsDropdown = memo(
             <Icon name="logout" />
             <span>Logout</span>
           </button>
-        </div>
       </div>
-    );
-  }
-);
+    </div>
+  );
+});
 
 UserSettingsDropdown.displayName = "UserSettingsDropdown";
 
@@ -146,6 +239,11 @@ const HeaderBeta = memo(() => {
   const pathname = usePathname();
   const router = useRouter();
   const { isLoggedIn } = useAuth();
+  const user = useAppSelector((state) => state.user.user);
+  const { initials: headerInitials, avatarUrl: headerAvatarUrl } = useMemo(
+    () => getHeaderUserDisplay(user),
+    [user]
+  );
   const [open, setOpen] = useState(false);
   const [profilePopoverOpen, setProfilePopoverOpen] = useState(false);
 
@@ -158,12 +256,14 @@ const HeaderBeta = memo(() => {
     setOpen(false);
   }, []);
 
-  // Memoized user settings dropdown content (close popover on action so navigation works)
+  const closeProfilePopover = useCallback(() => {
+    setProfilePopoverOpen(false);
+  }, []);
+
+  // Popover content reads Redux inside UserSettingsDropdown; pass stable onClose only
   const userSettingsContent = useMemo(
-    () => (
-      <UserSettingsDropdown onClose={() => setProfilePopoverOpen(false)} />
-    ),
-    []
+    () => <UserSettingsDropdown onClose={closeProfilePopover} />,
+    [closeProfilePopover]
   );
 
   // Memoized navigation items to prevent recreation
@@ -221,10 +321,11 @@ const HeaderBeta = memo(() => {
                 aria-label="User menu"
               >
                 <Avatar
+                  src={headerAvatarUrl || undefined}
                   style={{ backgroundColor: "#1677ff", verticalAlign: "middle" }}
                   size={36}
                 >
-                  S
+                  {!headerAvatarUrl ? headerInitials : null}
                 </Avatar>
               </button>
             </Popover>
@@ -238,6 +339,8 @@ const HeaderBeta = memo(() => {
       isLoggedIn,
       router,
       profilePopoverOpen,
+      headerInitials,
+      headerAvatarUrl,
     ]
   );
 

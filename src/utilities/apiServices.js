@@ -19,7 +19,7 @@ export const userService = {
    * Get current user profile
    */
   getCurrentUser: async () => {
-    return api.get("/me");
+    return axiosInstance.get("/me");
   },
 
   /**
@@ -31,9 +31,10 @@ export const userService = {
 
   /**
    * Get all users with pagination
+   * Uses Next.js proxy GET /api/users -> ${API_BASE_URL}/users (avoids CORS on localhost)
    */
   getUsers: async (params = {}) => {
-    return api.get("/users", { params });
+    return axiosInstance.get("/users", { params });
   },
 
   /**
@@ -51,10 +52,10 @@ export const userService = {
   },
 
   /**
-   * Delete user
+   * Delete user (via Next.js proxy /api/users/:id)
    */
   deleteUser: async (userId) => {
-    return api.delete(`/users/${userId}`);
+    return axiosInstance.delete(`/users/${userId}`);
   },
 };
 
@@ -64,9 +65,10 @@ export const userService = {
 export const companyService = {
   /**
    * Get all companies with filters
+   * Next.js proxy: GET /api/companies -> ${API_BASE_URL}/companies (works on localhost)
    */
   getCompanies: async (params = {}) => {
-    return api.get("/companies", { params });
+    return axiosInstance.get("/companies", { params });
   },
 
   /**
@@ -91,10 +93,10 @@ export const companyService = {
   },
 
   /**
-   * Delete company
+   * Delete company (via Next.js proxy DELETE /api/companies/:id)
    */
   deleteCompany: async (companyId) => {
-    return api.delete(`/companies/${companyId}`);
+    return axiosInstance.delete(`/companies/${companyId}`);
   },
 };
 

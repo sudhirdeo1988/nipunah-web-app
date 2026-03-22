@@ -11,16 +11,17 @@ import {
   setCategoriesError,
   clearCategories,
 } from "@/store/slices/categoriesSlice";
-import api from "@/utilities/api";
 import { ROUTES } from "@/constants/routes";
 import {
   loadUserSession,
   saveUserSession,
   clearUserSession,
   fetchUserDetailsByRole,
+  fetchCurrentUserMe,
   getIdFromStoredUser,
   getRoleFromStoredUser,
   applyRolePermissionsToUser,
+  applyUserIdFromCookieIfMissing,
 } from "@/utilities/sessionUser";
 
 /** Parse categories from API response (same shape as SignUp Company / getAllCategories) */
@@ -36,7 +37,7 @@ function parseCategoriesFromResponse(response) {
 }
 
 const AppInitializer = ({ children }) => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { token, logout } = useAuth();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -62,29 +63,57 @@ const AppInitializer = ({ children }) => {
     };
 
     const fetchInitialData = async () => {
+      setLoading(true);
       try {
         // Load any cached user session first (fast UI)
-        const cached = loadUserSession();
+        let cached = loadUserSession();
         if (cached) {
+          const withIdFromCookie = applyUserIdFromCookieIfMissing(cached);
+          if (withIdFromCookie !== cached) {
+            cached = withIdFromCookie;
+            saveUserSession(cached);
+          }
           dispatch(setUser(applyRolePermissionsToUser(cached)));
         }
 
-        // Always refresh profile from backend on page refresh / app init
-        // Decide which endpoint to call based on role + id stored in session
-        const role = getRoleFromStoredUser(cached);
-        const id = getIdFromStoredUser(cached);
+        // If session lacks id/role but we have a token (e.g. login shape used user_id only), bootstrap from GET /api/me
+        let role = getRoleFromStoredUser(cached);
+        let id = getIdFromStoredUser(cached);
+        if (token && (!role || !id)) {
+          try {
+            const me = await fetchCurrentUserMe();
+            if (me && typeof me === "object") {
+              let mergedSession = applyRolePermissionsToUser({
+                ...(cached || {}),
+                ...me,
+              });
+              mergedSession = applyUserIdFromCookieIfMissing(mergedSession);
+              saveUserSession(mergedSession);
+              dispatch(setUser(mergedSession));
+              cached = mergedSession;
+              role = getRoleFromStoredUser(cached);
+              id = getIdFromStoredUser(cached);
+            }
+          } catch (meErr) {
+            console.warn("Could not bootstrap /api/me on refresh:", meErr);
+          }
+        }
+
+        // Refresh profile: GET by id (users / companies / experts) based on role
         if (role && id) {
           console.log("🔷 Hydrating user details:", { role, id });
           const details = await fetchUserDetailsByRole({ role, id });
-          const merged = applyRolePermissionsToUser({
+          let merged = applyRolePermissionsToUser({
             ...(cached || {}),
             ...(details || {}),
           });
+          merged = applyUserIdFromCookieIfMissing(merged);
           saveUserSession(merged);
           dispatch(setUser(merged));
-        } else {
-          // If we can't determine role/id, keep cached data only (if any)
-          console.warn("No role/id found in stored user session; skipping hydration.");
+        } else if (cached) {
+          console.warn(
+            "No role/id found after session + /me; skipping GET-by-id hydration."
+          );
         }
 
         // Load categories on app init (company search dropdown, etc.)
@@ -93,7 +122,7 @@ const AppInitializer = ({ children }) => {
         setLoading(false);
       } catch (err) {
         console.error("Failed to load initial data", err);
-        if (err.isAuthError) {
+        if (err.isAuthError || err.status === 401) {
           dispatch(clearUser());
           dispatch(clearCategories());
           clearUserSession();
@@ -107,6 +136,7 @@ const AppInitializer = ({ children }) => {
     if (token) {
       fetchInitialData();
     } else {
+      setLoading(false);
       dispatch(clearUser());
       dispatch(clearCategories());
       clearUserSession();

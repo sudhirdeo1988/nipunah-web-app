@@ -128,3 +128,61 @@ export async function PUT(request, { params }) {
   }
 }
 
+/**
+ * DELETE /api/users/{id}
+ * Proxy endpoint to delete a user (auth required via cookie token)
+ */
+export async function DELETE(request, { params }) {
+  try {
+    const { id } = params || {};
+    const url = `${API_BASE_URL}/users/${id}`;
+
+    const cookieHeader = request.headers.get("cookie") || "";
+    const token = getBearerTokenFromCookieHeader(cookieHeader);
+
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    else {
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "Authentication token is required",
+        },
+        { status: 401 }
+      );
+    }
+
+    const response = await fetch(url, { method: "DELETE", headers });
+
+    const contentType = response.headers.get("content-type");
+    let data;
+
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      try {
+        data = text ? JSON.parse(text) : {};
+      } catch {
+        data = { message: text || response.statusText };
+      }
+    }
+
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
+  } catch (error) {
+    console.error("Delete user proxy error:", error);
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to delete user",
+      },
+      { status: 500 }
+    );
+  }
+}

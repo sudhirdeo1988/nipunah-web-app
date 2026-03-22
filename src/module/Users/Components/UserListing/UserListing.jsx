@@ -15,8 +15,9 @@
  * 12. Comprehensive JSDoc documentation
  */
 
-import React, { useCallback, useMemo, useState, memo } from "react";
+import React, { useCallback, useEffect, useMemo, useState, memo } from "react";
 import Icon from "@/components/Icon";
+import { userService } from "@/utilities/apiServices";
 import {
   DatePicker,
   Divider,
@@ -104,6 +105,99 @@ export const MOCK_USER_DATA = [
   },
 ];
 
+/** Format API date fields for display */
+function formatUserDate(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  try {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleDateString();
+  } catch {
+    return String(value);
+  }
+}
+
+/**
+ * Normalize GET /users API response into { items, total }
+ */
+function parseUsersResponse(res) {
+  if (!res) return { items: [], total: 0 };
+  if (Array.isArray(res)) return { items: res, total: res.length };
+  if (res.data?.items && Array.isArray(res.data.items)) {
+    return {
+      items: res.data.items,
+      total:
+        res.data.total ??
+        res.data.totalItems ??
+        res.data.count ??
+        res.data.items.length,
+    };
+  }
+  if (Array.isArray(res.data)) {
+    return { items: res.data, total: res.total ?? res.data.length };
+  }
+  if (Array.isArray(res.items)) {
+    return { items: res.items, total: res.total ?? res.items.length };
+  }
+  if (res.users && Array.isArray(res.users)) {
+    return { items: res.users, total: res.total ?? res.users.length };
+  }
+  return { items: [], total: 0 };
+}
+
+/**
+ * Map one API user object to table row shape
+ */
+function mapApiUserToRow(u) {
+  const id = u.id ?? u.user_id ?? u.userId;
+  const firstName = u.first_name || u.firstName || "";
+  const lastName = u.last_name || u.lastName || "";
+  const userName =
+    [firstName, lastName].filter(Boolean).join(" ").trim() ||
+    u.name ||
+    u.userName ||
+    u.username ||
+    u.email ||
+    (id != null ? `User #${id}` : "—");
+
+  const contact =
+    u.phone ??
+    u.mobile ??
+    u.contact ??
+    u.phone_number ??
+    u.phoneNumber ??
+    "";
+
+  let country = "";
+  if (typeof u.country === "string") country = u.country;
+  else if (u.country && typeof u.country === "object") {
+    country = u.country.countryName || u.country.name || "";
+  } else {
+    country = u.address?.country || "";
+  }
+
+  const appliedJobsCount =
+    Number(
+      u.applied_jobs_count ??
+        u.appliedJobsCount ??
+        u.applications_count ??
+        0
+    ) || 0;
+
+  return {
+    id,
+    userName,
+    email: u.email || "",
+    contact,
+    country: country || "—",
+    appliedJobsCount,
+    createDate: formatUserDate(
+      u.created_at ?? u.created_on ?? u.createDate ?? u.registered_on
+    ),
+    action: { id },
+  };
+}
+
 /**
  * UserListing Component
  *
@@ -128,10 +222,23 @@ const UserListing = ({ permissions = {} }) => {
   const [selectedUsers, setSelectedUsers] = useState([]);
 
   /** @type {[Object[], Function]} Current list of users to display */
-  const [users, setUsers] = useState(MOCK_USER_DATA);
+  const [users, setUsers] = useState([]);
+
+  /** @type {[boolean, Function]} Loading state for users API */
+  const [loading, setLoading] = useState(false);
 
   /** @type {[string, Function]} Search query for filtering users */
   const [searchQuery, setSearchQuery] = useState("");
+
+  /** Debounced search sent to API */
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+
+  /** Server-side pagination */
+  const [pagination, setPagination] = useState({
+    current: 1,
+    pageSize: 10,
+    total: 0,
+  });
 
   // ==================== MODAL STATE MANAGEMENT ====================
 
@@ -174,6 +281,53 @@ const UserListing = ({ permissions = {} }) => {
     setSearchQuery(e.target.value);
   }, []);
 
+  /** Debounce search input before calling API */
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
+
+  /** Reset to first page when search changes */
+  useEffect(() => {
+    setPagination((prev) => ({ ...prev, current: 1 }));
+  }, [debouncedSearch]);
+
+  /** Fetch users from GET /api/users (proxied) */
+  const loadUsers = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = {
+        page: pagination.current,
+        limit: pagination.pageSize,
+      };
+      if (debouncedSearch) params.search = debouncedSearch;
+
+      const res = await userService.getUsers(params);
+      const { items, total } = parseUsersResponse(res);
+      const rows = items
+        .map(mapApiUserToRow)
+        .filter((row) => row.id !== undefined && row.id !== null);
+      setUsers(rows);
+      setPagination((prev) => ({
+        ...prev,
+        total: typeof total === "number" ? total : rows.length,
+      }));
+    } catch (err) {
+      console.error("Failed to load users:", err);
+      message.error(err?.message || "Failed to load users");
+      setUsers([]);
+      setPagination((prev) => ({ ...prev, total: 0 }));
+    } finally {
+      setLoading(false);
+    }
+  }, [pagination.current, pagination.pageSize, debouncedSearch]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
+
   /**
    * Handles applied jobs click action
    * Opens modal with applied jobs details
@@ -205,31 +359,45 @@ const UserListing = ({ permissions = {} }) => {
    * Handles single user delete confirmation
    * Removes user from list and shows success message
    */
-  const handleConfirmDelete = useCallback(() => {
-    if (userToDelete) {
-      setUsers((prevUsers) =>
-        prevUsers.filter((user) => user.id !== userToDelete.id)
-      );
+  const handleConfirmDelete = useCallback(async () => {
+    if (!userToDelete?.id) {
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+      return;
+    }
+    try {
+      await userService.deleteUser(userToDelete.id);
       message.success("User deleted successfully");
+      await loadUsers();
+    } catch (err) {
+      message.error(err?.message || "Failed to delete user");
     }
     setIsDeleteModalOpen(false);
     setUserToDelete(null);
-  }, [userToDelete]);
+  }, [userToDelete, loadUsers]);
 
   /**
    * Handles bulk delete confirmation
    * Removes selected users from list using Set for O(1) lookup performance
    */
-  const handleConfirmBulkDelete = useCallback(() => {
-    const selectedKeysSet = new Set(selectedRowKeys);
-    setUsers((prevUsers) =>
-      prevUsers.filter((user) => !selectedKeysSet.has(user.id))
-    );
-    setSelectedRowKeys([]);
-    setSelectedUsers([]);
-    message.success(`${selectedUsers.length} user(s) deleted successfully`);
+  const handleConfirmBulkDelete = useCallback(async () => {
+    if (!selectedUsers.length) {
+      setIsBulkDeleteModalOpen(false);
+      return;
+    }
+    try {
+      await Promise.all(
+        selectedUsers.map((u) => userService.deleteUser(u.id))
+      );
+      message.success(`${selectedUsers.length} user(s) deleted successfully`);
+      setSelectedRowKeys([]);
+      setSelectedUsers([]);
+      await loadUsers();
+    } catch (err) {
+      message.error(err?.message || "Bulk delete failed");
+    }
     setIsBulkDeleteModalOpen(false);
-  }, [selectedUsers, selectedRowKeys]);
+  }, [selectedUsers, loadUsers]);
 
   /**
    * Handles cancel delete action
@@ -267,22 +435,6 @@ const UserListing = ({ permissions = {} }) => {
   }, []);
 
   // ==================== COMPUTED VALUES ====================
-
-  /**
-   * Memoized filtered users based on search query
-   * Optimizes performance by preventing unnecessary re-filtering
-   */
-  const filteredUsers = useMemo(() => {
-    if (!searchQuery.trim()) return users;
-
-    const query = searchQuery.toLowerCase();
-    return users.filter(
-      (user) =>
-        user.userName.toLowerCase().includes(query) ||
-        user.email.toLowerCase().includes(query) ||
-        user.country.toLowerCase().includes(query)
-    );
-  }, [users, searchQuery]);
 
   /**
    * Memoized row selection configuration
@@ -433,7 +585,8 @@ const UserListing = ({ permissions = {} }) => {
         key: "userName",
         width: "20%",
         render: renderUserName,
-        sorter: (a, b) => a.userName.localeCompare(b.userName),
+        sorter: (a, b) =>
+          String(a.userName || "").localeCompare(String(b.userName || "")),
       },
       {
         title: "Email ID",
@@ -441,7 +594,8 @@ const UserListing = ({ permissions = {} }) => {
         key: "email",
         width: "20%",
         render: renderEmail,
-        sorter: (a, b) => a.email.localeCompare(b.email),
+        sorter: (a, b) =>
+          String(a.email || "").localeCompare(String(b.email || "")),
       },
       {
         title: "Contact",
@@ -449,7 +603,8 @@ const UserListing = ({ permissions = {} }) => {
         key: "contact",
         width: "15%",
         render: renderContact,
-        sorter: (a, b) => a.contact - b.contact,
+        sorter: (a, b) =>
+          String(a.contact ?? "").localeCompare(String(b.contact ?? "")),
       },
       {
         title: "Country",
@@ -457,7 +612,8 @@ const UserListing = ({ permissions = {} }) => {
         key: "country",
         width: "15%",
         render: renderCountry,
-        sorter: (a, b) => a.country.localeCompare(b.country),
+        sorter: (a, b) =>
+          String(a.country || "").localeCompare(String(b.country || "")),
       },
       {
         title: "Applied Jobs",
@@ -465,7 +621,8 @@ const UserListing = ({ permissions = {} }) => {
         key: "appliedJobsCount",
         width: "12%",
         render: renderAppliedJobs,
-        sorter: (a, b) => a.appliedJobsCount - b.appliedJobsCount,
+        sorter: (a, b) =>
+          Number(a.appliedJobsCount || 0) - Number(b.appliedJobsCount || 0),
       },
       {
         title: "Registered On",
@@ -473,7 +630,8 @@ const UserListing = ({ permissions = {} }) => {
         key: "createDate",
         width: "13%",
         render: renderCreateDate,
-        sorter: (a, b) => new Date(a.createDate) - new Date(b.createDate),
+        sorter: (a, b) =>
+          new Date(a.createDate) - new Date(b.createDate),
       },
       {
         title: "Action",
@@ -537,19 +695,27 @@ const UserListing = ({ permissions = {} }) => {
         </div>
         <Table
           columns={columns}
-          dataSource={filteredUsers}
+          dataSource={users}
           rowKey="id"
           rowSelection={canDelete ? rowSelection : undefined}
           pagination={{
-            hideOnSinglePage: true,
-            defaultPageSize: 10,
+            current: pagination.current,
+            pageSize: pagination.pageSize,
+            total: pagination.total,
             showSizeChanger: true,
             showQuickJumper: true,
             showTotal: (total, range) =>
               `${range[0]}-${range[1]} of ${total} users`,
             pageSizeOptions: ["10", "20", "50", "100"],
+            onChange: (page, pageSize) => {
+              setPagination((prev) => ({
+                ...prev,
+                current: page,
+                pageSize: pageSize || prev.pageSize,
+              }));
+            },
           }}
-          loading={false} // TODO: Add loading state from API calls
+          loading={loading}
           scroll={{ x: 800 }} // Enable horizontal scroll for smaller screens
         />
       </div>

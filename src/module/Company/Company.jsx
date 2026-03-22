@@ -1,7 +1,8 @@
 "use client";
 
 import React, { Suspense, lazy } from "react";
-import { Spin } from "antd";
+import { Spin, Alert, Button } from "antd";
+import { useAppSelector } from "@/store/hooks";
 import CompanySearch from "./components/CompanySearch";
 import CompanyTable from "./components/CompanyTable";
 import { useCompanyListing } from "./hooks/useCompanyListing";
@@ -21,9 +22,10 @@ const PostedJobsModal = lazy(() =>
 );
 
 const Company = ({ permissions = {} }) => {
+  const categoriesError = useAppSelector((state) => state.categories?.error);
+
   const {
     // State
-    companies,
     filteredCompanies,
     selectedCompanies,
     searchQuery,
@@ -54,17 +56,46 @@ const Company = ({ permissions = {} }) => {
     handleCreateCompanySubmit,
     handleBulkDelete,
     handleConfirmDelete,
+    handleConfirmBulkDelete,
     handleCancelDelete,
+    handleCancelBulkDelete,
     handleCancelCompanyDetails,
     handlePostedJobsClick,
     handleCancelPostedJobs,
     handleCancelCreateCompany,
     handleUpdateStatus,
+    loading,
+    error,
+    loadCompanies,
   } = useCompanyListing();
 
   return (
     <>
       <div className="mb-3">
+        {categoriesError && (
+          <Alert
+            type="warning"
+            showIcon
+            closable
+            className="mb-3"
+            message="Categories could not be loaded"
+            description={categoriesError}
+          />
+        )}
+        {error && (
+          <Alert
+            type="error"
+            showIcon
+            className="mb-3"
+            message="Failed to load companies"
+            description={error?.message || "Something went wrong."}
+            action={
+              <Button size="small" type="primary" onClick={() => loadCompanies()}>
+                Retry
+              </Button>
+            }
+          />
+        )}
         <CompanySearch
           searchQuery={searchQuery}
           companyType={companyType}
@@ -87,7 +118,7 @@ const Company = ({ permissions = {} }) => {
             onMenuClick={handleMenuClick}
             onPostedJobsClick={handlePostedJobsClick}
             onUpdateStatus={handleUpdateStatus}
-            loading={false}
+            loading={loading}
             permissions={permissions}
           />
         </Suspense>
@@ -110,6 +141,15 @@ const Company = ({ permissions = {} }) => {
           company={companyToDelete}
           onConfirm={handleConfirmDelete}
           onCancel={handleCancelDelete}
+          loading={loading}
+        />
+        <DeleteConfirmModal
+          isOpen={isBulkDeleteModalOpen}
+          isBulk
+          companies={selectedCompanies}
+          onConfirm={handleConfirmBulkDelete}
+          onCancel={handleCancelBulkDelete}
+          loading={loading}
         />
         <PostedJobsModal
           isOpen={isPostedJobsModalOpen}

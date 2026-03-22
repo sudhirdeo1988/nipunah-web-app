@@ -1,6 +1,6 @@
 "use client";
 import { getRolePermissionObject, normalizeRoleKey } from "@/constants/roleManagementMock";
-import { clearToken } from "./auth";
+import { clearToken, getUserIdFromCookie } from "./auth";
 
 const STORAGE_KEY = "nipunah_user_session";
 
@@ -100,32 +100,89 @@ export function getRoleFromStoredUser(userObj) {
     userObj?.type ||
     userObj?.userType ||
     userObj?.user_type ||
+    userObj?.role_name ||
     userObj?.data?.role ||
-    userObj?.data?.type;
+    userObj?.data?.type ||
+    userObj?.user?.role ||
+    userObj?.user?.type;
   return role ? String(role).toLowerCase() : null;
 }
 
+/**
+ * GET /api/me — bootstrap id/role when localStorage session is incomplete (e.g. only token was persisted).
+ */
+export async function fetchCurrentUserMe() {
+  const res = await fetch("/api/me", { credentials: "include" });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const msg = data?.message || data?.error || "Failed to fetch current user";
+    const err = new Error(msg);
+    err.status = res.status;
+    err.data = data;
+    if (res.status === 401) err.isAuthError = true;
+    throw err;
+  }
+  let result =
+    data?.data && typeof data.data === "object" ? data.data : data;
+  if (result?.user && typeof result.user === "object") {
+    result = result.user;
+  }
+  if (result && typeof result === "object") {
+    const { token, access_token, status, ...rest } = result;
+    return rest;
+  }
+  return result;
+}
+
 export function getIdFromStoredUser(userObj) {
-  return (
-    userObj?.id ||
-    userObj?.user?.id ||
-    userObj?.data?.id ||
-    userObj?.userId ||
-    userObj?.companyId ||
-    userObj?.expertId ||
-    null
-  );
+  let id = null;
+  if (userObj && typeof userObj === "object") {
+    id =
+      userObj.id ??
+      userObj.user_id ??
+      userObj.userId ??
+      userObj.user?.id ??
+      userObj.user?.user_id ??
+      userObj.data?.id ??
+      userObj.data?.user_id ??
+      userObj.companyId ??
+      userObj.expertId ??
+      null;
+  }
+  if (id !== null && id !== undefined && id !== "") {
+    return id;
+  }
+  return getUserIdFromCookie();
+}
+
+/**
+ * When Redux/session user has no canonical `id` (null/undefined/"") but `user_id` cookie
+ * exists (set at login), merge `id` onto the object so Redux + localStorage stay in sync.
+ */
+export function applyUserIdFromCookieIfMissing(userObj) {
+  if (!userObj || typeof userObj !== "object") return userObj;
+  const resolved = getIdFromStoredUser(userObj);
+  if (resolved == null || resolved === "") return userObj;
+  if (userObj.id != null && userObj.id !== "") return userObj;
+  return { ...userObj, id: resolved };
+}
+
+/** Use for GET/PUT by id when caller did not pass an id — falls back to `user_id` cookie */
+function resolveUserIdForApiCall(id) {
+  if (id != null && id !== "") return id;
+  return getUserIdFromCookie();
 }
 
 export async function fetchUserDetailsByRole({ role, id }) {
-  if (!role || !id) return null;
+  const resolvedId = resolveUserIdForApiCall(id);
+  if (!role || resolvedId == null || resolvedId === "") return null;
   const cleanRole = String(role).toLowerCase();
   const endpoint =
     cleanRole === "company"
-      ? `/api/companies/${id}`
+      ? `/api/companies/${resolvedId}`
       : cleanRole === "expert"
-      ? `/api/experts/${id}`
-      : `/api/users/${id}`;
+      ? `/api/experts/${resolvedId}`
+      : `/api/users/${resolvedId}`;
 
   const res = await fetch(endpoint, { credentials: "include" });
   const data = await res.json().catch(() => ({}));
@@ -136,6 +193,7 @@ export async function fetchUserDetailsByRole({ role, id }) {
     const err = new Error(msg);
     err.status = res.status;
     err.data = data;
+    if (res.status === 401) err.isAuthError = true;
     throw err;
   }
 
@@ -167,16 +225,17 @@ export async function fetchUserDetailsByRole({ role, id }) {
 }
 
 export async function updateUserDetailsByRole({ role, id, payload }) {
-  if (!role || !id) {
+  const resolvedId = resolveUserIdForApiCall(id);
+  if (!role || resolvedId == null || resolvedId === "") {
     throw new Error("Role and id are required for profile update.");
   }
   const cleanRole = String(role).toLowerCase();
   const endpoint =
     cleanRole === "company"
-      ? `/api/companies/${id}`
+      ? `/api/companies/${resolvedId}`
       : cleanRole === "expert"
-      ? `/api/experts/${id}`
-      : `/api/users/${id}`;
+      ? `/api/experts/${resolvedId}`
+      : `/api/users/${resolvedId}`;
 
   const res = await fetch(endpoint, {
     method: "PUT",

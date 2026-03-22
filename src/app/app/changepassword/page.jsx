@@ -5,16 +5,18 @@ import { Form, Input, Button, Card, message } from "antd";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
+import { getClientToken } from "@/utilities/auth";
 
 /**
- * API endpoint for reset password. Override via env: NEXT_PUBLIC_RESET_PASSWORD_API
+ * API endpoint for change password (Next proxy → backend /change-password).
+ * Override via env: NEXT_PUBLIC_CHANGE_PASSWORD_API
  */
-const RESET_PASSWORD_API =
-  process.env.NEXT_PUBLIC_RESET_PASSWORD_API || "/api/auth/reset-password";
+const CHANGE_PASSWORD_API =
+  process.env.NEXT_PUBLIC_CHANGE_PASSWORD_API || "/api/auth/change-password";
 
 /**
  * Change password form layout and validation.
- * Submit sends { currentPassword, newPassword } to the API; replace endpoint as needed.
+ * Submit sends { oldPassword, newPassword } via proxy (Bearer from cookies).
  */
 const ChangePasswordPage = memo(function ChangePasswordPage() {
   const [form] = Form.useForm();
@@ -25,30 +27,25 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
     async (values) => {
       setLoading(true);
       try {
-        // Read access token from cookies
-        const cookieString = typeof document !== "undefined" ? document.cookie : "";
-        const cookies = cookieString
-          .split(";")
-          .map((c) => c.trim())
-          .filter(Boolean);
-        const tokenCookie = cookies.find(
-          (c) => c.startsWith("access_token=") || c.startsWith("accessToken=")
-        );
-        const token = tokenCookie ? tokenCookie.split("=")[1] : null;
-
+        const token = getClientToken();
         if (!token) {
-          message.error("Unable to find access token in cookies.");
+          message.error("Session expired or not signed in. Please log in again.");
           setLoading(false);
           return;
         }
 
         const payload = {
-          token,
+          oldPassword: values.currentPassword,
           newPassword: values.newPassword,
         };
-        const res = await fetch(RESET_PASSWORD_API, {
+        const res = await fetch(CHANGE_PASSWORD_API, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
           body: JSON.stringify(payload),
         });
         let data = {};
@@ -65,7 +62,7 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
 
         message.success(data?.message || "Password changed successfully.");
         form.resetFields();
-        router.push(ROUTES?.PRIVATE?.SETTINGS ?? "/app/settings");
+        router.push(ROUTES?.PRIVATE?.DASHBOARD ?? "/app/dashboard");
       } catch (err) {
         message.error(err?.message || "Something went wrong.");
       } finally {

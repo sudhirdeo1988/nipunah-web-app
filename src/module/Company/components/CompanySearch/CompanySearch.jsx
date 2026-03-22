@@ -29,6 +29,9 @@ const CompanySearch = ({
   const canDelete = Boolean(permissions.delete);
 
   const categories = useAppSelector((state) => state.categories?.list ?? []);
+  const categoriesLoading = useAppSelector(
+    (state) => state.categories?.loading
+  );
 
   const companyTypeOptions = useMemo(() => {
     const list = [
@@ -108,7 +111,7 @@ const CompanySearch = ({
               style={{ minWidth: 130 }}
               showSearch
               optionFilterProp="label"
-              loading={!categories.length && undefined}
+              loading={categoriesLoading}
             />
           </Form.Item>
 

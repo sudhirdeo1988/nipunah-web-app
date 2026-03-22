@@ -1,8 +1,100 @@
 "use client";
 
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { message } from "antd";
-import { MOCK_COMPANY_DATA } from "../constants/companyConstants";
+import { companyService } from "@/utilities/apiServices";
+import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import {
+  setCategories,
+  setCategoriesLoading,
+  setCategoriesError,
+} from "@/store/slices/categoriesSlice";
+
+const MIN_SEARCH_LENGTH = 4;
+
+/** Parse GET /companies response into { items, total } */
+function parseCompaniesResponse(res) {
+  if (!res) return { items: [], total: 0 };
+  if (Array.isArray(res)) return { items: res, total: res.length };
+  if (res.data?.items && Array.isArray(res.data.items)) {
+    return {
+      items: res.data.items,
+      total:
+        res.data.total ??
+        res.data.totalItems ??
+        res.data.count ??
+        res.data.items.length,
+    };
+  }
+  if (Array.isArray(res.data)) {
+    return { items: res.data, total: res.total ?? res.data.length };
+  }
+  if (Array.isArray(res.items)) {
+    return { items: res.items, total: res.total ?? res.items.length };
+  }
+  if (res.companies && Array.isArray(res.companies)) {
+    return { items: res.companies, total: res.total ?? res.companies.length };
+  }
+  return { items: [], total: 0 };
+}
+
+function parseCategoriesFromResponse(response) {
+  return (
+    response?.data?.items ||
+    response?.items ||
+    response?.categories ||
+    response?.data?.categories ||
+    (Array.isArray(response?.data) ? response.data : []) ||
+    (Array.isArray(response) ? response : [])
+  );
+}
+
+/** Map API company row to table shape used by CompanyTable */
+function normalizeCompanyFromApi(c) {
+  const id = c.id ?? c.company_id ?? c.companyId;
+  const name = c.name || c.company_name || c.title || "—";
+  const shortName = c.short_name || c.shortName || "";
+  const industry = c.industry || c.category?.name || "—";
+  const employeeCount =
+    c.employee_count || c.employeeCount || c.employees || "—";
+  const rawPlan =
+    c.subscription_plan || c.subscriptionPlan || c.plan || "basic";
+  const subscriptionPlan = String(rawPlan || "basic").toLowerCase();
+  const rawStatus = c.status || c.company_status || "pending";
+  const statusLower = String(rawStatus).toLowerCase();
+  const status =
+    statusLower === "approved"
+      ? "approved"
+      : statusLower === "rejected" || statusLower === "blocked"
+        ? "rejected"
+        : "pending";
+  const postedJobs = Array.isArray(c.posted_jobs)
+    ? c.posted_jobs
+    : Array.isArray(c.postedJobs)
+      ? c.postedJobs
+      : [];
+  const createdAt =
+    (c.created_at || c.createdAt || c.created_on || "").toString().split("T")[0] ||
+    "";
+
+  return {
+    ...c,
+    id,
+    name,
+    shortName,
+    industry,
+    employeeCount,
+    subscriptionPlan,
+    status,
+    postedJobs,
+    createdAt,
+    categories: c.categories || c.category_ids || [],
+    contactEmail: c.contact_email || c.contactEmail,
+    locations: c.locations || [],
+    location: c.location,
+    address: c.address,
+  };
+}
 
 /**
  * Custom hook for managing company listing state and operations
@@ -10,6 +102,9 @@ import { MOCK_COMPANY_DATA } from "../constants/companyConstants";
  * @returns {Object} Company listing state and handlers
  */
 export const useCompanyListing = () => {
+  const dispatch = useAppDispatch();
+  const categories = useAppSelector((state) => state.categories?.list ?? []);
+
   // ==================== STATE MANAGEMENT ====================
 
   /** @type {[string[], Function]} Selected row keys for bulk operations */
@@ -19,7 +114,16 @@ export const useCompanyListing = () => {
   const [selectedCompanies, setSelectedCompanies] = useState([]);
 
   /** @type {[Object[], Function]} Current list of companies to display */
-  const [companies, setCompanies] = useState(MOCK_COMPANY_DATA);
+  const [companies, setCompanies] = useState([]);
+
+  /** @type {[boolean, Function]} Loading companies list */
+  const [loading, setLoading] = useState(false);
+
+  /** @type {[Error|null, Function]} Last fetch error */
+  const [error, setError] = useState(null);
+
+  /** Debounced search for API */
+  const [debouncedSearch, setDebouncedSearch] = useState("");
 
   /** @type {[string, Function]} Search query for filtering companies (min 4 chars for search filter) */
   const [searchQuery, setSearchQuery] = useState("");
@@ -78,78 +182,96 @@ export const useCompanyListing = () => {
     };
   }, [registeredOnRange]);
 
-  /**
-   * Memoized filtered companies: search (min 4 chars), company type (category), location (optional), registered date range.
-   * Search and company type are mandatory (default company type = "all"); location and date range are optional.
-   */
-  const filteredCompanies = useMemo(() => {
-    let result = companies;
+  /** Debounce search before calling GET /api/companies */
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(searchQuery.trim());
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
-    const query = searchQuery.trim();
-    const categoryId = companyType === "all" ? null : companyType;
-    const loc = location.trim();
+  /** Load categories for filter dropdown (GET categories via proxy) */
+  useEffect(() => {
+    if (categories.length > 0) return;
 
-    // Registered on date range: filter by company createdAt
-    if (startDate && endDate) {
-      result = result.filter((company) => {
-        const created = company.createdAt || company.registeredAt || "";
-        return created >= startDate && created <= endDate;
-      });
-    }
-
-    // Search: apply only if query has min 4 characters
-    if (query.length >= 4) {
-      const q = query.toLowerCase();
-      result = result.filter(
-        (company) =>
-          (company.name && company.name.toLowerCase().includes(q)) ||
-          (company.shortName && company.shortName.toLowerCase().includes(q)) ||
-          (company.industry && company.industry.toLowerCase().includes(q)) ||
-          (company.contactEmail &&
-            company.contactEmail.toLowerCase().includes(q))
-      );
-    }
-
-    // Company type (category): filter by category id if not "all"
-    if (categoryId) {
-      const idNum = Number(categoryId);
-      const idStr = String(categoryId);
-      result = result.filter((company) => {
-        const cats = company.categories || [];
-        return cats.some(
-          (c) =>
-            c === categoryId ||
-            c === idNum ||
-            c === idStr ||
-            (typeof c === "object" &&
-              (c.id === categoryId ||
-                c.id === idNum ||
-                c.categoryId === categoryId ||
-                c.categoryId === idNum))
+    let cancelled = false;
+    const loadCategories = async () => {
+      dispatch(setCategoriesLoading(true));
+      try {
+        const res = await fetch(
+          "/api/categories/getAllCategories?page=1&limit=500&sortBy=name&order=asc",
+          { credentials: "include" }
         );
-      });
-    }
+        const data = await res.json().catch(() => ({}));
+        const list = parseCategoriesFromResponse(data);
+        const arr = Array.isArray(list) ? list : [];
+        if (!cancelled) dispatch(setCategories(arr));
+      } catch (err) {
+        console.error("Failed to load categories", err);
+        if (!cancelled) {
+          dispatch(
+            setCategoriesError(err?.message || "Failed to load categories")
+          );
+          dispatch(setCategories([]));
+        }
+      }
+    };
 
-    // Location: optional filter
-    if (loc) {
-      const locLower = loc.toLowerCase();
-      result = result.filter(
-        (company) =>
-          (company.locations &&
-            Array.isArray(company.locations) &&
-            company.locations.some(
-              (l) =>
-                (typeof l === "string" && l.toLowerCase().includes(locLower)) ||
-                (l?.name && l.name.toLowerCase().includes(locLower)) ||
-                (l?.location && l.location.toLowerCase().includes(locLower))
-            )) ||
-          (company.location && company.location.toLowerCase().includes(locLower)) ||
-          (company.address && company.address.toLowerCase().includes(locLower))
-      );
-    }
+    loadCategories();
+    return () => {
+      cancelled = true;
+    };
+  }, [categories.length, dispatch]);
 
-    return result;
-  }, [companies, searchQuery, companyType, location, startDate, endDate]);
+  /** Fetch companies: GET /api/companies (proxied) with filters */
+  const loadCompanies = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = { page: 1, limit: 500 };
+      if (debouncedSearch.length >= MIN_SEARCH_LENGTH) {
+        params.search = debouncedSearch;
+      }
+      if (companyType && companyType !== "all") {
+        params.type = companyType;
+        params.categoryId = companyType;
+      }
+      if (location.trim()) {
+        params.country = location.trim();
+      }
+      if (startDate && endDate) {
+        params.startDate = startDate;
+        params.endDate = endDate;
+      }
+
+      const res = await companyService.getCompanies(params);
+      const { items } = parseCompaniesResponse(res);
+      const normalized = items
+        .map(normalizeCompanyFromApi)
+        .filter((row) => row.id !== undefined && row.id !== null);
+      setCompanies(normalized);
+    } catch (err) {
+      console.error("Failed to load companies:", err);
+      setError(err instanceof Error ? err : new Error(String(err?.message || err)));
+      message.error(err?.message || "Failed to load companies");
+      setCompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    debouncedSearch,
+    companyType,
+    location,
+    startDate,
+    endDate,
+  ]);
+
+  useEffect(() => {
+    loadCompanies();
+  }, [loadCompanies]);
+
+  /** Table uses API-filtered list */
+  const filteredCompanies = companies;
 
   /**
    * Memoized row selection configuration
@@ -304,35 +426,48 @@ export const useCompanyListing = () => {
 
   /**
    * Handles single company delete confirmation
-   * Removes company from list and shows success message
    */
-  const handleConfirmDelete = useCallback(() => {
-    if (companyToDelete) {
-      setCompanies((prevCompanies) =>
-        prevCompanies.filter((company) => company.id !== companyToDelete.id)
-      );
+  const handleConfirmDelete = useCallback(async () => {
+    if (!companyToDelete?.id) {
+      setIsDeleteModalOpen(false);
+      setCompanyToDelete(null);
+      return;
+    }
+    try {
+      await companyService.deleteCompany(companyToDelete.id);
       message.success("Company deleted successfully");
+      await loadCompanies();
+    } catch (err) {
+      message.error(err?.message || "Failed to delete company");
     }
     setIsDeleteModalOpen(false);
     setCompanyToDelete(null);
-  }, [companyToDelete]);
+  }, [companyToDelete, loadCompanies]);
 
   /**
    * Handles bulk delete confirmation
    * Removes selected companies from list using Set for O(1) lookup performance
    */
-  const handleConfirmBulkDelete = useCallback(() => {
-    const selectedKeysSet = new Set(selectedRowKeys);
-    setCompanies((prevCompanies) =>
-      prevCompanies.filter((company) => !selectedKeysSet.has(company.id))
-    );
-    setSelectedRowKeys([]);
-    setSelectedCompanies([]);
-    message.success(
-      `${selectedCompanies.length} company(ies) deleted successfully`
-    );
+  const handleConfirmBulkDelete = useCallback(async () => {
+    if (!selectedCompanies.length) {
+      setIsBulkDeleteModalOpen(false);
+      return;
+    }
+    try {
+      await Promise.all(
+        selectedCompanies.map((c) => companyService.deleteCompany(c.id))
+      );
+      message.success(
+        `${selectedCompanies.length} company(ies) deleted successfully`
+      );
+      setSelectedRowKeys([]);
+      setSelectedCompanies([]);
+      await loadCompanies();
+    } catch (err) {
+      message.error(err?.message || "Bulk delete failed");
+    }
     setIsBulkDeleteModalOpen(false);
-  }, [selectedCompanies, selectedRowKeys]);
+  }, [selectedCompanies, loadCompanies]);
 
   /**
    * Handles cancel delete action
@@ -427,6 +562,9 @@ export const useCompanyListing = () => {
     startDate,
     endDate,
     rowSelection,
+    loading,
+    error,
+    loadCompanies,
 
     // Search handlers
     handleCompanyTypeChange,
