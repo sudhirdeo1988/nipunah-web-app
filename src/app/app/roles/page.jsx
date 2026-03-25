@@ -25,7 +25,9 @@ const NAV_KEYS = [
   "nav_experts",
   "nav_users",
   "nav_companies",
+  "nav_services",
   "nav_jobs",
+  "nav_enquiries",
   "nav_equipments",
   "nav_role_management",
 ];
@@ -55,6 +57,10 @@ const MODULE_PERMISSION_KEYS = [
   "company_edit",
   "company_delete",
   "company_approve",
+  "services_view",
+  "services_add",
+  "services_edit",
+  "services_delete",
   "jobs_view",
   "jobs_add",
   "jobs_edit",
@@ -77,6 +83,9 @@ const MODULE_PERMISSION_KEYS = [
   "role_management_add",
   "role_management_edit",
   "role_management_delete",
+  "enquiries_view",
+  "enquiries_delete",
+  "enquiries_respond",
 ];
 
 const KEY_GROUPS = [

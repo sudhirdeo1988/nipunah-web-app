@@ -12,6 +12,7 @@ import { useAppDispatch } from "@/store/hooks";
 import { setUser } from "@/store/slices/userSlice";
 import {
   saveUserSession,
+  loadUserSession,
   fetchUserDetailsByRole,
   getIdFromStoredUser,
   getRoleFromStoredUser,
@@ -288,8 +289,17 @@ const LoginPage = () => {
       // Show success message
       message.success("Login successful!");
 
-      // Redirect to dashboard
-      router.push(ROUTES?.PRIVATE?.DASHBOARD || "/app/dashboard");
+      // Redirect based on role:
+      // - user/expert -> public home page
+      // - company/admin -> private dashboard
+      const stored = loadUserSession() || userWithPermissions;
+      const roleAfterLogin = getRoleFromStoredUser(stored || {}) || "";
+      const postLoginRoute =
+        roleAfterLogin === "user" || roleAfterLogin === "expert"
+          ? ROUTES?.PUBLIC?.HOME || "/"
+          : ROUTES?.PRIVATE?.DASHBOARD || "/app/dashboard";
+
+      router.push(postLoginRoute);
     } catch (error) {
       // Handle error
       const errorMessage =
@@ -313,7 +323,16 @@ const LoginPage = () => {
 
   useEffect(() => {
     if (isLoggedIn) {
-      router.replace(ROUTES?.PRIVATE?.DASHBOARD);
+      // If we're already logged in, redirect using role from local session.
+      // Fallback to dashboard if role is missing.
+      const stored = loadUserSession();
+      const role = getRoleFromStoredUser(stored || {}) || "";
+      const route =
+        role === "user" || role === "expert"
+          ? ROUTES?.PUBLIC?.HOME || "/"
+          : ROUTES?.PRIVATE?.DASHBOARD || "/app/dashboard";
+
+      router.replace(route);
     }
   }, [isLoggedIn, router]);
 

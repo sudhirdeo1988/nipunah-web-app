@@ -44,12 +44,28 @@ export const DASHBOARD_ROUTES = {
       moduleKey: "company",
     },
     {
+      route: ROUTES?.PRIVATE?.SERVICES,
+      label: "Services",
+      subHeading: "Create and manage company services",
+      id: "services-1",
+      icon: "engineering",
+      moduleKey: "services",
+    },
+    {
       route: ROUTES?.PRIVATE?.JOB,
       label: "Jobs",
       subHeading: "Manage job postings and applications",
       id: "jobs-1",
       icon: "assignment_ind",
       moduleKey: "jobs",
+    },
+    {
+      route: ROUTES?.PRIVATE?.ENQUIRIES,
+      label: "Enquiries",
+      subHeading: "View and respond to user enquiries",
+      id: "enquiries-1",
+      icon: "forum",
+      moduleKey: "enquiries",
     },
     {
       route: ROUTES?.PRIVATE?.EQUIPMENT,
@@ -66,6 +82,14 @@ export const DASHBOARD_ROUTES = {
       id: "roles-1",
       icon: "shield",
       moduleKey: "role_management",
+    },
+    {
+      route: ROUTES?.PRIVATE?.PRICING,
+      label: "Pricing",
+      subHeading: "Manage subscription plans and pricing",
+      id: "pricing-1",
+      icon: "payments",
+      moduleKey: "pricing",
     },
   ],
 };

@@ -65,10 +65,10 @@ export const userService = {
 export const companyService = {
   /**
    * Get all companies with filters
-   * Next.js proxy: GET /api/companies -> ${API_BASE_URL}/companies (works on localhost)
+   * Next.js proxy: GET /api/companies/getAllCompanies -> ${API_BASE_URL}/companies/getAllCompanies
    */
   getCompanies: async (params = {}) => {
-    return axiosInstance.get("/companies", { params });
+    return axiosInstance.get("/companies/getAllCompanies", { params });
   },
 
   /**
@@ -97,6 +97,66 @@ export const companyService = {
    */
   deleteCompany: async (companyId) => {
     return axiosInstance.delete(`/companies/${companyId}`);
+  },
+};
+
+/**
+ * Enquiry API Services
+ */
+export const enquiryService = {
+  /**
+   * Get all enquiries (admin listing)
+   * Proxy route: /api/enquiries -> ${API_BASE_URL}/enquiries
+   */
+  getEnquiries: async (params = {}) => {
+    return axiosInstance.get("/enquiries", { params });
+  },
+
+  /**
+   * Get enquiry details + thread
+   * Proxy route: /api/enquiries/:id -> ${API_BASE_URL}/enquiries/:id
+   */
+  getEnquiryById: async (enquiryId) => {
+    return axiosInstance.get(`/enquiries/${enquiryId}`);
+  },
+
+  /**
+   * Delete enquiry
+   * Proxy route: /api/enquiries/:id -> ${API_BASE_URL}/enquiries/:id
+   */
+  deleteEnquiry: async (enquiryId) => {
+    return axiosInstance.delete(`/enquiries/${enquiryId}`);
+  },
+
+  /**
+   * Respond to enquiry
+   * Proxy route: /api/enquiries/:id/respond -> ${API_BASE_URL}/enquiries/:id/respond
+   */
+  respondToEnquiry: async (enquiryId, responseText) => {
+    return axiosInstance.post(`/enquiries/${enquiryId}/respond`, {
+      response: responseText,
+    });
+  },
+};
+
+/**
+ * Pricing API Services
+ */
+export const pricingService = {
+  /**
+   * Get current pricing configuration
+   * Endpoint: GET /api/pricing
+   */
+  getPricing: async () => {
+    return axiosInstance.get("/pricing");
+  },
+
+  /**
+   * Update a pricing plan by id
+   * Endpoint: PUT /api/pricing/:planId
+   */
+  updatePricingPlan: async (planId, payload) => {
+    return axiosInstance.put(`/pricing/${planId}`, payload || {});
   },
 };
 

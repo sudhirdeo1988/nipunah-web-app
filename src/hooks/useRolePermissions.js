@@ -12,9 +12,12 @@ const MODULE_KEY_TO_NAV_KEY = {
   experts: "nav_experts",
   users: "nav_users",
   company: "nav_companies",
+  services: "nav_services",
   jobs: "nav_jobs",
+  enquiries: "nav_enquiries",
   equipments: "nav_equipments",
   role_management: "nav_role_management",
+  pricing: "nav_pricing",
 };
 
 const MODULE_PERMISSION_NAMES = {
@@ -22,7 +25,9 @@ const MODULE_PERMISSION_NAMES = {
   users: ["view", "add", "edit", "delete", "approve"],
   experts: ["view", "add", "edit", "delete", "approve"],
   company: ["view", "add", "edit", "delete", "approve"],
+  services: ["view", "add", "edit", "delete"],
   jobs: ["view", "add", "edit", "delete", "apply", "approve"],
+  enquiries: ["view", "delete", "respond"],
   equipments: ["view", "add", "edit", "delete"],
   categories: [
     "view",
@@ -35,6 +40,7 @@ const MODULE_PERMISSION_NAMES = {
     "delete_sub_category",
   ],
   role_management: ["view", "add", "edit", "delete"],
+  pricing: ["view", "edit"],
 };
 
 const DASHBOARD_COMPONENT_KEY_MAP = {

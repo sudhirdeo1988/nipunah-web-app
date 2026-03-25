@@ -36,8 +36,13 @@ function resolveBearerToken(request) {
   );
 }
 
-export async function GET(request) {
+export async function PUT(request, { params }) {
+  const { id } = params || {};
   try {
+    if (!id) {
+      return NextResponse.json({ message: "Pricing plan id is required." }, { status: 400 });
+    }
+
     const token = resolveBearerToken(request);
     if (!token) {
       return NextResponse.json(
@@ -46,13 +51,15 @@ export async function GET(request) {
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/pricing`, {
-      method: "GET",
+    const payload = await request.json().catch(() => ({}));
+    const response = await fetch(`${API_BASE_URL}/pricing/${id}`, {
+      method: "PUT",
       headers: {
+        "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      cache: "no-store",
+      body: JSON.stringify(payload || {}),
     });
 
     const contentType = response.headers.get("content-type");
@@ -70,9 +77,9 @@ export async function GET(request) {
       { status: response.status, statusText: response.statusText }
     );
   } catch (error) {
-    console.error("GET /api/pricing proxy error:", error);
+    console.error("PUT /api/pricing/:id proxy error:", error);
     return NextResponse.json(
-      { error: "Internal server error", message: error.message || "Failed to fetch pricing" },
+      { error: "Internal server error", message: error.message || "Failed to update pricing plan" },
       { status: 500 }
     );
   }

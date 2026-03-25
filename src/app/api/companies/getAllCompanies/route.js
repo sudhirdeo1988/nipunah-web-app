@@ -24,9 +24,8 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
 }
 
 /**
- * GET /api/companies
- * Proxy to ${API_BASE_URL}/companies — query params forwarded (page, limit, search, country, type, categoryId, etc.)
- * For localhost / Next dev: browser calls /api/companies; server forwards with Bearer from cookies.
+ * GET /api/companies/getAllCompanies
+ * Proxy to ${API_BASE_URL}/companies/getAllCompanies — query params forwarded.
  */
 export async function GET(request) {
   try {
@@ -36,7 +35,7 @@ export async function GET(request) {
       params.sortBy = "createdAt";
     }
 
-    let url = `${API_BASE_URL}/companies`;
+    let url = `${API_BASE_URL}/companies/getAllCompanies`;
 
     if (Object.keys(params).length > 0) {
       const queryString = new URLSearchParams(
@@ -94,7 +93,7 @@ export async function GET(request) {
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("GET /api/companies proxy error:", error);
+    console.error("GET /api/companies/getAllCompanies proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
