@@ -105,6 +105,14 @@ export const companyService = {
  */
 export const enquiryService = {
   /**
+   * Create enquiry (e.g. user -> company)
+   * Proxy route: POST /api/enquiries -> ${API_BASE_URL}/enquiries
+   */
+  createEnquiry: async (payload) => {
+    return axiosInstance.post("/enquiries", payload);
+  },
+
+  /**
    * Get all enquiries (admin listing)
    * Proxy route: /api/enquiries -> ${API_BASE_URL}/enquiries
    */

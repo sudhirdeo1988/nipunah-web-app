@@ -3,9 +3,23 @@
 import Icon from "@/components/Icon";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
-import { Divider, Space, Tabs, Image as ThumbnailImage } from "antd";
+import { useAppSelector } from "@/store/hooks";
+import { enquiryService } from "@/utilities/apiServices";
+import { useAuth } from "@/utilities/AuthContext";
+import { getIdFromStoredUser } from "@/utilities/sessionUser";
+import {
+  Divider,
+  Form,
+  Input,
+  Modal,
+  Space,
+  Tabs,
+  Image as ThumbnailImage,
+  message,
+} from "antd";
 import Image from "next/image";
-import React from "react";
+import { useParams } from "next/navigation";
+import React, { useCallback, useState } from "react";
 
 const AboutCompany = () => {
   return (
@@ -109,6 +123,55 @@ const EquipmentImages = () => {
 };
 
 const EquipmentDetails = () => {
+  const params = useParams();
+  const equipmentId = params?.equipment_id;
+  const { isLoggedIn } = useAuth();
+  const user = useAppSelector((state) => state.user.user);
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [enquirySubmitting, setEnquirySubmitting] = useState(false);
+  const [enquiryForm] = Form.useForm();
+
+  const openEnquiryModal = useCallback(() => {
+    enquiryForm.resetFields();
+    setEnquiryOpen(true);
+  }, [enquiryForm]);
+
+  const closeEnquiryModal = useCallback(() => {
+    setEnquiryOpen(false);
+    enquiryForm.resetFields();
+  }, [enquiryForm]);
+
+  const handleEnquirySubmit = useCallback(
+    async (values) => {
+      const fromId = getIdFromStoredUser(user);
+      if (fromId == null || fromId === "") {
+        message.error("Could not resolve your user id. Please log in again.");
+        return;
+      }
+      if (equipmentId == null || equipmentId === "") {
+        message.error("Invalid equipment.");
+        return;
+      }
+      setEnquirySubmitting(true);
+      try {
+        await enquiryService.createEnquiry({
+          from: fromId,
+          title: values.title?.trim(),
+          description: values.message?.trim(),
+          type: "equipment",
+          equipemnt_id: equipmentId,
+        });
+        message.success("Enquiry sent successfully");
+        closeEnquiryModal();
+      } catch (err) {
+        message.error(err?.message || "Failed to send enquiry");
+      } finally {
+        setEnquirySubmitting(false);
+      }
+    },
+    [closeEnquiryModal, equipmentId, user],
+  );
+
   return (
     <>
       <PublicLayout>
@@ -287,14 +350,71 @@ const EquipmentDetails = () => {
                       </span>
                     </div>
                   </div>
-                  <button className="C-button is-filled full-width">
-                    www.abc.com
-                  </button>
+                  {isLoggedIn && (
+                    <button
+                      type="button"
+                      className="C-button is-filled full-width"
+                      onClick={openEnquiryModal}
+                    >
+                      Enquiry
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         </section>
+
+        <Modal
+          title="Send enquiry"
+          open={enquiryOpen}
+          onCancel={closeEnquiryModal}
+          footer={null}
+          destroyOnClose
+          centered
+        >
+          <Form
+            form={enquiryForm}
+            layout="vertical"
+            onFinish={handleEnquirySubmit}
+            autoComplete="off"
+          >
+            <Form.Item
+              label="Enquiry title"
+              name="title"
+              rules={[{ required: true, message: "Please enter a title" }]}
+            >
+              <Input placeholder="Title" maxLength={200} />
+            </Form.Item>
+            <Form.Item
+              label="Message"
+              name="message"
+              rules={[{ required: true, message: "Please enter your message" }]}
+            >
+              <Input.TextArea
+                rows={4}
+                placeholder="Your message"
+                maxLength={2000}
+              />
+            </Form.Item>
+            <div className="d-flex justify-content-end gap-2">
+              <button
+                type="button"
+                className="C-button is-bordered"
+                onClick={closeEnquiryModal}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="C-button is-filled"
+                disabled={enquirySubmitting}
+              >
+                {enquirySubmitting ? "Sending…" : "Submit"}
+              </button>
+            </div>
+          </Form>
+        </Modal>
       </PublicLayout>
     </>
   );

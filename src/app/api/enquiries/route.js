@@ -99,3 +99,54 @@ export async function GET(request) {
   }
 }
 
+/**
+ * POST /api/enquiries
+ * Proxy to ${API_BASE_URL}/enquiries
+ */
+export async function POST(request) {
+  try {
+    const token = resolveBearerToken(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication token is required" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+
+    const response = await fetch(`${API_BASE_URL}/enquiries`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body || {}),
+    });
+
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      const data = await response.json();
+      return NextResponse.json(data, {
+        status: response.status,
+        statusText: response.statusText,
+      });
+    }
+
+    const text = await response.text();
+    return NextResponse.json(
+      { message: text || response.statusText },
+      { status: response.status, statusText: response.statusText }
+    );
+  } catch (error) {
+    console.error("POST /api/enquiries proxy error:", error);
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to create enquiry",
+      },
+      { status: 500 }
+    );
+  }
+}
