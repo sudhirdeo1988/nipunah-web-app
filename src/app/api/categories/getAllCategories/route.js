@@ -1,6 +1,23 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+const TOKEN_COOKIE_KEYS = [
+  "access_token",
+  "token",
+  "auth_token",
+  "authToken",
+  "jwt",
+  "id_token",
+];
+
+function getBearerTokenFromAuthHeader(authorizationHeader) {
+  if (!authorizationHeader) return null;
+  const [scheme, token] = authorizationHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
 /**
  * GET /api/categories/getAllCategories
  * Proxy endpoint for categories API to avoid CORS issues
@@ -59,7 +76,19 @@ export async function GET(request) {
         return acc;
       }, {});
 
-      token = cookies["access_token"] || cookies.access_token || null;
+      for (const key of TOKEN_COOKIE_KEYS) {
+        if (cookies[key]) {
+          token = cookies[key];
+          break;
+        }
+      }
+    }
+
+    const tokenFromHeader = getBearerTokenFromAuthHeader(
+      request.headers.get("authorization") || ""
+    );
+    if (tokenFromHeader) {
+      token = tokenFromHeader;
     }
 
     // Log for debugging (remove in production)

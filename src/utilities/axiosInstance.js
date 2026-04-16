@@ -20,7 +20,7 @@ import { getClientToken } from "./auth";
  * Create axios instance with default configuration
  *
  * baseURL: Uses relative URL "/api" to leverage Netlify redirects
- * Netlify redirects /api/* to http://64.227.184.238/api/:splat
+ * Netlify redirects /api/* to http://139.59.22.7:8080/api/:splat
  * This avoids mixed content issues (HTTPS -> HTTP) and CORS problems
  *
  * For local development: Netlify redirects work via netlify.toml

@@ -36,53 +36,6 @@ import {
 import { ACTION_MENU_ITEMS } from "../../constants/expertConstants";
 
 /**
- * Mock applied jobs data for development/testing purposes
- * TODO: Replace with actual API calls in production
- * @type {Object}
- */
-export const MOCK_APPLIED_JOBS_DATA = {
-  1: [
-    {
-      id: 1,
-      jobName: "Senior Frontend Developer",
-      company: "Tech Corp",
-      appliedOn: "2024-01-10",
-      status: "Under Review",
-    },
-    {
-      id: 2,
-      jobName: "React Developer",
-      company: "StartupXYZ",
-      appliedOn: "2024-01-12",
-      status: "Interview Scheduled",
-    },
-    {
-      id: 3,
-      jobName: "Full Stack Developer",
-      company: "BigTech Inc",
-      appliedOn: "2024-01-15",
-      status: "Rejected",
-    },
-  ],
-  2: [
-    {
-      id: 4,
-      jobName: "UI/UX Designer",
-      company: "Design Studio",
-      appliedOn: "2024-01-08",
-      status: "Accepted",
-    },
-    {
-      id: 5,
-      jobName: "Product Manager",
-      company: "Product Co",
-      appliedOn: "2024-01-14",
-      status: "Under Review",
-    },
-  ],
-};
-
-/**
 /**
  * ExpertUserListing Component
  *
@@ -944,7 +897,8 @@ const ExpertUserListing = ({
       >
         <div className="py-3">
           {expertForAppliedJobs &&
-            MOCK_APPLIED_JOBS_DATA[expertForAppliedJobs.id] && (
+            Array.isArray(expertForAppliedJobs.appliedJobs) &&
+            expertForAppliedJobs.appliedJobs.length > 0 && (
               <Table
                 columns={[
                   {
@@ -992,12 +946,19 @@ const ExpertUserListing = ({
                     ),
                   },
                 ]}
-                dataSource={MOCK_APPLIED_JOBS_DATA[expertForAppliedJobs.id]}
+                dataSource={expertForAppliedJobs.appliedJobs}
                 rowKey="id"
                 pagination={false}
                 size="small"
               />
             )}
+          {(!expertForAppliedJobs ||
+            !Array.isArray(expertForAppliedJobs.appliedJobs) ||
+            expertForAppliedJobs.appliedJobs.length === 0) && (
+            <p className="C-heading size-6 mb-0 color-light">
+              No applied jobs data available from API.
+            </p>
+          )}
         </div>
       </Modal>
     </>

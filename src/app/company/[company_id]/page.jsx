@@ -7,38 +7,19 @@ import { useAppSelector } from "@/store/hooks";
 import { enquiryService } from "@/utilities/apiServices";
 import { useAuth } from "@/utilities/AuthContext";
 import { getIdFromStoredUser } from "@/utilities/sessionUser";
-import { Divider, Form, Input, Modal, Space, Tabs, Image as PreviewImage, message } from "antd";
+import { Divider, Form, Input, Modal, Space, Tabs, Image as PreviewImage, message, Spin, Empty } from "antd";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-const AboutCompany = () => {
+const AboutCompany = ({ company }) => {
+  const about = company?.description || company?.about || "No description available.";
   return (
     <>
       <h4 className="C-heading size-5 bold mb-3 font-family-creative">
         About Company
       </h4>
-      <span className="C-heading size-6 mb-4 font-family-creative">
-        Lorem Ipsum is simply dummy text of the printing and typesetting
-        industry. Lorem Ipsum has been the industry's standard dummy text ever
-        since the 1500s, when an unknown printer took a galley of type and
-        scrambled it to make a type specimen book. It has survived not only five
-        centuries,
-      </span>
-      <span className="C-heading size-6 mb-4  font-family-creative">
-        Lorem Ipsum is simply dummy text of the printing and typesetting
-        industry. Lorem Ipsum has been the industry's standard dummy text ever
-        since the 1500s, when an unknown printer took a galley of type and
-        scrambled it to make a type specimen book. It has survived not only five
-        centuries,
-      </span>
-      <span className="C-heading size-6 mb-5  font-family-creative">
-        Lorem Ipsum is simply dummy text of the printing and typesetting
-        industry. Lorem Ipsum has been the industry's standard dummy text ever
-        since the 1500s, when an unknown printer took a galley of type and
-        scrambled it to make a type specimen book. It has survived not only five
-        centuries,
-      </span>
+      <span className="C-heading size-6 mb-5 font-family-creative">{about}</span>
 
       <h4 className="C-heading size-5 bold mb-3  font-family-creative">
         Key Clients
@@ -93,15 +74,20 @@ const AboutCompany = () => {
   );
 };
 
-const CompanyJobs = () => {
+const CompanyJobs = ({ jobs = [] }) => {
+  if (!jobs.length) {
+    return <Empty description="No jobs available." />;
+  }
+
   return (
     <>
       <h4 className="C-heading size-6 bold mb-3 ">Current available jobs</h4>
       <div className="row g-3">
-        <div className="col-md-6 col-xs-12">
+        {jobs.map((job, idx) => (
+          <div className="col-md-6 col-xs-12" key={job?.id ?? job?.jobId ?? idx}>
           <div className="p-3 rounded-2 bg-white shadow-sm">
             <h4 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-              Senior Food manager
+                {job?.title || "Job"}
             </h4>
             <span className="C-heading size-6 mb-2 ">
               <Icon
@@ -111,17 +97,22 @@ const CompanyJobs = () => {
                 isFilled
                 color="#bdbdbd"
               />
-              1000-1198 Apono Pl Hilo, HI 96720
+                {job?.location || "Location not available"}
             </span>
             <span className="C-heading size-6 mb-2">
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry. Lor
+                {job?.description || "No description available"}
             </span>
             <div className="d-flex justify-content-start gap-2 align-items-center">
               <div>
                 <Space size={4}>
                   <Icon name="payments" color="#b1b1b1" size="small" isFilled />
-                  <span className="C-heading size-6 mb-0">$30k - $35k</span>
+                    <span className="C-heading size-6 mb-0">
+                      {job?.salaryRange?.min && job?.salaryRange?.max
+                        ? `${job.salaryRange.min} - ${job.salaryRange.max}`
+                        : job?.salary_range?.min && job?.salary_range?.max
+                        ? `${job.salary_range.min} - ${job.salary_range.max}`
+                        : "N/A"}
+                    </span>
                 </Space>
               </div>
               <Divider
@@ -140,167 +131,31 @@ const CompanyJobs = () => {
                     size="small"
                     isFilled
                   />
-                  <span className="C-heading size-6 mb-0">5-7 Years</span>
+                    <span className="C-heading size-6 mb-0">
+                      {job?.experience_required || job?.experience || "N/A"}
+                    </span>
                 </Space>
               </div>
             </div>
           </div>
-        </div>
-        <div className="col-md-6 col-xs-12">
-          <div className="p-3 rounded-2 bg-white shadow-sm">
-            <h4 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-              Senior Food manager
-            </h4>
-            <span className="C-heading size-6 mb-2 ">
-              <Icon
-                name="location_on"
-                className="me-1"
-                size="small"
-                isFilled
-                color="#bdbdbd"
-              />
-              1000-1198 Apono Pl Hilo, HI 96720
-            </span>
-            <span className="C-heading size-6 mb-2">
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry. Lor
-            </span>
-            <div className="d-flex justify-content-start gap-2 align-items-center">
-              <div>
-                <Space size={4}>
-                  <Icon name="payments" color="#b1b1b1" size="small" isFilled />
-                  <span className="C-heading size-6 mb-0">$30k - $35k</span>
-                </Space>
-              </div>
-              <Divider
-                orientation="vertical"
-                style={{
-                  backgroundColor: "#b1b1b1",
-                  width: "2px",
-                  margin: "0 4px",
-                }}
-              />
-              <div>
-                <Space size={4}>
-                  <Icon
-                    name="account_circle"
-                    color="#b1b1b1"
-                    size="small"
-                    isFilled
-                  />
-                  <span className="C-heading size-6 mb-0">5-7 Years</span>
-                </Space>
-              </div>
-            </div>
           </div>
-        </div>
-        <div className="col-md-6 col-xs-12">
-          <div className="p-3 rounded-2 bg-white shadow-sm">
-            <h4 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-              Senior Food manager
-            </h4>
-            <span className="C-heading size-6 mb-2 ">
-              <Icon
-                name="location_on"
-                className="me-1"
-                size="small"
-                isFilled
-                color="#bdbdbd"
-              />
-              1000-1198 Apono Pl Hilo, HI 96720
-            </span>
-            <span className="C-heading size-6 mb-2">
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry. Lor
-            </span>
-            <div className="d-flex justify-content-start gap-2 align-items-center">
-              <div>
-                <Space size={4}>
-                  <Icon name="payments" color="#b1b1b1" size="small" isFilled />
-                  <span className="C-heading size-6 mb-0">$30k - $35k</span>
-                </Space>
-              </div>
-              <Divider
-                orientation="vertical"
-                style={{
-                  backgroundColor: "#b1b1b1",
-                  width: "2px",
-                  margin: "0 4px",
-                }}
-              />
-              <div>
-                <Space size={4}>
-                  <Icon
-                    name="account_circle"
-                    color="#b1b1b1"
-                    size="small"
-                    isFilled
-                  />
-                  <span className="C-heading size-6 mb-0">5-7 Years</span>
-                </Space>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-6 col-xs-12">
-          <div className="p-3 rounded-2 bg-white shadow-sm">
-            <h4 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-              Senior Food manager
-            </h4>
-            <span className="C-heading size-6 mb-2 ">
-              <Icon
-                name="location_on"
-                className="me-1"
-                size="small"
-                isFilled
-                color="#bdbdbd"
-              />
-              1000-1198 Apono Pl Hilo, HI 96720
-            </span>
-            <span className="C-heading size-6 mb-2">
-              Lorem Ipsum is simply dummy text of the printing and typesetting
-              industry. Lor
-            </span>
-            <div className="d-flex justify-content-start gap-2 align-items-center">
-              <div>
-                <Space size={4}>
-                  <Icon name="payments" color="#b1b1b1" size="small" isFilled />
-                  <span className="C-heading size-6 mb-0">$30k - $35k</span>
-                </Space>
-              </div>
-              <Divider
-                orientation="vertical"
-                style={{
-                  backgroundColor: "#b1b1b1",
-                  width: "2px",
-                  margin: "0 4px",
-                }}
-              />
-              <div>
-                <Space size={4}>
-                  <Icon
-                    name="account_circle"
-                    color="#b1b1b1"
-                    size="small"
-                    isFilled
-                  />
-                  <span className="C-heading size-6 mb-0">5-7 Years</span>
-                </Space>
-              </div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </>
   );
 };
 
-const CompanyEquipments = () => {
+const CompanyEquipments = ({ equipments = [] }) => {
+  if (!equipments.length) {
+    return <Empty description="No equipment data available." />;
+  }
+
   return (
     <>
       <h4 className="C-heading size-6 bold mb-3 ">Equipments by company</h4>
       <div className="row row-cols-1 row-cols-md-3 g-4">
-        <div className="col">
+        {equipments.map((eq, idx) => (
+          <div className="col" key={eq?.id ?? idx}>
           <div className="card h-100">
             <Image
               src="/assets/images/about.jpg"
@@ -311,7 +166,7 @@ const CompanyEquipments = () => {
             />
             <div className="card-body p-3">
               <h5 className="C-heading size-6 gradient-text semiBold mb-2 text-truncate">
-                Equipment title
+                  {eq?.name || eq?.title || "Equipment"}
               </h5>
               <span className="C-heading size-6 color-light mb-2">
                 <Icon
@@ -321,7 +176,7 @@ const CompanyEquipments = () => {
                   isFilled
                   color="#bdbdbd"
                 />
-                Model: <strong>Model Name / id</strong>
+                  Model: <strong>{eq?.model || eq?.id || "N/A"}</strong>
               </span>
               <span className="C-heading size-6 color-light mb-2">
                 <Icon
@@ -331,7 +186,7 @@ const CompanyEquipments = () => {
                   isFilled
                   color="#bdbdbd"
                 />
-                Type: <strong>Marine</strong>
+                  Type: <strong>{eq?.type || "N/A"}</strong>
               </span>
               <span className="C-heading size-6 color-light mb-2">
                 <Icon
@@ -341,7 +196,7 @@ const CompanyEquipments = () => {
                   isFilled
                   color="#bdbdbd"
                 />
-                Category: <strong>Logistics</strong>
+                  Category: <strong>{eq?.category || "N/A"}</strong>
               </span>
               <span className="C-heading size-6 color-light mb-0">
                 <Icon
@@ -351,179 +206,12 @@ const CompanyEquipments = () => {
                   isFilled
                   color="#bdbdbd"
                 />
-                Year of build: <strong>2015</strong>
+                  Year of build: <strong>{eq?.manufacture_year || "N/A"}</strong>
               </span>
             </div>
           </div>
-        </div>
-        <div className="col">
-          <div className="card h-100">
-            <Image
-              src="/assets/images/about.jpg"
-              alt="My Logo"
-              width={180}
-              height={160}
-              style={{ width: "100%" }}
-            />
-            <div className="card-body">
-              <h5 className="C-heading size-6 gradient-text semiBold mb-2 text-truncate">
-                Equipment title
-              </h5>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="view_in_ar"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Model: <strong>Model Name / id</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="settings"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Type: <strong>Marine</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="category"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Category: <strong>Logistics</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-0">
-                <Icon
-                  name="calendar_month"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Year of build: <strong>2015</strong>
-              </span>
-            </div>
           </div>
-        </div>
-        <div className="col">
-          <div className="card h-100">
-            <Image
-              src="/assets/images/about.jpg"
-              alt="My Logo"
-              width={180}
-              height={160}
-              style={{ width: "100%" }}
-            />
-            <div className="card-body">
-              <h5 className="C-heading size-6 gradient-text semiBold mb-2 text-truncate">
-                Equipment title
-              </h5>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="view_in_ar"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Model: <strong>Model Name / id</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="settings"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Type: <strong>Marine</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="category"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Category: <strong>Logistics</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-0">
-                <Icon
-                  name="calendar_month"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Year of build: <strong>2015</strong>
-              </span>
-            </div>
-          </div>
-        </div>
-        <div className="col">
-          <div className="card h-100">
-            <Image
-              src="/assets/images/about.jpg"
-              alt="My Logo"
-              width={180}
-              height={160}
-              style={{ width: "100%" }}
-            />
-            <div className="card-body">
-              <h5 className="C-heading size-6 gradient-text semiBold mb-2 text-truncate">
-                Equipment title
-              </h5>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="view_in_ar"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Model: <strong>Model Name / id</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="settings"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Type: <strong>Marine</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-2">
-                <Icon
-                  name="category"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Category: <strong>Logistics</strong>
-              </span>
-              <span className="C-heading size-6 color-light mb-0">
-                <Icon
-                  name="calendar_month"
-                  className="me-2"
-                  size="small"
-                  isFilled
-                  color="#bdbdbd"
-                />
-                Year of build: <strong>2015</strong>
-              </span>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </>
   );
@@ -627,6 +315,76 @@ const CompanyDetails = () => {
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [enquirySubmitting, setEnquirySubmitting] = useState(false);
   const [enquiryForm] = Form.useForm();
+  const [companyData, setCompanyData] = useState(null);
+  const [loadingCompany, setLoadingCompany] = useState(true);
+  const [companyError, setCompanyError] = useState(null);
+
+  const fetchCompanyDetails = useCallback(async () => {
+    if (!companyId) return;
+    setLoadingCompany(true);
+    setCompanyError(null);
+    try {
+      const res = await fetch(`/api/companies/${companyId}`, {
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.message || data?.error || "Failed to load company details");
+      }
+
+      const payload =
+        data?.data?.company ||
+        data?.company ||
+        (data?.data && typeof data.data === "object" ? data.data : data);
+
+      setCompanyData(payload && typeof payload === "object" ? payload : null);
+    } catch (err) {
+      setCompanyError(err?.message || "Failed to load company details");
+      setCompanyData(null);
+    } finally {
+      setLoadingCompany(false);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    fetchCompanyDetails();
+  }, [fetchCompanyDetails]);
+
+  const companyName = companyData?.name || companyData?.company_name || "Company";
+  const companyLocation =
+    companyData?.location ||
+    companyData?.address?.city ||
+    companyData?.address?.country ||
+    companyData?.locations?.[0]?.city ||
+    "N/A";
+  const companyIndustry =
+    companyData?.industry || companyData?.category?.name || "N/A";
+  const companyEmail =
+    companyData?.contact_email || companyData?.email || "N/A";
+  const companySize =
+    companyData?.employee_count || companyData?.employeeCount || "N/A";
+  const companyFounded =
+    companyData?.founded_in || companyData?.foundYear || "N/A";
+  const companyTurnover =
+    companyData?.turn_over || companyData?.turnover || "N/A";
+  const companyJobs = useMemo(
+    () =>
+      Array.isArray(companyData?.posted_jobs)
+        ? companyData.posted_jobs
+        : Array.isArray(companyData?.postedJobs)
+        ? companyData.postedJobs
+        : [],
+    [companyData]
+  );
+  const companyEquipments = useMemo(
+    () =>
+      Array.isArray(companyData?.equipments)
+        ? companyData.equipments
+        : Array.isArray(companyData?.equipment)
+        ? companyData.equipment
+        : [],
+    [companyData]
+  );
 
   const openEnquiryModal = useCallback(() => {
     enquiryForm.resetFields();
@@ -672,12 +430,18 @@ const CompanyDetails = () => {
   return (
     <>
       <PublicLayout>
-        <PageHeadingBanner
-          heading="Moody's Corporation"
-          currentPageTitle="List of companies"
-        />
+        <PageHeadingBanner heading={companyName} currentPageTitle="List of companies" />
         <section className="section-padding small">
           <div className="container">
+            {loadingCompany ? (
+              <div className="text-center py-5">
+                <Spin size="large" />
+              </div>
+            ) : companyError ? (
+              <div className="py-5">
+                <Empty description={companyError} />
+              </div>
+            ) : (
             <div className="row">
               <div className="col-12">
                 {/* Logo and company title */}
@@ -692,14 +456,14 @@ const CompanyDetails = () => {
                   </div>
                   <div className="flex-grow-1">
                     <h3 className="C-heading size-4 color-dark mb-2 bold">
-                      Moody's Corporation
+                      {companyName}
                     </h3>
                     <div className="d-flex justify-content-start gap-2 align-items-center">
                       <div>
                         <Space>
                           <Icon name="location_on" color="#b1b1b1" />
                           <span className="C-heading size-6 color-light mb-0">
-                            London, UK
+                            {companyLocation}
                           </span>
                         </Space>
                       </div>
@@ -715,7 +479,7 @@ const CompanyDetails = () => {
                         <Space>
                           <Icon name="settings" color="#b1b1b1" />
                           <span className="C-heading size-6 color-light mb-0">
-                            Accounting / Finance
+                            {companyIndustry}
                           </span>
                         </Space>
                       </div>
@@ -731,7 +495,7 @@ const CompanyDetails = () => {
                         <Space>
                           <Icon name="mail" color="#b1b1b1" />
                           <span className="C-heading size-6 color-light mb-0">
-                            info@nipunah.com
+                            {companyEmail}
                           </span>
                         </Space>
                       </div>
@@ -746,17 +510,17 @@ const CompanyDetails = () => {
                     {
                       key: "aboutCompany",
                       label: "About Company",
-                      children: <AboutCompany />,
+                      children: <AboutCompany company={companyData} />,
                     },
                     {
                       key: "companyEquipments",
                       label: "Equipments",
-                      children: <CompanyEquipments />,
+                      children: <CompanyEquipments equipments={companyEquipments} />,
                     },
                     {
                       key: "companyJobs",
                       label: "Jobs",
-                      children: <CompanyJobs />,
+                      children: <CompanyJobs jobs={companyJobs} />,
                     },
                     {
                       key: "companyDocs",
@@ -777,7 +541,7 @@ const CompanyDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-6 semiBold color-dark mb-0 text-right">
-                        Marine Engineering
+                        {companyIndustry}
                       </span>
                     </div>
                   </div>
@@ -789,7 +553,7 @@ const CompanyDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-6 semiBold color-dark mb-0 text-right">
-                        1000
+                        {companySize}
                       </span>
                     </div>
                   </div>
@@ -801,7 +565,7 @@ const CompanyDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-6 semiBold color-dark mb-0 text-right">
-                        2015
+                        {companyFounded}
                       </span>
                     </div>
                   </div>
@@ -813,7 +577,7 @@ const CompanyDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-6 semiBold color-dark mb-0 text-right">
-                        $ 35M
+                        {companyTurnover}
                       </span>
                     </div>
                   </div>
@@ -825,7 +589,7 @@ const CompanyDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-6 semiBold color-dark mb-0 text-right">
-                        London, UK
+                        {companyLocation}
                       </span>
                     </div>
                   </div>
@@ -864,6 +628,7 @@ const CompanyDetails = () => {
                 </div>
               </div>
             </div>
+            )}
           </div>
         </section>
 

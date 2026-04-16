@@ -2,6 +2,7 @@ import { Inter, Jost } from "next/font/google";
 import { AuthProvider } from "@/utilities/AuthContext";
 import StoreProvider from "@/store/StoreProvider";
 import { App } from "antd";
+import AppInitializer from "@/components/AppInitializer";
 import "@/styles/global.scss";
 
 export const inter = Inter({
@@ -28,7 +29,9 @@ export default function RootLayout({ children }) {
       <body className={`${inter.variable} ${jost.variable}`}>
         <StoreProvider>
           <AuthProvider>
-            <App>{children}</App>
+            <App>
+              <AppInitializer>{children}</AppInitializer>
+            </App>
           </AuthProvider>
         </StoreProvider>
       </body>

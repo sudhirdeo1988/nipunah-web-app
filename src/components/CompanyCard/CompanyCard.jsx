@@ -3,13 +3,65 @@
 import React from "react";
 import { Space, Tag } from "antd";
 import Icon from "../Icon";
-import { isEmpty as _isEmpty, map as _map } from "lodash-es";
 import Image from "next/image";
 import { ROUTES } from "@/constants/routes";
 import { useRouter } from "next/navigation";
 
-const CompanyCard = () => {
+function formatDisplayDate(value) {
+  if (!value) return "N/A";
+
+  const normalized = String(value).trim();
+  const parsed = new Date(normalized);
+  if (!Number.isNaN(parsed.getTime())) {
+    return parsed.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  }
+
+  const slashMatch = normalized.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+\d{1,2}:\d{2}:\d{2})?$/
+  );
+  if (slashMatch) {
+    const mm = Number(slashMatch[1]);
+    const dd = Number(slashMatch[2]);
+    const yyyy = Number(slashMatch[3]);
+    const fallback = new Date(yyyy, mm - 1, dd);
+    if (!Number.isNaN(fallback.getTime())) {
+      return fallback.toLocaleDateString("en-GB", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      });
+    }
+  }
+
+  return normalized;
+}
+
+const CompanyCard = ({ data }) => {
   const router = useRouter();
+  const companyId = data?.id;
+  const companyName = data?.name || data?.title || "Company";
+  const aboutText =
+    data?.aboutCompany ||
+    data?.about ||
+    data?.description ||
+    "No description available.";
+  const address = Array.isArray(data?.addresses)
+    ? data.addresses.find((a) => a?.isPrimary) || data.addresses[0]
+    : null;
+  const location = [address?.city, address?.country].filter(Boolean).join(", ") || "N/A";
+  const employeeCount = data?.employeesCount || data?.employeeCount || "N/A";
+  const createdAtRaw = data?.createdAt || data?.created_at;
+  const createdAt = formatDisplayDate(createdAtRaw);
+  const industry =
+    data?.categories?.[0]?.name ||
+    data?.industry ||
+    data?.title ||
+    "General";
+
   return (
     <div className="bg-white p-3 shadow-sm rounded">
       <div className="row g-3 align-items-center">
@@ -27,11 +79,10 @@ const CompanyCard = () => {
         </div>
         <div className="col-md-9 col-sm-12">
           <h3 className="C-heading size-5 mb-1 bold font-family-creative color-primary text-truncate">
-            Company name here
+            {companyName}
           </h3>
           <h3 className="C-heading size-6 color-light mb-3 font-family-creative  text-truncate">
-            Lorem Ipsum is simply dummy text of the printing and typesetting
-            industry.
+            {aboutText}
           </h3>
 
           <div className="d-flex flex-row gap-3 align-items-center mb-3">
@@ -39,7 +90,7 @@ const CompanyCard = () => {
               <Space size={4}>
                 <Icon name="location_on" />
                 <span className="C-heading size-xs color-light mb-0">
-                  Chennai, India
+                  {location}
                 </span>
               </Space>
             </div>
@@ -47,7 +98,7 @@ const CompanyCard = () => {
               <Space size={4}>
                 <Icon name="bookmark_check" />
                 <span className="C-heading size-xs color-light mb-0">
-                  Full Time
+                  {employeeCount}
                 </span>
               </Space>
             </div>
@@ -55,7 +106,7 @@ const CompanyCard = () => {
               <Space size={4}>
                 <Icon name="nest_clock_farsight_analog" />
                 <span className="C-heading size-xs color-light mb-0">
-                  11 months ago
+                  {createdAt}
                 </span>
               </Space>
             </div>
@@ -65,14 +116,17 @@ const CompanyCard = () => {
             <div className="col-8">
               <Space wrap size={4}>
                 <Tag color="gold" className="rounded">
-                  Marine Engineering
+                  {industry}
                 </Tag>
               </Space>
             </div>
             <div className="col-4 text-right">
               <button
                 className="C-button is-link p-0 small bold"
-                onClick={() => router.push(`${ROUTES?.PUBLIC?.COMPANIES}/123`)}
+                onClick={() =>
+                  router.push(`${ROUTES?.PUBLIC?.COMPANIES}/${companyId}`)
+                }
+                disabled={!companyId}
               >
                 View Details
               </button>

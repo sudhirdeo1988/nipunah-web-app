@@ -638,7 +638,7 @@ export const categoryService = {
     console.log("📦 Creating category:", payload);
 
     try {
-      // Call external API via Netlify redirect (/api/categories -> http://64.227.184.238/api/categories)
+      // Call external API via Netlify redirect (/api/categories -> http://139.59.22.7:8080/api/categories)
       const response = await axiosInstance.post("/categories", payload);
       console.log("✅ Category created successfully");
       return response;

@@ -15,60 +15,45 @@ import {
   Space,
   Tabs,
   Image as ThumbnailImage,
+  Spin,
+  Empty,
   message,
 } from "antd";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-const AboutCompany = () => {
+const AboutCompany = ({ equipment }) => {
   return (
     <>
       <p className="C-heading size-6 mb-4 semiBold">
-        Moody’s Corporation, often referred to as Moody’s, is an American
-        business and financial services company. It is the holding company for
-        Moody’s Investors Service (MIS), an American credit rating agency, and
-        Moody’s Analytics (MA), an American provider of financial analysis
-        software and services.
-      </p>
-      <p className="C-heading size-6 mb-4 semiBold">
-        Moody’s Corporation, often referred to as Moody’s, is an American
-        business and financial services company. It is the holding company for
-        Moody’s Investors Service (MIS), an American credit rating agency, and
-        Moody’s Analytics (MA), an American provider of financial analysis
-        software and services.
-      </p>
-      <p className="C-heading size-6 mb-3 semiBold">
-        Moody’s Corporation, often referred to as Moody’s, is an American
-        business and financial services company. It is the holding company for
-        Moody’s Investors Service (MIS), an American credit rating agency, and
-        Moody’s Analytics (MA), an American provider of financial analysis
-        software and services.
+        {equipment?.about || equipment?.description || "No description available."}
       </p>
       <div className="C-bulletList mb-3">
         <ul>
           <li>
             <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
             <span className="C-heading semiBold size-6 mb-0 dont-break">
-              <strong>Origin:</strong> Thailand
+              <strong>Origin:</strong>{" "}
+              {equipment?.address?.country || equipment?.country || "N/A"}
             </span>
           </li>
           <li>
             <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
             <span className="C-heading semiBold size-6 mb-0 dont-break">
-              <strong>General Use:</strong> Outdoor Furniture
+              <strong>General Use:</strong> {equipment?.category || "N/A"}
             </span>
           </li>
           <li>
             <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
             <span className="C-heading semiBold size-6 mb-0 dont-break">
-              <strong>Instructions for use:</strong> Eat directly
+              <strong>Instructions for use:</strong> {equipment?.type || "N/A"}
             </span>
           </li>
           <li>
             <i className="bi bi-check-circle-fill color-primary bullet-icon"></i>
             <span className="C-heading semiBold size-6 mb-0 dont-break">
-              <strong>Packing:</strong> 400g pack
+              <strong>Packing:</strong> {equipment?.rentType || "N/A"}
             </span>
           </li>
         </ul>
@@ -77,46 +62,19 @@ const AboutCompany = () => {
   );
 };
 
-const EquipmentImages = () => {
+const EquipmentImages = ({ imageUrl }) => {
+  const images = imageUrl ? [imageUrl, imageUrl, imageUrl, imageUrl, imageUrl, imageUrl] : [];
+  if (!images.length) {
+    return <Empty description="No images available." />;
+  }
   return (
     <>
       <div className="row g-3">
-        <div className="col-md-4 col-sm-6 col-xs-12">
-          <ThumbnailImage
-            src="/assets/images/equipment_2.jpg"
-            className="img-fluid img-thumbnail"
-          />
-        </div>
-        <div className="col-md-4 col-sm-6 col-xs-12">
-          <ThumbnailImage
-            src="/assets/images/equipment_2.jpg"
-            className="img-fluid img-thumbnail"
-          />
-        </div>
-        <div className="col-md-4 col-sm-6 col-xs-12">
-          <ThumbnailImage
-            src="/assets/images/equipment_2.jpg"
-            className="img-fluid img-thumbnail"
-          />
-        </div>
-        <div className="col-md-4 col-sm-6 col-xs-12">
-          <ThumbnailImage
-            src="/assets/images/equipment_2.jpg"
-            className="img-fluid img-thumbnail"
-          />
-        </div>
-        <div className="col-md-4 col-sm-6 col-xs-12">
-          <ThumbnailImage
-            src="/assets/images/equipment_2.jpg"
-            className="img-fluid img-thumbnail"
-          />
-        </div>
-        <div className="col-md-4 col-sm-6 col-xs-12">
-          <ThumbnailImage
-            src="/assets/images/equipment_2.jpg"
-            className="img-fluid img-thumbnail"
-          />
-        </div>
+        {images.map((src, idx) => (
+          <div className="col-md-4 col-sm-6 col-xs-12" key={idx}>
+            <ThumbnailImage src={src} className="img-fluid img-thumbnail" />
+          </div>
+        ))}
       </div>
     </>
   );
@@ -130,6 +88,56 @@ const EquipmentDetails = () => {
   const [enquiryOpen, setEnquiryOpen] = useState(false);
   const [enquirySubmitting, setEnquirySubmitting] = useState(false);
   const [enquiryForm] = Form.useForm();
+  const [equipmentData, setEquipmentData] = useState(null);
+  const [loadingEquipment, setLoadingEquipment] = useState(true);
+  const [equipmentError, setEquipmentError] = useState(null);
+
+  const fetchEquipmentDetails = useCallback(async () => {
+    if (!equipmentId) return;
+    setLoadingEquipment(true);
+    setEquipmentError(null);
+    try {
+      const res = await fetch(`/api/equipments/${equipmentId}`, {
+        credentials: "include",
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.message || data?.error || "Failed to load equipment details");
+      }
+      const payload =
+        data?.data?.equipment ||
+        data?.equipment ||
+        (data?.data && typeof data.data === "object" ? data.data : data);
+      setEquipmentData(payload && typeof payload === "object" ? payload : null);
+    } catch (err) {
+      setEquipmentError(err?.message || "Failed to load equipment details");
+      setEquipmentData(null);
+    } finally {
+      setLoadingEquipment(false);
+    }
+  }, [equipmentId]);
+
+  useEffect(() => {
+    fetchEquipmentDetails();
+  }, [fetchEquipmentDetails]);
+
+  const equipmentName = equipmentData?.name || equipmentData?.title || "Equipment";
+  const equipmentModel = equipmentData?.model || equipmentData?.id || "N/A";
+  const equipmentCategory = equipmentData?.category || "N/A";
+  const equipmentAvailableFor =
+    equipmentData?.available_for || equipmentData?.availableFor || "N/A";
+  const equipmentRent =
+    equipmentData?.rent || equipmentData?.price || equipmentData?.rent_price || "N/A";
+  const equipmentWeight = equipmentData?.weight || "N/A";
+  const equipmentBuiltIn =
+    equipmentData?.manufacture_year || equipmentData?.manufactureYear || "N/A";
+  const equipmentDimensions = equipmentData?.dimensions || "N/A";
+  const equipmentLocation =
+    equipmentData?.address?.city ||
+    equipmentData?.equipment_address?.city ||
+    equipmentData?.location ||
+    "N/A";
+  const equipmentImage = equipmentData?.imageUrl || equipmentData?.image || "/assets/images/equipment_2.jpg";
 
   const openEnquiryModal = useCallback(() => {
     enquiryForm.resetFields();
@@ -181,12 +189,21 @@ const EquipmentDetails = () => {
         />
         <section className="section-padding small">
           <div className="container">
+            {loadingEquipment ? (
+              <div className="text-center py-5">
+                <Spin size="large" />
+              </div>
+            ) : equipmentError ? (
+              <div className="py-5">
+                <Empty description={equipmentError} />
+              </div>
+            ) : (
             <div className="row">
               <div className="col-12">
                 {/* Logo and company title */}
                 <div className="d-flex gap-2 mb-4">
                   <Image
-                    src="/assets/images/equipment_2.jpg"
+                    src={equipmentImage}
                     alt="My Logo"
                     width={260}
                     height={130}
@@ -194,14 +211,14 @@ const EquipmentDetails = () => {
                   />
                   <div className="flex-grow-1">
                     <h3 className="C-heading size-4 color-dark mb-2 extraBold">
-                      Replacement Brake Pad and Rotor Kit
+                      {equipmentName}
                     </h3>
                     <div className="d-flex justify-content-start gap-2 align-items-center mb-3">
                       <div>
                         <Space>
                           <Icon name="view_in_ar" color="#b1b1b1" />
                           <span className="C-heading size-6 color-light semiBold mb-0">
-                            KOE2553
+                            {equipmentModel}
                           </span>
                         </Space>
                       </div>
@@ -217,7 +234,7 @@ const EquipmentDetails = () => {
                         <Space>
                           <Icon name="settings" color="#b1b1b1" />
                           <span className="C-heading size-6 color-light semiBold mb-0">
-                            Logistics
+                            {equipmentCategory}
                           </span>
                         </Space>
                       </div>
@@ -235,7 +252,7 @@ const EquipmentDetails = () => {
                           <Icon name="sell" color="#b1b1b1" />
                           <span className="C-heading size-6 color-light semiBold mb-0">
                             Available for{" "}
-                            <strong className="color-primary">Sale</strong>
+                            <strong className="color-primary">{equipmentAvailableFor}</strong>
                           </span>
                         </Space>
                       </div>
@@ -248,7 +265,7 @@ const EquipmentDetails = () => {
                             <Space align="middle">
                               Rent:
                               <strong className="color-primary fs-4">
-                                $3400
+                                {equipmentRent}
                               </strong>
                             </Space>
                           </span>
@@ -265,12 +282,12 @@ const EquipmentDetails = () => {
                     {
                       key: "aboutCompany",
                       label: "Description",
-                      children: <AboutCompany />,
+                      children: <AboutCompany equipment={equipmentData} />,
                     },
                     {
                       key: "EquipmentImages",
                       label: "Images",
-                      children: <EquipmentImages />,
+                      children: <EquipmentImages imageUrl={equipmentImage} />,
                     },
                   ]}
                   className="C-tab"
@@ -286,7 +303,7 @@ const EquipmentDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-xs bold color-dark mb-0 text-right">
-                        Marine Engineering
+                        {equipmentCategory}
                       </span>
                     </div>
                   </div>
@@ -298,7 +315,7 @@ const EquipmentDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-xs bold color-dark mb-0 text-right">
-                        112 kg
+                        {equipmentWeight}
                       </span>
                     </div>
                   </div>
@@ -310,7 +327,7 @@ const EquipmentDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-xs bold color-dark mb-0 text-right">
-                        2015
+                        {equipmentBuiltIn}
                       </span>
                     </div>
                   </div>
@@ -322,7 +339,7 @@ const EquipmentDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-xs bold color-dark mb-0 text-right">
-                        12 X 2 X 1.5 m
+                        {equipmentDimensions}
                       </span>
                     </div>
                   </div>
@@ -334,7 +351,7 @@ const EquipmentDetails = () => {
                     </div>
                     <div className="col">
                       <span className="C-heading size-xs bold color-dark mb-0 text-right">
-                        London, UK
+                        {equipmentLocation}
                       </span>
                     </div>
                   </div>
@@ -346,7 +363,7 @@ const EquipmentDetails = () => {
                     </div>
                     <div className="col text-right">
                       <span className="C-heading size-xs bold color-dark mb-0 text-right">
-                        $5500
+                        {equipmentRent}
                       </span>
                     </div>
                   </div>
@@ -362,6 +379,7 @@ const EquipmentDetails = () => {
                 </div>
               </div>
             </div>
+            )}
           </div>
         </section>
 

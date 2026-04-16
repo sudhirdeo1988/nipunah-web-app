@@ -3,7 +3,6 @@
 import { useAuth } from "@/utilities/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, lazy, Suspense, useMemo } from "react";
-import AppInitializer from "@/components/AppInitializer";
 import { ROUTES } from "@/constants/routes";
 import { Layout } from "antd";
 import HeaderBeta from "@/components/HeaderBeta";
@@ -70,24 +69,22 @@ export default function AppLayout({ children }) {
   if (!isLoggedIn) return null;
 
   return (
-    <AppInitializer>
-      <div className="private-layout">
-        {/* Same header as public (before login) */}
-        <HeaderBeta />
-        {/* Sidebar + main content below header */}
-        <div className="private-layout-body" style={{ paddingTop: HEADER_HEIGHT }}>
-          <Sider className="appLayout-sideBar" width={230}>
-            <Suspense fallback={<></>}>
-              <PrivateSidebar />
-            </Suspense>
-          </Sider>
-          <Layout className="appLayout-main">
-            <Content className="appLayout-body">
-              <div className="appLayout-content p-3 h-100">{children}</div>
-            </Content>
-          </Layout>
-        </div>
+    <div className="private-layout">
+      {/* Same header as public (before login) */}
+      <HeaderBeta />
+      {/* Sidebar + main content below header */}
+      <div className="private-layout-body" style={{ paddingTop: HEADER_HEIGHT }}>
+        <Sider className="appLayout-sideBar" width={230}>
+          <Suspense fallback={<></>}>
+            <PrivateSidebar />
+          </Suspense>
+        </Sider>
+        <Layout className="appLayout-main">
+          <Content className="appLayout-body">
+            <div className="appLayout-content p-3 h-100">{children}</div>
+          </Content>
+        </Layout>
       </div>
-    </AppInitializer>
+    </div>
   );
 }

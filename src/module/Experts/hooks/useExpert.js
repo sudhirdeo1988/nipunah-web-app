@@ -3,33 +3,6 @@ import { expertService } from "@/utilities/apiServices";
 import { message } from "antd";
 
 /**
- * Mock data structure matching the API response
- */
-const MOCK_RESPONSE = {
-  success: true,
-  message: "Experts fetched successfully",
-  data: {
-    total: 150, // total experts in DB
-    page: 1, // current page
-    limit: 10, // page size
-    totalPages: 15, // based on total/limit
-
-    items: [
-      {
-        id: 1,
-        name: "Sudhir Deolalikar",
-        email: "sudhir@gmail.com",
-        contact: "9988776655",
-        country: "India",
-        createdAt: "1764930501",
-        updatedAt: "1764930501",
-        appliedJobsCount: 3,
-      },
-    ],
-  },
-};
-
-/**
  * Format date to DD-MM-YYYY
  * Handles both ISO date strings and timestamps (seconds/milliseconds)
  */
@@ -127,6 +100,11 @@ const transformExpertData = (apiData) => {
     // Handle created_on date (can be ISO string or timestamp)
     const createdOn = item.created_on || item.createdAt || item.created_at;
     const updatedOn = item.updated_on || item.updatedAt || item.updated_at;
+    const appliedJobs = Array.isArray(item.applied_jobs)
+      ? item.applied_jobs
+      : Array.isArray(item.appliedJobs)
+        ? item.appliedJobs
+        : [];
 
     return {
       id: item.id,
@@ -151,7 +129,8 @@ const transformExpertData = (apiData) => {
       createdAt: createdOn,
       updatedOn: updatedOn,
       updatedDate: formatDate(updatedOn),
-      appliedJobsCount: item.appliedJobsCount || 0,
+      appliedJobs,
+      appliedJobsCount: item.appliedJobsCount ?? appliedJobs.length ?? 0,
       action: { id: item.id },
     };
   });
@@ -178,7 +157,6 @@ const transformExpertData = (apiData) => {
  * @returns {Function} updateExpert - Update an existing expert
  * @returns {Function} deleteExpert - Delete an expert
  * @returns {Function} handleSort - Handle sorting change
- * @returns {Function} setUseMockData - Toggle between mock and real API
  */
 export const useExpert = () => {
   // State for experts list
@@ -207,11 +185,6 @@ export const useExpert = () => {
   // Ref to store debounce timer for search optimization
   const searchDebounceTimerRef = useRef(null);
 
-  // Mock data toggle - Set to false to use real API calls
-  // When ready to use real API, change this to false or remove the useMockData state
-  // Default is false to make real API calls - set to true only for development/testing
-  const [useMockData, setUseMockData] = useState(false);
-
   /**
    * Fetch experts from API with pagination, sorting, and search support
    *
@@ -229,8 +202,6 @@ export const useExpert = () => {
     async (params = {}) => {
       setLoading(true);
       try {
-        let response;
-
         // Prepare API parameters with defaults
         // Empty strings will be filtered out by the API utility
         const apiParams = {
@@ -242,43 +213,45 @@ export const useExpert = () => {
           search: params.search !== undefined ? params.search : searchQuery,
         };
 
-        if (useMockData) {
-          // Use mock data for development/testing
-          console.log(
-            "🔵 MOCK MODE: Fetch experts (no API call)",
-            apiParams
-          );
-          response = MOCK_RESPONSE;
-        } else {
-          // Call actual API with pagination, sorting, and search parameters
-          // Endpoint: /experts?page=1&limit=10&sortBy=name&order=asc
-          console.log("🟢 API CALL: GET /experts", { params: apiParams });
-          response = await expertService.getExperts(apiParams);
-          console.log("✅ API Response:", response);
-        }
+        // Call actual API with pagination, sorting, and search parameters
+        // Endpoint: /experts?page=1&limit=10&sortBy=name&order=asc
+        console.log("🟢 API CALL: GET /experts", { params: apiParams });
+        const response = await expertService.getExperts(apiParams);
+        console.log("✅ API Response:", response);
 
         // Process successful response
         // Handle different response structures
         let responseData = null;
-        if (response?.success && response?.data) {
-          // Check if data has items directly or nested
+        if (response?.data) {
           if (response.data.items) {
             responseData = response.data;
           } else if (response.data.data && response.data.data.items) {
-            // Nested data structure
             responseData = response.data.data;
           } else if (Array.isArray(response.data)) {
-            // If data is directly an array
             responseData = {
               items: response.data,
-              total: response.data.length,
-              page: 1,
-              limit: response.data.length,
-              totalPages: 1,
+              total: response.total ?? response.data.length,
+              page: response.page ?? 1,
+              limit: response.limit ?? response.data.length,
+              totalPages: response.totalPages ?? 1,
             };
-          } else {
-            responseData = response.data;
+          } else if (Array.isArray(response.items)) {
+            responseData = {
+              items: response.items,
+              total: response.total ?? response.items.length,
+              page: response.page ?? 1,
+              limit: response.limit ?? response.items.length,
+              totalPages: response.totalPages ?? 1,
+            };
           }
+        } else if (Array.isArray(response)) {
+          responseData = {
+            items: response,
+            total: response.length,
+            page: 1,
+            limit: response.length,
+            totalPages: 1,
+          };
         }
 
         if (responseData && responseData.items) {
@@ -321,23 +294,13 @@ export const useExpert = () => {
           error.message || "Failed to fetch experts. Please try again.";
         message.error(errorMessage);
 
-        // Fallback to mock data on error (only if using real API)
-        // This allows UI to continue working even if API fails
-        if (!useMockData) {
-          console.warn("Falling back to mock data due to API error");
-          const transformedData = transformExpertData(MOCK_RESPONSE.data);
-          setExperts(transformedData);
-        } else {
-          // Clear experts on error if using mock data
-          setExperts([]);
-        }
+        setExperts([]);
       } finally {
         // Always reset loading state, even on error
         setLoading(false);
       }
     },
     [
-      useMockData,
       pagination.current,
       pagination.pageSize,
       searchQuery,
@@ -366,21 +329,11 @@ export const useExpert = () => {
       setError(null);
 
       try {
-        let response;
-
-        if (useMockData) {
-          // Mock create - just show success message for development
-          console.log("🔵 MOCK MODE: Create expert (no API call)", expertData);
-          response = { success: true };
-        } else {
-          // Call actual API to create expert
-          // Payload format: { "name": "string", "email": "string", "contact": "string", "country": "string" }
-          console.log("🟢 API CALL: POST /experts", {
-            payload: expertData,
-          });
-          response = await expertService.createExpert(expertData);
-          console.log("✅ API Response:", response);
-        }
+        console.log("🟢 API CALL: POST /experts", {
+          payload: expertData,
+        });
+        const response = await expertService.createExpert(expertData);
+        console.log("✅ API Response:", response);
 
         // Show success message
         message.success("Expert created successfully");
@@ -398,7 +351,7 @@ export const useExpert = () => {
         setLoading(false);
       }
     },
-    [useMockData, fetchExperts]
+    [fetchExperts]
   );
 
   /**
@@ -446,26 +399,12 @@ export const useExpert = () => {
       setError(null);
 
       try {
-        let response;
-
-        if (useMockData) {
-          // Mock update - just show success message for development
-          console.log("🔵 MOCK MODE: Update expert (no API call)", {
-            expertId,
-            expertData,
-          });
-          response = { success: true };
-        } else {
-          // ✅ Call actual API to update expert
-          // Endpoint: PUT /experts/{id}
-          // Payload matches signup form structure
-          console.log("🟢 API CALL: PUT /experts/{id}", {
-            expertId,
-            payload: expertData,
-          });
-          response = await expertService.updateExpert(expertId, expertData);
-          console.log("✅ API Response:", response);
-        }
+        console.log("🟢 API CALL: PUT /experts/{id}", {
+          expertId,
+          payload: expertData,
+        });
+        const response = await expertService.updateExpert(expertId, expertData);
+        console.log("✅ API Response:", response);
 
         // ✅ Success state - show success message
         message.success("Expert updated successfully");
@@ -485,7 +424,7 @@ export const useExpert = () => {
         setLoading(false);
       }
     },
-    [useMockData, fetchExperts]
+    [fetchExperts]
   );
 
   /**
@@ -512,26 +451,12 @@ export const useExpert = () => {
       setError(null);
 
       try {
-        let response;
-
-        if (useMockData) {
-          // Mock update - just show success message for development
-          console.log("🔵 MOCK MODE: Update approval status (no API call)", {
-            expertId,
-            isApproved,
-          });
-          response = { success: true };
-        } else {
-          // ✅ Call actual API to update approval status
-          // Endpoint: PATCH /experts/{id}
-          // Payload: { "is_expert_approved": true/false }
-          console.log("🟢 API CALL: PATCH /experts/{id}", {
-            expertId,
-            payload: { is_expert_approved: isApproved },
-          });
-          response = await expertService.updateApprovalStatus(expertId, isApproved);
-          console.log("✅ API Response:", response);
-        }
+        console.log("🟢 API CALL: PATCH /experts/{id}", {
+          expertId,
+          payload: { is_expert_approved: isApproved },
+        });
+        const response = await expertService.updateApprovalStatus(expertId, isApproved);
+        console.log("✅ API Response:", response);
 
         // ✅ Success state - show success message
         message.success(
@@ -555,7 +480,7 @@ export const useExpert = () => {
         setLoading(false);
       }
     },
-    [useMockData, fetchExperts]
+    [fetchExperts]
   );
 
   /**
@@ -580,21 +505,9 @@ export const useExpert = () => {
       setError(null);
 
       try {
-        let response;
-
-        if (useMockData) {
-          // Mock delete - just show success message for development
-          console.log("🔵 MOCK MODE: Delete expert (no API call)", {
-            expertId,
-          });
-          response = { success: true };
-        } else {
-          // ✅ Call actual API to delete expert
-          // Endpoint: DELETE /experts/{id}
-          console.log("🟢 API CALL: DELETE /experts/{id}", { expertId });
-          response = await expertService.deleteExpert(expertId);
-          console.log("✅ API Response:", response);
-        }
+        console.log("🟢 API CALL: DELETE /experts/{id}", { expertId });
+        const response = await expertService.deleteExpert(expertId);
+        console.log("✅ API Response:", response);
 
         // ✅ Success state - show success message
         message.success("Expert deleted successfully");
@@ -614,7 +527,7 @@ export const useExpert = () => {
         setLoading(false);
       }
     },
-    [useMockData, fetchExperts]
+    [fetchExperts]
   );
 
   /**
@@ -687,8 +600,6 @@ export const useExpert = () => {
     deleteExpert,
     handleSort,
 
-    // Configuration
-    setUseMockData, // Allow toggling between mock and real API
   };
 };
 

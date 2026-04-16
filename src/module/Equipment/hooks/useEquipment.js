@@ -212,23 +212,36 @@ export const useEquipment = () => {
 
         // Handle different response structures
         let responseData = null;
-        if (response?.success && response?.data) {
-          // Check if data has items directly or nested
+        if (response?.data) {
           if (response.data.items) {
             responseData = response.data;
           } else if (response.data.data && response.data.data.items) {
-            // Nested data structure
             responseData = response.data.data;
           } else if (Array.isArray(response.data)) {
-            // If data is directly an array
             responseData = {
               items: response.data,
-              total: response.data.length,
-              page: 1,
-              limit: response.data.length,
-              totalPages: 1,
+              total: response.total ?? response.data.length,
+              page: response.page ?? 1,
+              limit: response.limit ?? response.data.length,
+              totalPages: response.totalPages ?? 1,
+            };
+          } else if (Array.isArray(response.items)) {
+            responseData = {
+              items: response.items,
+              total: response.total ?? response.items.length,
+              page: response.page ?? 1,
+              limit: response.limit ?? response.items.length,
+              totalPages: response.totalPages ?? 1,
             };
           }
+        } else if (Array.isArray(response)) {
+          responseData = {
+            items: response,
+            total: response.length,
+            page: 1,
+            limit: response.length,
+            totalPages: 1,
+          };
         }
 
         if (responseData && responseData.items) {

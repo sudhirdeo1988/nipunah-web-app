@@ -182,14 +182,22 @@ const Company = () => {
       // Add subscription plan
       payload.subscription_plan = "Free";
 
+      // Ensure social_media matches API contract (always include keys)
+      payload.social_media = {
+        facebook: payload?.social_media?.facebook || "",
+        instagram: payload?.social_media?.instagram || "",
+        linkedin: payload?.social_media?.linkedin || "",
+      };
+
       // Sanitize addresses to only allowed keys
       payload.addresses = Array.isArray(payload.addresses)
         ? payload.addresses.map((addr) => ({
             isPrimary: !!addr?.isPrimary,
-            country: addr?.country,
-            address: addr?.address,
-            city: addr?.city,
-            postal_code: addr?.postal_code,
+            country: addr?.country || "",
+            state: addr?.state || "",
+            location: addr?.location || addr?.address || "",
+            city: addr?.city || "",
+            postal_code: addr?.postal_code || "",
           }))
         : payload.addresses;
 

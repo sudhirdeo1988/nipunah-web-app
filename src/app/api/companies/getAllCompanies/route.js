@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+const TOKEN_COOKIE_KEYS = [
+  "access_token",
+  "token",
+  "auth_token",
+  "authToken",
+  "jwt",
+  "id_token",
+];
+
 function getBearerTokenFromCookieHeader(cookieHeader) {
   if (!cookieHeader) return null;
   const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
@@ -20,7 +29,18 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
     return acc;
   }, {});
 
-  return cookies["access_token"] || cookies.access_token || null;
+  for (const key of TOKEN_COOKIE_KEYS) {
+    if (cookies[key]) return cookies[key];
+  }
+  return null;
+}
+
+function getBearerTokenFromAuthHeader(authorizationHeader) {
+  if (!authorizationHeader) return null;
+  const [scheme, token] = authorizationHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
 }
 
 /**
@@ -49,7 +69,10 @@ export async function GET(request) {
     }
 
     const cookieHeader = request.headers.get("cookie") || "";
-    const token = getBearerTokenFromCookieHeader(cookieHeader);
+    const tokenFromHeader = getBearerTokenFromAuthHeader(
+      request.headers.get("authorization") || ""
+    );
+    const token = tokenFromHeader || getBearerTokenFromCookieHeader(cookieHeader);
 
     const headers = {
       "Content-Type": "application/json",

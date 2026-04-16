@@ -1,6 +1,15 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+const TOKEN_COOKIE_KEYS = [
+  "access_token",
+  "token",
+  "auth_token",
+  "authToken",
+  "jwt",
+  "id_token",
+];
+
 function getBearerTokenFromCookieHeader(cookieHeader) {
   if (!cookieHeader) return null;
   const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
@@ -20,7 +29,38 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
     return acc;
   }, {});
 
-  return cookies["access_token"] || cookies.access_token || null;
+  for (const key of TOKEN_COOKIE_KEYS) {
+    if (cookies[key]) return cookies[key];
+  }
+  return null;
+}
+
+function getBearerTokenFromAuthHeader(authorizationHeader) {
+  if (!authorizationHeader) return null;
+  const [scheme, token] = authorizationHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
+function resolveBearerToken(request) {
+  const tokenFromHeader = getBearerTokenFromAuthHeader(
+    request.headers.get("authorization") || ""
+  );
+  if (tokenFromHeader) return tokenFromHeader;
+
+  const cookieHeader = request.headers.get("cookie") || "";
+  return getBearerTokenFromCookieHeader(cookieHeader);
+}
+
+function unauthorizedResponse() {
+  return NextResponse.json(
+    {
+      error: "Unauthorized",
+      message: "Authentication token is required",
+    },
+    { status: 401 }
+  );
 }
 
 /**
@@ -32,14 +72,14 @@ export async function GET(request, { params }) {
     const { id } = params || {};
     const url = `${API_BASE_URL}/users/${id}`;
 
-    const cookieHeader = request.headers.get("cookie") || "";
-    const token = getBearerTokenFromCookieHeader(cookieHeader);
+    const token = resolveBearerToken(request);
+    if (!token) return unauthorizedResponse();
 
     const headers = {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-    if (token) headers.Authorization = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(url, { method: "GET", headers });
 
@@ -83,14 +123,14 @@ export async function PUT(request, { params }) {
     const url = `${API_BASE_URL}/users/${id}`;
     const body = await request.json();
 
-    const cookieHeader = request.headers.get("cookie") || "";
-    const token = getBearerTokenFromCookieHeader(cookieHeader);
+    const token = resolveBearerToken(request);
+    if (!token) return unauthorizedResponse();
 
     const headers = {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-    if (token) headers.Authorization = `Bearer ${token}`;
+    headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(url, {
       method: "PUT",
@@ -137,23 +177,14 @@ export async function DELETE(request, { params }) {
     const { id } = params || {};
     const url = `${API_BASE_URL}/users/${id}`;
 
-    const cookieHeader = request.headers.get("cookie") || "";
-    const token = getBearerTokenFromCookieHeader(cookieHeader);
+    const token = resolveBearerToken(request);
+    if (!token) return unauthorizedResponse();
 
     const headers = {
       "Content-Type": "application/json",
       Accept: "application/json",
     };
-    if (token) headers.Authorization = `Bearer ${token}`;
-    else {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
-        { status: 401 }
-      );
-    }
+    headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(url, { method: "DELETE", headers });
 
