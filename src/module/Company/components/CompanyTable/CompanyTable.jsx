@@ -129,24 +129,26 @@ const CompanyTable = memo(
      */
     const renderStatus = useCallback(
       (status, record) => {
-        // Map status to boolean: "approved" = true, anything else = false (rejected)
-        const isApproved = status === "approved" || status === "Approved";
+        const normalizedStatus = String(status || "").toLowerCase();
+        const isActive =
+          normalizedStatus === "approved" ||
+          normalizedStatus === "active";
         
         return (
           <Space size={8} align="center">
-            {isApproved ? (
+            {isActive ? (
               <Space size={4} align="center">
                 <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
-                <span style={{ color: "#52c41a", fontSize: "12px" }}>Approved</span>
+                <span style={{ color: "#52c41a", fontSize: "12px" }}>Active</span>
               </Space>
             ) : (
               <Space size={4} align="center">
                 <Icon name="cancel" size="small" style={{ color: "#ff4d4f" }} />
-                <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Rejected</span>
+                <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Inactive</span>
               </Space>
             )}
             <Switch
-              checked={isApproved}
+              checked={isActive}
               onChange={(checked) => handleStatusChange(checked, record)}
               size="small"
               disabled={loading}
@@ -211,16 +213,19 @@ const CompanyTable = memo(
           });
         }
         if (canApprove) {
+          const normalizedStatus = String(record.status || "").toLowerCase();
+          const isActive =
+            normalizedStatus === "approved" || normalizedStatus === "active";
           items.push({
-            key: record.status === "approved" || record.status === "Approved" ? "reject" : "approve",
+            key: isActive ? "reject" : "approve",
             label: (
               <Space align="center">
                 <Icon
-                  name={record.status === "approved" || record.status === "Approved" ? "cancel" : "check_circle"}
+                  name={isActive ? "cancel" : "check_circle"}
                   size="small"
                 />
                 <span className="C-heading size-xs mb-0 semiBold">
-                  {record.status === "approved" || record.status === "Approved" ? "Reject" : "Approve"}
+                  {isActive ? "Inactive" : "Active"}
                 </span>
               </Space>
             ),

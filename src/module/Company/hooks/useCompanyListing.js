@@ -49,33 +49,67 @@ function parseCategoriesFromResponse(response) {
   );
 }
 
+function formatDateToDDMMYYYY(value) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+  return `${day}-${month}-${year}`;
+}
+
 /** Map API company row to table shape used by CompanyTable */
 function normalizeCompanyFromApi(c) {
   const id = c.id ?? c.company_id ?? c.companyId;
   const name = c.name || c.company_name || c.title || "—";
   const shortName = c.short_name || c.shortName || "";
-  const industry = c.industry || c.category?.name || "—";
+  const industry = c.industry || c.category?.name || c.title || "—";
   const employeeCount =
-    c.employee_count || c.employeeCount || c.employees || "—";
+    c.employee_count ||
+    c.employeeCount ||
+    c.employeesCount ||
+    c.employees ||
+    "—";
   const rawPlan =
     c.subscription_plan || c.subscriptionPlan || c.plan || "basic";
   const subscriptionPlan = String(rawPlan || "basic").toLowerCase();
-  const rawStatus = c.status || c.company_status || "pending";
+  const rawStatus = c.status || c.company_status || "active";
   const statusLower = String(rawStatus).toLowerCase();
   const status =
-    statusLower === "approved"
-      ? "approved"
-      : statusLower === "rejected" || statusLower === "blocked"
-        ? "rejected"
-        : "pending";
+    statusLower === "approved" || statusLower === "active"
+      ? "active"
+      : statusLower === "rejected" || statusLower === "blocked" || statusLower === "inactive"
+        ? "inactive"
+        : "active";
   const postedJobs = Array.isArray(c.posted_jobs)
     ? c.posted_jobs
     : Array.isArray(c.postedJobs)
       ? c.postedJobs
       : [];
-  const createdAt =
-    (c.created_at || c.createdAt || c.created_on || "").toString().split("T")[0] ||
-    "";
+  const createdAtRaw = c.created_at || c.createdAt || c.created_on || "";
+  const createdAt = formatDateToDDMMYYYY(createdAtRaw);
+  const categories = Array.isArray(c.categories)
+    ? c.categories
+    : c.category
+      ? [c.category]
+      : Array.isArray(c.category_ids)
+        ? c.category_ids
+        : [];
+  const socialLinks = Array.isArray(c.socialLinks)
+    ? c.socialLinks
+    : c.socialMedia && typeof c.socialMedia === "object"
+      ? Object.entries(c.socialMedia)
+          .filter(([_, value]) => value)
+          .map(([platform, url]) => ({ platform, url }))
+      : [];
+  const locations = Array.isArray(c.locations)
+    ? c.locations
+    : Array.isArray(c.addresses)
+      ? c.addresses
+      : [];
 
   return {
     ...c,
@@ -88,9 +122,13 @@ function normalizeCompanyFromApi(c) {
     status,
     postedJobs,
     createdAt,
-    categories: c.categories || c.category_ids || [],
-    contactEmail: c.contact_email || c.contactEmail,
-    locations: c.locations || [],
+    categories,
+    socialLinks,
+    contactEmail: c.contact_email || c.contactEmail || c.email,
+    contactNumber: c.contactNumber || c.contact_number || c.phone || "",
+    description: c.description || c.aboutCompany || c.about || "",
+    turnOver: c.turnOver || c.turnover || "",
+    locations,
     location: c.location,
     address: c.address,
   };
@@ -386,10 +424,10 @@ export const useCompanyListing = () => {
   const handleApproveCompany = useCallback((company) => {
     setCompanies((prevCompanies) =>
       prevCompanies.map((comp) =>
-        comp.id === company.id ? { ...comp, status: "approved" } : comp
+        comp.id === company.id ? { ...comp, status: "active" } : comp
       )
     );
-    message.success(`${company.name} has been approved`);
+    message.success(`${company.name} is now active`);
   }, []);
 
   /**
@@ -399,10 +437,10 @@ export const useCompanyListing = () => {
   const handleBlockCompany = useCallback((company) => {
     setCompanies((prevCompanies) =>
       prevCompanies.map((comp) =>
-        comp.id === company.id ? { ...comp, status: "rejected" } : comp
+        comp.id === company.id ? { ...comp, status: "inactive" } : comp
       )
     );
-    message.success(`${company.name} has been rejected`);
+    message.success(`${company.name} is now inactive`);
   }, []);
 
   /**
@@ -414,13 +452,13 @@ export const useCompanyListing = () => {
     setCompanies((prevCompanies) =>
       prevCompanies.map((comp) =>
         comp.id === companyId
-          ? { ...comp, status: isApproved ? "approved" : "rejected" }
+          ? { ...comp, status: isApproved ? "active" : "inactive" }
           : comp
       )
     );
     const company = companies.find((c) => c.id === companyId);
     message.success(
-      `${company?.name || "Company"} has been ${isApproved ? "approved" : "rejected"}`
+      `${company?.name || "Company"} is now ${isApproved ? "active" : "inactive"}`
     );
   }, [companies]);
 

@@ -31,10 +31,10 @@ export const userService = {
 
   /**
    * Get all users with pagination
-   * Uses Next.js proxy GET /api/users -> ${API_BASE_URL}/users (avoids CORS on localhost)
+   * Uses Next.js proxy GET /api/users/getAllUsers -> ${API_BASE_URL}/users/getAllUsers
    */
   getUsers: async (params = {}) => {
-    return axiosInstance.get("/users", { params });
+    return axiosInstance.get("/users/getAllUsers", { params });
   },
 
   /**
@@ -165,6 +165,27 @@ export const pricingService = {
    */
   updatePricingPlan: async (planId, payload) => {
     return axiosInstance.put(`/pricing/${planId}`, payload || {});
+  },
+};
+
+/**
+ * Service API Services
+ */
+export const serviceService = {
+  /**
+   * Get all services
+   * Endpoint: GET /api/services/getAllServices
+   */
+  getServices: async (params = {}) => {
+    return axiosInstance.get("/services/getAllServices", { params });
+  },
+
+  /**
+   * Create service
+   * Endpoint: POST /api/services
+   */
+  createService: async (payload) => {
+    return axiosInstance.post("/services", payload || {});
   },
 };
 

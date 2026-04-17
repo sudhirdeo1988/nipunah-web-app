@@ -2,25 +2,10 @@
 
 import React, { useMemo, useState, useCallback } from "react";
 import { useAppSelector } from "@/store/hooks";
+import { serviceService } from "@/utilities/apiServices";
+import { getIdFromStoredUser, loadUserSession } from "@/utilities/sessionUser";
 import { Table, Modal, Dropdown, Space, Button, Form, Input, Select, message } from "antd";
 import Icon from "@/components/Icon";
-
-const MOCK_SERVICES = [
-  {
-    id: 1,
-    categoryId: "1",
-    categoryName: "Shipping",
-    title: "Vessel Management",
-    description: "End-to-end vessel operation and compliance management services.",
-  },
-  {
-    id: 2,
-    categoryId: "2",
-    categoryName: "Dredging",
-    title: "Dredging Consultation",
-    description: "Planning and optimization support for coastal dredging projects.",
-  },
-];
 
 const ServiceListing = ({ permissions = {} }) => {
   const canView = Boolean(permissions.view);
@@ -30,7 +15,9 @@ const ServiceListing = ({ permissions = {} }) => {
 
   const categories = useAppSelector((state) => state.categories?.list ?? []);
 
-  const [services, setServices] = useState(MOCK_SERVICES);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
 
   const [isCreateEditModalOpen, setIsCreateEditModalOpen] = useState(false);
@@ -54,6 +41,66 @@ const ServiceListing = ({ permissions = {} }) => {
     },
     [categoryOptions]
   );
+
+  const mapServiceFromApi = useCallback(
+    (service, index = 0) => {
+      const id =
+        service?.id ??
+        service?.service_id ??
+        service?.serviceId ??
+        `${service?.title || "service"}-${service?.category || index}`;
+      const categoryId = String(
+        service?.category ??
+          service?.categoryId ??
+          service?.category_id ??
+          ""
+      );
+      return {
+        ...service,
+        id,
+        categoryId,
+        categoryName:
+          service?.categoryName ||
+          service?.category_name ||
+          service?.category?.name ||
+          resolveCategoryLabel(categoryId) ||
+          categoryId ||
+          "—",
+        title: service?.title || service?.service_title || "—",
+        description: service?.description || service?.service_description || "—",
+      };
+    },
+    [resolveCategoryLabel]
+  );
+
+  const parseServicesResponse = useCallback((res) => {
+    if (!res) return [];
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res?.data?.items)) return res.data.items;
+    if (Array.isArray(res?.data)) return res.data;
+    if (Array.isArray(res?.items)) return res.items;
+    if (Array.isArray(res?.services)) return res.services;
+    return [];
+  }, []);
+
+  const loadServices = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await serviceService.getServices({ page: 1, limit: 500 });
+      const rawItems = parseServicesResponse(res);
+      const rows = rawItems.map((item, index) => mapServiceFromApi(item, index));
+      setServices(rows);
+    } catch (error) {
+      message.error(error?.message || "Failed to load services");
+      setServices([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [mapServiceFromApi, parseServicesResponse]);
+
+  React.useEffect(() => {
+    loadServices();
+  }, [loadServices]);
 
   const closeCreateEdit = useCallback(() => {
     setIsCreateEditModalOpen(false);
@@ -108,28 +155,39 @@ const ServiceListing = ({ permissions = {} }) => {
   }, []);
 
   const handleSubmit = useCallback(
-    (values) => {
+    async (values) => {
+      if (isEditing) {
+        message.info("Edit service API is not implemented yet.");
+        return;
+      }
+
+      const sessionUser = loadUserSession();
+      const createdBy = getIdFromStoredUser(sessionUser);
+      if (createdBy == null || createdBy === "") {
+        message.error("Could not resolve user id. Please login again.");
+        return;
+      }
+
       const payload = {
-        categoryId: String(values.categoryId),
-        categoryName: resolveCategoryLabel(values.categoryId),
+        created_by: createdBy,
+        category: Number(values.categoryId),
         title: values.title?.trim(),
         description: values.description?.trim(),
       };
 
-      if (isEditing && selectedService?.id) {
-        setServices((prev) =>
-          prev.map((s) => (s.id === selectedService.id ? { ...s, ...payload } : s))
-        );
-        message.success("Service updated successfully");
-      } else {
-        const nextId = services.length ? Math.max(...services.map((s) => Number(s.id) || 0)) + 1 : 1;
-        setServices((prev) => [{ id: nextId, ...payload }, ...prev]);
+      try {
+        setSubmitting(true);
+        await serviceService.createService(payload);
         message.success("Service created successfully");
+        closeCreateEdit();
+        await loadServices();
+      } catch (error) {
+        message.error(error?.message || "Failed to create service");
+      } finally {
+        setSubmitting(false);
       }
-
-      closeCreateEdit();
     },
-    [closeCreateEdit, isEditing, resolveCategoryLabel, selectedService, services]
+    [closeCreateEdit, isEditing, loadServices]
   );
 
   const actionMenuItems = useMemo(() => {
@@ -246,6 +304,7 @@ const ServiceListing = ({ permissions = {} }) => {
         rowKey="id"
         columns={columns}
         dataSource={services}
+        loading={loading}
         pagination={false}
         scroll={{ x: 900 }}
       />
@@ -301,7 +360,13 @@ const ServiceListing = ({ permissions = {} }) => {
             <Button className="C-button is-bordered small" onClick={closeCreateEdit}>
               Cancel
             </Button>
-            <Button type="primary" htmlType="submit" className="C-button is-filled small">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="C-button is-filled small"
+              loading={submitting}
+              disabled={submitting}
+            >
               {isEditing ? "Update Service" : "Create Service"}
             </Button>
           </div>

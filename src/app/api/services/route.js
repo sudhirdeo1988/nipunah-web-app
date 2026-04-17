@@ -47,59 +47,41 @@ function isUsableToken(token) {
   if (!token || typeof token !== "string") return false;
   const normalized = token.trim().toLowerCase();
   if (!normalized) return false;
-  // Guard against accidental stringified invalid values from cookies/headers.
   return !["undefined", "null", "nan"].includes(normalized);
 }
 
-/**
- * GET /api/companies/getAllCompanies
- * Proxy to ${API_BASE_URL}/companies/getAllCompanies — query params forwarded.
- */
-export async function GET(request) {
+export async function POST(request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const params = Object.fromEntries(searchParams.entries());
-    if (params.sortBy === "createdOn" || params.sortBy === "created_on") {
-      params.sortBy = "createdAt";
-    }
-
-    let url = `${API_BASE_URL}/companies/getAllCompanies`;
-
-    if (Object.keys(params).length > 0) {
-      const queryString = new URLSearchParams(
-        Object.entries(params).filter(
-          ([_, value]) => value !== null && value !== undefined && value !== ""
-        )
-      ).toString();
-      if (queryString) {
-        url += `?${queryString}`;
-      }
-    }
-
     const cookieHeader = request.headers.get("cookie") || "";
     const tokenFromHeader = getBearerTokenFromAuthHeader(
       request.headers.get("authorization") || ""
     );
     const token = tokenFromHeader || getBearerTokenFromCookieHeader(cookieHeader);
 
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    if (isUsableToken(token)) {
-      headers.Authorization = `Bearer ${token}`;
+    if (!isUsableToken(token)) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "Authentication token is required",
+        },
+        { status: 401 }
+      );
     }
 
-    const response = await fetch(url, {
-      method: "GET",
-      headers,
+    const payload = await request.json().catch(() => ({}));
+    const response = await fetch(`${API_BASE_URL}/Services`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload || {}),
       cache: "no-store",
     });
 
     const contentType = response.headers.get("content-type");
     let data;
-
     if (contentType && contentType.includes("application/json")) {
       data = await response.json();
     } else {
@@ -116,11 +98,11 @@ export async function GET(request) {
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("GET /api/companies/getAllCompanies proxy error:", error);
+    console.error("POST /api/services proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error.message || "Failed to fetch companies",
+        message: error.message || "Failed to create service",
       },
       { status: 500 }
     );

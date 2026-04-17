@@ -18,6 +18,7 @@
 import React, { useCallback, useEffect, useMemo, useState, memo } from "react";
 import Icon from "@/components/Icon";
 import { userService } from "@/utilities/apiServices";
+import { useAppSelector } from "@/store/hooks";
 import {
   DatePicker,
   Divider,
@@ -148,8 +149,13 @@ function parseUsersResponse(res) {
 /**
  * Map one API user object to table row shape
  */
-function mapApiUserToRow(u) {
-  const id = u.id ?? u.user_id ?? u.userId;
+function mapApiUserToRow(u, index = 0) {
+  const id =
+    u.id ??
+    u.user_id ??
+    u.userId ??
+    u.email ??
+    `${u.first_name || "user"}-${u.last_name || "item"}-${u.created_on || index}`;
   const firstName = u.first_name || u.firstName || "";
   const lastName = u.last_name || u.lastName || "";
   const userName =
@@ -164,6 +170,7 @@ function mapApiUserToRow(u) {
     u.phone ??
     u.mobile ??
     u.contact ??
+    u.contact_number ??
     u.phone_number ??
     u.phoneNumber ??
     "";
@@ -185,6 +192,7 @@ function mapApiUserToRow(u) {
     ) || 0;
 
   return {
+    ...u,
     id,
     userName,
     email: u.email || "",
@@ -196,6 +204,25 @@ function mapApiUserToRow(u) {
     ),
     action: { id },
   };
+}
+
+function isAdminLikeUser(u) {
+  if (!u || typeof u !== "object") return false;
+  const roleCandidates = [
+    u.role,
+    u.type,
+    u.userType,
+    u.user_type,
+    u.account_type,
+  ]
+    .filter(Boolean)
+    .map((v) => String(v).toLowerCase().trim());
+
+  if (roleCandidates.some((r) => r === "admin" || r === "superadmin")) {
+    return true;
+  }
+
+  return Boolean(u.is_admin || u.isAdmin || u.is_super_admin || u.isSuperAdmin);
 }
 
 /**
@@ -213,6 +240,16 @@ function mapApiUserToRow(u) {
 const UserListing = ({ permissions = {} }) => {
   const canView = Boolean(permissions.view);
   const canDelete = Boolean(permissions.delete);
+  const currentUserRole = useAppSelector(
+    (state) =>
+      state.user?.role ||
+      state.user?.user?.role ||
+      state.user?.user?.type ||
+      state.user?.user?.userType ||
+      state.user?.user?.user_type ||
+      ""
+  );
+  const isCurrentUserAdmin = String(currentUserRole).toLowerCase() === "admin";
   // ==================== STATE MANAGEMENT ====================
 
   /** @type {[string[], Function]} Selected row keys for bulk operations */
@@ -306,13 +343,20 @@ const UserListing = ({ permissions = {} }) => {
 
       const res = await userService.getUsers(params);
       const { items, total } = parseUsersResponse(res);
-      const rows = items
-        .map(mapApiUserToRow)
-        .filter((row) => row.id !== undefined && row.id !== null);
+      const sourceItems = isCurrentUserAdmin
+        ? items
+        : items.filter((item) => !isAdminLikeUser(item));
+      const rows = sourceItems
+        .map((item, index) => mapApiUserToRow(item, index))
+        .filter((row) => row.id !== undefined && row.id !== null && row.id !== "");
       setUsers(rows);
       setPagination((prev) => ({
         ...prev,
-        total: typeof total === "number" ? total : rows.length,
+        total: isCurrentUserAdmin
+          ? typeof total === "number"
+            ? total
+            : rows.length
+          : rows.length,
       }));
     } catch (err) {
       console.error("Failed to load users:", err);
@@ -322,7 +366,7 @@ const UserListing = ({ permissions = {} }) => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, debouncedSearch]);
+  }, [pagination.current, pagination.pageSize, debouncedSearch, isCurrentUserAdmin]);
 
   useEffect(() => {
     loadUsers();

@@ -15,6 +15,18 @@ import { Modal, Table, Tag } from "antd";
  * @returns {JSX.Element} The CompanyDetailsModal component
  */
 const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
+  const turnoverValue = company?.turnOver ?? company?.turnover;
+  const normalizedLocations = Array.isArray(company?.locations)
+    ? company.locations
+    : Array.isArray(company?.addresses)
+      ? company.addresses
+      : [];
+  const normalizedCategories = Array.isArray(company?.categories)
+    ? company.categories
+    : company?.category
+      ? [company.category]
+      : [];
+
   return (
     <Modal
       title={
@@ -60,13 +72,13 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                     Employee Count:
                   </p>
                   <p className="C-heading size-6 mb-0">
-                    {company.employeeCount || company.employees_count || "N/A"}
+                    {company.employeeCount || company.employees_count || company.employeesCount || "N/A"}
                   </p>
                 </div>
                 <div className="col-6 mb-3">
                   <p className="C-heading size-xs mb-1 text-muted">Turnover:</p>
                   <p className="C-heading size-6 mb-0">
-                    ${company.turnOver?.toLocaleString()}
+                    {turnoverValue ? `${turnoverValue}` : "N/A"}
                   </p>
                 </div>
                 <div className="col-6 mb-3">
@@ -108,24 +120,24 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                 <div className="col-6 mb-3">
                   <p className="C-heading size-xs mb-1 text-muted">Email:</p>
                   <p className="C-heading size-6 mb-0">
-                    {company.contactEmail}
+                    {company.contactEmail || company.email || "N/A"}
                   </p>
                 </div>
                 <div className="col-6 mb-3">
                   <p className="C-heading size-xs mb-1 text-muted">Phone:</p>
                   <p className="C-heading size-6 mb-0">
-                    {company.contactNumber}
+                    {company.contactNumber || company.contact_number || "N/A"}
                   </p>
                 </div>
                 <div className="col-12 mb-3">
                   <p className="C-heading size-xs mb-1 text-muted">Website:</p>
                   <p className="C-heading size-6 mb-0">
                     <a
-                      href={company.websiteUrl}
+                      href={company.websiteUrl || company.website || "#"}
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {company.websiteUrl}
+                      {company.websiteUrl || company.website || "N/A"}
                     </a>
                   </p>
                 </div>
@@ -133,7 +145,9 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                   <p className="C-heading size-xs mb-1 text-muted">
                     Description:
                   </p>
-                  <p className="C-heading size-6 mb-0">{company.description}</p>
+                  <p className="C-heading size-6 mb-0">
+                    {company.description || company.aboutCompany || "N/A"}
+                  </p>
                 </div>
               </div>
             </div>
@@ -141,7 +155,7 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
             {/* Locations */}
             <div className="col-12 mb-4">
               <h5 className="C-heading size-5 mb-3 bold">Locations</h5>
-              {company.locations?.map((location, index) => (
+              {normalizedLocations.length > 0 ? normalizedLocations.map((location, index) => (
                 <div key={index} className="bg-light p-3 rounded mb-2">
                   <div className="row">
                     <div className="col-4">
@@ -163,10 +177,14 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                       <p className="C-heading size-6 mb-0">
                         <Tag
                           color={
-                            location.isPrimaryLocation ? "green" : "default"
+                            location.isPrimaryLocation || location.isPrimary
+                              ? "green"
+                              : "default"
                           }
                         >
-                          {location.isPrimaryLocation ? "Yes" : "No"}
+                          {location.isPrimaryLocation || location.isPrimary
+                            ? "Yes"
+                            : "No"}
                         </Tag>
                       </p>
                     </div>
@@ -175,12 +193,14 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                         Address:
                       </p>
                       <p className="C-heading size-6 mb-0">
-                        {location.address}
+                        {location.address || "N/A"}
                       </p>
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="C-heading size-6 mb-0 text-muted">No locations available</p>
+              )}
             </div>
 
             {/* Posted Jobs */}
@@ -279,7 +299,7 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
             {/* Categories */}
             <div className="col-12 mb-4">
               <h5 className="C-heading size-5 mb-3 bold">Categories</h5>
-              {company.categories?.map((category, index) => (
+              {normalizedCategories.length > 0 ? normalizedCategories.map((category, index) => (
                 <div key={index} className="bg-light p-3 rounded mb-2">
                   <div className="row">
                     <div className="col-6">
@@ -314,7 +334,9 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                     )}
                   </div>
                 </div>
-              ))}
+              )) : (
+                <p className="C-heading size-6 mb-0 text-muted">No categories available</p>
+              )}
             </div>
 
             {/* Timestamps */}

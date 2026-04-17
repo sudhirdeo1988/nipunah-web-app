@@ -385,6 +385,38 @@ const CompanyDetails = () => {
         : [],
     [companyData]
   );
+  const companyTabs = useMemo(() => {
+    const aboutTab = [
+      {
+        key: "aboutCompany",
+        label: "About Company",
+        children: <AboutCompany company={companyData} />,
+      },
+    ];
+
+    if (!isLoggedIn) {
+      return aboutTab;
+    }
+
+    return [
+      ...aboutTab,
+      {
+        key: "companyEquipments",
+        label: "Equipments",
+        children: <CompanyEquipments equipments={companyEquipments} />,
+      },
+      {
+        key: "companyJobs",
+        label: "Jobs",
+        children: <CompanyJobs jobs={companyJobs} />,
+      },
+      {
+        key: "companyDocs",
+        label: "Documants",
+        children: <CompanyDocuments />,
+      },
+    ];
+  }, [companyData, companyEquipments, companyJobs, isLoggedIn]);
 
   const openEnquiryModal = useCallback(() => {
     enquiryForm.resetFields();
@@ -506,28 +538,7 @@ const CompanyDetails = () => {
               <div className="col-md-8 col-sm-12">
                 <Tabs
                   type="card"
-                  items={[
-                    {
-                      key: "aboutCompany",
-                      label: "About Company",
-                      children: <AboutCompany company={companyData} />,
-                    },
-                    {
-                      key: "companyEquipments",
-                      label: "Equipments",
-                      children: <CompanyEquipments equipments={companyEquipments} />,
-                    },
-                    {
-                      key: "companyJobs",
-                      label: "Jobs",
-                      children: <CompanyJobs jobs={companyJobs} />,
-                    },
-                    {
-                      key: "companyDocs",
-                      label: "Documants",
-                      children: <CompanyDocuments />,
-                    },
-                  ]}
+                  items={companyTabs}
                   className="C-tab"
                 />
               </div>

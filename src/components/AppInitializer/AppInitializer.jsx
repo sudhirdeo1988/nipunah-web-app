@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useAuth } from "@/utilities/AuthContext";
 import { useRouter } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
@@ -37,7 +37,6 @@ function parseCategoriesFromResponse(response) {
 }
 
 const AppInitializer = ({ children }) => {
-  const [loading, setLoading] = useState(true);
   const { token, logout } = useAuth();
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -63,7 +62,6 @@ const AppInitializer = ({ children }) => {
     };
 
     const fetchInitialData = async () => {
-      setLoading(true);
       try {
         // Load any cached user session first (fast UI)
         let cached = loadUserSession();
@@ -119,7 +117,6 @@ const AppInitializer = ({ children }) => {
         // Load categories on app init (company search dropdown, etc.)
         await fetchCategories();
 
-        setLoading(false);
       } catch (err) {
         console.error("Failed to load initial data", err);
         if (err.isAuthError || err.status === 401) {
@@ -129,23 +126,17 @@ const AppInitializer = ({ children }) => {
           logout();
           router.push(ROUTES?.PUBLIC?.LOGIN || "/login");
         }
-        setLoading(false);
       }
     };
 
     if (token) {
       fetchInitialData();
     } else {
-      setLoading(false);
       dispatch(clearUser());
       dispatch(clearCategories());
       clearUserSession();
     }
   }, [token, logout, router, dispatch]);
-
-  if (loading) {
-    return <div>Loading app...</div>;
-  }
 
   return children;
 };

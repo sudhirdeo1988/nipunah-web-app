@@ -154,6 +154,7 @@ const LoginPage = () => {
   );
 
   const handleLogin = async (values) => {
+    let isLoginSuccessful = false;
     try {
       setLoading(true);
 
@@ -299,6 +300,7 @@ const LoginPage = () => {
           ? ROUTES?.PUBLIC?.HOME || "/"
           : ROUTES?.PRIVATE?.DASHBOARD || "/app/dashboard";
 
+      isLoginSuccessful = true;
       router.push(postLoginRoute);
     } catch (error) {
       // Handle error
@@ -309,7 +311,10 @@ const LoginPage = () => {
       message.error(errorMessage);
       console.error("Login error:", error);
     } finally {
-      setLoading(false);
+      // Keep button loader active after successful login until this page unmounts on redirect.
+      if (!isLoginSuccessful) {
+        setLoading(false);
+      }
     }
   };
 

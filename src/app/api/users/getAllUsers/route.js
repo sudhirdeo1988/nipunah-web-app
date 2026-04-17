@@ -47,24 +47,19 @@ function isUsableToken(token) {
   if (!token || typeof token !== "string") return false;
   const normalized = token.trim().toLowerCase();
   if (!normalized) return false;
-  // Guard against accidental stringified invalid values from cookies/headers.
   return !["undefined", "null", "nan"].includes(normalized);
 }
 
 /**
- * GET /api/companies/getAllCompanies
- * Proxy to ${API_BASE_URL}/companies/getAllCompanies — query params forwarded.
+ * GET /api/users/getAllUsers
+ * Proxy to ${API_BASE_URL}/users/getAllUsers — query params forwarded.
  */
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());
-    if (params.sortBy === "createdOn" || params.sortBy === "created_on") {
-      params.sortBy = "createdAt";
-    }
 
-    let url = `${API_BASE_URL}/companies/getAllCompanies`;
-
+    let url = `${API_BASE_URL}/users/getAllUsers`;
     if (Object.keys(params).length > 0) {
       const queryString = new URLSearchParams(
         Object.entries(params).filter(
@@ -82,24 +77,28 @@ export async function GET(request) {
     );
     const token = tokenFromHeader || getBearerTokenFromCookieHeader(cookieHeader);
 
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    if (isUsableToken(token)) {
-      headers.Authorization = `Bearer ${token}`;
+    if (!isUsableToken(token)) {
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "Authentication token is required",
+        },
+        { status: 401 }
+      );
     }
 
     const response = await fetch(url, {
       method: "GET",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       cache: "no-store",
     });
 
     const contentType = response.headers.get("content-type");
     let data;
-
     if (contentType && contentType.includes("application/json")) {
       data = await response.json();
     } else {
@@ -116,11 +115,11 @@ export async function GET(request) {
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("GET /api/companies/getAllCompanies proxy error:", error);
+    console.error("GET /api/users/getAllUsers proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error.message || "Failed to fetch companies",
+        message: error.message || "Failed to fetch users",
       },
       { status: 500 }
     );
