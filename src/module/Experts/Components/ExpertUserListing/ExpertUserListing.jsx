@@ -35,6 +35,11 @@ import {
 } from "antd";
 import { ACTION_MENU_ITEMS } from "../../constants/expertConstants";
 
+function valueOrDash(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  return String(value);
+}
+
 /**
 /**
  * ExpertUserListing Component
@@ -696,53 +701,57 @@ const ExpertUserListing = ({
         centered
       >
         {expertForDetails && (
-          <div className="py-3">
-            {/* Basic Information Section */}
-            <div className="mb-4">
-              <h6 className="C-heading size-xs bold mb-3 color-dark">Basic Information</h6>
-              <div className="row">
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Name</p>
-                  <p className="C-heading size-6 mb-0">
-                    {expertForDetails.name || "N/A"}
+          <div className="py-2">
+            <div
+              className="mb-3 p-3"
+              style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+            >
+              <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                  <p className="C-heading size-xs mb-1 text-muted">Name</p>
+                  <p className="C-heading size-5 mb-0 bold">
+                    {valueOrDash(expertForDetails.name || expertForDetails.userName)}
                   </p>
                 </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Email</p>
-                  <p className="C-heading size-6 mb-0">
-                    {expertForDetails.email || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Expertise</p>
-                  <p className="C-heading size-6 mb-0">
-                    {expertForDetails.expertise || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Subscription Plan</p>
-                  <p className="C-heading size-6 mb-0 text-capitalize">
-                    {expertForDetails.subscriptionPlan || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Approval Status</p>
+                <div className="text-end">
+                  <p className="C-heading size-xs mb-1 text-muted">Approval</p>
                   <p className="C-heading size-6 mb-0">
                     {expertForDetails.isExpertApproved ? (
-                      <Space size={4} align="center">
-                        <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
-                        <span style={{ color: "#52c41a" }}>Approved</span>
-                      </Space>
+                      <span className="text-success semiBold">Approved</span>
                     ) : (
-                      <Space size={4} align="center">
-                        <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
-                        <span style={{ color: "#ff4d4f" }}>Pending</span>
-                      </Space>
+                      <span className="text-danger semiBold">Pending</span>
                     )}
                   </p>
                 </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Payment Status</p>
+              </div>
+            </div>
+
+            <div
+              className="mb-3 p-3"
+              style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+            >
+              <p className="C-heading size-xs mb-2 text-muted bold">Basic Information</p>
+              <div className="row">
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Email</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.email)}
+                  </p>
+                </div>
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Expertise</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.expertise)}
+                  </p>
+                </div>
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Subscription Plan</p>
+                  <p className="C-heading size-6 mb-0 text-capitalize">
+                    {valueOrDash(expertForDetails.subscriptionPlan)}
+                  </p>
+                </div>
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Payment Status</p>
                   <p className="C-heading size-6 mb-0">
                     {expertForDetails.paymentDetails?.is_paid_user ? (
                       <span className="text-success">Paid User</span>
@@ -751,64 +760,81 @@ const ExpertUserListing = ({
                     )}
                   </p>
                 </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Applied Jobs</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.appliedJobsCount || 0)}
+                  </p>
+                </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Registered On</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.createDate)}
+                  </p>
+                </div>
               </div>
             </div>
 
-            {/* Address Section */}
-            {expertForDetails.address && (
-              <div className="mb-4">
-                <h6 className="C-heading size-xs bold mb-3 color-dark">Address</h6>
-                <div className="row pb-3 border-bottom">
-                  <div className="col-6 mb-3">
-                    <p className="C-heading size-xs mb-2 bold color-dark">Country</p>
-                    <p className="C-heading size-6 mb-0">
-                      {expertForDetails.address?.country || "N/A"}
-                    </p>
-                  </div>
-                  <div className="col-6 mb-3">
-                    <p className="C-heading size-xs mb-2 bold color-dark">State/Province</p>
-                    <p className="C-heading size-6 mb-0">
-                      {expertForDetails.address?.state || "N/A"}
-                    </p>
-                  </div>
-                  <div className="col-12 mb-3">
-                    <p className="C-heading size-xs mb-2 bold color-dark">Detail Address</p>
-                    <p className="C-heading size-6 mb-0">
-                      {expertForDetails.address?.location || "N/A"}
-                    </p>
-                  </div>
-                  <div className="col-6 mb-3">
-                    <p className="C-heading size-xs mb-2 bold color-dark">City</p>
-                    <p className="C-heading size-6 mb-0">
-                      {expertForDetails.address?.city || "N/A"}
-                    </p>
-                  </div>
-                  <div className="col-6 mb-3">
-                    <p className="C-heading size-xs mb-2 bold color-dark">Postal Code</p>
-                    <p className="C-heading size-6 mb-0">
-                      {expertForDetails.address?.postal_code || "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Contact Information Section */}
-            <div className="mb-4">
-              <h6 className="C-heading size-xs bold mb-3 color-dark">Contact Information</h6>
-              <div className="row pb-3 border-bottom">
+            <div
+              className="mb-3 p-3"
+              style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+            >
+              <p className="C-heading size-xs mb-2 text-muted bold">Address</p>
+              <div className="row">
                 <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Contact Number</p>
+                  <p className="C-heading size-xs mb-1 text-muted">Country</p>
                   <p className="C-heading size-6 mb-0">
-                    {expertForDetails.contactCountryCode && expertForDetails.contactNumber
-                      ? `${expertForDetails.contactCountryCode} ${expertForDetails.contactNumber}`
-                      : expertForDetails.contact || "N/A"}
+                    {valueOrDash(expertForDetails.address?.country)}
                   </p>
                 </div>
-                {expertForDetails.socialMedia?.linkedin && (
-                  <div className="col-6 mb-3">
-                    <p className="C-heading size-xs mb-2 bold color-dark">LinkedIn</p>
-                    <p className="C-heading size-6 mb-0">
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-1 text-muted">State/Province</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.address?.state)}
+                  </p>
+                </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">City</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.address?.city)}
+                  </p>
+                </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Postal Code</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.address?.postal_code)}
+                  </p>
+                </div>
+                <div className="col-12 mt-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Detail Address</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(expertForDetails.address?.location)}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div
+              className="p-3"
+              style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+            >
+              <p className="C-heading size-xs mb-2 text-muted bold">Contact Information</p>
+              <div className="row">
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Contact Number</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(
+                      expertForDetails.contactCountryCode &&
+                        expertForDetails.contactNumber
+                        ? `${expertForDetails.contactCountryCode} ${expertForDetails.contactNumber}`
+                        : expertForDetails.contact
+                    )}
+                  </p>
+                </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">LinkedIn</p>
+                  <p className="C-heading size-6 mb-0">
+                    {expertForDetails.socialMedia?.linkedin ? (
                       <a
                         href={expertForDetails.socialMedia.linkedin}
                         target="_blank"
@@ -817,26 +843,9 @@ const ExpertUserListing = ({
                       >
                         {expertForDetails.socialMedia.linkedin}
                       </a>
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Additional Information */}
-            <div>
-              <h6 className="C-heading size-xs bold mb-3 color-dark">Additional Information</h6>
-              <div className="row">
-                <div className="col-6">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Applied Jobs</p>
-                  <p className="C-heading size-6 mb-0">
-                    {expertForDetails.appliedJobsCount || 0}
-                  </p>
-                </div>
-                <div className="col-6">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Registered On</p>
-                  <p className="C-heading size-6 mb-0">
-                    {expertForDetails.createDate || "N/A"}
+                    ) : (
+                      "—"
+                    )}
                   </p>
                 </div>
               </div>

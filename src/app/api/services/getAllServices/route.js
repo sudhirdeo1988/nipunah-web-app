@@ -73,23 +73,17 @@ export async function GET(request) {
     );
     const token = tokenFromHeader || getBearerTokenFromCookieHeader(cookieHeader);
 
-    if (!isUsableToken(token)) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
-        { status: 401 }
-      );
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (isUsableToken(token)) {
+      headers.Authorization = `Bearer ${token}`;
     }
 
     const response = await fetch(url, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
       cache: "no-store",
     });
 

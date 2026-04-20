@@ -1,17 +1,21 @@
 "use client";
 
 import React, { useState, useCallback, useEffect, useMemo, memo } from "react";
-import { Switch, Button, message, Tabs } from "antd";
-import { map as _map } from "lodash-es";
+import { Switch, Button, message, Tabs, Input } from "antd";
+import { DndContext, PointerSensor, closestCenter, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, arrayMove, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import Icon from "@/components/Icon";
 import { ROLE_MANAGEMENT_MOCK } from "@/constants/roleManagementMock";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
 
-const MODULE_BLOCK_STYLE = { background: "#fafafa" };
+const MODULE_BLOCK_STYLE = { background: "#ffffff", border: "1px solid #f0f0f0" };
 const LABEL_STYLE = { cursor: "pointer" };
 const PERM_LABEL_STYLE = { textTransform: "capitalize", fontSize: "0.875rem" };
 const ICON_WHITE_STYLE = { color: "#fff" };
+const ROLE_PERMISSIONS_STORAGE_KEY = "nipunah_role_permissions_override";
+const SIDEBAR_NAV_ORDER_STORAGE_KEY = "nipunah_sidebar_nav_order";
 const ROLE_LABELS = {
   admin: "Administrator",
   user: "User",
@@ -27,6 +31,7 @@ const NAV_KEYS = [
   "nav_companies",
   "nav_services",
   "nav_jobs",
+  "nav_pricing",
   "nav_enquiries",
   "nav_equipments",
   "nav_role_management",
@@ -83,6 +88,8 @@ const MODULE_PERMISSION_KEYS = [
   "role_management_add",
   "role_management_edit",
   "role_management_delete",
+  "pricing_view",
+  "pricing_edit",
   "enquiries_view",
   "enquiries_delete",
   "enquiries_respond",
@@ -94,44 +101,263 @@ const KEY_GROUPS = [
   { label: "Module Permissions", keys: MODULE_PERMISSION_KEYS },
 ];
 
-const PermissionsPanel = memo(function PermissionsPanel({ roleKey, data, onToggleKey }) {
+const getHumanLabel = (key) => String(key || "").replace(/_/g, " ");
+const MODULE_PERMISSION_CATEGORY_ORDER = [
+  "dashboard",
+  "users",
+  "experts",
+  "company",
+  "services",
+  "jobs",
+  "equipments",
+  "categories",
+  "role_management",
+  "pricing",
+  "enquiries",
+];
+
+function getModulePermissionCategory(permissionKey) {
+  const key = String(permissionKey || "");
+  const knownPrefix = MODULE_PERMISSION_CATEGORY_ORDER.find((prefix) =>
+    key.startsWith(`${prefix}_`)
+  );
+  if (knownPrefix) return knownPrefix;
+  const firstPart = key.split("_")[0];
+  return firstPart || "misc";
+}
+
+function sanitizeNavOrder(order) {
+  if (!Array.isArray(order)) return NAV_KEYS;
+  const valid = order.filter((key) => NAV_KEYS.includes(key));
+  const missing = NAV_KEYS.filter((key) => !valid.includes(key));
+  return [...valid, ...missing];
+}
+
+const SortableNavRow = memo(function SortableNavRow({
+  permissionKey,
+  index,
+  enabled,
+  onToggle,
+  disabled,
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
+    useSortable({ id: permissionKey });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.65 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} className="col-12 col-md-6">
+      <div className="d-flex align-items-center justify-content-between py-2 px-2 border rounded bg-white h-100">
+        <div className="d-flex align-items-center gap-2" style={{ minWidth: 0 }}>
+          <button
+            type="button"
+            className="C-settingButton is-clean small"
+            {...attributes}
+            {...listeners}
+            disabled={disabled}
+            aria-label={`Drag to reorder ${getHumanLabel(permissionKey)}`}
+          >
+            <Icon name="drag_indicator" size="small" />
+          </button>
+          <span
+            className="text-muted"
+            style={{ minWidth: 18, display: "inline-block", fontSize: "0.8rem" }}
+          >
+            {index + 1}.
+          </span>
+          <span style={PERM_LABEL_STYLE}>{getHumanLabel(permissionKey)}</span>
+        </div>
+        <Switch size="small" checked={enabled} onChange={onToggle} disabled={disabled} />
+      </div>
+    </div>
+  );
+});
+
+const PermissionsPanel = memo(function PermissionsPanel({
+  roleKey,
+  data,
+  onToggleKey,
+  searchTerm,
+  onToggleGroup,
+  navOrder,
+  onReorderNav,
+  disabled,
+}) {
   const renderLabel = useCallback(
-    (key) => key.replace(/_/g, " "),
+    (key) => getHumanLabel(key),
     []
   );
+  const normalizedSearch = String(searchTerm || "").trim().toLowerCase();
+
+  const groupedModulePermissions = useMemo(() => {
+    const allItems = KEY_GROUPS.find((group) => group.label === "Module Permissions");
+    if (!allItems) return [];
+
+    const filtered = allItems.keys.filter((key) =>
+      normalizedSearch ? renderLabel(key).toLowerCase().includes(normalizedSearch) : true
+    );
+
+    const bucket = filtered.reduce((acc, key) => {
+      const category = getModulePermissionCategory(key);
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(key);
+      return acc;
+    }, {});
+
+    return Object.keys(bucket)
+      .sort((a, b) => {
+        const ai = MODULE_PERMISSION_CATEGORY_ORDER.indexOf(a);
+        const bi = MODULE_PERMISSION_CATEGORY_ORDER.indexOf(b);
+        if (ai === -1 && bi === -1) return a.localeCompare(b);
+        if (ai === -1) return 1;
+        if (bi === -1) return -1;
+        return ai - bi;
+      })
+      .map((category) => ({
+        category,
+        keys: bucket[category],
+      }));
+  }, [normalizedSearch, renderLabel]);
 
   return (
     <div className="d-flex flex-column gap-3 pt-2">
-      {_map(KEY_GROUPS, (group) => (
-          <div
-            key={group.label}
-            className="border rounded p-3"
-            style={MODULE_BLOCK_STYLE}
-          >
-            <div className="d-flex align-items-center justify-content-between mb-2">
-              <span className="fw-semibold">{group.label}</span>
+      {KEY_GROUPS.map((group) => {
+        const filteredKeys =
+          group.label === "Module Permissions"
+            ? groupedModulePermissions.flatMap((item) => item.keys)
+            : group.keys.filter((key) =>
+                normalizedSearch ? renderLabel(key).toLowerCase().includes(normalizedSearch) : true
+              );
+        if (filteredKeys.length === 0) return null;
+
+        const enabledCount = filteredKeys.filter((key) => !!data[key]).length;
+        const allEnabled = enabledCount === filteredKeys.length;
+
+        return (
+          <div key={group.label} className="rounded p-3" style={MODULE_BLOCK_STYLE}>
+            <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+              <span className="fw-semibold">
+                {group.label} ({enabledCount}/{filteredKeys.length})
+              </span>
+              <Button
+                size="small"
+                onClick={() => onToggleGroup(roleKey, filteredKeys, !allEnabled)}
+                disabled={disabled}
+              >
+                {allEnabled ? "Disable all" : "Enable all"}
+              </Button>
             </div>
-            <div className="d-flex flex-wrap gap-2 mb-2">
-              {_map(group.keys, (key) => (
-                <label
-                  key={key}
-                  className="d-inline-flex align-items-center gap-1 rounded px-2 py-1 border bg-white"
-                  style={LABEL_STYLE}
-                >
-                  <span style={PERM_LABEL_STYLE}>
-                    {renderLabel(key)}
-                  </span>
-                  <Switch
-                    size="small"
-                    checked={!!data[key]}
-                    onChange={() => onToggleKey(roleKey, key)}
-                  />
-                </label>
-              ))}
-            </div>
+            {group.label === "Module Permissions" ? (
+              <div className="d-flex flex-column gap-3">
+                {groupedModulePermissions.map((categoryGroup) => {
+                  const catEnabled = categoryGroup.keys.filter((key) => !!data[key]).length;
+                  const categoryLabel = getHumanLabel(categoryGroup.category);
+                  return (
+                    <div key={categoryGroup.category} className="bg-white border rounded p-3">
+                      <div className="d-flex align-items-center justify-content-between mb-2">
+                        <span className="fw-semibold text-capitalize">
+                          {categoryLabel} ({catEnabled}/{categoryGroup.keys.length})
+                        </span>
+                        <Button
+                          size="small"
+                          onClick={() =>
+                            onToggleGroup(
+                              roleKey,
+                              categoryGroup.keys,
+                              catEnabled !== categoryGroup.keys.length
+                            )
+                          }
+                          disabled={disabled}
+                        >
+                          {catEnabled === categoryGroup.keys.length ? "Disable all" : "Enable all"}
+                        </Button>
+                      </div>
+                      <div className="row g-2">
+                        {categoryGroup.keys.map((key) => (
+                          <div key={key} className="col-12 col-md-6">
+                            <label
+                              className="d-flex align-items-center justify-content-between py-2 px-2 border rounded h-100"
+                              style={LABEL_STYLE}
+                            >
+                              <span style={PERM_LABEL_STYLE}>{renderLabel(key)}</span>
+                              <Switch
+                                size="small"
+                                checked={!!data[key]}
+                                onChange={() => onToggleKey(roleKey, key)}
+                                disabled={disabled}
+                              />
+                            </label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <NavigationPermissionsGrid
+                roleKey={roleKey}
+                data={data}
+                disabled={disabled}
+                navOrder={navOrder}
+                onToggleKey={onToggleKey}
+                onReorderNav={onReorderNav}
+                filteredKeys={filteredKeys}
+              />
+            )}
           </div>
-      ))}
+        );
+      })}
     </div>
+  );
+});
+
+const NavigationPermissionsGrid = memo(function NavigationPermissionsGrid({
+  roleKey,
+  data,
+  disabled,
+  navOrder,
+  onToggleKey,
+  onReorderNav,
+  filteredKeys,
+}) {
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const visibleOrder = navOrder.filter((key) => filteredKeys.includes(key));
+
+  const handleDragEnd = useCallback(
+    (event) => {
+      const { active, over } = event;
+      if (!active?.id || !over?.id || active.id === over.id) return;
+      const oldIndex = visibleOrder.indexOf(active.id);
+      const newIndex = visibleOrder.indexOf(over.id);
+      if (oldIndex < 0 || newIndex < 0) return;
+      const reorderedVisible = arrayMove(visibleOrder, oldIndex, newIndex);
+      onReorderNav(reorderedVisible, filteredKeys);
+    },
+    [visibleOrder, onReorderNav, filteredKeys]
+  );
+
+  return (
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+      <SortableContext items={visibleOrder} strategy={verticalListSortingStrategy}>
+        <div className="row g-2">
+          {visibleOrder.map((key, index) => (
+            <SortableNavRow
+              key={key}
+              permissionKey={key}
+              index={index}
+              enabled={!!data[key]}
+              onToggle={() => onToggleKey(roleKey, key)}
+              disabled={disabled}
+            />
+          ))}
+        </div>
+      </SortableContext>
+    </DndContext>
   );
 });
 
@@ -141,20 +367,73 @@ const PermissionsPanel = memo(function PermissionsPanel({ roleKey, data, onToggl
 const RoleManagementPage = () => {
   const { allowed, permissions } = useModuleAccess("role_management");
   const [rolesData, setRolesData] = useState({});
+  const [initialRolesData, setInitialRolesData] = useState({});
+  const [navOrder, setNavOrder] = useState(NAV_KEYS);
+  const [initialNavOrder, setInitialNavOrder] = useState(NAV_KEYS);
+  const [hasChanges, setHasChanges] = useState(false);
   const [selectedRoleKey, setSelectedRoleKey] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const canEdit = Boolean(permissions.edit);
+
+  const cloneRoles = useCallback((input) => JSON.parse(JSON.stringify(input || {})), []);
+
+  const normalizeRolesPayload = useCallback((payload) => {
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+      return cloneRoles(ROLE_MANAGEMENT_MOCK);
+    }
+
+    const roleKeys = Object.keys(ROLE_MANAGEMENT_MOCK);
+    const result = {};
+    roleKeys.forEach((roleKey) => {
+      const base = ROLE_MANAGEMENT_MOCK[roleKey] || {};
+      const source = payload[roleKey] && typeof payload[roleKey] === "object" ? payload[roleKey] : {};
+      result[roleKey] = Object.keys(base).reduce((acc, permissionKey) => {
+        acc[permissionKey] = source[permissionKey] === undefined ? Boolean(base[permissionKey]) : Boolean(source[permissionKey]);
+        return acc;
+      }, {});
+    });
+    return result;
+  }, [cloneRoles]);
+
+  const loadRolePermissionsFromStorage = useCallback(() => {
+    if (typeof window === "undefined") return null;
+    try {
+      const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  }, []);
 
   const loadPermissions = useCallback(async () => {
     setLoading(true);
     try {
-      const localClone = JSON.parse(JSON.stringify(ROLE_MANAGEMENT_MOCK));
-      setRolesData(localClone);
-      setSelectedRoleKey((prev) => prev || Object.keys(localClone)[0] || null);
+      const stored = loadRolePermissionsFromStorage();
+      const normalized = normalizeRolesPayload(stored || ROLE_MANAGEMENT_MOCK);
+      const storedNavOrder = loadRolePermissionsFromStorage()?.__nav_order__;
+      const resolvedNavOrder = sanitizeNavOrder(storedNavOrder || NAV_KEYS);
+      setRolesData(normalized);
+      setInitialRolesData(cloneRoles(normalized));
+      setNavOrder(resolvedNavOrder);
+      setInitialNavOrder(resolvedNavOrder);
+      setHasChanges(false);
+      setSelectedRoleKey((prev) => prev || Object.keys(normalized)[0] || null);
+    } catch (err) {
+      const fallback = cloneRoles(ROLE_MANAGEMENT_MOCK);
+      setRolesData(fallback);
+      setInitialRolesData(cloneRoles(fallback));
+      setNavOrder(NAV_KEYS);
+      setInitialNavOrder(NAV_KEYS);
+      setHasChanges(false);
+      setSelectedRoleKey((prev) => prev || Object.keys(fallback)[0] || null);
+      message.error(err?.message || "Failed to load permissions");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [cloneRoles, normalizeRolesPayload, loadRolePermissionsFromStorage]);
 
   useEffect(() => {
     loadPermissions();
@@ -168,25 +447,93 @@ const RoleManagementPage = () => {
         [key]: !prev?.[roleKey]?.[key],
       },
     }));
+    setHasChanges(true);
   }, []);
 
+  const toggleGroup = useCallback((roleKey, keys, value) => {
+    setRolesData((prev) => {
+      const nextRole = { ...(prev?.[roleKey] || {}) };
+      keys.forEach((key) => {
+        nextRole[key] = Boolean(value);
+      });
+      return { ...prev, [roleKey]: nextRole };
+    });
+    setHasChanges(true);
+  }, []);
+
+  const reorderNavigation = useCallback((reorderedVisible, filteredKeys) => {
+    setNavOrder((prev) => {
+      const visibleSet = new Set(filteredKeys);
+      const reorderedSet = new Set(reorderedVisible);
+      const next = [];
+      let reorderedIndex = 0;
+      prev.forEach((key) => {
+        if (visibleSet.has(key)) {
+          const newKey = reorderedVisible[reorderedIndex];
+          if (newKey) next.push(newKey);
+          reorderedIndex += 1;
+        } else {
+          next.push(key);
+        }
+      });
+      NAV_KEYS.forEach((key) => {
+        if (!next.includes(key) && reorderedSet.has(key)) next.push(key);
+      });
+      setHasChanges(true);
+      return sanitizeNavOrder(next);
+    });
+  }, []);
+
+  const selectedRoleData = useMemo(() => rolesData?.[selectedRoleKey] || {}, [rolesData, selectedRoleKey]);
+  const selectedRoleTotal = useMemo(() => Object.keys(selectedRoleData).length, [selectedRoleData]);
+  const selectedRoleEnabled = useMemo(
+    () => Object.values(selectedRoleData).filter(Boolean).length,
+    [selectedRoleData]
+  );
+
   const savePermissions = useCallback(async () => {
-    console.log("Save permissions – payload (all roles, flat):", rolesData);
+    if (!hasChanges) {
+      message.info("No changes to save");
+      return;
+    }
     setSaving(true);
     try {
-      // Static frontend-only mode: show payload in console for manual code update.
-      message.success("Updated in current session only. Update ROLE_MANAGEMENT_MOCK in code to persist.");
+      if (typeof window === "undefined") {
+        throw new Error("Save is available only in browser context");
+      }
+      const saved = normalizeRolesPayload(rolesData);
+      window.localStorage.setItem(
+        ROLE_PERMISSIONS_STORAGE_KEY,
+        JSON.stringify({ ...saved, __nav_order__: navOrder })
+      );
+      window.localStorage.setItem(
+        SIDEBAR_NAV_ORDER_STORAGE_KEY,
+        JSON.stringify(navOrder)
+      );
+      window.dispatchEvent(new CustomEvent("role-permissions-updated"));
+      window.dispatchEvent(new CustomEvent("sidebar-nav-order-updated"));
+      setRolesData(saved);
+      setInitialRolesData(cloneRoles(saved));
+      setInitialNavOrder(navOrder);
+      setHasChanges(false);
+      message.success("Permissions saved successfully");
     } catch (err) {
       message.error(err?.message || "Failed to save");
     } finally {
       setSaving(false);
     }
-  }, [rolesData]);
+  }, [rolesData, navOrder, hasChanges, normalizeRolesPayload, cloneRoles]);
+
+  const resetChanges = useCallback(() => {
+    setRolesData(cloneRoles(initialRolesData));
+    setNavOrder(initialNavOrder);
+    setHasChanges(false);
+    message.success("Changes discarded");
+  }, [cloneRoles, initialRolesData, initialNavOrder]);
 
   const list = useMemo(
     () => {
-      const source =
-        Object.keys(rolesData).length ? rolesData : ROLE_MANAGEMENT_MOCK;
+      const source = Object.keys(rolesData).length ? rolesData : ROLE_MANAGEMENT_MOCK;
       return Object.keys(source).map((roleKey) => ({
         roleKey,
         label: ROLE_LABELS[roleKey] || roleKey,
@@ -209,11 +556,16 @@ const RoleManagementPage = () => {
               roleKey={roleKey}
               data={item.data}
               onToggleKey={toggleKey}
+              searchTerm={searchTerm}
+              onToggleGroup={toggleGroup}
+              navOrder={navOrder}
+              onReorderNav={reorderNavigation}
+              disabled={!canEdit}
             />
           ),
         };
       }),
-    [list, toggleKey]
+    [list, toggleKey, searchTerm, toggleGroup, navOrder, reorderNavigation, canEdit]
   );
 
   if (!allowed) return null;
@@ -227,26 +579,44 @@ const RoleManagementPage = () => {
     );
   }
 
-  const canEdit = Boolean(permissions.edit);
-
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
       <AppPageHeader
         title="Role Management"
-        subtitle="Manage permissions for all roles (admin, user, expert, company)"
+        subtitle="Simple permission control for admin, user, expert, and company roles"
       >
-        {canEdit && (
-          <Button
-            type="primary"
-            icon={<Icon name="save" style={ICON_WHITE_STYLE} />}
-            onClick={savePermissions}
-            loading={saving}
-          >
-            Save permissions
-          </Button>
-        )}
+        <div className="d-flex gap-2">
+          {canEdit && (
+            <>
+              <Button onClick={resetChanges} disabled={!hasChanges || saving}>
+                Reset
+              </Button>
+              <Button
+                type="primary"
+                icon={<Icon name="save" style={ICON_WHITE_STYLE} />}
+                onClick={savePermissions}
+                loading={saving}
+                disabled={!hasChanges}
+              >
+                Save permissions
+              </Button>
+            </>
+          )}
+        </div>
       </AppPageHeader>
       <div className="p-3">
+        <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+          <Input
+            allowClear
+            placeholder="Search permission (e.g. users delete)"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={{ maxWidth: 360 }}
+          />
+          <span className="text-muted">
+            {selectedRoleKey ? `${ROLE_LABELS[selectedRoleKey] || selectedRoleKey}: ${selectedRoleEnabled}/${selectedRoleTotal} enabled` : ""}
+          </span>
+        </div>
         <Tabs
           type="card"
           activeKey={selectedRoleKey ?? list[0]?.roleKey ?? ""}

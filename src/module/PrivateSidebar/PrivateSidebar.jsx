@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, memo } from "react";
+import React, { useMemo, useCallback, memo, useEffect, useState } from "react";
 import "./PrivateSidebar.scss";
 import { Space } from "antd";
 import Icon from "@/components/Icon";
@@ -8,11 +8,35 @@ import { usePathname, useRouter } from "next/navigation";
 import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 const DASHBOARD_NAVS = DASHBOARD_ROUTES?.COMPANY ?? [];
+const SIDEBAR_NAV_ORDER_STORAGE_KEY = "nipunah_sidebar_nav_order";
+const MODULE_KEY_TO_NAV_KEY = {
+  dashboard: "nav_dashboard",
+  categories: "nav_categories",
+  experts: "nav_experts",
+  users: "nav_users",
+  company: "nav_companies",
+  services: "nav_services",
+  jobs: "nav_jobs",
+  pricing: "nav_pricing",
+  enquiries: "nav_enquiries",
+  equipments: "nav_equipments",
+  role_management: "nav_role_management",
+};
 
 const PrivateSidebar = memo(function PrivateSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { visibleModuleKeys } = useRolePermissions();
+  const [orderVersion, setOrderVersion] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const handleOrderChange = () => setOrderVersion((prev) => prev + 1);
+    window.addEventListener("sidebar-nav-order-updated", handleOrderChange);
+    return () => {
+      window.removeEventListener("sidebar-nav-order-updated", handleOrderChange);
+    };
+  }, []);
 
   const handleNavigation = useCallback(
     (route) => {
@@ -23,11 +47,28 @@ const PrivateSidebar = memo(function PrivateSidebar() {
   );
 
   const visibleNavs = useMemo(
-    () =>
-      DASHBOARD_NAVS.filter(
+    () => {
+      const filtered = DASHBOARD_NAVS.filter(
         (nav) => !nav.moduleKey || visibleModuleKeys.has(nav.moduleKey)
-      ),
-    [visibleModuleKeys]
+      );
+      if (typeof window === "undefined") return filtered;
+      try {
+        const raw = window.localStorage.getItem(SIDEBAR_NAV_ORDER_STORAGE_KEY);
+        const order = JSON.parse(raw || "[]");
+        if (!Array.isArray(order) || order.length === 0) return filtered;
+        const orderIndex = new Map(order.map((key, idx) => [key, idx]));
+        return [...filtered].sort((a, b) => {
+          const aKey = MODULE_KEY_TO_NAV_KEY[a.moduleKey] || "";
+          const bKey = MODULE_KEY_TO_NAV_KEY[b.moduleKey] || "";
+          const ai = orderIndex.has(aKey) ? orderIndex.get(aKey) : Number.MAX_SAFE_INTEGER;
+          const bi = orderIndex.has(bKey) ? orderIndex.get(bKey) : Number.MAX_SAFE_INTEGER;
+          return ai - bi;
+        });
+      } catch {
+        return filtered;
+      }
+    },
+    [visibleModuleKeys, orderVersion]
   );
 
   return (

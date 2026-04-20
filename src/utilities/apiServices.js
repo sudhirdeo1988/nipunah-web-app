@@ -106,15 +106,15 @@ export const companyService = {
 export const enquiryService = {
   /**
    * Create enquiry (e.g. user -> company)
-   * Proxy route: POST /api/enquiries -> ${API_BASE_URL}/enquiries
+   * Uses Next.js proxy only: axios baseURL "/api" → POST /api/enquiries → upstream /enquiries
    */
   createEnquiry: async (payload) => {
     return axiosInstance.post("/enquiries", payload);
   },
 
   /**
-   * Get all enquiries (admin listing)
-   * Proxy route: /api/enquiries -> ${API_BASE_URL}/enquiries
+   * List enquiry threads for a company
+   * GET /api/enquiries?companyId=… → upstream /enquiries/threads
    */
   getEnquiries: async (params = {}) => {
     return axiosInstance.get("/enquiries", { params });
@@ -140,10 +140,8 @@ export const enquiryService = {
    * Respond to enquiry
    * Proxy route: /api/enquiries/:id/respond -> ${API_BASE_URL}/enquiries/:id/respond
    */
-  respondToEnquiry: async (enquiryId, responseText) => {
-    return axiosInstance.post(`/enquiries/${enquiryId}/respond`, {
-      response: responseText,
-    });
+  respondToEnquiry: async (enquiryId, payload) => {
+    return axiosInstance.post(`/enquiries/${enquiryId}/respond`, payload || {});
   },
 };
 
@@ -161,10 +159,10 @@ export const pricingService = {
 
   /**
    * Update a pricing plan by id
-   * Endpoint: PUT /api/pricing/:planId
+   * Endpoint: PATCH /api/pricing/:planId
    */
   updatePricingPlan: async (planId, payload) => {
-    return axiosInstance.put(`/pricing/${planId}`, payload || {});
+    return axiosInstance.patch(`/pricing/${planId}`, payload || {});
   },
 };
 

@@ -86,7 +86,7 @@ function normalizePricingPayload(raw) {
       popular: Boolean(plan?.popular),
       badge: plan?.badge || null,
       description: plan?.description || "",
-      cta_text: plan?.cta_text || "",
+      cta_text: plan?.ctaText ?? plan?.cta_text ?? "",
       discount: Number(plan?.discount ?? 0),
       frequency: plan?.frequency || "MONTHLY",
       features: Array.isArray(plan?.features)
@@ -97,6 +97,41 @@ function normalizePricingPayload(raw) {
           }))
         : [],
     })),
+  };
+}
+
+function sanitizeFeatureKey(raw, index) {
+  const s = String(raw ?? "")
+    .trim()
+    .replace(/^["']+|["']+$/g, "")
+    .trim();
+  return s || `feature_${index + 1}`;
+}
+
+/** PATCH body for upstream: ctaText, single price matching frequency — no id / currency / billing_cycle */
+function buildPricingUpdatePayload(values) {
+  const freq = String(values?.frequency || "MONTHLY").toUpperCase();
+  const monthly = Number(values?.monthly_price ?? 0);
+  const yearly = Number(values?.yearly_price ?? 0);
+  const price = freq === "YEARLY" ? yearly : monthly;
+  const features = Array.isArray(values?.features)
+    ? values.features.map((feature, index) => ({
+        key: sanitizeFeatureKey(feature?.key, index),
+        label: String(feature?.label ?? feature?.key ?? "").trim() || `Feature ${index + 1}`,
+        included: Boolean(feature?.included),
+      }))
+    : [];
+
+  return {
+    name: String(values?.name ?? "").trim(),
+    description: String(values?.description ?? "").trim(),
+    price,
+    popular: Boolean(values?.showPopularBadge),
+    badge: values?.showPopularBadge ? "Most Popular" : "",
+    ctaText: String(values?.cta_text ?? "").trim(),
+    discount: Number(values?.discount ?? 0),
+    frequency: freq,
+    features,
   };
 }
 
@@ -150,7 +185,7 @@ const PricingListing = ({ permissions = {} }) => {
         yearly_price: Number(plan?.yearly_price ?? 0),
         discount: Number(plan?.discount ?? 0),
         frequency: plan?.frequency || "MONTHLY",
-        cta_text: plan?.cta_text || "",
+        cta_text: plan?.ctaText ?? plan?.cta_text ?? "",
         showPopularBadge: Boolean(plan?.badge || plan?.popular),
         features: Array.isArray(plan?.features)
           ? plan.features.map((f) => ({
@@ -170,32 +205,7 @@ const PricingListing = ({ permissions = {} }) => {
       if (!selectedPlan?.id) return;
       setSubmitting(true);
       try {
-        const payload = {
-          id: selectedPlan.id,
-          name: values?.name?.trim(),
-          description: values?.description?.trim(),
-          monthly_price: Number(values?.monthly_price ?? 0),
-          yearly_price: Number(values?.yearly_price ?? 0),
-          // Keep legacy fields for backward compatibility
-          price:
-            String(values?.frequency || "MONTHLY").toUpperCase() === "YEARLY"
-              ? Number(values?.yearly_price ?? 0)
-              : Number(values?.monthly_price ?? 0),
-          discount: Number(values?.discount ?? 0),
-          frequency: values?.frequency || "MONTHLY",
-          cta_text: values?.cta_text?.trim(),
-          badge: values?.showPopularBadge ? "Most Popular" : null,
-          popular: Boolean(values?.showPopularBadge),
-          currency: pricingData?.currency,
-          billing_cycle: pricingData?.billing_cycle,
-          features: Array.isArray(values?.features)
-            ? values.features.map((feature, index) => ({
-                key: feature?.key?.trim() || `feature_${index + 1}`,
-                label: feature?.label?.trim() || feature?.key?.trim() || `Feature ${index + 1}`,
-                included: Boolean(feature?.included),
-              }))
-            : [],
-        };
+        const payload = buildPricingUpdatePayload(values);
 
         await pricingService.updatePricingPlan(selectedPlan.id, payload);
         message.success("Pricing plan updated successfully");
@@ -207,7 +217,7 @@ const PricingListing = ({ permissions = {} }) => {
         setSubmitting(false);
       }
     },
-    [closeEditModal, fetchPricing, pricingData?.billing_cycle, pricingData?.currency, selectedPlan]
+    [closeEditModal, fetchPricing, selectedPlan]
   );
 
   const planCards = useMemo(() => pricingData?.plans || [], [pricingData?.plans]);

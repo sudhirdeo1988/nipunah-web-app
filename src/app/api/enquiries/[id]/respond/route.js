@@ -39,7 +39,7 @@ function resolveBearerToken(request) {
 
 /**
  * POST /api/enquiries/:id/respond
- * Proxy to ${API_BASE_URL}/enquiries/:id/respond
+ * Proxy to ${API_BASE_URL}/enquiries/reply/:id
  */
 export async function POST(request, { params }) {
   const { id } = params || {};
@@ -48,12 +48,16 @@ export async function POST(request, { params }) {
       return NextResponse.json({ message: "Enquiry id is required." }, { status: 400 });
     }
 
-    const body = await request.json();
-    const responseText = body?.response ?? body?.responseText ?? body?.message;
+    const body = await request.json().catch(() => ({}));
+    const description = body?.description;
+    const enquiryFrom = body?.enquiry_from;
+    const enquiryTo = body?.enquiry_to;
+    const enquiryFor = body?.enquiry_for;
+    const title = body?.title;
 
-    if (!responseText || !String(responseText).trim()) {
+    if (!description || !String(description).trim()) {
       return NextResponse.json(
-        { message: "Response is required." },
+        { message: "Reply description is required." },
         { status: 400 }
       );
     }
@@ -66,7 +70,7 @@ export async function POST(request, { params }) {
       );
     }
 
-    const url = `${API_BASE_URL}/enquiries/${id}/respond`;
+    const url = `${API_BASE_URL}/enquiries/reply/${id}`;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -75,7 +79,11 @@ export async function POST(request, { params }) {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        response: String(responseText),
+        enquiry_from: enquiryFrom,
+        enquiry_to: enquiryTo,
+        enquiry_for: enquiryFor,
+        title,
+        description: String(description).trim(),
       }),
     });
 

@@ -3,41 +3,12 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Table, Modal, Dropdown, Space, Button, Input, message } from "antd";
 import Icon from "@/components/Icon";
+import { enquiryService } from "@/utilities/apiServices";
+import { useAppSelector } from "@/store/hooks";
+import { getIdFromStoredUser } from "@/utilities/sessionUser";
+import { useEffect } from "react";
 
 const { TextArea } = Input;
-
-const MOCK_ENQUIRIES = [
-  {
-    id: 1001,
-    title: "Need details for premium listing",
-    description: "Please share premium listing benefits and pricing.",
-    byName: "Aarav Sharma",
-    thread: [
-      { by: "Aarav Sharma", message: "Please share premium listing benefits and pricing." },
-      { by: "Admin", message: "Sure, we have monthly and yearly plans. I will share details." },
-    ],
-  },
-  {
-    id: 1002,
-    title: "Unable to update profile",
-    description: "I get an error while saving profile information.",
-    byName: "Nisha Verma",
-    thread: [
-      { by: "Nisha Verma", message: "I get an error while saving profile information." },
-      { by: "Admin", message: "Could you share a screenshot of the error?" },
-      { by: "Nisha Verma", message: "It says validation failed for phone number." },
-    ],
-  },
-  {
-    id: 1003,
-    title: "Question about equipment posting",
-    description: "What file formats are accepted for equipment images?",
-    byName: "Rohit Jain",
-    thread: [
-      { by: "Rohit Jain", message: "What file formats are accepted for equipment images?" },
-    ],
-  },
-];
 
 function getThreadItems(enquiryDetails) {
   const e = enquiryDetails && typeof enquiryDetails === "object" ? enquiryDetails : {};
@@ -100,18 +71,70 @@ function normalizeThreadText(threadItem) {
   );
 }
 
+function normalizeEnquiryRecord(item) {
+  const e = item && typeof item === "object" ? item : {};
+  const replies = Array.isArray(e.replies) ? e.replies : [];
+  const thread = [
+    ...(e.description
+      ? [
+          {
+            by: normalizeName(e.enquiryFrom) || "User",
+            message: e.description,
+          },
+        ]
+      : []),
+    ...replies.map((reply) => ({
+      by: "Reply",
+      message: typeof reply === "string" ? reply : normalizeThreadText(reply),
+    })),
+  ];
+
+  return {
+    ...e,
+    id: e.id,
+    title: e.title || "—",
+    description: e.description || "—",
+    byName: normalizeName(e.enquiryFrom) || "User",
+    thread,
+  };
+}
+
 const EnquiryListing = ({ permissions = {} }) => {
   const canView = Boolean(permissions.view);
   const canDelete = Boolean(permissions.delete);
   const canRespond = Boolean(permissions.respond);
+  const user = useAppSelector((state) => state.user.user);
 
-  const [enquiries, setEnquiries] = useState(MOCK_ENQUIRIES);
+  const [enquiries, setEnquiries] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
   const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
   const [selectedEnquiryDetails, setSelectedEnquiryDetails] = useState(null);
 
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isRespondModalOpen, setIsRespondModalOpen] = useState(false);
   const [responseText, setResponseText] = useState("");
+
+  const companyId = useMemo(() => getIdFromStoredUser(user), [user]);
+
+  const fetchEnquiries = useCallback(async () => {
+    if (companyId == null || companyId === "") return;
+    setLoading(true);
+    try {
+      const res = await enquiryService.getEnquiries({ companyId });
+      const list = Array.isArray(res?.data) ? res.data : [];
+      setEnquiries(list.map(normalizeEnquiryRecord));
+    } catch (err) {
+      message.error(err?.message || "Failed to load enquiries");
+      setEnquiries([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    fetchEnquiries();
+  }, [fetchEnquiries]);
 
   const closeModals = useCallback(() => {
     setIsViewModalOpen(false);
@@ -154,8 +177,16 @@ const EnquiryListing = ({ permissions = {} }) => {
         okType: "danger",
         cancelText: "Cancel",
         onOk: async () => {
-          setEnquiries((prev) => prev.filter((item) => item.id !== id));
-          message.success("Enquiry deleted successfully");
+          setActionLoading(true);
+          try {
+            await enquiryService.deleteEnquiry(id);
+            setEnquiries((prev) => prev.filter((item) => item.id !== id));
+            message.success("Enquiry deleted successfully");
+          } catch (err) {
+            message.error(err?.message || "Failed to delete enquiry");
+          } finally {
+            setActionLoading(false);
+          }
         },
       });
     },
@@ -280,26 +311,46 @@ const EnquiryListing = ({ permissions = {} }) => {
     );
   }, [selectedEnquiryDetails]);
 
-  const submitRespond = useCallback(() => {
+  const submitRespond = useCallback(async () => {
     if (!selectedEnquiryId) return;
     if (!responseText.trim()) {
       message.error("Please enter a response");
       return;
     }
-    const responseMessage = responseText.trim();
+    if (companyId == null || companyId === "") {
+      message.error("Invalid company id");
+      return;
+    }
 
-    setEnquiries((prev) =>
-      prev.map((item) => {
-        if (item.id !== selectedEnquiryId) return item;
-        return {
-          ...item,
-          thread: [...getThreadItems(item), { by: "Admin", message: responseMessage }],
-        };
-      })
-    );
-    message.success("Response sent successfully");
-    closeModals();
-  }, [closeModals, responseText, selectedEnquiryId]);
+    const responseMessage = responseText.trim();
+    const targetEnquiry = enquiries.find((item) => item.id === selectedEnquiryId);
+    if (!targetEnquiry) return;
+
+    setActionLoading(true);
+    try {
+      await enquiryService.respondToEnquiry(selectedEnquiryId, {
+        enquiry_from: companyId,
+        enquiry_to: targetEnquiry.enquiryFrom,
+        enquiry_for: targetEnquiry.enquiryFor,
+        title: targetEnquiry.title,
+        description: responseMessage,
+      });
+      message.success("Response sent successfully");
+      closeModals();
+      fetchEnquiries();
+    } catch (err) {
+      message.error(err?.message || "Failed to send response");
+    } finally {
+      setActionLoading(false);
+    }
+  }, [
+    closeModals,
+    companyId,
+    enquiries,
+    fetchEnquiries,
+    responseText,
+    selectedEnquiryId,
+  ]);
 
   return (
     <>
@@ -307,7 +358,7 @@ const EnquiryListing = ({ permissions = {} }) => {
         columns={columns}
         dataSource={enquiries}
         rowKey="id"
-        loading={false}
+        loading={loading}
         pagination={false}
         scroll={{ x: 900 }}
       />
@@ -373,7 +424,8 @@ const EnquiryListing = ({ permissions = {} }) => {
               type="primary"
               className="C-button is-filled small"
               onClick={submitRespond}
-              disabled={!canRespond}
+              disabled={!canRespond || actionLoading}
+              loading={actionLoading}
             >
               Send Response
             </Button>

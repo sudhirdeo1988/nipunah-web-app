@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { getRolePermissionObject, normalizeRoleKey } from "@/constants/roleManagementMock";
 import { loadUserSession, getRoleFromStoredUser } from "@/utilities/sessionUser";
 
 const DEFAULT_ROLE = "expert";
+const ROLE_PERMISSIONS_STORAGE_KEY = "nipunah_role_permissions_override";
 const MODULE_KEY_TO_NAV_KEY = {
   dashboard: "nav_dashboard",
   categories: "nav_categories",
@@ -59,6 +60,16 @@ export function useRolePermissions() {
   const userFromRedux = useAppSelector((state) => state.user.user);
   const roleFromUser = useAppSelector((state) => state.user.user?.role);
   const typeFromUser = useAppSelector((state) => state.user.user?.type);
+  const [permissionsVersion, setPermissionsVersion] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+    const onPermissionsUpdated = () => setPermissionsVersion((prev) => prev + 1);
+    window.addEventListener("role-permissions-updated", onPermissionsUpdated);
+    return () => {
+      window.removeEventListener("role-permissions-updated", onPermissionsUpdated);
+    };
+  }, []);
 
   return useMemo(() => {
     const stored = loadUserSession();
@@ -69,7 +80,21 @@ export function useRolePermissions() {
         getRoleFromStoredUser(stored) ||
         DEFAULT_ROLE
     );
-    const roleFlat = getRolePermissionObject(resolvedRole) || {};
+    const defaultRoleFlat = getRolePermissionObject(resolvedRole) || {};
+    let roleFlat = defaultRoleFlat;
+    if (typeof window !== "undefined") {
+      try {
+        const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object" && parsed[resolvedRole]) {
+            roleFlat = { ...defaultRoleFlat, ...parsed[resolvedRole] };
+          }
+        }
+      } catch {
+        roleFlat = defaultRoleFlat;
+      }
+    }
     // Keep user profile fields, with static role permissions merged in.
     const flat =
       userFromRedux && typeof userFromRedux === "object"
@@ -119,5 +144,5 @@ export function useRolePermissions() {
       getDashboardVisibleComponentKeys,
       getModuleConfig,
     };
-  }, [roleFromRedux, roleFromUser, typeFromUser, userFromRedux]);
+  }, [roleFromRedux, roleFromUser, typeFromUser, userFromRedux, permissionsVersion]);
 }

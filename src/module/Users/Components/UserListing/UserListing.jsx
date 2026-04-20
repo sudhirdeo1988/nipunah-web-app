@@ -19,6 +19,7 @@ import React, { useCallback, useEffect, useMemo, useState, memo } from "react";
 import Icon from "@/components/Icon";
 import { userService } from "@/utilities/apiServices";
 import { useAppSelector } from "@/store/hooks";
+import { getIdFromStoredUser } from "@/utilities/sessionUser";
 import {
   DatePicker,
   Divider,
@@ -116,6 +117,33 @@ function formatUserDate(value) {
   } catch {
     return String(value);
   }
+}
+
+function formatUserDateTime(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  try {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return String(value);
+    return d.toLocaleString();
+  } catch {
+    return String(value);
+  }
+}
+
+function getUserRoleLabel(user) {
+  const role =
+    user?.role ??
+    user?.user_role ??
+    user?.userRole ??
+    user?.type ??
+    user?.userType ??
+    user?.user_type;
+  return role ? String(role) : "—";
+}
+
+function valueOrDash(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  return String(value);
 }
 
 /**
@@ -240,6 +268,7 @@ function isAdminLikeUser(u) {
 const UserListing = ({ permissions = {} }) => {
   const canView = Boolean(permissions.view);
   const canDelete = Boolean(permissions.delete);
+  const currentUser = useAppSelector((state) => state.user?.user);
   const currentUserRole = useAppSelector(
     (state) =>
       state.user?.role ||
@@ -250,6 +279,25 @@ const UserListing = ({ permissions = {} }) => {
       ""
   );
   const isCurrentUserAdmin = String(currentUserRole).toLowerCase() === "admin";
+  const currentUserId = useMemo(() => getIdFromStoredUser(currentUser), [currentUser]);
+
+  const isSameUserRecord = useCallback(
+    (record) => {
+      const recordId = record?.id ?? record?.user_id ?? record?.userId;
+      if (
+        recordId === null ||
+        recordId === undefined ||
+        recordId === "" ||
+        currentUserId === null ||
+        currentUserId === undefined ||
+        currentUserId === ""
+      ) {
+        return false;
+      }
+      return String(recordId).trim() === String(currentUserId).trim();
+    },
+    [currentUserId]
+  );
   // ==================== STATE MANAGEMENT ====================
 
   /** @type {[string[], Function]} Selected row keys for bulk operations */
@@ -409,6 +457,12 @@ const UserListing = ({ permissions = {} }) => {
       setUserToDelete(null);
       return;
     }
+    if (isSameUserRecord(userToDelete)) {
+      message.warning("You cannot delete your own profile.");
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+      return;
+    }
     try {
       await userService.deleteUser(userToDelete.id);
       message.success("User deleted successfully");
@@ -418,7 +472,7 @@ const UserListing = ({ permissions = {} }) => {
     }
     setIsDeleteModalOpen(false);
     setUserToDelete(null);
-  }, [userToDelete, loadUsers]);
+  }, [userToDelete, loadUsers, isSameUserRecord]);
 
   /**
    * Handles bulk delete confirmation
@@ -426,6 +480,12 @@ const UserListing = ({ permissions = {} }) => {
    */
   const handleConfirmBulkDelete = useCallback(async () => {
     if (!selectedUsers.length) {
+      setIsBulkDeleteModalOpen(false);
+      return;
+    }
+    const selfSelected = selectedUsers.some((u) => isSameUserRecord(u));
+    if (selfSelected) {
+      message.warning("You cannot delete your own profile.");
       setIsBulkDeleteModalOpen(false);
       return;
     }
@@ -441,7 +501,7 @@ const UserListing = ({ permissions = {} }) => {
       message.error(err?.message || "Bulk delete failed");
     }
     setIsBulkDeleteModalOpen(false);
-  }, [selectedUsers, loadUsers]);
+  }, [selectedUsers, loadUsers, isSameUserRecord]);
 
   /**
    * Handles cancel delete action
@@ -487,12 +547,15 @@ const UserListing = ({ permissions = {} }) => {
   const rowSelection = useMemo(
     () => ({
       selectedRowKeys,
+      getCheckboxProps: (record) => ({
+        disabled: isSameUserRecord(record),
+      }),
       onChange: (selectedRowKeys, selectedRows) => {
         setSelectedRowKeys(selectedRowKeys);
         setSelectedUsers(selectedRows);
       },
     }),
-    [selectedRowKeys]
+    [selectedRowKeys, isSameUserRecord]
   );
 
   // ==================== MEMOIZED RENDER FUNCTIONS ====================
@@ -559,7 +622,7 @@ const UserListing = ({ permissions = {} }) => {
    * Memoized dropdown menu items for action column (filtered by permissions)
    */
   const getActionMenuItems = useCallback(
-    () => {
+    (record) => {
       const items = [];
       if (canView) {
         items.push({
@@ -575,28 +638,31 @@ const UserListing = ({ permissions = {} }) => {
         });
       }
       if (canDelete) {
-        items.push({
-          key: "delete",
-          label: (
-            <Space align="center">
-              <Icon name="delete" size="small" />
-              <span className="C-heading size-xs mb-0 semiBold">Delete</span>
-            </Space>
-          ),
-        });
+        const canDeleteThisRow = !(isCurrentUserAdmin && isSameUserRecord(record));
+        if (canDeleteThisRow) {
+          items.push({
+            key: "delete",
+            label: (
+              <Space align="center">
+                <Icon name="delete" size="small" />
+                <span className="C-heading size-xs mb-0 semiBold">Delete</span>
+              </Space>
+            ),
+          });
+        }
       }
       return items;
     },
-    [canView, canDelete]
+    [canView, canDelete, isCurrentUserAdmin, isSameUserRecord]
   );
 
   /**
    * Memoized render function for action column
    * Creates dropdown menu with view details and delete options
    */
-  const actionMenuItems = getActionMenuItems();
   const renderAction = useCallback(
     (_, record) => {
+      const actionMenuItems = getActionMenuItems(record);
       if (actionMenuItems.length === 0) return null;
       return (
         <Dropdown
@@ -612,7 +678,7 @@ const UserListing = ({ permissions = {} }) => {
         </Dropdown>
       );
     },
-    [actionMenuItems, handleMenuClick]
+    [getActionMenuItems, handleMenuClick]
   );
 
   // ==================== TABLE CONFIGURATION ====================
@@ -849,48 +915,186 @@ const UserListing = ({ permissions = {} }) => {
         width={800}
         centered
       >
-        <div className="py-3">
+        <div className="py-2">
           {userForDetails && (
-            <div className="row">
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">User Name:</p>
-                <p className="C-heading size-6 mb-0 bold">
-                  {userForDetails.userName}
-                </p>
+            <>
+              <div
+                className="mb-3 p-3"
+                style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+              >
+                <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                  <div>
+                    <p className="C-heading size-xs mb-1 text-muted">User Name</p>
+                    <p className="C-heading size-5 mb-0 bold">
+                      {valueOrDash(userForDetails.userName)}
+                    </p>
+                  </div>
+                  <div className="text-end">
+                    <p className="C-heading size-xs mb-1 text-muted">Approval</p>
+                    <p
+                      className={`C-heading size-6 mb-0 semiBold ${
+                        userForDetails.is_user_approved
+                          ? "text-success"
+                          : "text-danger"
+                      }`}
+                    >
+                      {userForDetails.is_user_approved ? "Approved" : "Pending"}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">Email:</p>
-                <p className="C-heading size-6 mb-0">{userForDetails.email}</p>
+
+              <div
+                className="mb-3 p-3"
+                style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+              >
+                <p className="C-heading size-xs mb-2 text-muted bold">
+                  Basic Information
+                </p>
+                <div className="row">
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">Email</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.email)}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">Contact</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(
+                        [
+                          userForDetails.contact_country_code,
+                          userForDetails.contact,
+                        ]
+                          .filter(Boolean)
+                          .join(" ") || userForDetails.contact
+                      )}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">Role</p>
+                    <p className="C-heading size-6 mb-0">
+                      {getUserRoleLabel(userForDetails)}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">Registered On</p>
+                    <p className="C-heading size-6 mb-0">
+                      {formatUserDateTime(
+                        userForDetails.created_on || userForDetails.created_at
+                      )}
+                    </p>
+                  </div>
+                  <div className="col-6">
+                    <p className="C-heading size-xs mb-1 text-muted">Applied Jobs</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.appliedJobsCount)}
+                    </p>
+                  </div>
+                  <div className="col-6">
+                    <p className="C-heading size-xs mb-1 text-muted">User ID</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.id)}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">Contact:</p>
-                <p className="C-heading size-6 mb-0">
-                  {userForDetails.contact}
+
+              <div
+                className="mb-3 p-3"
+                style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+              >
+                <p className="C-heading size-xs mb-2 text-muted bold">
+                  Subscription & Payment
                 </p>
+                <div className="row">
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">
+                      Subscription Plan
+                    </p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.subscription_plan)}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">Paid User</p>
+                    <p className="C-heading size-6 mb-0">
+                      {userForDetails.payment_details?.is_paid_user
+                        ? "Yes"
+                        : "No"}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">Country:</p>
-                <p className="C-heading size-6 mb-0">
-                  {userForDetails.country}
-                </p>
+
+              <div
+                className="mb-3 p-3"
+                style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+              >
+                <p className="C-heading size-xs mb-2 text-muted bold">Address</p>
+                <div className="row">
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">Country</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.address?.country || userForDetails.country)}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">State</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.address?.state)}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">City</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.address?.city)}
+                    </p>
+                  </div>
+                  <div className="col-6 mb-3">
+                    <p className="C-heading size-xs mb-1 text-muted">Postal Code</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.address?.postal_code)}
+                    </p>
+                  </div>
+                  <div className="col-12">
+                    <p className="C-heading size-xs mb-1 text-muted">Location</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.address?.location)}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">
-                  Applied Jobs:
+
+              <div
+                className="p-3"
+                style={{ border: "1px solid #f0f0f0", borderRadius: "10px" }}
+              >
+                <p className="C-heading size-xs mb-2 text-muted bold">
+                  Social Media
                 </p>
-                <p className="C-heading size-6 mb-0">
-                  {userForDetails.appliedJobsCount}
-                </p>
+                <div className="row">
+                  <div className="col-4 mb-2">
+                    <p className="C-heading size-xs mb-1 text-muted">Facebook</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.social_media?.facebook)}
+                    </p>
+                  </div>
+                  <div className="col-4 mb-2">
+                    <p className="C-heading size-xs mb-1 text-muted">Instagram</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.social_media?.instagram)}
+                    </p>
+                  </div>
+                  <div className="col-4 mb-2">
+                    <p className="C-heading size-xs mb-1 text-muted">LinkedIn</p>
+                    <p className="C-heading size-6 mb-0">
+                      {valueOrDash(userForDetails.social_media?.linkedin)}
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="col-6 mb-3">
-                <p className="C-heading size-xs mb-1 text-muted">
-                  Registered On:
-                </p>
-                <p className="C-heading size-6 mb-0">
-                  {userForDetails.createDate}
-                </p>
-              </div>
-            </div>
+            </>
           )}
         </div>
       </Modal>

@@ -1,6 +1,21 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+/** Next.js App Router: always run on the server; no static caching of proxy responses */
+export const dynamic = "force-dynamic";
+
+/**
+ * Upstream base (default from constants). Set API_BASE_URL in .env for deployments
+ * so this route always proxies to your backend — no client-side direct calls needed.
+ */
+function getUpstreamApiBaseUrl() {
+  const env = process.env.API_BASE_URL;
+  if (typeof env === "string" && env.trim()) {
+    return env.trim().replace(/\/$/, "");
+  }
+  return API_BASE_URL.replace(/\/$/, "");
+}
+
 function getBearerTokenFromAuthorizationHeader(request) {
   const auth = request.headers.get("authorization");
   if (!auth || typeof auth !== "string") return null;
@@ -38,15 +53,32 @@ function resolveBearerToken(request) {
 }
 
 /**
+ * Parse upstream body without throwing — malformed JSON must not become a 500 from this proxy.
+ */
+async function readUpstreamBody(response) {
+  const raw = await response.text();
+  if (!raw) {
+    return { message: response.statusText || "Empty response" };
+  }
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { message: raw };
+  }
+}
+
+/**
  * GET /api/enquiries
- * Proxy to ${API_BASE_URL}/enquiries with query params forwarded.
+ * Proxies to ${upstream}/enquiries/threads (query params forwarded).
+ * Client: axios baseURL "/api" → GET /api/enquiries?companyId=…
  */
 export async function GET(request) {
+  const base = getUpstreamApiBaseUrl();
   try {
     const { searchParams } = new URL(request.url);
     const params = Object.fromEntries(searchParams.entries());
 
-    let url = `${API_BASE_URL}/enquiries`;
+    let url = `${base}/enquiries/threads`;
     if (Object.keys(params).length > 0) {
       const queryString = new URLSearchParams(
         Object.entries(params).filter(
@@ -73,20 +105,11 @@ export async function GET(request) {
       cache: "no-store",
     });
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-      return NextResponse.json(data, {
-        status: response.status,
-        statusText: response.statusText,
-      });
-    }
-
-    const text = await response.text();
-    return NextResponse.json(
-      { message: text || response.statusText },
-      { status: response.status, statusText: response.statusText }
-    );
+    const data = await readUpstreamBody(response);
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
   } catch (error) {
     console.error("GET /api/enquiries proxy error:", error);
     return NextResponse.json(
@@ -101,9 +124,11 @@ export async function GET(request) {
 
 /**
  * POST /api/enquiries
- * Proxy to ${API_BASE_URL}/enquiries
+ * Proxies to ${upstream}/enquiries (create enquiry).
+ * Client: axios POST /api/enquiries with JSON body — always goes through this handler.
  */
 export async function POST(request) {
+  const base = getUpstreamApiBaseUrl();
   try {
     const token = resolveBearerToken(request);
     if (!token) {
@@ -115,7 +140,8 @@ export async function POST(request) {
 
     const body = await request.json().catch(() => ({}));
 
-    const response = await fetch(`${API_BASE_URL}/enquiries`, {
+    const url = `${base}/enquiries`;
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -125,20 +151,11 @@ export async function POST(request) {
       body: JSON.stringify(body || {}),
     });
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-      return NextResponse.json(data, {
-        status: response.status,
-        statusText: response.statusText,
-      });
-    }
-
-    const text = await response.text();
-    return NextResponse.json(
-      { message: text || response.statusText },
-      { status: response.status, statusText: response.statusText }
-    );
+    const data = await readUpstreamBody(response);
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
   } catch (error) {
     console.error("POST /api/enquiries proxy error:", error);
     return NextResponse.json(

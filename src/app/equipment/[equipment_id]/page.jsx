@@ -162,12 +162,27 @@ const EquipmentDetails = () => {
       }
       setEnquirySubmitting(true);
       try {
+        const enquiryTo =
+          equipmentData?.company_id ??
+          equipmentData?.companyId ??
+          equipmentData?.posted_by?.company_id ??
+          equipmentData?.company?.id ??
+          equipmentData?.posted_by_company_id ??
+          equipmentId;
+
+        const enquiryFromNum = Number(fromId);
+        const enquiryToNum = Number(enquiryTo);
+        if (Number.isNaN(enquiryFromNum) || Number.isNaN(enquiryToNum)) {
+          message.error("Invalid enquiry details. Please try again.");
+          return;
+        }
+
         await enquiryService.createEnquiry({
-          from: fromId,
+          enquiry_from: enquiryFromNum,
+          enquiry_to: enquiryToNum,
+          enquiry_for: "equipment",
           title: values.title?.trim(),
           description: values.message?.trim(),
-          type: "equipment",
-          equipemnt_id: equipmentId,
         });
         message.success("Enquiry sent successfully");
         closeEnquiryModal();
@@ -177,7 +192,7 @@ const EquipmentDetails = () => {
         setEnquirySubmitting(false);
       }
     },
-    [closeEnquiryModal, equipmentId, user],
+    [closeEnquiryModal, equipmentData, equipmentId, user],
   );
 
   return (

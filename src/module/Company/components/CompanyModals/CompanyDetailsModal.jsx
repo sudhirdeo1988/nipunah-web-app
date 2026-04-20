@@ -3,6 +3,11 @@
 import React, { memo } from "react";
 import { Modal, Table, Tag } from "antd";
 
+function valueOrDash(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  return String(value);
+}
+
 /**
  * CompanyDetailsModal Component
  *
@@ -26,6 +31,10 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
     : company?.category
       ? [company.category]
       : [];
+  const sectionCardStyle = {
+    border: "1px solid #f0f0f0",
+    borderRadius: "10px",
+  };
 
   return (
     <Modal
@@ -38,61 +47,93 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
       width={1000}
       centered
     >
-      <div className="py-3">
+      <div className="py-2">
         {company && (
-          <div className="row">
-            {/* Basic Information */}
-            <div className="col-12 mb-4">
-              <h5 className="C-heading size-5 mb-3 bold">Basic Information</h5>
+          <>
+            <div className="mb-3 p-3" style={sectionCardStyle}>
+              <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                  <p className="C-heading size-xs mb-1 text-muted">Company Name</p>
+                  <p className="C-heading size-5 mb-0 bold">
+                    {valueOrDash(company.name)}
+                  </p>
+                </div>
+                <div className="text-end">
+                  <p className="C-heading size-xs mb-1 text-muted">Status</p>
+                  <p className="C-heading size-6 mb-0">
+                    <Tag color={company.status === "active" ? "green" : "red"}>
+                      {company.status === "active" ? "Active" : "Inactive"}
+                    </Tag>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="mb-3 p-3" style={sectionCardStyle}>
+              <p className="C-heading size-xs mb-2 text-muted bold">Basic Information</p>
               <div className="row">
                 <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Company Name:
-                  </p>
-                  <p className="C-heading size-6 mb-0 bold">{company.name}</p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Short Name:
-                  </p>
-                  <p className="C-heading size-6 mb-0">{company.shortName}</p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">Industry:</p>
-                  <p className="C-heading size-6 mb-0">{company.industry}</p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Founded Year:
-                  </p>
-                  <p className="C-heading size-6 mb-0">{company.foundYear}</p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Employee Count:
-                  </p>
+                  <p className="C-heading size-xs mb-1 text-muted">Short Name</p>
                   <p className="C-heading size-6 mb-0">
-                    {company.employeeCount || company.employees_count || company.employeesCount || "N/A"}
+                    {valueOrDash(company.shortName)}
                   </p>
                 </div>
                 <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">Turnover:</p>
+                  <p className="C-heading size-xs mb-1 text-muted">Industry</p>
                   <p className="C-heading size-6 mb-0">
-                    {turnoverValue ? `${turnoverValue}` : "N/A"}
+                    {valueOrDash(company.industry)}
                   </p>
                 </div>
                 <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">Is MNC:</p>
+                  <p className="C-heading size-xs mb-1 text-muted">Founded Year</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(company.foundYear)}
+                  </p>
+                </div>
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Employee Count</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(
+                      company.employeeCount ||
+                        company.employees_count ||
+                        company.employeesCount
+                    )}
+                  </p>
+                </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Turnover</p>
+                  <p className="C-heading size-6 mb-0">{valueOrDash(turnoverValue)}</p>
+                </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Is MNC</p>
                   <p className="C-heading size-6 mb-0">
                     <Tag color={company.isMnc ? "green" : "default"}>
                       {company.isMnc ? "Yes" : "No"}
                     </Tag>
                   </p>
                 </div>
+              </div>
+            </div>
+
+            <div className="mb-3 p-3" style={sectionCardStyle}>
+              <p className="C-heading size-xs mb-2 text-muted bold">
+                Contact Information
+              </p>
+              <div className="row">
                 <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Subscription Plan:
+                  <p className="C-heading size-xs mb-1 text-muted">Email</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(company.contactEmail || company.email)}
                   </p>
+                </div>
+                <div className="col-6 mb-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Phone</p>
+                  <p className="C-heading size-6 mb-0">
+                    {valueOrDash(company.contactNumber || company.contact_number)}
+                  </p>
+                </div>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Subscription Plan</p>
                   <p className="C-heading size-6 mb-0">
                     <Tag
                       color={
@@ -103,111 +144,90 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
                           : "default"
                       }
                     >
-                      {company.subscriptionPlan?.charAt(0).toUpperCase() +
-                        company.subscriptionPlan?.slice(1)}
+                      {valueOrDash(company.subscriptionPlan).charAt(0).toUpperCase() +
+                        valueOrDash(company.subscriptionPlan).slice(1)}
                     </Tag>
                   </p>
                 </div>
-              </div>
-            </div>
-
-            {/* Contact Information */}
-            <div className="col-12 mb-4">
-              <h5 className="C-heading size-5 mb-3 bold">
-                Contact Information
-              </h5>
-              <div className="row">
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">Email:</p>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Website</p>
                   <p className="C-heading size-6 mb-0">
-                    {company.contactEmail || company.email || "N/A"}
+                    {company.websiteUrl || company.website ? (
+                      <a
+                        href={company.websiteUrl || company.website}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {company.websiteUrl || company.website}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
                   </p>
                 </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">Phone:</p>
+                <div className="col-12 mt-3">
+                  <p className="C-heading size-xs mb-1 text-muted">Description</p>
                   <p className="C-heading size-6 mb-0">
-                    {company.contactNumber || company.contact_number || "N/A"}
-                  </p>
-                </div>
-                <div className="col-12 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">Website:</p>
-                  <p className="C-heading size-6 mb-0">
-                    <a
-                      href={company.websiteUrl || company.website || "#"}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {company.websiteUrl || company.website || "N/A"}
-                    </a>
-                  </p>
-                </div>
-                <div className="col-12 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Description:
-                  </p>
-                  <p className="C-heading size-6 mb-0">
-                    {company.description || company.aboutCompany || "N/A"}
+                    {valueOrDash(company.description || company.aboutCompany)}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Locations */}
-            <div className="col-12 mb-4">
-              <h5 className="C-heading size-5 mb-3 bold">Locations</h5>
-              {normalizedLocations.length > 0 ? normalizedLocations.map((location, index) => (
-                <div key={index} className="bg-light p-3 rounded mb-2">
-                  <div className="row">
-                    <div className="col-4">
-                      <p className="C-heading size-xs mb-1 text-muted">City:</p>
-                      <p className="C-heading size-6 mb-0">{location.city}</p>
-                    </div>
-                    <div className="col-4">
-                      <p className="C-heading size-xs mb-1 text-muted">
-                        Country:
-                      </p>
-                      <p className="C-heading size-6 mb-0">
-                        {location.country}
-                      </p>
-                    </div>
-                    <div className="col-4">
-                      <p className="C-heading size-xs mb-1 text-muted">
-                        Primary:
-                      </p>
-                      <p className="C-heading size-6 mb-0">
-                        <Tag
-                          color={
-                            location.isPrimaryLocation || location.isPrimary
-                              ? "green"
-                              : "default"
-                          }
-                        >
-                          {location.isPrimaryLocation || location.isPrimary
-                            ? "Yes"
-                            : "No"}
-                        </Tag>
-                      </p>
-                    </div>
-                    <div className="col-12 mt-2">
-                      <p className="C-heading size-xs mb-1 text-muted">
-                        Address:
-                      </p>
-                      <p className="C-heading size-6 mb-0">
-                        {location.address || "N/A"}
-                      </p>
+            <div className="mb-3 p-3" style={sectionCardStyle}>
+              <p className="C-heading size-xs mb-2 text-muted bold">Locations</p>
+              {normalizedLocations.length > 0 ? (
+                normalizedLocations.map((location, index) => (
+                  <div
+                    key={index}
+                    className={index === normalizedLocations.length - 1 ? "" : "mb-3 pb-3"}
+                    style={
+                      index === normalizedLocations.length - 1
+                        ? {}
+                        : { borderBottom: "1px solid #f0f0f0" }
+                    }
+                  >
+                    <div className="row">
+                      <div className="col-4 mb-2">
+                        <p className="C-heading size-xs mb-1 text-muted">City</p>
+                        <p className="C-heading size-6 mb-0">{valueOrDash(location.city)}</p>
+                      </div>
+                      <div className="col-4 mb-2">
+                        <p className="C-heading size-xs mb-1 text-muted">Country</p>
+                        <p className="C-heading size-6 mb-0">{valueOrDash(location.country)}</p>
+                      </div>
+                      <div className="col-4 mb-2">
+                        <p className="C-heading size-xs mb-1 text-muted">Primary</p>
+                        <p className="C-heading size-6 mb-0">
+                          <Tag
+                            color={
+                              location.isPrimaryLocation || location.isPrimary
+                                ? "green"
+                                : "default"
+                            }
+                          >
+                            {location.isPrimaryLocation || location.isPrimary ? "Yes" : "No"}
+                          </Tag>
+                        </p>
+                      </div>
+                      <div className="col-12">
+                        <p className="C-heading size-xs mb-1 text-muted">Address</p>
+                        <p className="C-heading size-6 mb-0">
+                          {valueOrDash(location.address)}
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )) : (
+                ))
+              ) : (
                 <p className="C-heading size-6 mb-0 text-muted">No locations available</p>
               )}
             </div>
 
-            {/* Posted Jobs */}
-            <div className="col-12 mb-4">
-              <h5 className="C-heading size-5 mb-3 bold">
+            <div className="mb-3 p-3" style={sectionCardStyle}>
+              <p className="C-heading size-xs mb-2 text-muted bold">
                 Posted Jobs ({company.postedJobs?.length || 0})
-              </h5>
+              </p>
               {company.postedJobs?.length > 0 ? (
                 <Table
                   columns={[
@@ -276,88 +296,114 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
               )}
             </div>
 
-            {/* Social Links */}
-            <div className="col-12 mb-4">
-              <h5 className="C-heading size-5 mb-3 bold">Social Links</h5>
-              {company.socialLinks?.map((link, index) => (
-                <div key={index} className="mb-2">
-                  <span className="C-heading size-xs mb-1 text-muted">
-                    {link.platform}:
-                  </span>
-                  <a
-                    href={link.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="ml-2"
-                  >
-                    {link.url}
-                  </a>
+            <div className="mb-3 p-3" style={sectionCardStyle}>
+              <p className="C-heading size-xs mb-2 text-muted bold">Social Links</p>
+              <div className="row">
+                <div className="col-6 mb-2">
+                  <p className="C-heading size-xs mb-1 text-muted">Facebook</p>
+                  <p className="C-heading size-6 mb-0">
+                    {company.socialLinks?.find(
+                      (link) => String(link?.platform || "").toLowerCase() === "facebook"
+                    )?.url ? (
+                      <a
+                        href={
+                          company.socialLinks.find(
+                            (link) =>
+                              String(link?.platform || "").toLowerCase() === "facebook"
+                          )?.url
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {
+                          company.socialLinks.find(
+                            (link) =>
+                              String(link?.platform || "").toLowerCase() === "facebook"
+                          )?.url
+                        }
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </p>
                 </div>
-              ))}
+                <div className="col-6 mb-2">
+                  <p className="C-heading size-xs mb-1 text-muted">Instagram</p>
+                  <p className="C-heading size-6 mb-0">
+                    {company.socialLinks?.find(
+                      (link) => String(link?.platform || "").toLowerCase() === "instagram"
+                    )?.url ? (
+                      <a
+                        href={
+                          company.socialLinks.find(
+                            (link) =>
+                              String(link?.platform || "").toLowerCase() === "instagram"
+                          )?.url
+                        }
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {
+                          company.socialLinks.find(
+                            (link) =>
+                              String(link?.platform || "").toLowerCase() === "instagram"
+                          )?.url
+                        }
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Categories */}
-            <div className="col-12 mb-4">
-              <h5 className="C-heading size-5 mb-3 bold">Categories</h5>
-              {normalizedCategories.length > 0 ? normalizedCategories.map((category, index) => (
-                <div key={index} className="bg-light p-3 rounded mb-2">
-                  <div className="row">
-                    <div className="col-6">
-                      <p className="C-heading size-xs mb-1 text-muted">
-                        Category:
+            <div className="mb-3 p-3" style={sectionCardStyle}>
+              <p className="C-heading size-xs mb-2 text-muted bold">Categories</p>
+              {normalizedCategories.length > 0 ? (
+                normalizedCategories.map((category, index) => (
+                  <div
+                    key={index}
+                    className={index === normalizedCategories.length - 1 ? "" : "mb-3 pb-3"}
+                    style={
+                      index === normalizedCategories.length - 1
+                        ? {}
+                        : { borderBottom: "1px solid #f0f0f0" }
+                    }
+                  >
+                    <p className="C-heading size-6 mb-1 semiBold">{valueOrDash(category.name)}</p>
+                    <p className="C-heading size-6 mb-1">
+                      {valueOrDash(category.description)}
+                    </p>
+                    {category.subCategories?.length > 0 ? (
+                      <p className="C-heading size-6 mb-0 text-muted">
+                        {category.subCategories
+                          .map((subCat) => subCat?.name)
+                          .filter(Boolean)
+                          .join(", ")}
                       </p>
-                      <p className="C-heading size-6 mb-0 bold">
-                        {category.name}
-                      </p>
-                    </div>
-                    <div className="col-6">
-                      <p className="C-heading size-xs mb-1 text-muted">
-                        Description:
-                      </p>
-                      <p className="C-heading size-6 mb-0">
-                        {category.description}
-                      </p>
-                    </div>
-                    {category.subCategories?.length > 0 && (
-                      <div className="col-12 mt-2">
-                        <p className="C-heading size-xs mb-1 text-muted">
-                          Sub-categories:
-                        </p>
-                        {category.subCategories.map((subCat, subIndex) => (
-                          <div key={subIndex} className="ml-3">
-                            <p className="C-heading size-6 mb-0">
-                              • {subCat.name} - {subCat.description}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                    ) : null}
                   </div>
-                </div>
-              )) : (
+                ))
+              ) : (
                 <p className="C-heading size-6 mb-0 text-muted">No categories available</p>
               )}
             </div>
 
-            {/* Timestamps */}
-            <div className="col-12">
-              <h5 className="C-heading size-5 mb-3 bold">Timestamps</h5>
+            <div className="p-3" style={sectionCardStyle}>
+              <p className="C-heading size-xs mb-2 text-muted bold">Timestamps</p>
               <div className="row">
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Created At:
-                  </p>
-                  <p className="C-heading size-6 mb-0">{company.createdAt}</p>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Created At</p>
+                  <p className="C-heading size-6 mb-0">{valueOrDash(company.createdAt)}</p>
                 </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-1 text-muted">
-                    Updated At:
-                  </p>
-                  <p className="C-heading size-6 mb-0">{company.updatedAt}</p>
+                <div className="col-6 mb-0">
+                  <p className="C-heading size-xs mb-1 text-muted">Updated At</p>
+                  <p className="C-heading size-6 mb-0">{valueOrDash(company.updatedAt)}</p>
                 </div>
               </div>
             </div>
-          </div>
+          </>
         )}
       </div>
     </Modal>

@@ -36,7 +36,7 @@ function resolveBearerToken(request) {
   );
 }
 
-export async function PUT(request, { params }) {
+export async function PATCH(request, { params }) {
   const { id } = params || {};
   try {
     if (!id) {
@@ -53,7 +53,7 @@ export async function PUT(request, { params }) {
 
     const payload = await request.json().catch(() => ({}));
     const response = await fetch(`${API_BASE_URL}/pricing/${id}`, {
-      method: "PUT",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -77,7 +77,7 @@ export async function PUT(request, { params }) {
       { status: response.status, statusText: response.statusText }
     );
   } catch (error) {
-    console.error("PUT /api/pricing/:id proxy error:", error);
+    console.error("PATCH /api/pricing/:id proxy error:", error);
     return NextResponse.json(
       { error: "Internal server error", message: error.message || "Failed to update pricing plan" },
       { status: 500 }

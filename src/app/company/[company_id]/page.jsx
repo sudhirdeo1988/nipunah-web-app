@@ -4,10 +4,10 @@ import Icon from "@/components/Icon";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import { useAppSelector } from "@/store/hooks";
-import { enquiryService } from "@/utilities/apiServices";
+import { enquiryService, serviceService } from "@/utilities/apiServices";
 import { useAuth } from "@/utilities/AuthContext";
 import { getIdFromStoredUser } from "@/utilities/sessionUser";
-import { Divider, Form, Input, Modal, Space, Tabs, Image as PreviewImage, message, Spin, Empty } from "antd";
+import { Divider, Form, Input, Modal, Space, Tabs, message, Spin, Empty } from "antd";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -217,91 +217,35 @@ const CompanyEquipments = ({ equipments = [] }) => {
   );
 };
 
-const CompanyDocuments = () => {
+const CompanyServices = ({ services = [], loading = false }) => {
+  if (loading) {
+    return (
+      <div className="text-center py-4">
+        <Spin />
+      </div>
+    );
+  }
+
+  if (!services.length) {
+    return <Empty description="No services available." />;
+  }
+
   return (
     <>
-      <h4 className="C-heading size-6 bold mb-3 ">Photoes and Videos</h4>
+      <h4 className="C-heading size-6 bold mb-3 ">Services</h4>
       <div className="row g-3">
-        <div className="col-md-3 col-sm-6 col-xs-12">
-          <div className="card h-100">
-            <PreviewImage
-              src="/assets/images/about.jpg"
-              alt="My Logo"
-              style={{ width: "100%", maxHeight: "500px" }}
-            />
-            <div className="card-body p-2">
-              <h5 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-                Document title
-              </h5>
-              <p className="C-heading size-6 color-light mb-0">
-                Some quick example text to build on the card.
-              </p>
+        {services.map((service, idx) => (
+          <div className="col-md-6 col-xs-12" key={service?.id ?? service?.serviceId ?? idx}>
+            <div className="p-3 rounded-2 bg-white shadow-sm h-100">
+              <h4 className="C-heading size-6 gradient-text semiBold mb-2">
+                {service?.title || service?.service_title || "Service"}
+              </h4>
+              <span className="C-heading size-6 mb-0">
+                {service?.description || service?.service_description || "No description available"}
+              </span>
             </div>
           </div>
-        </div>
-        <div className="col-md-3 col-sm-6 col-xs-12">
-          <div className="card h-100">
-            <PreviewImage
-              src="/assets/images/about.jpg"
-              alt="My Logo"
-              style={{ width: "100%", maxHeight: "500px" }}
-            />
-            <div className="card-body p-2">
-              <h5 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-                Document title
-              </h5>
-              <p className="C-heading size-6 color-light mb-0">
-                Some quick example text to build on the card.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-6 col-xs-12">
-          <div className="card h-100">
-            <PreviewImage
-              src="/assets/images/about.jpg"
-              alt="My Logo"
-              style={{ width: "100%", maxHeight: "500px" }}
-            />
-            <div className="card-body p-2">
-              <h5 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-                Document title
-              </h5>
-              <p className="C-heading size-6 color-light mb-0">
-                Some quick example text to build on the card.
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3 col-sm-6 col-xs-12">
-          <div className="card h-100">
-            <PreviewImage
-              src="/assets/images/about.jpg"
-              alt="My Logo"
-              style={{ width: "100%", maxHeight: "500px" }}
-              preview={{
-                destroyOnHidden: true,
-                imageRender: () => (
-                  <video
-                    muted
-                    width="70%"
-                    controls
-                    src="https://mdn.alipayobjects.com/huamei_iwk9zp/afts/file/A*uYT7SZwhJnUAAAAAAAAAAAAADgCCAQ"
-                  />
-                ),
-                toolbarRender: () => null,
-              }}
-            />
-            <div className="card-body p-2">
-              <h5 className="C-heading size-6 gradient-text semiBold mb-1 text-truncate">
-                Document title
-              </h5>
-              <p className="C-heading size-6 color-light mb-0">
-                Some quick example text to build on the card.
-              </p>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
     </>
   );
@@ -318,6 +262,8 @@ const CompanyDetails = () => {
   const [companyData, setCompanyData] = useState(null);
   const [loadingCompany, setLoadingCompany] = useState(true);
   const [companyError, setCompanyError] = useState(null);
+  const [services, setServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(false);
 
   const fetchCompanyDetails = useCallback(async () => {
     if (!companyId) return;
@@ -349,6 +295,40 @@ const CompanyDetails = () => {
   useEffect(() => {
     fetchCompanyDetails();
   }, [fetchCompanyDetails]);
+
+  const fetchCompanyServices = useCallback(async () => {
+    if (!companyId) return;
+    setLoadingServices(true);
+    try {
+      const res = await serviceService.getServices({
+        page: 1,
+        limit: 500,
+        companyId: companyId,
+      });
+
+      const items = Array.isArray(res?.data?.items)
+        ? res.data.items
+        : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.items)
+        ? res.items
+        : Array.isArray(res?.services)
+        ? res.services
+        : Array.isArray(res)
+        ? res
+        : [];
+
+      setServices(items);
+    } catch {
+      setServices([]);
+    } finally {
+      setLoadingServices(false);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    fetchCompanyServices();
+  }, [fetchCompanyServices]);
 
   const companyName = companyData?.name || companyData?.company_name || "Company";
   const companyLocation =
@@ -392,6 +372,11 @@ const CompanyDetails = () => {
         label: "About Company",
         children: <AboutCompany company={companyData} />,
       },
+      {
+        key: "companyServices",
+        label: "Services",
+        children: <CompanyServices services={services} loading={loadingServices} />,
+      },
     ];
 
     if (!isLoggedIn) {
@@ -410,13 +395,8 @@ const CompanyDetails = () => {
         label: "Jobs",
         children: <CompanyJobs jobs={companyJobs} />,
       },
-      {
-        key: "companyDocs",
-        label: "Documants",
-        children: <CompanyDocuments />,
-      },
     ];
-  }, [companyData, companyEquipments, companyJobs, isLoggedIn]);
+  }, [companyData, companyEquipments, companyJobs, isLoggedIn, loadingServices, services]);
 
   const openEnquiryModal = useCallback(() => {
     enquiryForm.resetFields();
@@ -441,12 +421,19 @@ const CompanyDetails = () => {
       }
       setEnquirySubmitting(true);
       try {
+        const enquiryFromNum = Number(fromId);
+        const enquiryToNum = Number(companyId);
+        if (Number.isNaN(enquiryFromNum) || Number.isNaN(enquiryToNum)) {
+          message.error("Invalid enquiry details. Please try again.");
+          return;
+        }
+
         await enquiryService.createEnquiry({
-          to: companyId,
-          from: fromId,
+          enquiry_from: enquiryFromNum,
+          enquiry_to: enquiryToNum,
+          enquiry_for: "company",
           title: values.title?.trim(),
           description: values.message?.trim(),
-          type: "company",
         });
         message.success("Enquiry sent successfully");
         closeEnquiryModal();
