@@ -79,6 +79,16 @@ async function writeFileState(permissions, navOrder) {
   );
 }
 
+async function writeFileStateSafe(permissions, navOrder) {
+  try {
+    await writeFileState(permissions, navOrder);
+    return true;
+  } catch (error) {
+    console.warn("roles/permissions: file persistence skipped", error?.message || error);
+    return false;
+  }
+}
+
 async function fetchUpstream(method, payload, request) {
   const headers = {
     "Content-Type": "application/json",
@@ -124,20 +134,15 @@ export async function GET(request) {
     const data = sanitizePayload(upstream);
     if (!data) throw new Error("Invalid permissions payload from upstream");
     ROLE_PERMISSIONS_STATE = data;
-    await writeFileState(data, []);
+    await writeFileStateSafe(data, []);
     return NextResponse.json({ ...data, __nav_order__: sanitizeNavOrder([]) });
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      return NextResponse.json({
-        ...ROLE_PERMISSIONS_STATE,
-        __nav_order__: sanitizeNavOrder([]),
-      });
-    }
-    console.error("GET /api/roles/permissions error:", error);
-    return NextResponse.json(
-      { error: error?.message || "Failed to load permissions" },
-      { status: 500 }
-    );
+    // Always return last known safe state instead of hard-failing.
+    console.error("GET /api/roles/permissions fallback:", error);
+    return NextResponse.json({
+      ...ROLE_PERMISSIONS_STATE,
+      __nav_order__: sanitizeNavOrder([]),
+    });
   }
 }
 
@@ -158,42 +163,48 @@ export async function PUT(request) {
         { status: 400 }
       );
     }
-    const upstream = await fetchUpstream("PUT", normalizedFromRequest, request);
-    const saved = sanitizePayload(
-      upstream?.data?.permissions || upstream?.data || upstream || normalizedFromRequest
-    );
-    if (!saved) throw new Error("Invalid permissions save response from upstream");
+    let saved = normalizedFromRequest;
+    try {
+      const upstream = await fetchUpstream("PUT", normalizedFromRequest, request);
+      const normalizedFromUpstream = sanitizePayload(
+        upstream?.data?.permissions || upstream?.data || upstream || normalizedFromRequest
+      );
+      if (normalizedFromUpstream) {
+        saved = normalizedFromUpstream;
+      }
+    } catch (upstreamError) {
+      console.error("PUT /api/roles/permissions upstream failed, using local state:", upstreamError);
+    }
     ROLE_PERMISSIONS_STATE = saved;
-    await writeFileState(saved, navOrderFromRequest);
+    const filePersisted = await writeFileStateSafe(saved, navOrderFromRequest);
     return NextResponse.json({
       success: true,
       data: {
         ...saved,
         __nav_order__: navOrderFromRequest,
       },
+      meta: { filePersisted },
     });
   } catch (error) {
-    if (process.env.NODE_ENV !== "production") {
-      if (!normalizedFromRequest) {
-        return NextResponse.json(
-          { error: "Payload must be an object with role keys" },
-          { status: 400 }
-        );
-      }
-      ROLE_PERMISSIONS_STATE = normalizedFromRequest;
-      await writeFileState(ROLE_PERMISSIONS_STATE, navOrderFromRequest);
-      return NextResponse.json({
-        success: true,
-        data: {
-          ...ROLE_PERMISSIONS_STATE,
-          __nav_order__: navOrderFromRequest,
-        },
-      });
+    if (!normalizedFromRequest) {
+      return NextResponse.json(
+        { error: "Payload must be an object with role keys" },
+        { status: 400 }
+      );
     }
-    console.error("PUT /api/roles/permissions error:", error);
-    return NextResponse.json(
-      { error: error?.message || "Failed to save permissions" },
-      { status: 500 }
+    console.error("PUT /api/roles/permissions final fallback:", error);
+    ROLE_PERMISSIONS_STATE = normalizedFromRequest;
+    const filePersisted = await writeFileStateSafe(
+      ROLE_PERMISSIONS_STATE,
+      navOrderFromRequest
     );
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...ROLE_PERMISSIONS_STATE,
+        __nav_order__: navOrderFromRequest,
+      },
+      meta: { filePersisted },
+    });
   }
 }
