@@ -86,15 +86,24 @@ const Company = () => {
   );
 
   const currencyOptions = useMemo(
-    () =>
-      _map(countryDetails, (c) => ({
-        label: (
-          <span className="C-heading size-xs color-light mb-0">
-            {c.currencyCode} ({c.currencySymbol})
-          </span>
-        ),
-        value: c.currencyCode,
-      })),
+    () => {
+      const seenCurrencyCodes = new Set();
+      return _map(countryDetails, (c) => {
+        const code = String(c?.currencyCode || "").trim();
+        if (!code || seenCurrencyCodes.has(code)) return null;
+        seenCurrencyCodes.add(code);
+        const symbol = String(c?.currencySymbol || "").trim();
+        return {
+          label: (
+            <span className="C-heading size-xs color-light mb-0">
+              {code}
+              {symbol ? ` (${symbol})` : ""}
+            </span>
+          ),
+          value: code,
+        };
+      }).filter(Boolean);
+    },
     []
   );
 

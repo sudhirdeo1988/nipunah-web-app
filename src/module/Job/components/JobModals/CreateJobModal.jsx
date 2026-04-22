@@ -103,12 +103,20 @@ const CreateJobModal = memo(
 
     // Currency options
     const currencyOptions = useMemo(
-      () =>
-        _map(CountryDetails, (c) => ({
-          label: `${c.currencyCode} (${c.currencySymbol})`,
-          value: c.currencyCode,
-          symbol: c.currencySymbol,
-        })),
+      () => {
+        const seenCurrencyCodes = new Set();
+        return _map(CountryDetails, (c) => {
+          const code = String(c?.currencyCode || "").trim();
+          if (!code || seenCurrencyCodes.has(code)) return null;
+          seenCurrencyCodes.add(code);
+          const symbol = String(c?.currencySymbol || "").trim();
+          return {
+            label: symbol ? `${code} (${symbol})` : code,
+            value: code,
+            symbol,
+          };
+        }).filter(Boolean);
+      },
       []
     );
 
