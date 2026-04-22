@@ -28,7 +28,7 @@ const BecomeExpertModal = ({
   onCancel,
   onSubmit,
   submitApiUrl,
-  title = "Become an Expert",
+  title = "Upgrade to expert profile (Free)",
   okText = "Submit",
 }) => {
   const [form] = Form.useForm();

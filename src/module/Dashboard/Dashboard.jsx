@@ -75,7 +75,7 @@ const Dashboard = () => {
             )}
             {isUserRole && (
               <Button type="primary" onClick={openBecomeExpert}>
-                Become an expert
+                Upgrade to expert profile (Free)
               </Button>
             )}
           </div>

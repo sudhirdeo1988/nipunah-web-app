@@ -1289,6 +1289,9 @@ const Company = () => {
                 </span>
               }
               name="about_company"
+              rules={[
+                { required: true, message: "Please enter about company" },
+              ]}
               className="mb-2"
             >
               <TextArea rows={3} placeholder="About company" size="large" />
