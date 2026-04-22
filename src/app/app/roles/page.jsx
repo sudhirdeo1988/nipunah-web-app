@@ -397,23 +397,20 @@ const RoleManagementPage = () => {
     return result;
   }, [cloneRoles]);
 
-  const loadRolePermissionsFromStorage = useCallback(() => {
-    if (typeof window === "undefined") return null;
-    try {
-      const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
-      if (!raw) return null;
-      return JSON.parse(raw);
-    } catch {
-      return null;
-    }
-  }, []);
-
   const loadPermissions = useCallback(async () => {
     setLoading(true);
     try {
-      const stored = loadRolePermissionsFromStorage();
-      const normalized = normalizeRolesPayload(stored || ROLE_MANAGEMENT_MOCK);
-      const storedNavOrder = loadRolePermissionsFromStorage()?.__nav_order__;
+      const res = await fetch("/api/roles/permissions", {
+        method: "GET",
+        credentials: "include",
+        cache: "no-store",
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload?.error || payload?.message || "Failed to load permissions");
+      }
+      const normalized = normalizeRolesPayload(payload || ROLE_MANAGEMENT_MOCK);
+      const storedNavOrder = payload?.__nav_order__;
       const resolvedNavOrder = sanitizeNavOrder(storedNavOrder || NAV_KEYS);
       setRolesData(normalized);
       setInitialRolesData(cloneRoles(normalized));
@@ -421,6 +418,16 @@ const RoleManagementPage = () => {
       setInitialNavOrder(resolvedNavOrder);
       setHasChanges(false);
       setSelectedRoleKey((prev) => prev || Object.keys(normalized)[0] || null);
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          ROLE_PERMISSIONS_STORAGE_KEY,
+          JSON.stringify({ ...normalized, __nav_order__: resolvedNavOrder })
+        );
+        window.localStorage.setItem(
+          SIDEBAR_NAV_ORDER_STORAGE_KEY,
+          JSON.stringify(resolvedNavOrder)
+        );
+      }
     } catch (err) {
       const fallback = cloneRoles(ROLE_MANAGEMENT_MOCK);
       setRolesData(fallback);
@@ -433,7 +440,7 @@ const RoleManagementPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [cloneRoles, normalizeRolesPayload, loadRolePermissionsFromStorage]);
+  }, [cloneRoles, normalizeRolesPayload]);
 
   useEffect(() => {
     loadPermissions();
@@ -498,23 +505,43 @@ const RoleManagementPage = () => {
     }
     setSaving(true);
     try {
-      if (typeof window === "undefined") {
-        throw new Error("Save is available only in browser context");
-      }
       const saved = normalizeRolesPayload(rolesData);
-      window.localStorage.setItem(
-        ROLE_PERMISSIONS_STORAGE_KEY,
-        JSON.stringify({ ...saved, __nav_order__: navOrder })
+      const res = await fetch("/api/roles/permissions", {
+        method: "PUT",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          permissions: saved,
+          __nav_order__: navOrder,
+        }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(payload?.error || payload?.message || "Failed to save");
+      }
+      const persisted = normalizeRolesPayload(payload?.data || saved);
+      const persistedNavOrder = sanitizeNavOrder(
+        payload?.data?.__nav_order__ || navOrder
       );
-      window.localStorage.setItem(
-        SIDEBAR_NAV_ORDER_STORAGE_KEY,
-        JSON.stringify(navOrder)
-      );
+      if (typeof window !== "undefined") {
+        window.localStorage.setItem(
+          ROLE_PERMISSIONS_STORAGE_KEY,
+          JSON.stringify({ ...persisted, __nav_order__: persistedNavOrder })
+        );
+        window.localStorage.setItem(
+          SIDEBAR_NAV_ORDER_STORAGE_KEY,
+          JSON.stringify(persistedNavOrder)
+        );
+      }
       window.dispatchEvent(new CustomEvent("role-permissions-updated"));
       window.dispatchEvent(new CustomEvent("sidebar-nav-order-updated"));
-      setRolesData(saved);
-      setInitialRolesData(cloneRoles(saved));
-      setInitialNavOrder(navOrder);
+      setRolesData(persisted);
+      setInitialRolesData(cloneRoles(persisted));
+      setNavOrder(persistedNavOrder);
+      setInitialNavOrder(persistedNavOrder);
       setHasChanges(false);
       message.success("Permissions saved successfully");
     } catch (err) {

@@ -6,8 +6,9 @@ import { useEffect, lazy, Suspense, useMemo } from "react";
 import { ROUTES } from "@/constants/routes";
 import { Layout } from "antd";
 import HeaderBeta from "@/components/HeaderBeta";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppDispatch } from "@/store/hooks";
 import { clearUser } from "@/store/slices/userSlice";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 
 const { Sider, Content } = Layout;
 
@@ -33,16 +34,17 @@ export default function AppLayout({ children }) {
   const router = useRouter();
   const pathname = usePathname();
   const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.user.user);
+  const { flatPermissions, permissionsReady } = useRolePermissions();
 
   const firstAccessibleNavRoute = useMemo(() => {
     const first = NAV_ROUTE_PERMISSIONS.find(
-      (item) => item?.route && user?.[item.key] !== false
+      (item) => item?.route && flatPermissions?.[item.key] !== false
     );
     return first?.route || ROUTES?.PUBLIC?.LOGIN;
-  }, [user]);
+  }, [flatPermissions]);
 
   const blockedNavRoute = useMemo(() => {
+    if (!permissionsReady) return null;
     if (!pathname?.startsWith("/app/")) return null;
     const matched = NAV_ROUTE_PERMISSIONS.find(
       (item) =>
@@ -50,8 +52,8 @@ export default function AppLayout({ children }) {
         (pathname === item.route || pathname.startsWith(`${item.route}/`))
     );
     if (!matched) return null; // Non-main-nav private pages are handled by their own rules
-    return user?.[matched.key] === false ? matched.route : null;
-  }, [pathname, user]);
+    return flatPermissions?.[matched.key] === false ? matched.route : null;
+  }, [pathname, flatPermissions, permissionsReady]);
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -62,9 +64,10 @@ export default function AppLayout({ children }) {
 
   useEffect(() => {
     if (!isLoggedIn) return;
+    if (!permissionsReady) return;
     if (!blockedNavRoute) return;
     router.replace(firstAccessibleNavRoute);
-  }, [isLoggedIn, blockedNavRoute, firstAccessibleNavRoute, router]);
+  }, [isLoggedIn, blockedNavRoute, firstAccessibleNavRoute, permissionsReady, router]);
 
   if (!isLoggedIn) return null;
 

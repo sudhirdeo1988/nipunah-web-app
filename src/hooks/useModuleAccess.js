@@ -12,8 +12,8 @@ import { useRolePermissions } from "./useRolePermissions";
  */
 export function useModuleAccess(moduleKey) {
   const router = useRouter();
-  const { isModuleVisible, getModuleConfig } = useRolePermissions();
-  const allowed = isModuleVisible(moduleKey);
+  const { isModuleVisible, getModuleConfig, permissionsReady } = useRolePermissions();
+  const allowed = permissionsReady ? isModuleVisible(moduleKey) : true;
   const config = getModuleConfig(moduleKey);
   const permissions = useMemo(
     () => config?.permissions ?? {},
@@ -22,13 +22,14 @@ export function useModuleAccess(moduleKey) {
 
   useEffect(() => {
     if (!moduleKey) return;
+    if (!permissionsReady) return;
     if (!allowed) {
       router.replace(ROUTES?.PRIVATE?.DASHBOARD ?? "/app/dashboard");
     }
-  }, [moduleKey, allowed, router]);
+  }, [moduleKey, allowed, permissionsReady, router]);
 
   return useMemo(
-    () => ({ allowed, permissions, config }),
-    [allowed, permissions, config]
+    () => ({ allowed, permissions, config, permissionsReady }),
+    [allowed, permissions, config, permissionsReady]
   );
 }

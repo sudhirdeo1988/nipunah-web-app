@@ -61,15 +61,48 @@ export function useRolePermissions() {
   const roleFromUser = useAppSelector((state) => state.user.user?.role);
   const typeFromUser = useAppSelector((state) => state.user.user?.type);
   const [permissionsVersion, setPermissionsVersion] = useState(0);
+  const [permissionsByRole, setPermissionsByRole] = useState(null);
+  const [permissionsReady, setPermissionsReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
-    const onPermissionsUpdated = () => setPermissionsVersion((prev) => prev + 1);
+    const onPermissionsUpdated = () => {
+      setPermissionsVersion((prev) => prev + 1);
+    };
     window.addEventListener("role-permissions-updated", onPermissionsUpdated);
     return () => {
       window.removeEventListener("role-permissions-updated", onPermissionsUpdated);
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    const loadPermissions = async () => {
+      try {
+        const res = await fetch("/api/roles/permissions", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) return;
+        if (!cancelled && payload && typeof payload === "object") {
+          setPermissionsByRole(payload);
+        }
+      } catch {
+        // ignore and keep fallback permissions
+      } finally {
+        if (!cancelled) {
+          setPermissionsReady(true);
+        }
+      }
+    };
+    loadPermissions();
+    return () => {
+      cancelled = true;
+    };
+  }, [permissionsVersion]);
 
   return useMemo(() => {
     const stored = loadUserSession();
@@ -82,7 +115,9 @@ export function useRolePermissions() {
     );
     const defaultRoleFlat = getRolePermissionObject(resolvedRole) || {};
     let roleFlat = defaultRoleFlat;
-    if (typeof window !== "undefined") {
+    if (permissionsByRole && typeof permissionsByRole === "object" && permissionsByRole[resolvedRole]) {
+      roleFlat = { ...defaultRoleFlat, ...permissionsByRole[resolvedRole] };
+    } else if (typeof window !== "undefined") {
       try {
         const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
         if (raw) {
@@ -136,6 +171,7 @@ export function useRolePermissions() {
 
     return {
       role: resolvedRole,
+      permissionsReady,
       flatPermissions: flat,
       visibleModuleKeys,
       visibleDashboardComponentKeys,
@@ -144,5 +180,5 @@ export function useRolePermissions() {
       getDashboardVisibleComponentKeys,
       getModuleConfig,
     };
-  }, [roleFromRedux, roleFromUser, typeFromUser, userFromRedux, permissionsVersion]);
+  }, [roleFromRedux, roleFromUser, typeFromUser, userFromRedux, permissionsByRole, permissionsReady]);
 }

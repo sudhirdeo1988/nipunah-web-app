@@ -1,10 +1,18 @@
 import { NextResponse } from "next/server";
 import { ROLE_MANAGEMENT_MOCK } from "@/constants/roleManagementMock";
 import { API_BASE_URL } from "@/constants/api";
+import { promises as fs } from "fs";
+import path from "path";
 
 let ROLE_PERMISSIONS_STATE = JSON.parse(JSON.stringify(ROLE_MANAGEMENT_MOCK));
 const PERMISSIONS_ENDPOINT = `${API_BASE_URL}/roles/permissions`;
 const ROLE_KEYS = Object.keys(ROLE_MANAGEMENT_MOCK);
+const ROLE_PERMISSIONS_FILE_PATH = path.join(
+  process.cwd(),
+  "src",
+  "constants",
+  "rolePermissions.data.json"
+);
 
 function sanitizePayload(input) {
   if (!input || typeof input !== "object" || Array.isArray(input)) return null;
@@ -21,6 +29,54 @@ function sanitizePayload(input) {
     }, {});
   });
   return normalized;
+}
+
+function sanitizeNavOrder(order) {
+  const defaultOrder = [
+    "nav_dashboard",
+    "nav_categories",
+    "nav_experts",
+    "nav_users",
+    "nav_companies",
+    "nav_services",
+    "nav_jobs",
+    "nav_pricing",
+    "nav_enquiries",
+    "nav_equipments",
+    "nav_role_management",
+  ];
+  if (!Array.isArray(order)) return defaultOrder;
+  const valid = order.filter((key) => defaultOrder.includes(key));
+  const missing = defaultOrder.filter((key) => !valid.includes(key));
+  return [...valid, ...missing];
+}
+
+async function readFileState() {
+  try {
+    const raw = await fs.readFile(ROLE_PERMISSIONS_FILE_PATH, "utf8");
+    const parsed = JSON.parse(raw);
+    const permissions = sanitizePayload(parsed?.permissions || parsed);
+    if (!permissions) return null;
+    return {
+      permissions,
+      navOrder: sanitizeNavOrder(parsed?.navOrder),
+    };
+  } catch {
+    return null;
+  }
+}
+
+async function writeFileState(permissions, navOrder) {
+  const payload = {
+    permissions,
+    navOrder: sanitizeNavOrder(navOrder),
+    updatedAt: new Date().toISOString(),
+  };
+  await fs.writeFile(
+    ROLE_PERMISSIONS_FILE_PATH,
+    `${JSON.stringify(payload, null, 2)}\n`,
+    "utf8"
+  );
 }
 
 async function fetchUpstream(method, payload, request) {
@@ -55,14 +111,27 @@ async function fetchUpstream(method, payload, request) {
  */
 export async function GET(request) {
   try {
+    const fromFile = await readFileState();
+    if (fromFile?.permissions) {
+      ROLE_PERMISSIONS_STATE = fromFile.permissions;
+      return NextResponse.json({
+        ...fromFile.permissions,
+        __nav_order__: fromFile.navOrder,
+      });
+    }
+
     const upstream = await fetchUpstream("GET", null, request);
     const data = sanitizePayload(upstream);
     if (!data) throw new Error("Invalid permissions payload from upstream");
     ROLE_PERMISSIONS_STATE = data;
-    return NextResponse.json(data);
+    await writeFileState(data, []);
+    return NextResponse.json({ ...data, __nav_order__: sanitizeNavOrder([]) });
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
-      return NextResponse.json(ROLE_PERMISSIONS_STATE);
+      return NextResponse.json({
+        ...ROLE_PERMISSIONS_STATE,
+        __nav_order__: sanitizeNavOrder([]),
+      });
     }
     console.error("GET /api/roles/permissions error:", error);
     return NextResponse.json(
@@ -78,9 +147,11 @@ export async function GET(request) {
  */
 export async function PUT(request) {
   let normalizedFromRequest = null;
+  let navOrderFromRequest = [];
   try {
     const body = await request.json();
-    normalizedFromRequest = sanitizePayload(body);
+    normalizedFromRequest = sanitizePayload(body?.permissions || body);
+    navOrderFromRequest = sanitizeNavOrder(body?.__nav_order__ || body?.navOrder || []);
     if (!normalizedFromRequest) {
       return NextResponse.json(
         { error: "Payload must be an object with role keys" },
@@ -93,7 +164,14 @@ export async function PUT(request) {
     );
     if (!saved) throw new Error("Invalid permissions save response from upstream");
     ROLE_PERMISSIONS_STATE = saved;
-    return NextResponse.json({ success: true, data: saved });
+    await writeFileState(saved, navOrderFromRequest);
+    return NextResponse.json({
+      success: true,
+      data: {
+        ...saved,
+        __nav_order__: navOrderFromRequest,
+      },
+    });
   } catch (error) {
     if (process.env.NODE_ENV !== "production") {
       if (!normalizedFromRequest) {
@@ -103,7 +181,14 @@ export async function PUT(request) {
         );
       }
       ROLE_PERMISSIONS_STATE = normalizedFromRequest;
-      return NextResponse.json({ success: true, data: ROLE_PERMISSIONS_STATE });
+      await writeFileState(ROLE_PERMISSIONS_STATE, navOrderFromRequest);
+      return NextResponse.json({
+        success: true,
+        data: {
+          ...ROLE_PERMISSIONS_STATE,
+          __nav_order__: navOrderFromRequest,
+        },
+      });
     }
     console.error("PUT /api/roles/permissions error:", error);
     return NextResponse.json(
