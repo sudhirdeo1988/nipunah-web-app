@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { equipmentService } from "@/utilities/apiServices";
 import { message } from "antd";
+import { useAppSelector } from "@/store/hooks";
 
 /**
  * Transform API response data to component format
@@ -131,8 +132,11 @@ const transformEquipmentData = (apiData) => {
         return `${day}-${month}-${year}`;
       };
 
+      const normalizedEquipmentId =
+        item?.id ?? item?.equipment_id ?? item?.equipmentId ?? null;
+
       const transformedItem = {
-        id: item.id,
+        id: normalizedEquipmentId,
         name: item.name,
         category: item.category,
         type: item.type,
@@ -148,7 +152,7 @@ const transformEquipmentData = (apiData) => {
         createDate: formatDate(createdAt),
         createdAt: createdAt,
         updatedAt: updatedAt,
-        action: { id: item.id },
+        action: { id: normalizedEquipmentId },
       };
 
       console.log(`✅ Transformed item ${index + 1}:`, transformedItem);
@@ -164,6 +168,8 @@ const transformEquipmentData = (apiData) => {
  * Hook for equipment operations
  */
 export const useEquipment = () => {
+  const user = useAppSelector((state) => state.user?.user);
+  const reduxRole = useAppSelector((state) => state.user?.role);
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -176,6 +182,7 @@ export const useEquipment = () => {
   const [sortBy, setSortBy] = useState("name");
   const [order, setOrder] = useState("asc");
   const searchDebounceTimerRef = useRef(null);
+  const lastAutoFetchKeyRef = useRef(null);
 
   /**
    * Fetch equipment from API with pagination, sorting, and search support
@@ -185,6 +192,13 @@ export const useEquipment = () => {
       setLoading(true);
       let apiParams;
       try {
+        const resolvedRole = String(
+          reduxRole || user?.role || user?.type || ""
+        ).toLowerCase();
+        const isCompanyRole = resolvedRole === "company";
+        const isAdminRole = resolvedRole === "admin";
+        const companyId = user?.company_id ?? user?.companyId ?? user?.id ?? null;
+
         apiParams = {
           page: params.page || pagination.current,
           limit: params.limit || pagination.pageSize,
@@ -199,7 +213,24 @@ export const useEquipment = () => {
 
         // Call API with pagination, sorting, and search parameters
         console.log("🟢 API CALL: GET /equipment", { params: apiParams });
-        const response = await equipmentService.getEquipment(apiParams);
+        let response;
+        if (isCompanyRole) {
+          if (companyId == null || companyId === "") {
+            setEquipment([]);
+            setPagination((prev) => ({ ...prev, total: 0 }));
+            return;
+          }
+          response = await equipmentService.getEquipmentByCompany(
+            companyId,
+            apiParams
+          );
+        } else if (isAdminRole) {
+          response = await equipmentService.getEquipment(apiParams);
+        } else {
+          setEquipment([]);
+          setPagination((prev) => ({ ...prev, total: 0 }));
+          return;
+        }
         console.log("✅ API Response:", response);
         console.log("📦 Response structure:", {
           success: response?.success,
@@ -291,7 +322,7 @@ export const useEquipment = () => {
         setLoading(false);
       }
     },
-    [pagination.current, pagination.pageSize, searchQuery, sortBy, order]
+    [pagination.current, pagination.pageSize, searchQuery, sortBy, order, reduxRole, user]
   );
 
   /**
@@ -332,7 +363,7 @@ export const useEquipment = () => {
       setError(null);
 
       try {
-        console.log("🟢 API CALL: PUT /equipment/" + equipmentId, {
+        console.log("🟢 API CALL: PATCH /equipment/" + equipmentId, {
           payload: equipmentData,
         });
         const response = await equipmentService.updateEquipment(
@@ -364,6 +395,9 @@ export const useEquipment = () => {
       setError(null);
 
       try {
+        if (equipmentId == null || equipmentId === "") {
+          throw new Error("Equipment ID is missing for delete request");
+        }
         console.log("🟢 API CALL: DELETE /equipment/" + equipmentId);
         const response = await equipmentService.deleteEquipment(equipmentId);
         console.log("✅ API Response:", response);
@@ -406,8 +440,21 @@ export const useEquipment = () => {
    * Initial data fetch on component mount
    */
   useEffect(() => {
-    fetchEquipment();
-  }, []);
+    const resolvedRole = String(
+      reduxRole || user?.role || user?.type || ""
+    ).toLowerCase();
+    if (!resolvedRole) return;
+
+    const companyId = user?.company_id ?? user?.companyId ?? user?.id ?? null;
+    if (resolvedRole === "company" && (companyId == null || companyId === "")) return;
+
+    const fetchKey =
+      resolvedRole === "company" ? `${resolvedRole}:${companyId}` : resolvedRole;
+    if (lastAutoFetchKeyRef.current === fetchKey) return;
+
+    lastAutoFetchKeyRef.current = fetchKey;
+    fetchEquipment({ page: 1 });
+  }, [reduxRole, user?.role, user?.type, user?.company_id, user?.companyId, user?.id, fetchEquipment]);
 
   return {
     equipment,

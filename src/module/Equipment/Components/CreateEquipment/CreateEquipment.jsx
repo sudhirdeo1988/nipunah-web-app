@@ -11,6 +11,7 @@ import {
 } from "../../constants/equipmentConstants";
 import { useCategory } from "@/module/Category/hooks/useCategory";
 import { companyService } from "@/utilities/apiServices";
+import { useAppSelector } from "@/store/hooks";
 import dayjs from "dayjs";
 
 const { TextArea } = Input;
@@ -27,6 +28,8 @@ const CreateEquipment = memo(
     const [selectedCountry, setSelectedCountry] = useState(null);
     const [companies, setCompanies] = useState([]);
     const [companiesLoading, setCompaniesLoading] = useState(false);
+    const user = useAppSelector((state) => state.user?.user);
+    const reduxRole = useAppSelector((state) => state.user?.role);
     const { categories } = useCategory();
     // Note: fetchCategories is called automatically by useCategory hook on mount
     // No need to call it again here to avoid duplicate API calls
@@ -97,9 +100,32 @@ const CreateEquipment = memo(
       () =>
         _map(companies, (company) => ({
           label: company.name || company.companyName || company.shortName,
-          value: company.name || company.companyName || company.shortName,
+          value: String(company.id ?? company.company_id ?? company.companyId ?? ""),
         })),
       [companies]
+    );
+
+    const resolvedRole = useMemo(
+      () => String(reduxRole || user?.role || user?.type || "").toLowerCase(),
+      [reduxRole, user?.role, user?.type]
+    );
+    const isCompanyRole = resolvedRole === "company";
+    const loggedInCompanyId = useMemo(
+      () =>
+        user?.company_id ??
+        user?.companyId ??
+        user?.id ??
+        "",
+      [user?.company_id, user?.companyId, user?.id]
+    );
+    const loggedInCompanyName = useMemo(
+      () =>
+        user?.company_name ||
+        user?.companyName ||
+        user?.name ||
+        user?.shortName ||
+        "",
+      [user?.company_name, user?.companyName, user?.name, user?.shortName]
     );
 
     // Fetch companies on component mount
@@ -153,14 +179,20 @@ const CreateEquipment = memo(
             postal_code: selectedEquipment.address?.postal_code,
           },
         });
+        if (isCompanyRole && loggedInCompanyId !== "") {
+          form.setFieldValue("manufacture_company", String(loggedInCompanyId));
+        }
         if (selectedEquipment.address?.country) {
           setSelectedCountry(selectedEquipment.address.country);
         }
       } else {
         form.resetFields();
+        if (isCompanyRole && loggedInCompanyId !== "") {
+          form.setFieldValue("manufacture_company", String(loggedInCompanyId));
+        }
         setSelectedCountry(null);
       }
-    }, [selectedEquipment, form]);
+    }, [selectedEquipment, form, isCompanyRole, loggedInCompanyId]);
 
     const handleCountryChange = useCallback(
       (value) => {
@@ -186,6 +218,25 @@ const CreateEquipment = memo(
           }
         }
 
+        const selectedCompanyValue = values.manufacture_company;
+        const selectedCompany = companies.find(
+          (company) =>
+            String(company.id ?? company.company_id ?? company.companyId ?? "") ===
+              String(selectedCompanyValue ?? "") ||
+            String(company.name || company.companyName || company.shortName || "") ===
+              String(selectedCompanyValue ?? "")
+        );
+        const resolvedCompanyId =
+          selectedCompany?.id ??
+          selectedCompany?.company_id ??
+          selectedCompany?.companyId ??
+          (isCompanyRole ? loggedInCompanyId : "");
+        const resolvedCompanyName =
+          selectedCompany?.name ||
+          selectedCompany?.companyName ||
+          selectedCompany?.shortName ||
+          (isCompanyRole ? loggedInCompanyName : String(selectedCompanyValue || ""));
+
         // Build payload structure
         const payload = {
           name: values.name,
@@ -193,10 +244,9 @@ const CreateEquipment = memo(
           type: values.type,
           about: values.about || "",
           manufacture_year: values.manufacture_year,
-          manufacture_company: values.manufacture_company,
+          manufacture_company: resolvedCompanyName || "",
           available_for: values.available_for,
-          rent_type: values.rent_type,
-          added_by: "user", // Default to logged in user
+          rent_type: values.rent_type || "",
           equipment_address: {
             country: values.address?.country || "",
             state: values.address?.state || "",
@@ -205,14 +255,14 @@ const CreateEquipment = memo(
             postal_code: values.address?.postal_code || "",
           },
           contact_email: values.contact_email,
-          contact_country_code: values.contact_country_code,
           contact_number: values.contact_number,
+          companyId: Number(resolvedCompanyId || 0),
         };
 
         onSubmit(payload);
         form.resetFields();
       },
-      [onSubmit, form]
+      [onSubmit, form, companies, isCompanyRole, loggedInCompanyId, loggedInCompanyName]
     );
 
     return (
@@ -337,6 +387,7 @@ const CreateEquipment = memo(
                   notFoundContent={companiesLoading ? "Loading companies..." : "No companies found"}
                   options={companyOptions}
                   allowClear
+                  disabled={isCompanyRole}
                 />
               </Form.Item>
             </div>

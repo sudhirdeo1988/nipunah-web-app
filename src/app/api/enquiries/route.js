@@ -139,6 +139,20 @@ export async function POST(request) {
     }
 
     const body = await request.json().catch(() => ({}));
+    const normalizedBody =
+      body && typeof body === "object" && !Array.isArray(body)
+        ? {
+            ...body,
+            enquiry_from:
+              body.enquiry_from === undefined || body.enquiry_from === null
+                ? body.enquiry_from
+                : String(body.enquiry_from),
+            enquiry_to:
+              body.enquiry_to === undefined || body.enquiry_to === null
+                ? body.enquiry_to
+                : String(body.enquiry_to),
+          }
+        : {};
 
     const url = `${base}/enquiries`;
     const response = await fetch(url, {
@@ -148,7 +162,7 @@ export async function POST(request) {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify(body || {}),
+      body: JSON.stringify(normalizedBody),
     });
 
     const data = await readUpstreamBody(response);

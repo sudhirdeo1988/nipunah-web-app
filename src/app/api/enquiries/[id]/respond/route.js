@@ -54,6 +54,12 @@ export async function POST(request, { params }) {
     const enquiryTo = body?.enquiry_to;
     const enquiryFor = body?.enquiry_for;
     const title = body?.title;
+    const normalizedEnquiryFrom =
+      enquiryFrom === undefined || enquiryFrom === null
+        ? enquiryFrom
+        : String(enquiryFrom);
+    const normalizedEnquiryTo =
+      enquiryTo === undefined || enquiryTo === null ? enquiryTo : String(enquiryTo);
 
     if (!description || !String(description).trim()) {
       return NextResponse.json(
@@ -79,8 +85,8 @@ export async function POST(request, { params }) {
         Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        enquiry_from: enquiryFrom,
-        enquiry_to: enquiryTo,
+        enquiry_from: normalizedEnquiryFrom,
+        enquiry_to: normalizedEnquiryTo,
         enquiry_for: enquiryFor,
         title,
         description: String(description).trim(),

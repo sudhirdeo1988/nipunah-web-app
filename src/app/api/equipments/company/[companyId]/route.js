@@ -28,7 +28,6 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
     }
     return acc;
   }, {});
-
   for (const key of TOKEN_COOKIE_KEYS) {
     if (cookies[key]) return cookies[key];
   }
@@ -63,38 +62,28 @@ async function readResponseBody(response) {
   }
 }
 
-function resolveToken(request) {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const tokenFromHeader = getBearerTokenFromAuthHeader(
-    request.headers.get("authorization") || ""
-  );
-  return tokenFromHeader || getBearerTokenFromCookieHeader(cookieHeader);
-}
-
-export async function GET(request) {
+export async function GET(request, { params }) {
   try {
-    const token = resolveToken(request);
+    const companyId = params?.companyId;
+    if (!companyId) {
+      return NextResponse.json(
+        { error: "Bad request", message: "companyId is required" },
+        { status: 400 }
+      );
+    }
+
+    const token =
+      getBearerTokenFromAuthHeader(request.headers.get("authorization") || "") ||
+      getBearerTokenFromCookieHeader(request.headers.get("cookie") || "");
+
     if (!isUsableToken(token)) {
       return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
+        { error: "Unauthorized", message: "Authentication token is required" },
         { status: 401 }
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const queryString = new URLSearchParams(
-      [...searchParams.entries()].filter(
-        ([_, value]) => value !== null && value !== undefined && value !== ""
-      )
-    ).toString();
-    const url = queryString
-      ? `${API_BASE_URL}/services?${queryString}`
-      : `${API_BASE_URL}/services`;
-
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/equipments/company/${companyId}`, {
       method: "GET",
       headers: {
         Accept: "application/json",
@@ -109,57 +98,14 @@ export async function GET(request) {
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("GET /api/services proxy error:", error);
+    console.error("GET /api/equipments/company/:companyId proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error.message || "Failed to fetch services",
+        message: error.message || "Failed to fetch company equipments",
       },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request) {
-  try {
-    const token = resolveToken(request);
-
-    if (!isUsableToken(token)) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
-        { status: 401 }
-      );
-    }
-
-    const payload = await request.json().catch(() => ({}));
-    const response = await fetch(`${API_BASE_URL}/services`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(payload || {}),
-      cache: "no-store",
-    });
-
-    const data = await readResponseBody(response);
-
-    return NextResponse.json(data, {
-      status: response.status,
-      statusText: response.statusText,
-    });
-  } catch (error) {
-    console.error("POST /api/services proxy error:", error);
-    return NextResponse.json(
-      {
-        error: "Internal server error",
-        message: error.message || "Failed to create service",
-      },
-      { status: 500 }
-    );
-  }
-}

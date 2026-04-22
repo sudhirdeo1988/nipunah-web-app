@@ -4,10 +4,10 @@ import Icon from "@/components/Icon";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicLayout from "@/layout/PublicLayout";
 import { useAppSelector } from "@/store/hooks";
-import { enquiryService, serviceService } from "@/utilities/apiServices";
+import { enquiryService, equipmentService, serviceService } from "@/utilities/apiServices";
 import { useAuth } from "@/utilities/AuthContext";
 import { getIdFromStoredUser } from "@/utilities/sessionUser";
-import { Divider, Form, Input, Modal, Space, Tabs, message, Spin, Empty } from "antd";
+import { Card, Divider, Form, Input, Modal, Space, Tabs, message, Spin, Empty } from "antd";
 import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -145,7 +145,15 @@ const CompanyJobs = ({ jobs = [] }) => {
   );
 };
 
-const CompanyEquipments = ({ equipments = [] }) => {
+const CompanyEquipments = ({ equipments = [], loading = false }) => {
+  if (loading) {
+    return (
+      <div className="text-center py-4">
+        <Spin />
+      </div>
+    );
+  }
+
   if (!equipments.length) {
     return <Empty description="No equipment data available." />;
   }
@@ -236,14 +244,15 @@ const CompanyServices = ({ services = [], loading = false }) => {
       <div className="row g-3">
         {services.map((service, idx) => (
           <div className="col-md-6 col-xs-12" key={service?.id ?? service?.serviceId ?? idx}>
-            <div className="p-3 rounded-2 bg-white shadow-sm h-100">
-              <h4 className="C-heading size-6 gradient-text semiBold mb-2">
-                {service?.title || service?.service_title || "Service"}
-              </h4>
-              <span className="C-heading size-6 mb-0">
+            <Card
+              title={service?.title || service?.service_title || "Service"}
+              variant="borderless"
+              className="h-100 shadow-sm"
+            >
+              <p className="C-heading size-6 mb-0">
                 {service?.description || service?.service_description || "No description available"}
-              </span>
-            </div>
+              </p>
+            </Card>
           </div>
         ))}
       </div>
@@ -264,6 +273,11 @@ const CompanyDetails = () => {
   const [companyError, setCompanyError] = useState(null);
   const [services, setServices] = useState([]);
   const [loadingServices, setLoadingServices] = useState(false);
+  const [equipments, setEquipments] = useState([]);
+  const [loadingEquipments, setLoadingEquipments] = useState(false);
+  const [activeTabKey, setActiveTabKey] = useState("aboutCompany");
+  const [servicesLoaded, setServicesLoaded] = useState(false);
+  const [equipmentsLoaded, setEquipmentsLoaded] = useState(false);
 
   const fetchCompanyDetails = useCallback(async () => {
     if (!companyId) return;
@@ -296,15 +310,19 @@ const CompanyDetails = () => {
     fetchCompanyDetails();
   }, [fetchCompanyDetails]);
 
+  useEffect(() => {
+    setServices([]);
+    setServicesLoaded(false);
+    setEquipments([]);
+    setEquipmentsLoaded(false);
+    setActiveTabKey("aboutCompany");
+  }, [companyId]);
+
   const fetchCompanyServices = useCallback(async () => {
     if (!companyId) return;
     setLoadingServices(true);
     try {
-      const res = await serviceService.getServices({
-        page: 1,
-        limit: 500,
-        companyId: companyId,
-      });
+      const res = await serviceService.getServicesByCompany(companyId);
 
       const items = Array.isArray(res?.data?.items)
         ? res.data.items
@@ -319,6 +337,7 @@ const CompanyDetails = () => {
         : [];
 
       setServices(items);
+      setServicesLoaded(true);
     } catch {
       setServices([]);
     } finally {
@@ -327,8 +346,41 @@ const CompanyDetails = () => {
   }, [companyId]);
 
   useEffect(() => {
+    if (activeTabKey !== "companyServices") return;
+    if (servicesLoaded) return;
     fetchCompanyServices();
-  }, [fetchCompanyServices]);
+  }, [activeTabKey, servicesLoaded, fetchCompanyServices]);
+
+  const fetchCompanyEquipments = useCallback(async () => {
+    if (!companyId) return;
+    setLoadingEquipments(true);
+    try {
+      const res = await equipmentService.getEquipmentByCompany(companyId);
+      const items = Array.isArray(res?.data?.items)
+        ? res.data.items
+        : Array.isArray(res?.data)
+        ? res.data
+        : Array.isArray(res?.items)
+        ? res.items
+        : Array.isArray(res?.equipments)
+        ? res.equipments
+        : Array.isArray(res)
+        ? res
+        : [];
+      setEquipments(items);
+      setEquipmentsLoaded(true);
+    } catch {
+      setEquipments([]);
+    } finally {
+      setLoadingEquipments(false);
+    }
+  }, [companyId]);
+
+  useEffect(() => {
+    if (activeTabKey !== "companyEquipments") return;
+    if (equipmentsLoaded) return;
+    fetchCompanyEquipments();
+  }, [activeTabKey, equipmentsLoaded, fetchCompanyEquipments]);
 
   const companyName = companyData?.name || companyData?.company_name || "Company";
   const companyLocation =
@@ -356,15 +408,6 @@ const CompanyDetails = () => {
         : [],
     [companyData]
   );
-  const companyEquipments = useMemo(
-    () =>
-      Array.isArray(companyData?.equipments)
-        ? companyData.equipments
-        : Array.isArray(companyData?.equipment)
-        ? companyData.equipment
-        : [],
-    [companyData]
-  );
   const companyTabs = useMemo(() => {
     const aboutTab = [
       {
@@ -388,7 +431,7 @@ const CompanyDetails = () => {
       {
         key: "companyEquipments",
         label: "Equipments",
-        children: <CompanyEquipments equipments={companyEquipments} />,
+        children: <CompanyEquipments equipments={equipments} loading={loadingEquipments} />,
       },
       {
         key: "companyJobs",
@@ -396,7 +439,7 @@ const CompanyDetails = () => {
         children: <CompanyJobs jobs={companyJobs} />,
       },
     ];
-  }, [companyData, companyEquipments, companyJobs, isLoggedIn, loadingServices, services]);
+  }, [companyData, companyJobs, equipments, isLoggedIn, loadingEquipments, loadingServices, services]);
 
   const openEnquiryModal = useCallback(() => {
     enquiryForm.resetFields();
@@ -527,6 +570,8 @@ const CompanyDetails = () => {
                   type="card"
                   items={companyTabs}
                   className="C-tab"
+                  activeKey={activeTabKey}
+                  onChange={setActiveTabKey}
                 />
               </div>
               <div className="col-md-4 col-sm-12">

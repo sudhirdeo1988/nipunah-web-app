@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useState, useCallback } from "react";
+import { useRef } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { serviceService } from "@/utilities/apiServices";
 import { getIdFromStoredUser, loadUserSession } from "@/utilities/sessionUser";
@@ -14,6 +15,8 @@ const ServiceListing = ({ permissions = {} }) => {
   const canDelete = Boolean(permissions.delete);
 
   const categories = useAppSelector((state) => state.categories?.list ?? []);
+  const user = useAppSelector((state) => state.user?.user);
+  const reduxRole = useAppSelector((state) => state.user?.role);
 
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,6 +27,17 @@ const ServiceListing = ({ permissions = {} }) => {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [form] = Form.useForm();
+  const lastFetchKeyRef = useRef(null);
+  const isFetchingRef = useRef(false);
+
+  const resolvedRole = useMemo(
+    () => String(reduxRole || user?.role || user?.type || "").toLowerCase(),
+    [reduxRole, user?.role, user?.type]
+  );
+  const resolvedCompanyId = useMemo(
+    () => user?.company_id ?? user?.companyId ?? user?.id ?? null,
+    [user?.company_id, user?.companyId, user?.id]
+  );
 
   const categoryOptions = useMemo(() => {
     const opts = categories.map((cat) => ({
@@ -83,20 +97,45 @@ const ServiceListing = ({ permissions = {} }) => {
     return [];
   }, []);
 
-  const loadServices = useCallback(async () => {
+  const loadServices = useCallback(async (force = false) => {
+    if (isFetchingRef.current) return;
+    const fetchKey = `${resolvedRole}:${resolvedCompanyId ?? ""}`;
+    if (!force && lastFetchKeyRef.current === fetchKey) return;
+
     setLoading(true);
+    isFetchingRef.current = true;
     try {
-      const res = await serviceService.getServices({ page: 1, limit: 500 });
+      const isCompanyRole = resolvedRole === "company";
+      const isAdminRole = resolvedRole === "admin";
+      const companyId = resolvedCompanyId;
+
+      let res = null;
+      if (isCompanyRole) {
+        if (companyId == null || companyId === "") {
+          setServices([]);
+          return;
+        }
+        res = await serviceService.getServicesByCompany(companyId);
+      } else if (isAdminRole) {
+        // Admin-only endpoint
+        res = await serviceService.getAllServices();
+      } else {
+        // Other roles should not call admin endpoint
+        setServices([]);
+        return;
+      }
       const rawItems = parseServicesResponse(res);
       const rows = rawItems.map((item, index) => mapServiceFromApi(item, index));
       setServices(rows);
+      lastFetchKeyRef.current = fetchKey;
     } catch (error) {
       message.error(error?.message || "Failed to load services");
       setServices([]);
     } finally {
+      isFetchingRef.current = false;
       setLoading(false);
     }
-  }, [mapServiceFromApi, parseServicesResponse]);
+  }, [mapServiceFromApi, parseServicesResponse, resolvedRole, resolvedCompanyId]);
 
   React.useEffect(() => {
     loadServices();
@@ -147,47 +186,69 @@ const ServiceListing = ({ permissions = {} }) => {
       okText: "Delete",
       okType: "danger",
       cancelText: "Cancel",
-      onOk: () => {
-        setServices((prev) => prev.filter((s) => s.id !== record.id));
-        message.success("Service deleted successfully");
+      onOk: async () => {
+        try {
+          await serviceService.deleteService(record.id);
+          setServices((prev) => prev.filter((s) => s.id !== record.id));
+          message.success("Service deleted successfully");
+        } catch (error) {
+          message.error(error?.message || "Failed to delete service");
+          throw error;
+        }
       },
     });
   }, []);
 
   const handleSubmit = useCallback(
     async (values) => {
-      if (isEditing) {
-        message.info("Edit service API is not implemented yet.");
-        return;
-      }
-
       const sessionUser = loadUserSession();
-      const createdBy = getIdFromStoredUser(sessionUser);
-      if (createdBy == null || createdBy === "") {
-        message.error("Could not resolve user id. Please login again.");
+      const companyIdForPayload =
+        sessionUser?.company_id ??
+        sessionUser?.companyId ??
+        getIdFromStoredUser(sessionUser);
+      if (!isEditing && (companyIdForPayload == null || companyIdForPayload === "")) {
+        message.error("Could not resolve company id. Please login again.");
         return;
       }
 
       const payload = {
-        created_by: createdBy,
         category: Number(values.categoryId),
         title: values.title?.trim(),
         description: values.description?.trim(),
       };
+      if (companyIdForPayload != null && companyIdForPayload !== "") {
+        payload.companyId = Number(companyIdForPayload);
+      }
 
       try {
         setSubmitting(true);
-        await serviceService.createService(payload);
-        message.success("Service created successfully");
+        if (isEditing) {
+          const serviceId =
+            selectedService?.id ??
+            selectedService?.service_id ??
+            selectedService?.serviceId;
+          if (!serviceId) {
+            message.error("Invalid service selected for update.");
+            return;
+          }
+          await serviceService.updateService(serviceId, payload);
+          message.success("Service updated successfully");
+        } else {
+          await serviceService.createService(payload);
+          message.success("Service created successfully");
+        }
         closeCreateEdit();
-        await loadServices();
+        await loadServices(true);
       } catch (error) {
-        message.error(error?.message || "Failed to create service");
+        message.error(
+          error?.message ||
+            (isEditing ? "Failed to update service" : "Failed to create service")
+        );
       } finally {
         setSubmitting(false);
       }
     },
-    [closeCreateEdit, isEditing, loadServices]
+    [closeCreateEdit, isEditing, loadServices, selectedService]
   );
 
   const actionMenuItems = useMemo(() => {

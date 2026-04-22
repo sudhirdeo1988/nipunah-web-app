@@ -28,7 +28,6 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
     }
     return acc;
   }, {});
-
   for (const key of TOKEN_COOKIE_KEYS) {
     if (cookies[key]) return cookies[key];
   }
@@ -63,39 +62,29 @@ async function readResponseBody(response) {
   }
 }
 
-function resolveToken(request) {
-  const cookieHeader = request.headers.get("cookie") || "";
-  const tokenFromHeader = getBearerTokenFromAuthHeader(
-    request.headers.get("authorization") || ""
-  );
-  return tokenFromHeader || getBearerTokenFromCookieHeader(cookieHeader);
-}
-
-export async function GET(request) {
+export async function DELETE(request, { params }) {
   try {
-    const token = resolveToken(request);
+    const serviceId = params?.service_id;
+    if (!serviceId) {
+      return NextResponse.json(
+        { error: "Bad request", message: "service_id is required" },
+        { status: 400 }
+      );
+    }
+
+    const token =
+      getBearerTokenFromAuthHeader(request.headers.get("authorization") || "") ||
+      getBearerTokenFromCookieHeader(request.headers.get("cookie") || "");
+
     if (!isUsableToken(token)) {
       return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
+        { error: "Unauthorized", message: "Authentication token is required" },
         { status: 401 }
       );
     }
 
-    const { searchParams } = new URL(request.url);
-    const queryString = new URLSearchParams(
-      [...searchParams.entries()].filter(
-        ([_, value]) => value !== null && value !== undefined && value !== ""
-      )
-    ).toString();
-    const url = queryString
-      ? `${API_BASE_URL}/services?${queryString}`
-      : `${API_BASE_URL}/services`;
-
-    const response = await fetch(url, {
-      method: "GET",
+    const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
+      method: "DELETE",
       headers: {
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
@@ -109,34 +98,41 @@ export async function GET(request) {
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("GET /api/services proxy error:", error);
+    console.error("DELETE /api/services/:service_id proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error.message || "Failed to fetch services",
+        message: error.message || "Failed to delete service",
       },
       { status: 500 }
     );
   }
 }
 
-export async function POST(request) {
+export async function PUT(request, { params }) {
   try {
-    const token = resolveToken(request);
+    const serviceId = params?.service_id;
+    if (!serviceId) {
+      return NextResponse.json(
+        { error: "Bad request", message: "service_id is required" },
+        { status: 400 }
+      );
+    }
+
+    const token =
+      getBearerTokenFromAuthHeader(request.headers.get("authorization") || "") ||
+      getBearerTokenFromCookieHeader(request.headers.get("cookie") || "");
 
     if (!isUsableToken(token)) {
       return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
+        { error: "Unauthorized", message: "Authentication token is required" },
         { status: 401 }
       );
     }
 
     const payload = await request.json().catch(() => ({}));
-    const response = await fetch(`${API_BASE_URL}/services`, {
-      method: "POST",
+    const response = await fetch(`${API_BASE_URL}/services/${serviceId}`, {
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
@@ -147,19 +143,19 @@ export async function POST(request) {
     });
 
     const data = await readResponseBody(response);
-
     return NextResponse.json(data, {
       status: response.status,
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("POST /api/services proxy error:", error);
+    console.error("PUT /api/services/:service_id proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
-        message: error.message || "Failed to create service",
+        message: error.message || "Failed to update service",
       },
       { status: 500 }
     );
   }
 }
+

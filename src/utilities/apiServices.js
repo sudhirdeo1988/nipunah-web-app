@@ -109,7 +109,21 @@ export const enquiryService = {
    * Uses Next.js proxy only: axios baseURL "/api" → POST /api/enquiries → upstream /enquiries
    */
   createEnquiry: async (payload) => {
-    return axiosInstance.post("/enquiries", payload);
+    const safePayload =
+      payload && typeof payload === "object"
+        ? {
+            ...payload,
+            enquiry_from:
+              payload.enquiry_from === undefined || payload.enquiry_from === null
+                ? payload.enquiry_from
+                : String(payload.enquiry_from),
+            enquiry_to:
+              payload.enquiry_to === undefined || payload.enquiry_to === null
+                ? payload.enquiry_to
+                : String(payload.enquiry_to),
+          }
+        : payload;
+    return axiosInstance.post("/enquiries", safePayload);
   },
 
   /**
@@ -141,7 +155,21 @@ export const enquiryService = {
    * Proxy route: /api/enquiries/:id/respond -> ${API_BASE_URL}/enquiries/:id/respond
    */
   respondToEnquiry: async (enquiryId, payload) => {
-    return axiosInstance.post(`/enquiries/${enquiryId}/respond`, payload || {});
+    const safePayload =
+      payload && typeof payload === "object"
+        ? {
+            ...payload,
+            enquiry_from:
+              payload.enquiry_from === undefined || payload.enquiry_from === null
+                ? payload.enquiry_from
+                : String(payload.enquiry_from),
+            enquiry_to:
+              payload.enquiry_to === undefined || payload.enquiry_to === null
+                ? payload.enquiry_to
+                : String(payload.enquiry_to),
+          }
+        : {};
+    return axiosInstance.post(`/enquiries/${enquiryId}/respond`, safePayload);
   },
 };
 
@@ -171,11 +199,19 @@ export const pricingService = {
  */
 export const serviceService = {
   /**
-   * Get all services
-   * Endpoint: GET /api/services/getAllServices
+   * Get all services (admin)
+   * Endpoint: GET /api/services
    */
-  getServices: async (params = {}) => {
-    return axiosInstance.get("/services/getAllServices", { params });
+  getAllServices: async (params = {}) => {
+    return axiosInstance.get("/services", { params });
+  },
+
+  /**
+   * Get services by company id
+   * Endpoint: GET /api/services/company/{companyId}
+   */
+  getServicesByCompany: async (companyId, params = {}) => {
+    return axiosInstance.get(`/services/company/${companyId}`, { params });
   },
 
   /**
@@ -184,6 +220,22 @@ export const serviceService = {
    */
   createService: async (payload) => {
     return axiosInstance.post("/services", payload || {});
+  },
+
+  /**
+   * Update service
+   * Endpoint: PUT /api/services/{service_id}
+   */
+  updateService: async (serviceId, payload) => {
+    return axiosInstance.put(`/services/${serviceId}`, payload || {});
+  },
+
+  /**
+   * Delete service
+   * Endpoint: DELETE /api/services/{service_id}
+   */
+  deleteService: async (serviceId) => {
+    return axiosInstance.delete(`/services/${serviceId}`);
   },
 };
 
@@ -513,6 +565,22 @@ export const equipmentService = {
   },
 
   /**
+   * Get equipment by company ID
+   *
+   * API Endpoint: GET /api/equipments/company/{companyId}
+   */
+  getEquipmentByCompany: async (companyId, params = {}) => {
+    try {
+      const response = await axiosInstance.get(`/equipments/company/${companyId}`, {
+        params,
+      });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  /**
    * Create a new equipment
    *
    * API Endpoint: POST /equipments
@@ -540,7 +608,7 @@ export const equipmentService = {
    */
   updateEquipment: async (equipmentId, equipmentData) => {
     try {
-      const response = await axiosInstance.put(
+      const response = await axiosInstance.patch(
         `/equipments/${equipmentId}`,
         equipmentData
       );
