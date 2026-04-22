@@ -88,7 +88,18 @@ export function useRolePermissions() {
         const payload = await res.json().catch(() => ({}));
         if (!res.ok) return;
         if (!cancelled && payload && typeof payload === "object") {
-          setPermissionsByRole(payload);
+          const canTrustServerState = payload?.meta?.filePersisted !== false;
+          if (!canTrustServerState) {
+            try {
+              const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
+              const parsed = raw ? JSON.parse(raw) : null;
+              setPermissionsByRole(parsed && typeof parsed === "object" ? parsed : payload);
+            } catch {
+              setPermissionsByRole(payload);
+            }
+          } else {
+            setPermissionsByRole(payload);
+          }
         }
       } catch {
         // ignore and keep fallback permissions

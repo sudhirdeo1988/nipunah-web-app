@@ -101,6 +101,16 @@ const KEY_GROUPS = [
   { label: "Module Permissions", keys: MODULE_PERMISSION_KEYS },
 ];
 
+function readCachedRolePermissions() {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
 const getHumanLabel = (key) => String(key || "").replace(/_/g, " ");
 const MODULE_PERMISSION_CATEGORY_ORDER = [
   "dashboard",
@@ -409,8 +419,14 @@ const RoleManagementPage = () => {
       if (!res.ok) {
         throw new Error(payload?.error || payload?.message || "Failed to load permissions");
       }
-      const normalized = normalizeRolesPayload(payload || ROLE_MANAGEMENT_MOCK);
-      const storedNavOrder = payload?.__nav_order__;
+      const canTrustServerState = payload?.meta?.filePersisted !== false;
+      const cached = readCachedRolePermissions();
+      const sourcePayload =
+        !canTrustServerState && cached && typeof cached === "object"
+          ? cached
+          : payload;
+      const normalized = normalizeRolesPayload(sourcePayload || ROLE_MANAGEMENT_MOCK);
+      const storedNavOrder = sourcePayload?.__nav_order__;
       const resolvedNavOrder = sanitizeNavOrder(storedNavOrder || NAV_KEYS);
       setRolesData(normalized);
       setInitialRolesData(cloneRoles(normalized));

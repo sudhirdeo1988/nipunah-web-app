@@ -127,6 +127,7 @@ export async function GET(request) {
       return NextResponse.json({
         ...fromFile.permissions,
         __nav_order__: fromFile.navOrder,
+        meta: { source: "file", filePersisted: true },
       });
     }
 
@@ -134,14 +135,19 @@ export async function GET(request) {
     const data = sanitizePayload(upstream);
     if (!data) throw new Error("Invalid permissions payload from upstream");
     ROLE_PERMISSIONS_STATE = data;
-    await writeFileStateSafe(data, []);
-    return NextResponse.json({ ...data, __nav_order__: sanitizeNavOrder([]) });
+    const filePersisted = await writeFileStateSafe(data, []);
+    return NextResponse.json({
+      ...data,
+      __nav_order__: sanitizeNavOrder([]),
+      meta: { source: "upstream", filePersisted },
+    });
   } catch (error) {
     // Always return last known safe state instead of hard-failing.
     console.error("GET /api/roles/permissions fallback:", error);
     return NextResponse.json({
       ...ROLE_PERMISSIONS_STATE,
       __nav_order__: sanitizeNavOrder([]),
+      meta: { source: "runtime", filePersisted: false },
     });
   }
 }
@@ -183,7 +189,7 @@ export async function PUT(request) {
         ...saved,
         __nav_order__: navOrderFromRequest,
       },
-      meta: { filePersisted },
+      meta: { source: "runtime", filePersisted },
     });
   } catch (error) {
     if (!normalizedFromRequest) {
@@ -204,7 +210,7 @@ export async function PUT(request) {
         ...ROLE_PERMISSIONS_STATE,
         __nav_order__: navOrderFromRequest,
       },
-      meta: { filePersisted },
+      meta: { source: "runtime", filePersisted },
     });
   }
 }
