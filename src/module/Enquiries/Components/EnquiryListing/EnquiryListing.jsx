@@ -9,6 +9,38 @@ import { getIdFromStoredUser } from "@/utilities/sessionUser";
 import { useEffect } from "react";
 
 const { TextArea } = Input;
+const ENQUIRIES_CACHE_TTL_MS = 5000;
+const enquiriesInFlightByCompany = new Map();
+const enquiriesCacheByCompany = new Map();
+
+async function getEnquiriesWithDedupe(companyId, { force = false } = {}) {
+  const key = String(companyId);
+  const now = Date.now();
+
+  if (!force) {
+    const cached = enquiriesCacheByCompany.get(key);
+    if (cached && now - cached.timestamp < ENQUIRIES_CACHE_TTL_MS) {
+      return cached.data;
+    }
+  }
+
+  if (enquiriesInFlightByCompany.has(key)) {
+    return enquiriesInFlightByCompany.get(key);
+  }
+
+  const requestPromise = enquiryService
+    .getEnquiries({ companyId: key })
+    .then((res) => {
+      enquiriesCacheByCompany.set(key, { data: res, timestamp: Date.now() });
+      return res;
+    })
+    .finally(() => {
+      enquiriesInFlightByCompany.delete(key);
+    });
+
+  enquiriesInFlightByCompany.set(key, requestPromise);
+  return requestPromise;
+}
 
 function getThreadItems(enquiryDetails) {
   const e = enquiryDetails && typeof enquiryDetails === "object" ? enquiryDetails : {};
@@ -117,11 +149,11 @@ const EnquiryListing = ({ permissions = {} }) => {
 
   const companyId = useMemo(() => getIdFromStoredUser(user), [user]);
 
-  const fetchEnquiries = useCallback(async () => {
+  const fetchEnquiries = useCallback(async ({ force = false } = {}) => {
     if (companyId == null || companyId === "") return;
     setLoading(true);
     try {
-      const res = await enquiryService.getEnquiries({ companyId });
+      const res = await getEnquiriesWithDedupe(companyId, { force });
       const list = Array.isArray(res?.data) ? res.data : [];
       setEnquiries(list.map(normalizeEnquiryRecord));
     } catch (err) {
@@ -337,7 +369,7 @@ const EnquiryListing = ({ permissions = {} }) => {
       });
       message.success("Response sent successfully");
       closeModals();
-      fetchEnquiries();
+      fetchEnquiries({ force: true });
     } catch (err) {
       message.error(err?.message || "Failed to send response");
     } finally {

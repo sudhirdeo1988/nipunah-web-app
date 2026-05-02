@@ -22,6 +22,7 @@ const MODULE_KEY_TO_NAV_KEY = {
   equipments: "nav_equipments",
   role_management: "nav_role_management",
 };
+const DASHBOARD_MODULE_KEY = "dashboard";
 
 const PrivateSidebar = memo(function PrivateSidebar() {
   const pathname = usePathname();
@@ -49,7 +50,10 @@ const PrivateSidebar = memo(function PrivateSidebar() {
   const visibleNavs = useMemo(
     () => {
       const filtered = DASHBOARD_NAVS.filter(
-        (nav) => !nav.moduleKey || visibleModuleKeys.has(nav.moduleKey)
+        (nav) =>
+          !nav.moduleKey ||
+          nav.moduleKey === DASHBOARD_MODULE_KEY ||
+          visibleModuleKeys.has(nav.moduleKey)
       );
       if (typeof window === "undefined") return filtered;
       try {
@@ -57,15 +61,30 @@ const PrivateSidebar = memo(function PrivateSidebar() {
         const order = JSON.parse(raw || "[]");
         if (!Array.isArray(order) || order.length === 0) return filtered;
         const orderIndex = new Map(order.map((key, idx) => [key, idx]));
-        return [...filtered].sort((a, b) => {
+        const sorted = [...filtered].sort((a, b) => {
           const aKey = MODULE_KEY_TO_NAV_KEY[a.moduleKey] || "";
           const bKey = MODULE_KEY_TO_NAV_KEY[b.moduleKey] || "";
           const ai = orderIndex.has(aKey) ? orderIndex.get(aKey) : Number.MAX_SAFE_INTEGER;
           const bi = orderIndex.has(bKey) ? orderIndex.get(bKey) : Number.MAX_SAFE_INTEGER;
           return ai - bi;
         });
+        const dashboardItem = sorted.find(
+          (item) => item?.moduleKey === DASHBOARD_MODULE_KEY
+        );
+        if (!dashboardItem) return sorted;
+        return [
+          ...sorted.filter((item) => item?.moduleKey !== DASHBOARD_MODULE_KEY),
+          dashboardItem,
+        ];
       } catch {
-        return filtered;
+        const dashboardItem = filtered.find(
+          (item) => item?.moduleKey === DASHBOARD_MODULE_KEY
+        );
+        if (!dashboardItem) return filtered;
+        return [
+          ...filtered.filter((item) => item?.moduleKey !== DASHBOARD_MODULE_KEY),
+          dashboardItem,
+        ];
       }
     },
     [visibleModuleKeys, orderVersion]

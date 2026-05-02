@@ -113,7 +113,7 @@ const SETTINGS_SUBMENU_ITEMS = [
 
 /**
  * User settings dropdown component.
- * Displays user profile and actions: Dashboard, Profile, Settings (hover submenu: Change password, Subscription details), Logout.
+ * Displays user profile and actions: Profile, Settings (hover submenu: Change password, Subscription details), Logout.
  */
 const UserSettingsDropdown = memo(({ onClose }) => {
   const router = useRouter();
@@ -171,14 +171,6 @@ const UserSettingsDropdown = memo(({ onClose }) => {
         </div>
       </div>
       <div className="userSettings-dropdown__menu userSettings-actions">
-          <button
-            type="button"
-            className="userSettings-dropdown__item C-button is-link"
-            onClick={() => handleAction(ROUTES.PRIVATE.DASHBOARD)}
-          >
-            <Icon name="dashboard" />
-            <span>Dashboard</span>
-          </button>
           <button
             type="button"
             className="userSettings-dropdown__item C-button is-link"
@@ -267,9 +259,11 @@ const HeaderBeta = memo(() => {
   );
 
   // Memoized navigation items to prevent recreation
-  const navigationItems = useMemo(
-    () =>
-      navItems.map(({ label, href }) => (
+  const navigationItems = useMemo(() => {
+    const items = isLoggedIn
+      ? [...navItems, { label: "Dashboard", href: ROUTES.PRIVATE.DASHBOARD }]
+      : navItems;
+    return items.map(({ label, href }) => (
         <li className="d-block" key={label}>
           <Link
             href={href}
@@ -278,9 +272,8 @@ const HeaderBeta = memo(() => {
             {label}
           </Link>
         </li>
-      )),
-    [pathname]
-  );
+      ));
+  }, [pathname, isLoggedIn]);
 
   /**
    * Renders the main navigation menu bar

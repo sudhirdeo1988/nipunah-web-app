@@ -136,7 +136,7 @@ const ProfileDetails = memo(function ProfileDetails({
       }
     >
       {!editing ? (
-        <Space direction="vertical" style={{ width: "100%" }} size={20}>
+        <Space orientation="vertical" style={{ width: "100%" }} size={20}>
           {sections.map((section) => (
             <Card key={section.title} size="small" style={sectionCardStyle}>
               <Typography.Title level={5} style={{ margin: 0 }}>

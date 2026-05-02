@@ -49,7 +49,6 @@ const SearchContainer = (props) => {
   } = props;
 
   const [form] = Form.useForm();
-  const [openSelectKey, setOpenSelectKey] = useState(null);
 
   const containerRef = useRef(null);
   const [isFixed, setIsFixed] = useState(false);
@@ -151,13 +150,6 @@ const SearchContainer = (props) => {
                   className="selectInSearch"
                   suffixIcon={<Icon name="keyboard_arrow_down" />}
                   prefix={hasIcon ? <Icon name={icon} /> : <Icon name="apps" />}
-                  open={openSelectKey === formFieldValue}
-                  onDropdownVisibleChange={(open) => {
-                    setOpenSelectKey(open ? formFieldValue : null);
-                  }}
-                  onSelect={() => {
-                    setOpenSelectKey(null);
-                  }}
                 />
               </Form.Item>
             </div>
@@ -210,13 +202,6 @@ const SearchContainer = (props) => {
                     hasIcon ? <Icon name={icon} /> : <Icon name="location_on" />
                   }
                   className="selectInSearch"
-                  open={openSelectKey === formFieldValue}
-                  onDropdownVisibleChange={(open) => {
-                    setOpenSelectKey(open ? formFieldValue : null);
-                  }}
-                  onSelect={() => {
-                    setOpenSelectKey(null);
-                  }}
                 />
               </Form.Item>
             </div>
@@ -226,7 +211,7 @@ const SearchContainer = (props) => {
           return null;
       }
     },
-    [getColumnClasses, openSelectKey]
+    [getColumnClasses]
   );
 
   /**

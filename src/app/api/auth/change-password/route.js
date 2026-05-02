@@ -8,7 +8,7 @@ import { API_BASE_URL } from "@/constants/api";
  *   CHANGE_PASSWORD_BACKEND_PATH=/change-password
  */
 const CHANGE_PASSWORD_BACKEND_PATH =
-  process.env.CHANGE_PASSWORD_BACKEND_PATH || "/change-password";
+  process.env.CHANGE_PASSWORD_BACKEND_PATH || "/auth/change-password";
 
 /** Same fallbacks as client auth.js */
 const TOKEN_COOKIE_NAMES = [
@@ -139,29 +139,70 @@ export async function POST(request) {
       );
     }
 
-    const path = CHANGE_PASSWORD_BACKEND_PATH.startsWith("/")
+    const primaryPath = CHANGE_PASSWORD_BACKEND_PATH.startsWith("/")
       ? CHANGE_PASSWORD_BACKEND_PATH
       : `/${CHANGE_PASSWORD_BACKEND_PATH}`;
-    const url = `${API_BASE_URL}${path}`;
-
-    const response = await fetch(url, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
+    const candidatePaths = Array.from(
+      new Set([
+        primaryPath,
+        "/auth/change-password",
+        "/auth/changePassword",
+        "/auth/change_password",
+        "/change-password",
+        "/users/change-password",
+      ])
+    );
+    const candidateBodies = [
+      {
         oldPassword: String(oldPassword),
         newPassword: String(newPassword),
-      }),
-    });
+      },
+      {
+        currentPassword: String(oldPassword),
+        newPassword: String(newPassword),
+      },
+      {
+        old_password: String(oldPassword),
+        new_password: String(newPassword),
+      },
+    ];
+    const candidateMethods = ["POST", "PUT", "PATCH"];
 
-    const data = await parseUpstreamResponseBody(response);
+    let finalResponse = null;
+    let finalData = {};
 
-    return NextResponse.json(data, {
-      status: response.status,
-      statusText: response.statusText,
+    for (const path of candidatePaths) {
+      for (const method of candidateMethods) {
+        for (const payload of candidateBodies) {
+          const url = `${API_BASE_URL}${path}`;
+          const response = await fetch(url, {
+            method,
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(payload),
+          });
+          const data = await parseUpstreamResponseBody(response);
+
+          // Keep trying if route/method combination is missing.
+          if (response.status === 404 || response.status === 405) {
+            finalResponse = response;
+            finalData = data;
+            continue;
+          }
+          return NextResponse.json(data, {
+            status: response.status,
+            statusText: response.statusText,
+          });
+        }
+      }
+    }
+
+    return NextResponse.json(finalData, {
+      status: finalResponse?.status || 404,
+      statusText: finalResponse?.statusText || "Not Found",
     });
   } catch (error) {
     console.error("Change password API proxy error:", error);
