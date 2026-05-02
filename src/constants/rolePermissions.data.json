@@ -73,7 +73,7 @@
       "nav_companies": false,
       "nav_services": false,
       "nav_jobs": false,
-      "nav_equipments": false,
+      "nav_equipments": true,
       "nav_role_management": false,
       "nav_pricing": false,
       "nav_enquiries": true,
@@ -274,5 +274,5 @@
     "nav_equipments",
     "nav_role_management"
   ],
-  "updatedAt": "2026-04-22T06:48:33.411Z"
+  "updatedAt": "2026-04-27T11:02:34.091Z"
 }

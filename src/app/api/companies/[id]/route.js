@@ -29,7 +29,8 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
  */
 export async function GET(request, { params }) {
   try {
-    const { id } = params || {};
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
     const url = `${API_BASE_URL}/companies/${id}`;
 
     const cookieHeader = request.headers.get("cookie") || "";
@@ -79,7 +80,8 @@ export async function GET(request, { params }) {
  */
 export async function PUT(request, { params }) {
   try {
-    const { id } = params || {};
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
     const url = `${API_BASE_URL}/companies/${id}`;
     const body = await request.json();
 
@@ -134,7 +136,8 @@ export async function PUT(request, { params }) {
  */
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params || {};
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
     const url = `${API_BASE_URL}/companies/${id}`;
 
     const cookieHeader = request.headers.get("cookie") || "";

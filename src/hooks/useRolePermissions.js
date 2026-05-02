@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useAppSelector } from "@/store/hooks";
-import { getRolePermissionObject, normalizeRoleKey } from "@/constants/roleManagementMock";
 import { loadUserSession, getRoleFromStoredUser } from "@/utilities/sessionUser";
+import {
+  clearRolePermissionsCache,
+  fetchRolePermissions,
+} from "@/utilities/rolePermissionsApi";
 
 const DEFAULT_ROLE = "expert";
-const ROLE_PERMISSIONS_STORAGE_KEY = "nipunah_role_permissions_override";
 const MODULE_KEY_TO_NAV_KEY = {
   dashboard: "nav_dashboard",
   categories: "nav_categories",
@@ -51,6 +53,11 @@ const DASHBOARD_COMPONENT_KEY_MAP = {
   active_jobs: "dashboard_active_jobs",
 };
 
+function normalizeRoleKey(roleKey) {
+  const role = String(roleKey || "").toLowerCase();
+  return role || DEFAULT_ROLE;
+}
+
 /**
  * Hook for role-based permissions using flat role permissions object.
  * Role source priority: Redux -> localStorage session -> DEFAULT_ROLE.
@@ -67,6 +74,7 @@ export function useRolePermissions() {
   useEffect(() => {
     if (typeof window === "undefined") return undefined;
     const onPermissionsUpdated = () => {
+      clearRolePermissionsCache();
       setPermissionsVersion((prev) => prev + 1);
     };
     window.addEventListener("role-permissions-updated", onPermissionsUpdated);
@@ -80,29 +88,12 @@ export function useRolePermissions() {
     let cancelled = false;
     const loadPermissions = async () => {
       try {
-        const res = await fetch("/api/roles/permissions", {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        });
-        const payload = await res.json().catch(() => ({}));
-        if (!res.ok) return;
+        const payload = await fetchRolePermissions();
         if (!cancelled && payload && typeof payload === "object") {
-          const canTrustServerState = payload?.meta?.filePersisted !== false;
-          if (!canTrustServerState) {
-            try {
-              const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
-              const parsed = raw ? JSON.parse(raw) : null;
-              setPermissionsByRole(parsed && typeof parsed === "object" ? parsed : payload);
-            } catch {
-              setPermissionsByRole(payload);
-            }
-          } else {
-            setPermissionsByRole(payload);
-          }
+          setPermissionsByRole(payload);
         }
       } catch {
-        // ignore and keep fallback permissions
+        // ignore and keep empty permissions
       } finally {
         if (!cancelled) {
           setPermissionsReady(true);
@@ -124,24 +115,15 @@ export function useRolePermissions() {
         getRoleFromStoredUser(stored) ||
         DEFAULT_ROLE
     );
-    const defaultRoleFlat = getRolePermissionObject(resolvedRole) || {};
-    let roleFlat = defaultRoleFlat;
-    if (permissionsByRole && typeof permissionsByRole === "object" && permissionsByRole[resolvedRole]) {
-      roleFlat = { ...defaultRoleFlat, ...permissionsByRole[resolvedRole] };
-    } else if (typeof window !== "undefined") {
-      try {
-        const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (parsed && typeof parsed === "object" && parsed[resolvedRole]) {
-            roleFlat = { ...defaultRoleFlat, ...parsed[resolvedRole] };
-          }
-        }
-      } catch {
-        roleFlat = defaultRoleFlat;
-      }
-    }
-    // Keep user profile fields, with static role permissions merged in.
+    const roleFlat =
+      permissionsByRole &&
+      typeof permissionsByRole === "object" &&
+      permissionsByRole[resolvedRole] &&
+      typeof permissionsByRole[resolvedRole] === "object"
+        ? permissionsByRole[resolvedRole]
+        : {};
+
+    // Keep user profile fields, with API permissions merged in.
     const flat =
       userFromRedux && typeof userFromRedux === "object"
         ? { ...userFromRedux, ...roleFlat }

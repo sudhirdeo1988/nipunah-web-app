@@ -9,12 +9,16 @@ import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import Icon from "@/components/Icon";
 import { ROLE_MANAGEMENT_MOCK } from "@/constants/roleManagementMock";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import {
+  clearRolePermissionsCache,
+  fetchRolePermissions,
+} from "@/utilities/rolePermissionsApi";
+import { normalizeRolesPermissions } from "@/utilities/rolePermissionsMapper";
 
 const MODULE_BLOCK_STYLE = { background: "#ffffff", border: "1px solid #f0f0f0" };
 const LABEL_STYLE = { cursor: "pointer" };
 const PERM_LABEL_STYLE = { textTransform: "capitalize", fontSize: "0.875rem" };
 const ICON_WHITE_STYLE = { color: "#fff" };
-const ROLE_PERMISSIONS_STORAGE_KEY = "nipunah_role_permissions_override";
 const SIDEBAR_NAV_ORDER_STORAGE_KEY = "nipunah_sidebar_nav_order";
 const ROLE_LABELS = {
   admin: "Administrator",
@@ -100,16 +104,6 @@ const KEY_GROUPS = [
   { label: "Dashboard Widgets", keys: DASHBOARD_KEYS },
   { label: "Module Permissions", keys: MODULE_PERMISSION_KEYS },
 ];
-
-function readCachedRolePermissions() {
-  if (typeof window === "undefined") return null;
-  try {
-    const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
 
 const getHumanLabel = (key) => String(key || "").replace(/_/g, " ");
 const MODULE_PERMISSION_CATEGORY_ORDER = [
@@ -389,45 +383,17 @@ const RoleManagementPage = () => {
 
   const cloneRoles = useCallback((input) => JSON.parse(JSON.stringify(input || {})), []);
 
-  const normalizeRolesPayload = useCallback((payload) => {
-    if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-      return cloneRoles(ROLE_MANAGEMENT_MOCK);
-    }
-
-    const roleKeys = Object.keys(ROLE_MANAGEMENT_MOCK);
-    const result = {};
-    roleKeys.forEach((roleKey) => {
-      const base = ROLE_MANAGEMENT_MOCK[roleKey] || {};
-      const source = payload[roleKey] && typeof payload[roleKey] === "object" ? payload[roleKey] : {};
-      result[roleKey] = Object.keys(base).reduce((acc, permissionKey) => {
-        acc[permissionKey] = source[permissionKey] === undefined ? Boolean(base[permissionKey]) : Boolean(source[permissionKey]);
-        return acc;
-      }, {});
-    });
-    return result;
-  }, [cloneRoles]);
+  const normalizeRolesPayload = useCallback(
+    (payload) => normalizeRolesPermissions(payload || ROLE_MANAGEMENT_MOCK),
+    []
+  );
 
   const loadPermissions = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/roles/permissions", {
-        method: "GET",
-        credentials: "include",
-        cache: "no-store",
-      });
-      const payload = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(payload?.error || payload?.message || "Failed to load permissions");
-      }
-      const canTrustServerState = payload?.meta?.filePersisted !== false;
-      const cached = readCachedRolePermissions();
-      const sourcePayload =
-        !canTrustServerState && cached && typeof cached === "object"
-          ? cached
-          : payload;
-      const normalized = normalizeRolesPayload(sourcePayload || ROLE_MANAGEMENT_MOCK);
-      const storedNavOrder = sourcePayload?.__nav_order__;
-      const resolvedNavOrder = sanitizeNavOrder(storedNavOrder || NAV_KEYS);
+      const payload = await fetchRolePermissions();
+      const normalized = normalizeRolesPayload(payload || ROLE_MANAGEMENT_MOCK);
+      const resolvedNavOrder = sanitizeNavOrder(NAV_KEYS);
       setRolesData(normalized);
       setInitialRolesData(cloneRoles(normalized));
       setNavOrder(resolvedNavOrder);
@@ -435,10 +401,6 @@ const RoleManagementPage = () => {
       setHasChanges(false);
       setSelectedRoleKey((prev) => prev || Object.keys(normalized)[0] || null);
       if (typeof window !== "undefined") {
-        window.localStorage.setItem(
-          ROLE_PERMISSIONS_STORAGE_KEY,
-          JSON.stringify({ ...normalized, __nav_order__: resolvedNavOrder })
-        );
         window.localStorage.setItem(
           SIDEBAR_NAV_ORDER_STORAGE_KEY,
           JSON.stringify(resolvedNavOrder)
@@ -522,31 +484,33 @@ const RoleManagementPage = () => {
     setSaving(true);
     try {
       const saved = normalizeRolesPayload(rolesData);
-      const res = await fetch("/api/roles/permissions", {
+      const roleToSave = "admin";
+      const res = await fetch(`/api/roles/permissions/${roleToSave}`, {
         method: "PUT",
         credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
         },
-        body: JSON.stringify({
-          permissions: saved,
-          __nav_order__: navOrder,
-        }),
+        body: JSON.stringify(saved),
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(payload?.error || payload?.message || "Failed to save");
-      }
-      const persisted = normalizeRolesPayload(payload?.data || saved);
-      const persistedNavOrder = sanitizeNavOrder(
-        payload?.data?.__nav_order__ || navOrder
-      );
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem(
-          ROLE_PERMISSIONS_STORAGE_KEY,
-          JSON.stringify({ ...persisted, __nav_order__: persistedNavOrder })
+        throw new Error(
+          payload?.error || payload?.message || `Failed to save ${roleToSave} permissions`
         );
+      }
+      const persistedFromResponses = normalizeRolesPayload({
+        ...saved,
+        [roleToSave]: payload?.data || payload || saved[roleToSave] || {},
+      });
+      clearRolePermissionsCache();
+      const latestFromApi = await fetchRolePermissions({ forceRefresh: true }).catch(
+        () => persistedFromResponses
+      );
+      const persisted = normalizeRolesPayload(latestFromApi);
+      const persistedNavOrder = sanitizeNavOrder(navOrder);
+      if (typeof window !== "undefined") {
         window.localStorage.setItem(
           SIDEBAR_NAV_ORDER_STORAGE_KEY,
           JSON.stringify(persistedNavOrder)
@@ -559,7 +523,7 @@ const RoleManagementPage = () => {
       setNavOrder(persistedNavOrder);
       setInitialNavOrder(persistedNavOrder);
       setHasChanges(false);
-      message.success("Permissions saved successfully");
+      message.success(`${ROLE_LABELS[roleToSave] || roleToSave} permissions saved successfully`);
     } catch (err) {
       message.error(err?.message || "Failed to save");
     } finally {

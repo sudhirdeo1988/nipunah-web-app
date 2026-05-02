@@ -33,6 +33,7 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
           setLoading(false);
           return;
         }
+        const normalizedToken = String(token).replace(/^Bearer\s+/i, "").trim();
 
         const payload = {
           oldPassword: values.currentPassword,
@@ -43,7 +44,7 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${normalizedToken}`,
           },
           credentials: "include",
           body: JSON.stringify(payload),

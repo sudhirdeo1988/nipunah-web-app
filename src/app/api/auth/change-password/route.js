@@ -8,7 +8,7 @@ import { API_BASE_URL } from "@/constants/api";
  *   CHANGE_PASSWORD_BACKEND_PATH=/change-password
  */
 const CHANGE_PASSWORD_BACKEND_PATH =
-  process.env.CHANGE_PASSWORD_BACKEND_PATH || "/auth/change-password";
+  process.env.CHANGE_PASSWORD_BACKEND_PATH || "/change-password";
 
 /** Same fallbacks as client auth.js */
 const TOKEN_COOKIE_NAMES = [
@@ -57,10 +57,12 @@ function getBearerFromCookies(cookieHeader) {
 }
 
 function resolveBearerToken(request) {
-  return (
+  const token =
     getBearerFromAuthorizationHeader(request) ||
-    getBearerFromCookies(request.headers.get("cookie") || "")
-  );
+    getBearerFromCookies(request.headers.get("cookie") || "");
+
+  if (!token) return null;
+  return String(token).replace(/^Bearer\s+/i, "").trim();
 }
 
 /**

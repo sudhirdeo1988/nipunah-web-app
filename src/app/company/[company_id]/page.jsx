@@ -12,6 +12,74 @@ import Image from "next/image";
 import { useParams } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
+function pickFirst(...values) {
+  for (const value of values) {
+    if (value !== null && value !== undefined && value !== "") return value;
+  }
+  return null;
+}
+
+function normalizeCompanyForProfile(raw) {
+  if (!raw || typeof raw !== "object") return null;
+  const addressObj =
+    raw.address && typeof raw.address === "object" && !Array.isArray(raw.address)
+      ? raw.address
+      : {};
+  const locations = Array.isArray(raw.locations)
+    ? raw.locations
+    : Array.isArray(raw.addresses)
+    ? raw.addresses
+    : [];
+  const firstLocation = locations[0] || {};
+  const locationObj =
+    firstLocation && typeof firstLocation === "object" ? firstLocation : {};
+  const categoryName = Array.isArray(raw.categories)
+    ? raw.categories.find((item) => item && typeof item === "object")?.name
+    : null;
+
+  return {
+    ...raw,
+    name: pickFirst(raw.name, raw.company_name, raw.title),
+    description: pickFirst(raw.description, raw.about, raw.aboutCompany),
+    location: pickFirst(
+      raw.location,
+      raw.city,
+      addressObj.city,
+      locationObj.city,
+      addressObj.country,
+      locationObj.country,
+      raw.country
+    ),
+    industry: pickFirst(raw.industry, raw.category?.name, categoryName, raw.category_name),
+    contact_email: pickFirst(
+      raw.contact_email,
+      raw.contactEmail,
+      raw.email,
+      raw.company_email
+    ),
+    employee_count: pickFirst(
+      raw.employee_count,
+      raw.employeeCount,
+      raw.employees_count,
+      raw.employeesCount,
+      raw.employees
+    ),
+    founded_in: pickFirst(
+      raw.founded_in,
+      raw.foundedIn,
+      raw.foundYear,
+      raw.founded_year,
+      raw.established_year
+    ),
+    turn_over: pickFirst(raw.turn_over, raw.turnOver, raw.turnover, raw.annual_turnover),
+    posted_jobs: Array.isArray(raw.posted_jobs)
+      ? raw.posted_jobs
+      : Array.isArray(raw.postedJobs)
+      ? raw.postedJobs
+      : [],
+  };
+}
+
 const AboutCompany = ({ company }) => {
   const about = company?.description || company?.about || "No description available.";
   return (
@@ -297,7 +365,7 @@ const CompanyDetails = () => {
         data?.company ||
         (data?.data && typeof data.data === "object" ? data.data : data);
 
-      setCompanyData(payload && typeof payload === "object" ? payload : null);
+      setCompanyData(normalizeCompanyForProfile(payload));
     } catch (err) {
       setCompanyError(err?.message || "Failed to load company details");
       setCompanyData(null);
@@ -408,6 +476,29 @@ const CompanyDetails = () => {
         : [],
     [companyData]
   );
+  const isOwnCompany = useMemo(() => {
+    if (!isLoggedIn) return false;
+
+    const currentUserId = getIdFromStoredUser(user);
+    if (currentUserId == null || currentUserId === "") return false;
+
+    const normalizedUserId = String(currentUserId);
+    const normalizedCompanyId = companyId != null ? String(companyId) : "";
+    const normalizedCompanyOwnerId =
+      companyData?.user_id != null
+        ? String(companyData.user_id)
+        : companyData?.userId != null
+        ? String(companyData.userId)
+        : "";
+    const normalizedCompanyProfileId =
+      companyData?.id != null ? String(companyData.id) : "";
+
+    return (
+      normalizedUserId === normalizedCompanyId ||
+      normalizedUserId === normalizedCompanyOwnerId ||
+      normalizedUserId === normalizedCompanyProfileId
+    );
+  }, [companyData, companyId, isLoggedIn, user]);
   const companyTabs = useMemo(() => {
     const aboutTab = [
       {
@@ -659,7 +750,7 @@ const CompanyDetails = () => {
                       </Space>
                     </div>
                   </div>
-                  {isLoggedIn && (
+                  {isLoggedIn && !isOwnCompany && (
                     <button
                       type="button"
                       className="C-button is-filled full-width"

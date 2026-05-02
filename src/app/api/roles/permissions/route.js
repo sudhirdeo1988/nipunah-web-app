@@ -1,107 +1,60 @@
 import { NextResponse } from "next/server";
-import { ROLE_MANAGEMENT_MOCK } from "@/constants/roleManagementMock";
 import { API_BASE_URL } from "@/constants/api";
-import { promises as fs } from "fs";
-import path from "path";
+import {
+  ROLE_KEYS,
+  normalizeRolesPermissions,
+  extractRolePermissions,
+} from "@/utilities/rolePermissionsMapper";
 
-let ROLE_PERMISSIONS_STATE = JSON.parse(JSON.stringify(ROLE_MANAGEMENT_MOCK));
 const PERMISSIONS_ENDPOINT = `${API_BASE_URL}/roles/permissions`;
-const ROLE_KEYS = Object.keys(ROLE_MANAGEMENT_MOCK);
-const ROLE_PERMISSIONS_FILE_PATH = path.join(
-  process.cwd(),
-  "src",
-  "constants",
-  "rolePermissions.data.json"
-);
-
-function sanitizePayload(input) {
-  if (!input || typeof input !== "object" || Array.isArray(input)) return null;
-  const normalized = {};
-  ROLE_KEYS.forEach((roleKey) => {
-    const source =
-      input[roleKey] && typeof input[roleKey] === "object" && !Array.isArray(input[roleKey])
-        ? input[roleKey]
-        : {};
-    const base = ROLE_MANAGEMENT_MOCK[roleKey] || {};
-    normalized[roleKey] = Object.keys(base).reduce((acc, key) => {
-      acc[key] = source[key] === undefined ? Boolean(base[key]) : Boolean(source[key]);
-      return acc;
-    }, {});
-  });
-  return normalized;
+function getBearerTokenFromAuthorizationHeader(request) {
+  const auth = request.headers.get("authorization");
+  if (!auth || typeof auth !== "string") return null;
+  const matched = auth.match(/^Bearer\s+(.+)$/i);
+  return matched?.[1]?.trim() || null;
 }
 
-function sanitizeNavOrder(order) {
-  const defaultOrder = [
-    "nav_dashboard",
-    "nav_categories",
-    "nav_experts",
-    "nav_users",
-    "nav_companies",
-    "nav_services",
-    "nav_jobs",
-    "nav_pricing",
-    "nav_enquiries",
-    "nav_equipments",
-    "nav_role_management",
-  ];
-  if (!Array.isArray(order)) return defaultOrder;
-  const valid = order.filter((key) => defaultOrder.includes(key));
-  const missing = defaultOrder.filter((key) => !valid.includes(key));
-  return [...valid, ...missing];
+function getBearerTokenFromCookieHeader(cookieHeader) {
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+    const trimmed = cookie.trim();
+    const equalIndex = trimmed.indexOf("=");
+    if (equalIndex > 0) {
+      const key = trimmed.substring(0, equalIndex).trim();
+      const value = trimmed.substring(equalIndex + 1).trim();
+      if (key && value) {
+        try {
+          acc[key] = decodeURIComponent(value);
+        } catch {
+          acc[key] = value;
+        }
+      }
+    }
+    return acc;
+  }, {});
+  return cookies["access_token"] || cookies.access_token || null;
 }
 
-async function readFileState() {
-  try {
-    const raw = await fs.readFile(ROLE_PERMISSIONS_FILE_PATH, "utf8");
-    const parsed = JSON.parse(raw);
-    const permissions = sanitizePayload(parsed?.permissions || parsed);
-    if (!permissions) return null;
-    return {
-      permissions,
-      navOrder: sanitizeNavOrder(parsed?.navOrder),
-    };
-  } catch {
-    return null;
-  }
-}
-
-async function writeFileState(permissions, navOrder) {
-  const payload = {
-    permissions,
-    navOrder: sanitizeNavOrder(navOrder),
-    updatedAt: new Date().toISOString(),
-  };
-  await fs.writeFile(
-    ROLE_PERMISSIONS_FILE_PATH,
-    `${JSON.stringify(payload, null, 2)}\n`,
-    "utf8"
+function resolveBearerToken(request) {
+  return (
+    getBearerTokenFromAuthorizationHeader(request) ||
+    getBearerTokenFromCookieHeader(request.headers.get("cookie") || "")
   );
 }
 
-async function writeFileStateSafe(permissions, navOrder) {
-  try {
-    await writeFileState(permissions, navOrder);
-    return true;
-  } catch (error) {
-    console.warn("roles/permissions: file persistence skipped", error?.message || error);
-    return false;
-  }
-}
-
-async function fetchUpstream(method, payload, request) {
+function getForwardHeaders(token) {
   const headers = {
     "Content-Type": "application/json",
     Accept: "application/json",
   };
-  const authHeader = request?.headers?.get("authorization");
-  const cookieHeader = request?.headers?.get("cookie");
-  if (authHeader) headers.Authorization = authHeader;
-  if (cookieHeader) headers.Cookie = cookieHeader;
+  if (token) headers.Authorization = `Bearer ${token}`;
+  return headers;
+}
 
+async function fetchUpstream(method, payload, token) {
   const response = await fetch(PERMISSIONS_ENDPOINT, {
     method,
-    headers,
+    headers: getForwardHeaders(token),
     body: payload ? JSON.stringify(payload) : undefined,
     cache: "no-store",
   });
@@ -121,96 +74,124 @@ async function fetchUpstream(method, payload, request) {
  */
 export async function GET(request) {
   try {
-    const fromFile = await readFileState();
-    if (fromFile?.permissions) {
-      ROLE_PERMISSIONS_STATE = fromFile.permissions;
-      return NextResponse.json({
-        ...fromFile.permissions,
-        __nav_order__: fromFile.navOrder,
-        meta: { source: "file", filePersisted: true },
-      });
+    const token = resolveBearerToken(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication token is required" },
+        { status: 401 }
+      );
     }
 
-    const upstream = await fetchUpstream("GET", null, request);
-    const data = sanitizePayload(upstream);
-    if (!data) throw new Error("Invalid permissions payload from upstream");
-    ROLE_PERMISSIONS_STATE = data;
-    const filePersisted = await writeFileStateSafe(data, []);
-    return NextResponse.json({
-      ...data,
-      __nav_order__: sanitizeNavOrder([]),
-      meta: { source: "upstream", filePersisted },
-    });
+    const upstream = await fetchUpstream("GET", null, token);
+    const data = normalizeRolesPermissions(upstream);
+    return NextResponse.json(data);
   } catch (error) {
-    // Always return last known safe state instead of hard-failing.
-    console.error("GET /api/roles/permissions fallback:", error);
-    return NextResponse.json({
-      ...ROLE_PERMISSIONS_STATE,
-      __nav_order__: sanitizeNavOrder([]),
-      meta: { source: "runtime", filePersisted: false },
-    });
+    console.error("GET /api/roles/permissions failed:", error);
+    return NextResponse.json(
+      { error: error?.message || "Failed to load role permissions" },
+      { status: error?.status || 500 }
+    );
   }
 }
 
 /**
  * PUT /api/roles/permissions
- * Body: flat role-permissions map
+ * Body: flat role-permissions map; forwarded as per-role PUT.
  */
 export async function PUT(request) {
-  let normalizedFromRequest = null;
-  let navOrderFromRequest = [];
   try {
+    const token = resolveBearerToken(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication token is required" },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
-    normalizedFromRequest = sanitizePayload(body?.permissions || body);
-    navOrderFromRequest = sanitizeNavOrder(body?.__nav_order__ || body?.navOrder || []);
-    if (!normalizedFromRequest) {
-      return NextResponse.json(
-        { error: "Payload must be an object with role keys" },
-        { status: 400 }
-      );
-    }
-    let saved = normalizedFromRequest;
-    try {
-      const upstream = await fetchUpstream("PUT", normalizedFromRequest, request);
-      const normalizedFromUpstream = sanitizePayload(
-        upstream?.data?.permissions || upstream?.data || upstream || normalizedFromRequest
-      );
-      if (normalizedFromUpstream) {
-        saved = normalizedFromUpstream;
-      }
-    } catch (upstreamError) {
-      console.error("PUT /api/roles/permissions upstream failed, using local state:", upstreamError);
-    }
-    ROLE_PERMISSIONS_STATE = saved;
-    const filePersisted = await writeFileStateSafe(saved, navOrderFromRequest);
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...saved,
-        __nav_order__: navOrderFromRequest,
-      },
-      meta: { source: "runtime", filePersisted },
-    });
-  } catch (error) {
-    if (!normalizedFromRequest) {
-      return NextResponse.json(
-        { error: "Payload must be an object with role keys" },
-        { status: 400 }
-      );
-    }
-    console.error("PUT /api/roles/permissions final fallback:", error);
-    ROLE_PERMISSIONS_STATE = normalizedFromRequest;
-    const filePersisted = await writeFileStateSafe(
-      ROLE_PERMISSIONS_STATE,
-      navOrderFromRequest
+    const normalized = normalizeRolesPermissions(body?.permissions || body);
+
+    const headers = getForwardHeaders(token);
+    const updates = await Promise.all(
+      ROLE_KEYS.map(async (role) => {
+        const res = await fetch(`${PERMISSIONS_ENDPOINT}/${role}`, {
+          method: "PUT",
+          headers,
+          body: JSON.stringify(normalized[role] || {}),
+          cache: "no-store",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const err = new Error(
+            data?.error || data?.message || `Failed to update ${role} permissions`
+          );
+          err.status = res.status;
+          throw err;
+        }
+        return [role, data];
+      })
     );
-    return NextResponse.json({
-      success: true,
-      data: {
-        ...ROLE_PERMISSIONS_STATE,
-        __nav_order__: navOrderFromRequest,
-      },
-      meta: { source: "runtime", filePersisted },
-    });
+
+    const merged = updates.reduce((acc, [role, payload]) => {
+      acc[role] = extractRolePermissions(role, payload);
+      return acc;
+    }, {});
+
+    return NextResponse.json({ success: true, data: merged });
+  } catch (error) {
+    console.error("PUT /api/roles/permissions failed:", error);
+    return NextResponse.json(
+      { error: error?.message || "Failed to save role permissions" },
+      { status: error?.status || 500 }
+    );
+  }
+}
+
+export async function PATCH(request) {
+  try {
+    const token = resolveBearerToken(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized", message: "Authentication token is required" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const normalized = normalizeRolesPermissions(body?.permissions || body);
+
+    const headers = getForwardHeaders(token);
+    const updates = await Promise.all(
+      ROLE_KEYS.map(async (role) => {
+        const res = await fetch(`${PERMISSIONS_ENDPOINT}/${role}`, {
+          method: "PATCH",
+          headers,
+          body: JSON.stringify(normalized[role] || {}),
+          cache: "no-store",
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          const err = new Error(
+            data?.error || data?.message || `Failed to patch ${role} permissions`
+          );
+          err.status = res.status;
+          throw err;
+        }
+        return [role, data];
+      })
+    );
+
+    const merged = updates.reduce((acc, [role, payload]) => {
+      acc[role] = extractRolePermissions(role, payload);
+      return acc;
+    }, {});
+
+    return NextResponse.json({ success: true, data: merged });
+  } catch (error) {
+    console.error("PATCH /api/roles/permissions failed:", error);
+    return NextResponse.json(
+      { error: error?.message || "Failed to patch role permissions" },
+      { status: error?.status || 500 }
+    );
   }
 }

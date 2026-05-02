@@ -1,9 +1,7 @@
 "use client";
-import { getRolePermissionObject, normalizeRoleKey } from "@/constants/roleManagementMock";
 import { clearToken, getUserIdFromCookie } from "./auth";
 
 const STORAGE_KEY = "nipunah_user_session";
-const ROLE_PERMISSIONS_STORAGE_KEY = "nipunah_role_permissions_override";
 
 export function sanitizeAuthResponse(raw) {
   if (!raw || typeof raw !== "object") return null;
@@ -85,26 +83,8 @@ export function clearAllClientStorage() {
 
 export function applyRolePermissionsToUser(userObj) {
   const base = userObj && typeof userObj === "object" ? userObj : {};
-  const role = normalizeRoleKey(
-    base?.role || base?.type || base?.userType || base?.user_type
-  );
-  let rolePermissions = getRolePermissionObject(role) || {};
-  if (typeof window !== "undefined") {
-    try {
-      const raw = window.localStorage.getItem(ROLE_PERMISSIONS_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && typeof parsed === "object" && parsed[role]) {
-          rolePermissions = { ...rolePermissions, ...parsed[role] };
-        }
-      }
-    } catch {
-      // ignore invalid local storage payload and keep static defaults
-    }
-  }
   return {
     ...base,
-    ...rolePermissions,
   };
 }
 

@@ -69,7 +69,8 @@ function unauthorizedResponse() {
  */
 export async function GET(request, { params }) {
   try {
-    const { id } = params || {};
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
     const url = `${API_BASE_URL}/users/${id}`;
 
     const token = resolveBearerToken(request);
@@ -119,7 +120,8 @@ export async function GET(request, { params }) {
  */
 export async function PUT(request, { params }) {
   try {
-    const { id } = params || {};
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
     const url = `${API_BASE_URL}/users/${id}`;
     const body = await request.json();
 
@@ -174,7 +176,8 @@ export async function PUT(request, { params }) {
  */
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params || {};
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
     const url = `${API_BASE_URL}/users/${id}`;
 
     const token = resolveBearerToken(request);
