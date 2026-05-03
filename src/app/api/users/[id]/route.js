@@ -114,9 +114,23 @@ export async function GET(request, { params }) {
   }
 }
 
+async function parseResponseData(response) {
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  }
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text || response.statusText };
+  }
+}
+
 /**
  * PUT /api/users/{id}
- * Proxy endpoint to update a user by id (auth required via cookie token)
+ * Proxy endpoint to update a user by id (auth required via cookie token).
+ * Upstream user service supports PATCH in some environments, so we try PATCH first.
  */
 export async function PUT(request, { params }) {
   try {
@@ -134,25 +148,21 @@ export async function PUT(request, { params }) {
     };
     headers.Authorization = `Bearer ${token}`;
 
-    const response = await fetch(url, {
-      method: "PUT",
+    let response = await fetch(url, {
+      method: "PATCH",
       headers,
       body: JSON.stringify(body),
     });
 
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || response.statusText };
-      }
+    // Fallback for environments that still expect PUT
+    if (response.status === 404 || response.status === 405) {
+      response = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(body),
+      });
     }
+    const data = await parseResponseData(response);
 
     return NextResponse.json(data, {
       status: response.status,
@@ -168,6 +178,14 @@ export async function PUT(request, { params }) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * PATCH /api/users/{id}
+ * Same behavior as PUT for compatibility with clients using PATCH directly.
+ */
+export async function PATCH(request, ctx) {
+  return PUT(request, ctx);
 }
 
 /**

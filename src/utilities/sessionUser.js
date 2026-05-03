@@ -129,6 +129,13 @@ export async function fetchCurrentUserMe() {
 }
 
 export function getIdFromStoredUser(userObj) {
+  // On refresh, cookie user_id is the most reliable source for current logged-in user.
+  // Prefer it over cached/local fields which may be stale across role switches.
+  const cookieUserId = getUserIdFromCookie();
+  if (cookieUserId !== null && cookieUserId !== undefined && cookieUserId !== "") {
+    return cookieUserId;
+  }
+
   let id = null;
   if (userObj && typeof userObj === "object") {
     id =
@@ -139,14 +146,12 @@ export function getIdFromStoredUser(userObj) {
       userObj.user?.user_id ??
       userObj.data?.id ??
       userObj.data?.user_id ??
-      userObj.companyId ??
-      userObj.expertId ??
       null;
   }
   if (id !== null && id !== undefined && id !== "") {
     return id;
   }
-  return getUserIdFromCookie();
+  return null;
 }
 
 /**

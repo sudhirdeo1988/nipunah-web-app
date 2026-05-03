@@ -9,10 +9,12 @@ import {
   Form,
   Input,
   Row,
+  Select,
   Space,
   Typography,
   message,
 } from "antd";
+import CountryDetails from "@/utilities/CountryDetails.json";
 
 const { Text } = Typography;
 
@@ -53,6 +55,23 @@ const ProfileDetails = memo(function ProfileDetails({
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
   const canEdit = typeof onSave === "function";
+  const countryCodeOptions = useMemo(
+    () =>
+      (Array.isArray(CountryDetails) ? CountryDetails : []).map((c) => ({
+        label: `${c.countryName} (${c.dailCode})`,
+        value: c.dailCode,
+        searchLabel: `${c.countryName} ${c.dailCode}`,
+      })),
+    []
+  );
+  const countryOptions = useMemo(
+    () =>
+      (Array.isArray(CountryDetails) ? CountryDetails : []).map((c) => ({
+        label: c.countryName,
+        value: c.countryName,
+      })),
+    []
+  );
 
   const formInitialValues = useMemo(() => {
     const initial = {};
@@ -188,7 +207,33 @@ const ProfileDetails = memo(function ProfileDetails({
                           : undefined
                       }
                     >
-                      {f.type === "textarea" || f.type === "json" ? (
+                      {f.path?.[f.path.length - 1] === "contact_country_code" ? (
+                        <Select
+                          showSearch
+                          placeholder="Select country code"
+                          options={countryCodeOptions}
+                          optionFilterProp="label"
+                          filterOption={(input, option) =>
+                            String(option?.searchLabel || "")
+                              .toLowerCase()
+                              .startsWith(String(input || "").toLowerCase())
+                          }
+                          disabled={!!f.readOnly}
+                        />
+                      ) : f.path?.[f.path.length - 1] === "country" ? (
+                        <Select
+                          showSearch
+                          placeholder="Select country"
+                          options={countryOptions}
+                          optionFilterProp="label"
+                          filterOption={(input, option) =>
+                            String(option?.label || "")
+                              .toLowerCase()
+                              .includes(String(input || "").toLowerCase())
+                          }
+                          disabled={!!f.readOnly}
+                        />
+                      ) : f.type === "textarea" || f.type === "json" ? (
                         <Input.TextArea
                           rows={f.type === "json" ? 6 : 3}
                           disabled={!!f.readOnly}

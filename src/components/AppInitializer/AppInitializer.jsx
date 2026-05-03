@@ -74,10 +74,10 @@ const AppInitializer = ({ children }) => {
           dispatch(setUser(applyRolePermissionsToUser(cached)));
         }
 
-        // If session lacks id/role but we have a token (e.g. login shape used user_id only), bootstrap from GET /api/me
+        // If session lacks id/role, bootstrap from GET /api/me
         let role = getRoleFromStoredUser(cached);
         let id = getIdFromStoredUser(cached);
-        if (token && (!role || !id)) {
+        if (!role || !id) {
           try {
             const me = await fetchCurrentUserMe();
             if (me && typeof me === "object") {
@@ -94,6 +94,33 @@ const AppInitializer = ({ children }) => {
             }
           } catch (meErr) {
             console.warn("Could not bootstrap /api/me on refresh:", meErr);
+          }
+        }
+
+        // Fallback when role is still unknown but id exists (e.g. incomplete session payload).
+        // Try known profile endpoints to infer role and hydrate user.
+        if (!role && id) {
+          const candidateRoles = ["user", "expert", "company"];
+          for (const candidate of candidateRoles) {
+            try {
+              const details = await fetchUserDetailsByRole({ role: candidate, id });
+              if (details && typeof details === "object") {
+                role = candidate;
+                let merged = applyRolePermissionsToUser({
+                  ...(cached || {}),
+                  ...(details || {}),
+                  role: candidate,
+                  type: candidate,
+                });
+                merged = applyUserIdFromCookieIfMissing(merged);
+                saveUserSession(merged);
+                dispatch(setUser(merged));
+                cached = merged;
+                break;
+              }
+            } catch {
+              // try next role
+            }
           }
         }
 
@@ -129,7 +156,8 @@ const AppInitializer = ({ children }) => {
       }
     };
 
-    if (token) {
+    const hasAnySessionHint = Boolean(token || loadUserSession() || getIdFromStoredUser({}));
+    if (hasAnySessionHint) {
       fetchInitialData();
     } else {
       dispatch(clearUser());

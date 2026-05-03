@@ -25,6 +25,8 @@ const Dashboard = () => {
   const reduxRole = useAppSelector((state) => state.user.role);
   const role = String(reduxRole || user?.role || user?.type || "").toLowerCase();
   const isUserRole = role === "user";
+  const isExpertRole = role === "expert";
+  const showProfileCard = isUserRole || isExpertRole;
   const showAnalyticsOverview = user?.dashboard_analytics_overview !== false;
 
   const openBecomeExpert = useCallback(() => setBecomeExpertOpen(true), []);
@@ -92,7 +94,7 @@ const Dashboard = () => {
 
       {/* Stats Widgets */}
       <div className="p-4">
-        {isUserRole && (
+        {showProfileCard && (
           <div className="mb-4">
             <ProfileDetails
               title="Profile"

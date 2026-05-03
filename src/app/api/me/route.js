@@ -20,7 +20,16 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
     return acc;
   }, {});
 
-  return cookies["access_token"] || cookies.access_token || null;
+  return (
+    cookies["access_token"] ||
+    cookies.access_token ||
+    cookies.token ||
+    cookies.auth_token ||
+    cookies.authToken ||
+    cookies.jwt ||
+    cookies.id_token ||
+    null
+  );
 }
 
 /**
