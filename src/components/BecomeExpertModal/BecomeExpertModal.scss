@@ -4,15 +4,36 @@
     overflow-y: auto;
   }
 
+  // Tighten antd defaults so the whole form reads as a compact "small form"
+  // without losing visual hierarchy.
+  .ant-form-item {
+    margin-bottom: 12px;
+  }
+
+  .ant-form-item-label {
+    padding-bottom: 2px;
+
+    > label {
+      font-size: 0.8125rem;
+      color: rgba(0, 0, 0, 0.65);
+      height: auto;
+    }
+  }
+
   &__section {
     margin-bottom: 0;
+
+    + .ant-divider {
+      margin: 16px 0;
+    }
   }
 
   &__sectionTitle {
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     font-weight: 600;
     color: rgba(0, 0, 0, 0.88);
-    margin-bottom: 1rem;
+    margin-bottom: 12px;
+    letter-spacing: 0.01em;
   }
 
   &__listRow {
@@ -29,39 +50,82 @@
 
   &__deleteBtn {
     flex-shrink: 0;
-    margin-top: 5px;
   }
 
+  // Reusable card used for both work-experience and education entries.
   &__educationBlock {
     background: #fafafa;
     border-radius: 8px;
-    padding: 1rem;
-    margin-bottom: 1rem;
+    padding: 0.875rem 1rem;
+    margin-bottom: 12px;
     border: 1px solid #f0f0f0;
   }
 
   &__educationActions {
-    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
     margin-bottom: 0;
   }
 
   &__footer {
-    margin-top: 1.5rem;
-    padding-top: 1rem;
+    margin-top: 1.25rem;
+    padding-top: 0.875rem;
     border-top: 1px solid #f0f0f0;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  // Grouped sub-fields with a small title above (e.g. "Company work duration"
+  // with From / To inside). Behaves like a regular form item visually.
+  &__fieldGroup {
+    margin-bottom: 12px;
+  }
+
+  &__fieldGroupTitle {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.65);
+    margin-bottom: 4px;
+    line-height: 1.2;
   }
 
   &__twoColRow {
     display: flex;
     gap: 12px;
 
-    .ant-form-item {
+    > .ant-form-item,
+    > .becomeExpertModal__fieldGroup {
       flex: 1;
+      min-width: 0;
     }
 
     @media (max-width: 576px) {
       flex-direction: column;
       gap: 0;
+    }
+  }
+
+  // Page variant: keep it narrow so it reads as a focused, small form
+  // instead of a sprawling page.
+  &--page {
+    max-width: 640px;
+    margin: 0 auto;
+
+    .ant-form {
+      width: 100%;
+    }
+  }
+
+  &__pageCard {
+    background: #fff;
+    border: 1px solid #f0f0f0;
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+    @media (max-width: 576px) {
+      padding: 1rem;
     }
   }
 }

@@ -1,101 +1,122 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+const TOKEN_COOKIE_KEYS = [
+  "access_token",
+  "token",
+  "auth_token",
+  "authToken",
+  "jwt",
+  "id_token",
+];
+
+function getBearerTokenFromCookieHeader(cookieHeader) {
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+    const trimmedCookie = cookie.trim();
+    const equalIndex = trimmedCookie.indexOf("=");
+    if (equalIndex > 0) {
+      const key = trimmedCookie.substring(0, equalIndex).trim();
+      const value = trimmedCookie.substring(equalIndex + 1).trim();
+      if (key && value) {
+        try {
+          acc[key] = decodeURIComponent(value);
+        } catch {
+          acc[key] = value;
+        }
+      }
+    }
+    return acc;
+  }, {});
+
+  for (const key of TOKEN_COOKIE_KEYS) {
+    if (cookies[key]) return cookies[key];
+  }
+  return null;
+}
+
+function getBearerTokenFromAuthHeader(authorizationHeader) {
+  if (!authorizationHeader) return null;
+  const [scheme, token] = authorizationHeader.split(" ");
+  if (!scheme || !token) return null;
+  if (scheme.toLowerCase() !== "bearer") return null;
+  return token.trim() || null;
+}
+
+function isUsableToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const normalized = token.trim().toLowerCase();
+  if (!normalized) return false;
+  return !["undefined", "null", "nan"].includes(normalized);
+}
+
+async function readResponseBody(response) {
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  }
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text || response.statusText };
+  }
+}
+
+function resolveToken(request) {
+  return (
+    getBearerTokenFromAuthHeader(request.headers.get("authorization") || "") ||
+    getBearerTokenFromCookieHeader(request.headers.get("cookie") || "")
+  );
+}
+
 /**
  * GET /api/equipments
- * Proxy endpoint for fetching equipment list to avoid CORS issues
- * Automatically includes bearer token from cookies
+ * Auth-required proxy for ${API_BASE_URL}/equipments. Query params forwarded
+ * after dropping null/undefined/empty and sentinel "all" values.
  */
 export async function GET(request) {
   try {
-    // Get query parameters from the request
     const { searchParams } = new URL(request.url);
-    const params = Object.fromEntries(searchParams.entries());
+    const rawParams = Object.fromEntries(searchParams.entries());
+    const cleanedParams = Object.entries(rawParams).filter(([key, value]) => {
+      if (value === null || value === undefined || value === "") return false;
+      if (typeof value === "string" && value.toLowerCase() === "all") return false;
+      return true;
+    });
 
     let url = `${API_BASE_URL}/equipments`;
-
-    // Add query parameters if they exist
-    if (Object.keys(params).length > 0) {
-      const queryString = new URLSearchParams(
-        Object.entries(params).filter(
-          ([_, value]) => value !== null && value !== undefined && value !== ""
-        )
-      ).toString();
+    if (cleanedParams.length > 0) {
+      const queryString = new URLSearchParams(cleanedParams).toString();
       if (queryString) {
         url += `?${queryString}`;
       }
     }
 
-    // Get access token from request cookies
-    const cookieHeader = request.headers.get("cookie") || "";
-    let token = null;
-
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
-        const trimmedCookie = cookie.trim();
-        const equalIndex = trimmedCookie.indexOf("=");
-        if (equalIndex > 0) {
-          const key = trimmedCookie.substring(0, equalIndex).trim();
-          const value = trimmedCookie.substring(equalIndex + 1).trim();
-          if (key && value) {
-            try {
-              acc[key] = decodeURIComponent(value);
-            } catch {
-              acc[key] = value;
-            }
-          }
-        }
-        return acc;
-      }, {});
-
-      token = cookies["access_token"] || cookies.access_token || null;
-    }
-
-    // Prepare headers
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
+    const token = resolveToken(request);
+    if (!isUsableToken(token)) {
       return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
+        { error: "Unauthorized", message: "Authentication token is required" },
         { status: 401 }
       );
     }
 
-    // Make the request to the external API
     const response = await fetch(url, {
       method: "GET",
-      headers,
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
     });
 
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || response.statusText };
-      }
-    }
-
+    const data = await readResponseBody(response);
     return NextResponse.json(data, {
       status: response.status,
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("Get Equipments API proxy error:", error);
+    console.error("GET /api/equipments proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -108,87 +129,38 @@ export async function GET(request) {
 
 /**
  * POST /api/equipments
- * Proxy endpoint for creating equipment to avoid CORS issues
- * Automatically includes bearer token from cookies
+ * Auth-required proxy for creating equipment.
  */
 export async function POST(request) {
   try {
-    // Get request body
     const body = await request.json();
 
-    const url = `${API_BASE_URL}/equipments`;
-
-    // Get access token from request cookies
-    const cookieHeader = request.headers.get("cookie") || "";
-    let token = null;
-
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
-        const trimmedCookie = cookie.trim();
-        const equalIndex = trimmedCookie.indexOf("=");
-        if (equalIndex > 0) {
-          const key = trimmedCookie.substring(0, equalIndex).trim();
-          const value = trimmedCookie.substring(equalIndex + 1).trim();
-          if (key && value) {
-            try {
-              acc[key] = decodeURIComponent(value);
-            } catch {
-              acc[key] = value;
-            }
-          }
-        }
-        return acc;
-      }, {});
-
-      token = cookies["access_token"] || cookies.access_token || null;
-    }
-
-    // Prepare headers
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
+    const token = resolveToken(request);
+    if (!isUsableToken(token)) {
       return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
+        { error: "Unauthorized", message: "Authentication token is required" },
         { status: 401 }
       );
     }
 
-    // Make the request to the external API
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/equipments`, {
       method: "POST",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(body),
+      cache: "no-store",
     });
 
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || response.statusText };
-      }
-    }
-
+    const data = await readResponseBody(response);
     return NextResponse.json(data, {
       status: response.status,
       statusText: response.statusText,
     });
   } catch (error) {
-    console.error("Create Equipment API proxy error:", error);
+    console.error("POST /api/equipments proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -198,8 +170,3 @@ export async function POST(request) {
     );
   }
 }
-
-
-
-
-

@@ -7,6 +7,7 @@ import { Avatar, Drawer, Popover, Space } from "antd";
 import Icon from "../Icon";
 import { useAuth } from "@/utilities/AuthContext";
 import { useLogout } from "@/hooks/useLogout";
+import { useRole } from "@/hooks/useRole";
 import { useAppSelector } from "@/store/hooks";
 import "./HeaderBeta.scss";
 
@@ -114,15 +115,26 @@ const SETTINGS_SUBMENU_ITEMS = [
 /**
  * User settings dropdown component.
  * Displays user profile and actions: Profile, Settings (hover submenu: Change password, Subscription details), Logout.
+ *
+ * Note: the "Subscription details" entry is hidden for the regular `user`
+ * role — subscriptions are a company/expert/admin concept only.
  */
 const UserSettingsDropdown = memo(({ onClose }) => {
   const router = useRouter();
   const { logout } = useLogout();
+  const { isUser } = useRole();
   const user = useAppSelector((state) => state.user.user);
   const { line1, roleLabel, email, initials, avatarUrl } = useMemo(
     () => getHeaderUserDisplay(user),
     [user]
   );
+
+  const visibleSettingsItems = useMemo(() => {
+    const hiddenForUser = new Set(isUser() ? ["SUBSCRIPTION_DETAILS"] : []);
+    return SETTINGS_SUBMENU_ITEMS.filter(
+      (item) => !hiddenForUser.has(item.routeKey)
+    );
+  }, [isUser]);
 
   const handleAction = useCallback(
     (route) => {
@@ -188,7 +200,7 @@ const UserSettingsDropdown = memo(({ onClose }) => {
               <Icon name="chevron_right" className="userSettings-chevron" />
             </div>
             <div className="userSettings-submenu" role="menu">
-              {SETTINGS_SUBMENU_ITEMS.map((item) => (
+              {visibleSettingsItems.map((item) => (
                 <button
                   key={item.routeKey}
                   type="button"

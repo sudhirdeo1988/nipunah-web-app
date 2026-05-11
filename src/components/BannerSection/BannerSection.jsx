@@ -48,7 +48,7 @@ const BannerSection = () => {
     () => [
       {
         type: "search",
-        label: "",
+        label: "Search",
         formFieldValue: "search",
         defaultValue: "",
         placeholder: "Search (min 4 characters)",
@@ -63,7 +63,7 @@ const BannerSection = () => {
       },
       {
         type: "select",
-        label: "",
+        label: "Looking for",
         formFieldValue: "equipmentType",
         defaultValue: "",
         placeholder: "Select type",
@@ -76,7 +76,7 @@ const BannerSection = () => {
       },
       {
         type: "countrySelect",
-        label: "",
+        label: "Location",
         icon: "",
         formFieldValue: "countrySelect",
         defaultValue: "",

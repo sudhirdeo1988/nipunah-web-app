@@ -1,11 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useState,
-  useRef,
-  useEffect,
-  memo,
-} from "react";
+import React, { useCallback, useMemo, useState, memo } from "react";
 import PropTypes from "prop-types";
 import Icon from "@/components/Icon";
 import {
@@ -33,6 +26,8 @@ const EquipmentListing = ({
   pagination = {},
   sortBy = "name",
   order = "asc",
+  searchQuery = "",
+  onSearchChange,
   onEditEquipment,
   onDeleteEquipment,
   onFetchEquipment,
@@ -59,39 +54,23 @@ const EquipmentListing = ({
   );
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState([]);
-  const [searchValue, setSearchValue] = useState("");
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [equipmentToDelete, setEquipmentToDelete] = useState(null);
   const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false);
   const [equipmentForDetails, setEquipmentForDetails] = useState(null);
-  const searchDebounceTimerRef = useRef(null);
 
   /**
-   * Handle search input change with debouncing
+   * Handle search input change - delegates to parent; debouncing + API call live in useEquipment
+   * (mirrors how CompanySearch -> useCompanyListing works).
    */
   const handleSearchChange = useCallback(
     (e) => {
-      const value = e.target.value;
-      setSearchValue(value);
-
-      // Clear existing timer
-      if (searchDebounceTimerRef.current) {
-        clearTimeout(searchDebounceTimerRef.current);
+      const value = e.target.value ?? "";
+      if (onSearchChange) {
+        onSearchChange(value);
       }
-
-      // Set new timer for debounced search
-      searchDebounceTimerRef.current = setTimeout(() => {
-        if (onFetchEquipment) {
-          onFetchEquipment({
-            page: 1,
-            search: value,
-            sortBy,
-            order,
-          });
-        }
-      }, 500); // 500ms debounce delay
     },
-    [onFetchEquipment, sortBy, order]
+    [onSearchChange]
   );
 
   /**
@@ -137,7 +116,7 @@ const EquipmentListing = ({
       const params = {
         page: newPagination.current,
         limit: newPagination.pageSize,
-        search: searchValue,
+        search: searchQuery,
       };
 
       if (sorter.field) {
@@ -161,7 +140,7 @@ const EquipmentListing = ({
         onFetchEquipment(params);
       }
     },
-    [onFetchEquipment, searchValue, sortBy, order]
+    [onFetchEquipment, searchQuery, sortBy, order]
   );
 
   // Memoized row selection
@@ -322,7 +301,7 @@ const EquipmentListing = ({
                 placeholder="Search equipment"
                 prefix={<Icon name="search" />}
                 width="200"
-                value={searchValue}
+                value={searchQuery}
                 onChange={handleSearchChange}
                 allowClear
               />
@@ -507,6 +486,8 @@ EquipmentListing.propTypes = {
   pagination: PropTypes.object,
   sortBy: PropTypes.string,
   order: PropTypes.string,
+  searchQuery: PropTypes.string,
+  onSearchChange: PropTypes.func,
   onEditEquipment: PropTypes.func,
   onDeleteEquipment: PropTypes.func,
   onFetchEquipment: PropTypes.func,

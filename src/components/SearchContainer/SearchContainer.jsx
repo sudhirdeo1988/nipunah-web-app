@@ -114,6 +114,44 @@ const SearchContainer = (props) => {
   }, [searchFieldOptions]);
 
   /**
+   * Resolve a tiny field label to render above each input.
+   *
+   * Priority:
+   * 1. Explicit non-empty `fieldConfig.label` from the caller.
+   * 2. Sensible default derived from `type` + placeholder
+   *    (e.g. "Select company type" → "Company type", "Search (min 4)" → "Search").
+   *
+   * Returns "" to opt out of rendering a label.
+   */
+  const resolveFieldLabel = useCallback((fieldConfig) => {
+    const explicit =
+      typeof fieldConfig.label === "string" ? fieldConfig.label.trim() : "";
+    if (explicit) return explicit;
+
+    const placeholder =
+      typeof fieldConfig.placeholder === "string" ? fieldConfig.placeholder : "";
+
+    switch (fieldConfig.type) {
+      case "search":
+        return "Search";
+      case "countrySelect":
+        return "Location";
+      case "select": {
+        // Strip leading "Select " from placeholders like "Select company type"
+        // and a trailing " (optional)" hint. Fallback to a generic "Filter".
+        const stripped = placeholder
+          .replace(/^select\s+/i, "")
+          .replace(/\s*\(optional\)\s*$/i, "")
+          .trim();
+        if (!stripped) return "Filter";
+        return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+      }
+      default:
+        return "";
+    }
+  }, []);
+
+  /**
    * Renders a form field based on its type configuration
    * @param {Object} fieldConfig - Field configuration object
    * @param {number} index - Field index in the array
@@ -124,7 +162,7 @@ const SearchContainer = (props) => {
    */
   const renderField = useCallback(
     (fieldConfig, index) => {
-      const { type, formFieldValue, placeholder, options, icon, label, rules } =
+      const { type, formFieldValue, placeholder, options, icon, rules } =
         fieldConfig;
 
       const colClasses = getColumnClasses(index);
@@ -133,17 +171,31 @@ const SearchContainer = (props) => {
       /* Form.Item rules: optional Ant Design validation rules per field */
       const itemRules = Array.isArray(rules) ? rules : undefined;
 
+      // Small caption-style label above each field on inner listing pages.
+      // The Form.Item's own `label` prop is intentionally not used so we can
+      // fully control typography (tiny, light) without fighting antd defaults.
+      const fieldLabel = resolveFieldLabel(fieldConfig);
+      const labelNode = fieldLabel ? (
+        <label
+          className="searchFieldLabel"
+          htmlFor={`search-field-${formFieldValue}`}
+        >
+          {fieldLabel}
+        </label>
+      ) : null;
+
       switch (type) {
         case "select":
           return (
             <div key={formFieldValue} className={colClasses}>
+              {labelNode}
               <Form.Item
                 name={formFieldValue}
                 style={{ marginBottom: 0 }}
-                label={label}
                 rules={itemRules}
               >
                 <Select
+                  id={`search-field-${formFieldValue}`}
                   placeholder={placeholder}
                   variant="borderless"
                   options={options}
@@ -158,13 +210,14 @@ const SearchContainer = (props) => {
         case "search":
           return (
             <div key={formFieldValue} className={colClasses}>
+              {labelNode}
               <Form.Item
                 name={formFieldValue}
                 style={{ marginBottom: 0 }}
-                label={label}
                 rules={itemRules}
               >
                 <Input
+                  id={`search-field-${formFieldValue}`}
                   size="large"
                   placeholder={placeholder}
                   prefix={
@@ -179,13 +232,14 @@ const SearchContainer = (props) => {
         case "countrySelect":
           return (
             <div key={formFieldValue} className={colClasses}>
+              {labelNode}
               <Form.Item
                 name={formFieldValue}
                 style={{ marginBottom: 0 }}
-                label={label}
                 rules={itemRules}
               >
                 <Select
+                  id={`search-field-${formFieldValue}`}
                   showSearch
                   optionFilterProp="label"
                   filterOption={(input, option) =>
@@ -211,7 +265,7 @@ const SearchContainer = (props) => {
           return null;
       }
     },
-    [getColumnClasses]
+    [getColumnClasses, resolveFieldLabel]
   );
 
   /**

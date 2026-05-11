@@ -40,6 +40,12 @@ function resolveBearerToken(request) {
 /**
  * GET /api/enquiries/:id
  * Proxy to ${API_BASE_URL}/enquiries/:id
+ *
+ * Query params are forwarded to upstream so this handler stays correct even
+ * when Next.js routing falls through to it for sibling paths like
+ * `/api/enquiries/threads?companyId=…` (the static `threads/route.js` is
+ * authoritative, but in dev/turbopack a stale routing table can briefly
+ * direct that request here, and dropping the query string would cause a 500).
  */
 export async function GET(request, { params }) {
   const { id } = params || {};
@@ -56,7 +62,16 @@ export async function GET(request, { params }) {
       );
     }
 
-    const url = `${API_BASE_URL}/enquiries/${id}`;
+    let url = `${API_BASE_URL}/enquiries/${id}`;
+    const { searchParams } = new URL(request.url);
+    const forwarded = Array.from(searchParams.entries()).filter(
+      ([_, value]) => value !== null && value !== undefined && value !== ""
+    );
+    if (forwarded.length > 0) {
+      const qs = new URLSearchParams(forwarded).toString();
+      if (qs) url += `?${qs}`;
+    }
+
     const response = await fetch(url, {
       method: "GET",
       headers: {

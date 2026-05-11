@@ -1,26 +1,20 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React from "react";
 import { Button } from "antd";
 import { useRouter } from "next/navigation";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import DashboardWidgets from "./components/DashboardWidgets";
 import DashboardDateRangePicker from "./components/DateRangePicker";
 import AnalyticsOverview from "./components/AnalyticsOverview";
-import BecomeExpertModal from "@/components/BecomeExpertModal";
 import { useDashboard } from "./hooks/useDashboard";
 import { useAppSelector } from "@/store/hooks";
-import { useLogout } from "@/hooks/useLogout";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
-
-const BECOME_EXPERT_API = "/api/experts/become-expert";
 
 const Dashboard = () => {
   const router = useRouter();
   const { dateRange, loading, stats, handleDateRangeChange } = useDashboard();
-  const [becomeExpertOpen, setBecomeExpertOpen] = useState(false);
-  const { logout } = useLogout();
   const user = useAppSelector((state) => state.user.user);
   const reduxRole = useAppSelector((state) => state.user.role);
   const role = String(reduxRole || user?.role || user?.type || "").toLowerCase();
@@ -28,36 +22,6 @@ const Dashboard = () => {
   const isExpertRole = role === "expert";
   const showProfileCard = isUserRole || isExpertRole;
   const showAnalyticsOverview = user?.dashboard_analytics_overview !== false;
-
-  const openBecomeExpert = useCallback(() => setBecomeExpertOpen(true), []);
-  const closeBecomeExpert = useCallback(() => setBecomeExpertOpen(false), []);
-
-  const handleBecomeExpertSubmit = useCallback(
-    async (payload) => {
-      const requestPayload = {
-        ...payload,
-        role: "expert",
-      };
-
-      const res = await fetch(BECOME_EXPERT_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestPayload),
-        credentials: "include",
-      });
-
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(
-          data?.message || data?.error || "Failed to submit become expert request."
-        );
-      }
-
-      // User should be logged out after successful role upgrade request
-      logout();
-    },
-    [logout]
-  );
 
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
@@ -76,21 +40,16 @@ const Dashboard = () => {
               </>
             )}
             {isUserRole && (
-              <Button type="primary" onClick={openBecomeExpert}>
+              <Button
+                type="primary"
+                onClick={() => router.push("/app/dashboard/upgrade-expert")}
+              >
                 Upgrade to expert profile (Free)
               </Button>
             )}
           </div>
         }
       />
-
-      {isUserRole && (
-        <BecomeExpertModal
-          open={becomeExpertOpen}
-          onCancel={closeBecomeExpert}
-          onSubmit={handleBecomeExpertSubmit}
-        />
-      )}
 
       {/* Stats Widgets */}
       <div className="p-4">

@@ -1,6 +1,40 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+const TOKEN_COOKIE_KEYS = [
+  "access_token",
+  "token",
+  "auth_token",
+  "authToken",
+  "jwt",
+  "id_token",
+];
+
+function getBearerTokenFromCookieHeader(cookieHeader) {
+  if (!cookieHeader) return null;
+  const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
+    const trimmedCookie = cookie.trim();
+    const equalIndex = trimmedCookie.indexOf("=");
+    if (equalIndex > 0) {
+      const key = trimmedCookie.substring(0, equalIndex).trim();
+      const value = trimmedCookie.substring(equalIndex + 1).trim();
+      if (key && value) {
+        try {
+          acc[key] = decodeURIComponent(value);
+        } catch {
+          acc[key] = value;
+        }
+      }
+    }
+    return acc;
+  }, {});
+
+  for (const key of TOKEN_COOKIE_KEYS) {
+    if (cookies[key]) return cookies[key];
+  }
+  return null;
+}
+
 function getBearerTokenFromAuthHeader(authorizationHeader) {
   if (!authorizationHeader) return null;
   const [scheme, token] = authorizationHeader.split(" ");
@@ -9,86 +43,78 @@ function getBearerTokenFromAuthHeader(authorizationHeader) {
   return token.trim() || null;
 }
 
+function isUsableToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const normalized = token.trim().toLowerCase();
+  if (!normalized) return false;
+  return !["undefined", "null", "nan"].includes(normalized);
+}
+
+async function readResponseBody(response) {
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  }
+  const text = await response.text();
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { message: text || response.statusText };
+  }
+}
+
+// Header-first, cookies as fallback. Previous implementation overwrote the
+// Authorization-header token with a (likely missing) cookie value in DELETE,
+// which broke deletes for clients that only sent the bearer header.
+function resolveToken(request) {
+  return (
+    getBearerTokenFromAuthHeader(request.headers.get("authorization") || "") ||
+    getBearerTokenFromCookieHeader(request.headers.get("cookie") || "")
+  );
+}
+
+function requireToken(request) {
+  const token = resolveToken(request);
+  if (!isUsableToken(token)) {
+    return {
+      token: null,
+      error: NextResponse.json(
+        { error: "Unauthorized", message: "Authentication token is required" },
+        { status: 401 }
+      ),
+    };
+  }
+  return { token, error: null };
+}
+
+async function forwardJsonResponse(response) {
+  const data = await readResponseBody(response);
+  return NextResponse.json(data, {
+    status: response.status,
+    statusText: response.statusText,
+  });
+}
+
 /**
  * GET /api/equipments/[equipmentId]
- * Proxy endpoint for fetching a single equipment by ID
- * Automatically includes bearer token from cookies
  */
 export async function GET(request, { params }) {
   try {
     const { equipmentId } = params;
-    const url = `${API_BASE_URL}/equipments/${equipmentId}`;
+    const { token, error } = requireToken(request);
+    if (error) return error;
 
-    // Get access token from request cookies
-    const cookieHeader = request.headers.get("cookie") || "";
-    let token = null;
-
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
-        const trimmedCookie = cookie.trim();
-        const equalIndex = trimmedCookie.indexOf("=");
-        if (equalIndex > 0) {
-          const key = trimmedCookie.substring(0, equalIndex).trim();
-          const value = trimmedCookie.substring(equalIndex + 1).trim();
-          if (key && value) {
-            try {
-              acc[key] = decodeURIComponent(value);
-            } catch {
-              acc[key] = value;
-            }
-          }
-        }
-        return acc;
-      }, {});
-
-      token = cookies["access_token"] || cookies.access_token || token;
-    }
-
-    // Prepare headers
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
-        { status: 401 }
-      );
-    }
-
-    // Make the request to the external API
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/equipments/${equipmentId}`, {
       method: "GET",
-      headers,
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
     });
-
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || response.statusText };
-      }
-    }
-
-    return NextResponse.json(data, {
-      status: response.status,
-      statusText: response.statusText,
-    });
+    return forwardJsonResponse(response);
   } catch (error) {
-    console.error("Get Equipment by ID API proxy error:", error);
+    console.error("GET /api/equipments/[equipmentId] proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -101,86 +127,27 @@ export async function GET(request, { params }) {
 
 /**
  * PUT /api/equipments/[equipmentId]
- * Proxy endpoint for updating equipment
- * Automatically includes bearer token from cookies
  */
 export async function PUT(request, { params }) {
   try {
     const { equipmentId } = params;
     const body = await request.json();
-    const url = `${API_BASE_URL}/equipments/${equipmentId}`;
+    const { token, error } = requireToken(request);
+    if (error) return error;
 
-    // Get access token from request cookies
-    const cookieHeader = request.headers.get("cookie") || "";
-    let token = null;
-
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
-        const trimmedCookie = cookie.trim();
-        const equalIndex = trimmedCookie.indexOf("=");
-        if (equalIndex > 0) {
-          const key = trimmedCookie.substring(0, equalIndex).trim();
-          const value = trimmedCookie.substring(equalIndex + 1).trim();
-          if (key && value) {
-            try {
-              acc[key] = decodeURIComponent(value);
-            } catch {
-              acc[key] = value;
-            }
-          }
-        }
-        return acc;
-      }, {});
-
-      token = cookies["access_token"] || cookies.access_token || null;
-    }
-
-    // Prepare headers
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
-        { status: 401 }
-      );
-    }
-
-    // Make the request to the external API
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/equipments/${equipmentId}`, {
       method: "PUT",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(body),
+      cache: "no-store",
     });
-
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || response.statusText };
-      }
-    }
-
-    return NextResponse.json(data, {
-      status: response.status,
-      statusText: response.statusText,
-    });
+    return forwardJsonResponse(response);
   } catch (error) {
-    console.error("Update Equipment API proxy error:", error);
+    console.error("PUT /api/equipments/[equipmentId] proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -193,86 +160,27 @@ export async function PUT(request, { params }) {
 
 /**
  * PATCH /api/equipments/[equipmentId]
- * Proxy endpoint for partial update equipment
- * Automatically includes bearer token from cookies
  */
 export async function PATCH(request, { params }) {
   try {
     const { equipmentId } = params;
     const body = await request.json();
-    const url = `${API_BASE_URL}/equipments/${equipmentId}`;
+    const { token, error } = requireToken(request);
+    if (error) return error;
 
-    // Get access token from request cookies
-    const cookieHeader = request.headers.get("cookie") || "";
-    let token = null;
-
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
-        const trimmedCookie = cookie.trim();
-        const equalIndex = trimmedCookie.indexOf("=");
-        if (equalIndex > 0) {
-          const key = trimmedCookie.substring(0, equalIndex).trim();
-          const value = trimmedCookie.substring(equalIndex + 1).trim();
-          if (key && value) {
-            try {
-              acc[key] = decodeURIComponent(value);
-            } catch {
-              acc[key] = value;
-            }
-          }
-        }
-        return acc;
-      }, {});
-
-      token = cookies["access_token"] || cookies.access_token || null;
-    }
-
-    // Prepare headers
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
-        { status: 401 }
-      );
-    }
-
-    // Make the request to the external API
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/equipments/${equipmentId}`, {
       method: "PATCH",
-      headers,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
       body: JSON.stringify(body),
+      cache: "no-store",
     });
-
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || response.statusText };
-      }
-    }
-
-    return NextResponse.json(data, {
-      status: response.status,
-      statusText: response.statusText,
-    });
+    return forwardJsonResponse(response);
   } catch (error) {
-    console.error("Patch Equipment API proxy error:", error);
+    console.error("PATCH /api/equipments/[equipmentId] proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -285,86 +193,24 @@ export async function PATCH(request, { params }) {
 
 /**
  * DELETE /api/equipments/[equipmentId]
- * Proxy endpoint for deleting equipment
- * Automatically includes bearer token from cookies
  */
 export async function DELETE(request, { params }) {
   try {
     const { equipmentId } = params;
-    const url = `${API_BASE_URL}/equipments/${equipmentId}`;
+    const { token, error } = requireToken(request);
+    if (error) return error;
 
-    // Get access token from request cookies
-    const cookieHeader = request.headers.get("cookie") || "";
-    let token =
-      getBearerTokenFromAuthHeader(request.headers.get("authorization") || "") ||
-      null;
-
-    if (cookieHeader) {
-      const cookies = cookieHeader.split(";").reduce((acc, cookie) => {
-        const trimmedCookie = cookie.trim();
-        const equalIndex = trimmedCookie.indexOf("=");
-        if (equalIndex > 0) {
-          const key = trimmedCookie.substring(0, equalIndex).trim();
-          const value = trimmedCookie.substring(equalIndex + 1).trim();
-          if (key && value) {
-            try {
-              acc[key] = decodeURIComponent(value);
-            } catch {
-              acc[key] = value;
-            }
-          }
-        }
-        return acc;
-      }, {});
-
-      token = cookies["access_token"] || cookies.access_token || null;
-    }
-
-    // Prepare headers
-    const headers = {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-    };
-
-    // Add authorization header if token exists
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    } else {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          message: "Authentication token is required",
-        },
-        { status: 401 }
-      );
-    }
-
-    // Make the request to the external API
-    const response = await fetch(url, {
+    const response = await fetch(`${API_BASE_URL}/equipments/${equipmentId}`, {
       method: "DELETE",
-      headers,
+      headers: {
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      cache: "no-store",
     });
-
-    const contentType = response.headers.get("content-type");
-    let data;
-
-    if (contentType && contentType.includes("application/json")) {
-      data = await response.json();
-    } else {
-      const text = await response.text();
-      try {
-        data = JSON.parse(text);
-      } catch {
-        data = { message: text || response.statusText };
-      }
-    }
-
-    return NextResponse.json(data, {
-      status: response.status,
-      statusText: response.statusText,
-    });
+    return forwardJsonResponse(response);
   } catch (error) {
-    console.error("Delete Equipment API proxy error:", error);
+    console.error("DELETE /api/equipments/[equipmentId] proxy error:", error);
     return NextResponse.json(
       {
         error: "Internal server error",
@@ -374,8 +220,3 @@ export async function DELETE(request, { params }) {
     );
   }
 }
-
-
-
-
-

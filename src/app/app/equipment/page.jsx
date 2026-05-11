@@ -18,7 +18,7 @@
  * - DELETE /equipment/{id} - Delete equipment
  */
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Icon from "@/components/Icon";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import { Space, Modal, Breadcrumb, Button } from "antd";
@@ -46,7 +46,7 @@ const EquipmentPage = () => {
     closeModal,
   } = useEquipmentModal();
 
-  // Equipment operations hook with pagination and sorting support
+  // Equipment operations hook (pure data hook; this page drives its own search/auto-fetch)
   const {
     equipment,
     loading,
@@ -54,6 +54,8 @@ const EquipmentPage = () => {
     pagination,
     sortBy,
     order,
+    searchQuery,
+    setSearchQuery,
     createEquipment,
     updateEquipment,
     deleteEquipment,
@@ -64,6 +66,31 @@ const EquipmentPage = () => {
   // Confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [equipmentToDelete, setEquipmentToDelete] = useState(null);
+
+  /**
+   * Search + auto-fetch wiring (mirrors useCompanyListing).
+   *
+   * Pattern:
+   * - debouncedSearch lags searchQuery by 400 ms.
+   * - A ref holds the latest fetchEquipment so the auto-fetch effect can call it without
+   *   re-firing every time fetchEquipment's useCallback reference churns (which it does
+   *   on every keystroke because searchQuery is in its deps).
+   * - The effect depends only on `debouncedSearch`, so it fires exactly once on mount and
+   *   once per real (debounced) search change.
+   */
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const fetchEquipmentRef = useRef(fetchEquipment);
+  fetchEquipmentRef.current = fetchEquipment;
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  useEffect(() => {
+    console.log("🔎 [EquipmentPage] auto-fetch:", { debouncedSearch });
+    fetchEquipmentRef.current({ page: 1, search: debouncedSearch });
+  }, [debouncedSearch]);
 
   /**
    * Handle create equipment action
@@ -228,6 +255,8 @@ const EquipmentPage = () => {
             pagination={pagination}
             sortBy={sortBy}
             order={order}
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
             onEditEquipment={handleEditEquipment}
             onDeleteEquipment={handleDeleteClick}
             onFetchEquipment={fetchEquipment}

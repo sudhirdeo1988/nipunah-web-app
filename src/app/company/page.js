@@ -222,12 +222,12 @@ const CompanyListPage = () => {
       },
       {
         type: "select",
-        label: "",
+        label: "Category",
         formFieldValue: "companyType",
         defaultValue: filters.companyType || COMPANY_TYPE_ALL_VALUE,
-        placeholder: "Select company type",
+        placeholder: "Select category",
         options: companyTypeOptions,
-        rules: [{ required: true, message: "Company type is required" }],
+        rules: [{ required: true, message: "Category is required" }],
       },
       {
         type: "countrySelect",

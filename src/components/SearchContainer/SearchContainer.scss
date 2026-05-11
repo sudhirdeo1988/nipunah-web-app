@@ -31,6 +31,21 @@
     }
   }
 
+  // Tiny caption-style label rendered above each field on inner listing pages
+  // (forListingPage). Intentionally small + light so it sits as a hint, not a
+  // header. Home page search doesn't render these.
+  .searchFieldLabel {
+    display: block;
+    font-size: 0.65rem;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: $font-color-light;
+    margin-bottom: 4px;
+    font-weight: 500;
+    text-transform: none;
+    pointer-events: none;
+  }
+
   .selectInSearch {
     position: relative;
 

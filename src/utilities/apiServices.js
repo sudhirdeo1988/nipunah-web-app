@@ -127,11 +127,11 @@ export const enquiryService = {
   },
 
   /**
-   * List enquiry threads for a company
-   * GET /api/enquiries?companyId=… → upstream /enquiries/threads
+   * List enquiry threads for a company.
+   * GET /api/enquiries/threads?companyId=… → upstream /enquiries/threads
    */
   getEnquiries: async (params = {}) => {
-    return axiosInstance.get("/enquiries", { params });
+    return axiosInstance.get("/enquiries/threads", { params });
   },
 
   /**

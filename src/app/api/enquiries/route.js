@@ -69,8 +69,14 @@ async function readUpstreamBody(response) {
 
 /**
  * GET /api/enquiries
- * Proxies to ${upstream}/enquiries/threads (query params forwarded).
- * Client: axios baseURL "/api" → GET /api/enquiries?companyId=…
+ *
+ * Legacy backward-compat handler. The canonical thread-listing endpoint is now
+ * GET /api/enquiries/threads (see src/app/api/enquiries/threads/route.js).
+ * All app code calls the canonical path via `enquiryService.getEnquiries`.
+ *
+ * This handler is left in place to avoid breaking any external/older caller
+ * that may still hit /api/enquiries directly; it forwards to the same upstream
+ * (`${upstream}/enquiries/threads`) with the query params preserved.
  */
 export async function GET(request) {
   const base = getUpstreamApiBaseUrl();

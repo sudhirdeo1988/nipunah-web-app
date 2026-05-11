@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback } from "react";
 import { equipmentService } from "@/utilities/apiServices";
 import { message } from "antd";
 import { useAppSelector } from "@/store/hooks";
@@ -181,8 +181,6 @@ export const useEquipment = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("name");
   const [order, setOrder] = useState("asc");
-  const searchDebounceTimerRef = useRef(null);
-  const lastAutoFetchKeyRef = useRef(null);
 
   /**
    * Fetch equipment from API with pagination, sorting, and search support
@@ -196,7 +194,6 @@ export const useEquipment = () => {
           reduxRole || user?.role || user?.type || ""
         ).toLowerCase();
         const isCompanyRole = resolvedRole === "company";
-        const isAdminRole = resolvedRole === "admin";
         const companyId = user?.company_id ?? user?.companyId ?? user?.id ?? null;
 
         apiParams = {
@@ -211,25 +208,19 @@ export const useEquipment = () => {
         if (params.location !== undefined && params.location !== "")
           apiParams.location = params.location;
 
-        // Call API with pagination, sorting, and search parameters
-        console.log("🟢 API CALL: GET /equipment", { params: apiParams });
+        // Call API with pagination, sorting, and search parameters.
+        // - Company role with a known companyId -> scoped getEquipmentByCompany
+        // - Everyone else (admin / expert / user / anonymous / public visitor) -> public getEquipment
+        //   The /equipment page is non-secure, so we MUST call getAllEquipments for visitors with no role.
+        console.log("🟢 API CALL: GET /equipment", { params: apiParams, role: resolvedRole });
         let response;
-        if (isCompanyRole) {
-          if (companyId == null || companyId === "") {
-            setEquipment([]);
-            setPagination((prev) => ({ ...prev, total: 0 }));
-            return;
-          }
+        if (isCompanyRole && companyId != null && companyId !== "") {
           response = await equipmentService.getEquipmentByCompany(
             companyId,
             apiParams
           );
-        } else if (isAdminRole) {
-          response = await equipmentService.getEquipment(apiParams);
         } else {
-          setEquipment([]);
-          setPagination((prev) => ({ ...prev, total: 0 }));
-          return;
+          response = await equipmentService.getEquipment(apiParams);
         }
         console.log("✅ API Response:", response);
         console.log("📦 Response structure:", {
@@ -435,26 +426,6 @@ export const useEquipment = () => {
     },
     [fetchEquipment]
   );
-
-  /**
-   * Initial data fetch on component mount
-   */
-  useEffect(() => {
-    const resolvedRole = String(
-      reduxRole || user?.role || user?.type || ""
-    ).toLowerCase();
-    if (!resolvedRole) return;
-
-    const companyId = user?.company_id ?? user?.companyId ?? user?.id ?? null;
-    if (resolvedRole === "company" && (companyId == null || companyId === "")) return;
-
-    const fetchKey =
-      resolvedRole === "company" ? `${resolvedRole}:${companyId}` : resolvedRole;
-    if (lastAutoFetchKeyRef.current === fetchKey) return;
-
-    lastAutoFetchKeyRef.current = fetchKey;
-    fetchEquipment({ page: 1 });
-  }, [reduxRole, user?.role, user?.type, user?.company_id, user?.companyId, user?.id, fetchEquipment]);
 
   return {
     equipment,
