@@ -8,11 +8,10 @@ import { useRouter } from "next/navigation";
 import { getClientToken } from "@/utilities/auth";
 
 /**
- * API endpoint for change password (Next proxy → backend /change-password).
- * Override via env: NEXT_PUBLIC_CHANGE_PASSWORD_API
+ * API endpoint for change password.
+ * Next proxy route: PATCH /api/auth/changePassword → backend PATCH /auth/changePassword
  */
-const CHANGE_PASSWORD_API =
-  process.env.NEXT_PUBLIC_CHANGE_PASSWORD_API || "/api/auth/change-password";
+const CHANGE_PASSWORD_API = "/api/auth/changePassword";
 
 /**
  * Change password form layout and validation.
@@ -40,7 +39,7 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
           newPassword: values.newPassword,
         };
         const res = await fetch(CHANGE_PASSWORD_API, {
-          method: "PUT",
+          method: "PATCH",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",

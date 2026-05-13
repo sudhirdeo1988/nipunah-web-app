@@ -5,11 +5,11 @@
 
 # IMPORTANT: Do not use a blanket /api/* rewrite to the remote server.
 # - Next.js routes in src/app/api/** must run (they add auth, remap paths, etc.).
-# - A rewrite like /api/auth/change-password → remote .../api/auth/change-password
-#   hits the wrong backend path (backend expects POST .../api/change-password).
+# - A rewrite like /api/auth/changePassword → remote .../api/auth/changePassword
+#   would bypass the proxy logic that injects the Bearer token.
 # - netlify dev and Netlify edge can also intercept /api/* before Next.js.
 #
-# API proxying is implemented in src/app/api/*/route.js (e.g. change-password → /change-password).
+# API proxying is implemented in src/app/api/*/route.js (e.g. changePassword → /auth/changePassword).
 #
 # [[redirects]]
 #   from = "/api/*"
