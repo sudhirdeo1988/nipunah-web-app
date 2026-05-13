@@ -60,7 +60,7 @@ import {
 } from "antd";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
-import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
+import { map as _map, find as _find } from "lodash-es";
 import { jobService } from "@/utilities/apiServices";
 import dayjs from "dayjs";
 import { useRole } from "@/hooks/useRole";
@@ -105,7 +105,6 @@ const PostJobModal = memo(
   ({ isOpen, onCancel, onSubmit, onUpdate, companyInfo: propCompanyInfo, selectedJob }) => {
     const [form] = Form.useForm();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedCountry, setSelectedCountry] = useState(null);
     const { user } = useRole();
     
     // Determine if in edit mode - based on selectedJob (for UI purposes)
@@ -141,38 +140,6 @@ const PostJobModal = memo(
           value: country.countryCode,
         })),
       []
-    );
-
-    /**
-     * Get selected country data by countryCode
-     */
-    const selectedCountryData = useMemo(
-      () =>
-        _find(
-          CountryDetails,
-          (country) => country.countryCode === selectedCountry
-        ),
-      [selectedCountry]
-    );
-
-    /**
-     * Get states for selected country
-     */
-    const states = useMemo(
-      () => (selectedCountryData ? selectedCountryData.states : []),
-      [selectedCountryData]
-    );
-
-    /**
-     * State select options
-     */
-    const stateSelectOptions = useMemo(
-      () =>
-        _map(states, (state) => ({
-          label: state,
-          value: state,
-        })),
-      [states]
     );
 
     /**
@@ -292,12 +259,6 @@ const PostJobModal = memo(
             originalCountry: locationObj.country || locationObj.countryCode,
           });
           
-          // Set selected country state FIRST (needed for state dropdown to populate)
-          // Use countryCode for the dropdown value
-          if (countryCode) {
-            setSelectedCountry(countryCode);
-          }
-          
           // Parse application deadline from timestamp or date string
           let deadlineValue = null;
           if (job.applicationDeadline) {
@@ -351,7 +312,6 @@ const PostJobModal = memo(
         } else {
           // Create mode: Reset form with defaults
           form.resetFields();
-          setSelectedCountry(null);
           form.setFieldsValue({
             status: "pending",
             isActive: true,
@@ -361,22 +321,6 @@ const PostJobModal = memo(
         }
       }
     }, [isOpen, form, selectedJob, isEditMode]);
-
-    /**
-     * Handle country change - reset state when country changes
-     */
-    const handleCountryChange = useCallback(
-      (value) => {
-        setSelectedCountry(value);
-        form.setFieldsValue({
-          location: {
-            ...form.getFieldValue("location"),
-            state: undefined,
-          },
-        });
-      },
-      [form]
-    );
 
     /**
      * Parse salary range string (e.g., "1-2M", "10-30M") to min and max values
@@ -589,7 +533,6 @@ const PostJobModal = memo(
 
           // Reset form
           form.resetFields();
-          setSelectedCountry(null);
 
           // Call callback if provided
           if (isEditMode) {
@@ -650,7 +593,6 @@ const PostJobModal = memo(
     const handleCancel = useCallback(() => {
       if (!isSubmitting) {
         form.resetFields();
-        setSelectedCountry(null);
         onCancel();
       }
     }, [form, onCancel, isSubmitting]);
@@ -838,7 +780,7 @@ const PostJobModal = memo(
               </Col>
 
               {/* Country */}
-              <Col span={!_isEmpty(states) ? 6 : 12}>
+              <Col span={6}>
                 <Form.Item
                   label={
                     <span className="C-heading size-xs semiBold mb-0">
@@ -855,7 +797,6 @@ const PostJobModal = memo(
                     size="large"
                     showSearch
                     optionFilterProp="label"
-                    onChange={handleCountryChange}
                     filterOption={(input, option) =>
                       (option?.label || "")
                         .toLowerCase()
@@ -867,35 +808,29 @@ const PostJobModal = memo(
               </Col>
 
               {/* State */}
-              {!_isEmpty(states) && (
-                <Col span={6}>
-                  <Form.Item
-                    label={
-                      <span className="C-heading size-xs semiBold mb-0">
-                        State/Province
-                      </span>
-                    }
-                    name={["location", "state"]}
-                    rules={[
-                      { required: true, message: "Please select state" },
-                    ]}
-                  >
-                    <Select
-                      placeholder="Select State/Province"
-                      size="large"
-                      showSearch
-                      optionFilterProp="label"
-                      disabled={!selectedCountry || states.length === 0}
-                      filterOption={(input, option) =>
-                        (option?.label || "")
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
-                      options={stateSelectOptions}
-                    />
-                  </Form.Item>
-                </Col>
-              )}
+              <Col span={6}>
+                <Form.Item
+                  label={
+                    <span className="C-heading size-xs semiBold mb-0">
+                      State/Province
+                    </span>
+                  }
+                  name={["location", "state"]}
+                  rules={[
+                    { required: true, message: "Please enter state/province" },
+                    {
+                      pattern: /^[A-Za-z\s]+$/,
+                      message: "Only alphabets and spaces are allowed.",
+                    },
+                  ]}
+                >
+                  <Input
+                    placeholder="State/Province"
+                    size="large"
+                    prefix={<Icon name="location_on" isFilled color="#ccc" />}
+                  />
+                </Form.Item>
+              </Col>
 
               {/* Detail Address */}
               <Col span={24}>

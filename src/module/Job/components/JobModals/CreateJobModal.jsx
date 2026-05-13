@@ -27,7 +27,7 @@ import {
 } from "antd";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
-import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
+import { map as _map } from "lodash-es";
 import { jobService } from "@/utilities/apiServices";
 import dayjs from "dayjs";
 import { useRole } from "@/hooks/useRole";
@@ -54,7 +54,6 @@ const CreateJobModal = memo(
   ({ isOpen, onCancel, onSubmit, companyInfo: propCompanyInfo }) => {
     const [form] = Form.useForm();
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedCountry, setSelectedCountry] = useState(null);
     const { user } = useRole();
 
     // Get company information
@@ -81,26 +80,6 @@ const CreateJobModal = memo(
       []
     );
 
-    const selectedCountryData = useMemo(
-      () =>
-        _find(CountryDetails, (country) => country.countryCode === selectedCountry),
-      [selectedCountry]
-    );
-
-    const states = useMemo(
-      () => (selectedCountryData ? selectedCountryData.states : []),
-      [selectedCountryData]
-    );
-
-    const stateSelectOptions = useMemo(
-      () =>
-        _map(states, (state) => ({
-          label: state,
-          value: state,
-        })),
-      [states]
-    );
-
     // Currency options
     const currencyOptions = useMemo(
       () => {
@@ -124,7 +103,6 @@ const CreateJobModal = memo(
     useEffect(() => {
       if (isOpen) {
         form.resetFields();
-        setSelectedCountry(null);
         form.setFieldsValue({
           status: "pending",
           isActive: true,
@@ -133,20 +111,6 @@ const CreateJobModal = memo(
         });
       }
     }, [isOpen, form]);
-
-    // Handle country change
-    const handleCountryChange = useCallback(
-      (value) => {
-        setSelectedCountry(value);
-        form.setFieldsValue({
-          location: {
-            ...form.getFieldValue("location"),
-            state: undefined,
-          },
-        });
-      },
-      [form]
-    );
 
     // Parse salary range
     const parseSalaryRange = useCallback((rangeString, currencySymbol) => {
@@ -246,7 +210,6 @@ const CreateJobModal = memo(
           await onSubmit(payload);
           // Reset form after successful submission
           form.resetFields();
-          setSelectedCountry(null);
           onCancel();
         } else {
           // Fallback: call API directly if no callback provided
@@ -260,7 +223,6 @@ const CreateJobModal = memo(
           if (isSuccess) {
             message.success("Job posted successfully!");
             form.resetFields();
-            setSelectedCountry(null);
             onCancel();
           } else {
             const errorMessage =
@@ -291,7 +253,6 @@ const CreateJobModal = memo(
     const handleCancel = useCallback(() => {
       if (!isSubmitting) {
         form.resetFields();
-        setSelectedCountry(null);
         onCancel();
       }
     }, [form, onCancel, isSubmitting]);
@@ -469,7 +430,7 @@ const CreateJobModal = memo(
               </Col>
 
               {/* Country */}
-              <Col span={!_isEmpty(states) ? 6 : 12}>
+              <Col span={6}>
                 <Form.Item
                   label={
                     <span className="C-heading size-xs semiBold mb-0">
@@ -486,7 +447,6 @@ const CreateJobModal = memo(
                     size="large"
                     showSearch
                     optionFilterProp="label"
-                    onChange={handleCountryChange}
                     filterOption={(input, option) =>
                       (option?.label || "")
                         .toLowerCase()
@@ -498,35 +458,29 @@ const CreateJobModal = memo(
               </Col>
 
               {/* State */}
-              {!_isEmpty(states) && (
-                <Col span={6}>
-                  <Form.Item
-                    label={
-                      <span className="C-heading size-xs semiBold mb-0">
-                        State/Province
-                      </span>
-                    }
-                    name={["location", "state"]}
-                    rules={[
-                      { required: true, message: "Please select state" },
-                    ]}
-                  >
-                    <Select
-                      placeholder="Select State/Province"
-                      size="large"
-                      showSearch
-                      optionFilterProp="label"
-                      disabled={!selectedCountry || states.length === 0}
-                      filterOption={(input, option) =>
-                        (option?.label || "")
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
-                      options={stateSelectOptions}
-                    />
-                  </Form.Item>
-                </Col>
-              )}
+              <Col span={6}>
+                <Form.Item
+                  label={
+                    <span className="C-heading size-xs semiBold mb-0">
+                      State/Province
+                    </span>
+                  }
+                  name={["location", "state"]}
+                  rules={[
+                    { required: true, message: "Please enter state/province" },
+                    {
+                      pattern: /^[A-Za-z\s]+$/,
+                      message: "Only alphabets and spaces are allowed.",
+                    },
+                  ]}
+                >
+                  <Input
+                    placeholder="State/Province"
+                    size="large"
+                    prefix={<Icon name="location_on" isFilled color="#ccc" />}
+                  />
+                </Form.Item>
+              </Col>
 
               {/* City */}
               <Col span={12}>

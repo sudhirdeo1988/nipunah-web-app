@@ -2,7 +2,7 @@ import { Form, Input, Select, Space, Spin, DatePicker } from "antd";
 import React, { useCallback, useEffect, useMemo, memo, useState } from "react";
 import PropTypes from "prop-types";
 import Icon from "@/components/Icon";
-import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
+import { map as _map } from "lodash-es";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import {
   EQUIPMENT_TYPES,
@@ -25,7 +25,6 @@ const { TextArea } = Input;
 const CreateEquipment = memo(
   ({ selectedEquipment, modalMode, onCancel, onSubmit, loading = false }) => {
     const [form] = Form.useForm();
-    const [selectedCountry, setSelectedCountry] = useState(null);
     const [companies, setCompanies] = useState([]);
     const [companiesLoading, setCompaniesLoading] = useState(false);
     const user = useAppSelector((state) => state.user?.user);
@@ -40,20 +39,6 @@ const CreateEquipment = memo(
       []
     );
 
-    const selectedCountryData = useMemo(
-      () =>
-        _find(
-          CountryDetails,
-          (country) => country.countryName === selectedCountry
-        ),
-      [selectedCountry]
-    );
-
-    const states = useMemo(
-      () => (selectedCountryData ? selectedCountryData.states : []),
-      [selectedCountryData]
-    );
-
     const countrySelectOptions = useMemo(
       () =>
         _map(countries, (country) => ({
@@ -61,15 +46,6 @@ const CreateEquipment = memo(
           value: country,
         })),
       [countries]
-    );
-
-    const stateSelectOptions = useMemo(
-      () =>
-        _map(states, (state) => ({
-          label: state,
-          value: state,
-        })),
-      [states]
     );
 
     const countryOptions = useMemo(
@@ -182,30 +158,13 @@ const CreateEquipment = memo(
         if (isCompanyRole && loggedInCompanyId !== "") {
           form.setFieldValue("manufacture_company", String(loggedInCompanyId));
         }
-        if (selectedEquipment.address?.country) {
-          setSelectedCountry(selectedEquipment.address.country);
-        }
       } else {
         form.resetFields();
         if (isCompanyRole && loggedInCompanyId !== "") {
           form.setFieldValue("manufacture_company", String(loggedInCompanyId));
         }
-        setSelectedCountry(null);
       }
     }, [selectedEquipment, form, isCompanyRole, loggedInCompanyId]);
-
-    const handleCountryChange = useCallback(
-      (value) => {
-        setSelectedCountry(value);
-        form.setFieldsValue({
-          address: {
-            ...form.getFieldValue("address"),
-            state: undefined,
-          },
-        });
-      },
-      [form]
-    );
 
     const handleFormSubmit = useCallback(
       (values) => {
@@ -478,7 +437,7 @@ const CreateEquipment = memo(
             </div>
 
             {/* Country */}
-            <div className={`col-${_isEmpty(states) ? "12" : "6"}`}>
+            <div className="col-6">
               <Form.Item
                 name={["address", "country"]}
                 className="mb-1"
@@ -496,7 +455,6 @@ const CreateEquipment = memo(
                   size="large"
                   showSearch
                   optionFilterProp="label"
-                  onChange={handleCountryChange}
                   filterOption={(input, option) =>
                     (option?.label || "")
                       .toLowerCase()
@@ -509,37 +467,30 @@ const CreateEquipment = memo(
             </div>
 
             {/* State */}
-            {!_isEmpty(states) && (
-              <div className="col-6">
-                <Form.Item
-                  name={["address", "state"]}
-                  className="mb-1"
-                  label={
-                    <span className="C-heading size-xs semiBold mb-0">
-                      State/Province
-                    </span>
-                  }
-                  rules={[
-                    { required: true, message: "Please select state" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Select State/Province"
-                    size="large"
-                    showSearch
-                    optionFilterProp="label"
-                    disabled={!selectedCountry || states.length === 0}
-                    filterOption={(input, option) =>
-                      (option?.label || "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={stateSelectOptions}
-                    prefix={<Icon name="location_on" isFilled color="#ccc" />}
-                  />
-                </Form.Item>
-              </div>
-            )}
+            <div className="col-6">
+              <Form.Item
+                name={["address", "state"]}
+                className="mb-1"
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    State/Province
+                  </span>
+                }
+                rules={[
+                  { required: true, message: "Please enter state/province" },
+                  {
+                    pattern: /^[A-Za-z\s]+$/,
+                    message: "Only alphabets and spaces are allowed.",
+                  },
+                ]}
+              >
+                <Input
+                  placeholder="State/Province"
+                  size="large"
+                  prefix={<Icon name="location_on" isFilled color="#ccc" />}
+                />
+              </Form.Item>
+            </div>
 
             {/* Location */}
             <div className="col-12">

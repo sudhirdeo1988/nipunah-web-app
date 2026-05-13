@@ -1,14 +1,9 @@
 "use client";
 
 import { Form, Input, Space, Spin, Select, Divider } from "antd";
-import React, { useCallback, useEffect, useMemo, memo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, memo } from "react";
 import PropTypes from "prop-types";
-import {
-  map as _map,
-  find as _find,
-  isEmpty as _isEmpty,
-  groupBy as _groupBy,
-} from "lodash-es";
+import { map as _map, groupBy as _groupBy } from "lodash-es";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import { EXPERTS_DATA } from "../../constants/expertsConfig";
@@ -35,7 +30,6 @@ import { EXPERTS_DATA } from "../../constants/expertsConfig";
 const CreateExpert = memo(
   ({ selectedExpert, modalMode, onCancel, onSubmit, loading = false }) => {
     const [form] = Form.useForm();
-    const [selectedCountry, setSelectedCountry] = useState(null);
 
     // Expertise options for dropdown - grouped by category from EXPERTS_DATA
     const expertiseOptions = useMemo(() => {
@@ -49,24 +43,10 @@ const CreateExpert = memo(
       }));
     }, []);
 
-    // Country and state options
+    // Country options
     const countries = useMemo(
       () => _map(CountryDetails, (country) => country.countryName) || [],
       []
-    );
-
-    const selectedCountryData = useMemo(
-      () =>
-        _find(
-          CountryDetails,
-          (country) => country.countryName === selectedCountry
-        ),
-      [selectedCountry]
-    );
-
-    const states = useMemo(
-      () => (selectedCountryData ? selectedCountryData.states : []),
-      [selectedCountryData]
     );
 
     const countrySelectOptions = useMemo(
@@ -76,15 +56,6 @@ const CreateExpert = memo(
           value: country,
         })),
       [countries]
-    );
-
-    const stateSelectOptions = useMemo(
-      () =>
-        _map(states, (state) => ({
-          label: state,
-          value: state,
-        })),
-      [states]
     );
 
     const countryOptions = useMemo(
@@ -101,22 +72,6 @@ const CreateExpert = memo(
     );
 
     /**
-     * Handle country selection change
-     */
-    const handleCountryChange = useCallback(
-      (value) => {
-        setSelectedCountry(value);
-        form.setFieldsValue({
-          address: {
-            ...form.getFieldValue("address"),
-            state: undefined,
-          },
-        });
-      },
-      [form]
-    );
-
-    /**
      * Update form fields when selectedExpert changes
      * Only resets form when expert changes, not on every render
      */
@@ -126,11 +81,6 @@ const CreateExpert = memo(
         const nameParts = (selectedExpert.name || "").split(" ");
         const firstName = nameParts[0] || "";
         const lastName = nameParts.slice(1).join(" ") || "";
-
-        // Set selected country for state dropdown
-        if (selectedExpert.address?.country) {
-          setSelectedCountry(selectedExpert.address.country);
-        }
 
         // Pre-populate form with existing data
         // Use setFieldsValue instead of resetFields to preserve user input on error
@@ -350,7 +300,7 @@ const CreateExpert = memo(
                   </div>
 
                   {/* Country Selection Field */}
-                  <div className={`col-${_isEmpty(states) ? "12" : "6"}`}>
+                  <div className="col-6">
                     <Form.Item
                       label={
                         <span className="C-heading size-6 semiBold color-light mb-0">
@@ -368,7 +318,6 @@ const CreateExpert = memo(
                         size="large"
                         showSearch
                         optionFilterProp="label"
-                        onChange={handleCountryChange}
                         filterOption={(input, option) =>
                           (option?.label || "")
                             .toLowerCase()
@@ -380,55 +329,36 @@ const CreateExpert = memo(
                     </Form.Item>
                   </div>
 
-                  {/* State/Province Field - Only shown if selected country has states */}
-                  {!_isEmpty(states) && (
-                    <div className="col-6">
-                      <Form.Item
-                        label={
-                          <span className="C-heading size-6 semiBold color-light mb-0">
-                            State/Province
-                          </span>
+                  {/* State/Province Field - Free-text entry, alphabets + spaces only */}
+                  <div className="col-6">
+                    <Form.Item
+                      label={
+                        <span className="C-heading size-6 semiBold color-light mb-0">
+                          State/Province
+                        </span>
+                      }
+                      name={["address", "state"]}
+                      rules={[
+                        {
+                          required: true,
+                          message: "Please enter state/province.",
+                        },
+                        {
+                          pattern: /^[A-Za-z\s]+$/,
+                          message: "Only alphabets and spaces are allowed.",
+                        },
+                      ]}
+                      className="mb-2"
+                    >
+                      <Input
+                        placeholder="State/Province"
+                        size="large"
+                        prefix={
+                          <Icon name="location_on" isFilled color="#ccc" />
                         }
-                        name={["address", "state"]}
-                        rules={[
-                          {
-                            required: true,
-                            message: "Please select a state/province.",
-                          },
-                          {
-                            validator: (_, value) => {
-                              if (
-                                selectedCountry &&
-                                selectedCountryData &&
-                                selectedCountryData.states.length > 0 &&
-                                !value
-                              ) {
-                                return Promise.reject(
-                                  new Error("Please select a state/province.")
-                                );
-                              }
-                              return Promise.resolve();
-                            },
-                          },
-                        ]}
-                        className="mb-2"
-                      >
-                        <Select
-                          placeholder="Select State/Province"
-                          size="large"
-                          showSearch
-                          optionFilterProp="label"
-                          disabled={!selectedCountry || states.length === 0}
-                          filterOption={(input, option) =>
-                            (option?.label || "")
-                              .toLowerCase()
-                              .includes(input.toLowerCase())
-                          }
-                          options={stateSelectOptions}
-                        />
-                      </Form.Item>
-                    </div>
-                  )}
+                      />
+                    </Form.Item>
+                  </div>
 
                   {/* Detailed Address Field */}
                   <div className="col-12">

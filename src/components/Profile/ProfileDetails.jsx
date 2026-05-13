@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useMemo, useState, useEffect, useCallback } from "react";
+import React, { memo, useMemo, useState, useEffect } from "react";
 import {
   Button,
   Card,
@@ -40,9 +40,6 @@ const setByPath = (obj, path, value) => {
 };
 
 const fieldName = (path) => path.join("__");
-
-const COUNTRY_FIELD_KEY = fieldName(["address", "country"]);
-const STATE_FIELD_KEY = fieldName(["address", "state"]);
 
 /** Lower-cased startsWith filter (used for country dropdowns). */
 const startsWithFilter = (input, option) =>
@@ -84,23 +81,6 @@ const ProfileDetails = memo(function ProfileDetails({
     []
   );
 
-  const selectedCountry = Form.useWatch(COUNTRY_FIELD_KEY, form);
-
-  const statesForSelectedCountry = useMemo(() => {
-    if (!selectedCountry) return [];
-    const match = (Array.isArray(CountryDetails) ? CountryDetails : []).find(
-      (c) => c.countryName === selectedCountry
-    );
-    return Array.isArray(match?.states) ? match.states : [];
-  }, [selectedCountry]);
-
-  const stateOptions = useMemo(
-    () => statesForSelectedCountry.map((s) => ({ label: s, value: s })),
-    [statesForSelectedCountry]
-  );
-
-  const stateDisabled = !selectedCountry || stateOptions.length === 0;
-
   const formInitialValues = useMemo(() => {
     const initial = {};
     sections.forEach((section) => {
@@ -132,10 +112,6 @@ const ProfileDetails = memo(function ProfileDetails({
     setEditing(false);
     form.resetFields();
   };
-
-  const handleCountryChange = useCallback(() => {
-    form.setFieldValue(STATE_FIELD_KEY, undefined);
-  }, [form]);
 
   const handleFinish = async (values) => {
     try {
@@ -206,7 +182,6 @@ const ProfileDetails = memo(function ProfileDetails({
           optionFilterProp="label"
           filterOption={startsWithFilter}
           disabled={!!f.readOnly}
-          onChange={handleCountryChange}
           allowClear
         />
       );
@@ -214,20 +189,9 @@ const ProfileDetails = memo(function ProfileDetails({
 
     if (isAddressState) {
       return (
-        <Select
-          showSearch
-          placeholder={
-            stateDisabled
-              ? selectedCountry
-                ? "No states available"
-                : "Select a country first"
-              : "Select state/province"
-          }
-          options={stateOptions}
-          optionFilterProp="label"
-          filterOption={startsWithFilter}
-          disabled={!!f.readOnly || stateDisabled}
-          allowClear
+        <Input
+          placeholder="State/Province"
+          disabled={!!f.readOnly}
         />
       );
     }
@@ -307,21 +271,33 @@ const ProfileDetails = memo(function ProfileDetails({
                 </h4>
                 <Divider className="profileDetails__sectionDivider" />
                 <Row gutter={[16, 0]}>
-                  {section.fields.map((f) => (
-                    <Col xs={24} md={12} key={fieldName(f.path)}>
-                      <Form.Item
-                        name={fieldName(f.path)}
-                        label={f.label}
-                        rules={
-                          f.type === "json"
-                            ? [{ validator: () => Promise.resolve() }]
-                            : undefined
-                        }
-                      >
-                        {renderEditField(f)}
-                      </Form.Item>
-                    </Col>
-                  ))}
+                  {section.fields.map((f) => {
+                    const lastSegment = f.path?.[f.path.length - 1];
+                    const isStateField =
+                      lastSegment === "state" && f.path?.[0] === "address";
+                    let rules;
+                    if (f.type === "json") {
+                      rules = [{ validator: () => Promise.resolve() }];
+                    } else if (isStateField && !f.readOnly) {
+                      rules = [
+                        {
+                          pattern: /^[A-Za-z\s]*$/,
+                          message: "Only alphabets and spaces are allowed.",
+                        },
+                      ];
+                    }
+                    return (
+                      <Col xs={24} md={12} key={fieldName(f.path)}>
+                        <Form.Item
+                          name={fieldName(f.path)}
+                          label={f.label}
+                          rules={rules}
+                        >
+                          {renderEditField(f)}
+                        </Form.Item>
+                      </Col>
+                    );
+                  })}
                 </Row>
               </Card>
             ))}

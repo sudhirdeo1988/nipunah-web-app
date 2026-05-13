@@ -27,7 +27,7 @@ import {
 } from "antd";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
-import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
+import { map as _map, find as _find } from "lodash-es";
 import dayjs from "dayjs";
 
 const { TextArea } = Input;
@@ -51,7 +51,6 @@ const EXPERIENCE_RANGES = [
 const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
   const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(null);
 
   // Country options
   const countrySelectOptions = useMemo(
@@ -61,26 +60,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         value: country.countryCode,
       })),
     []
-  );
-
-  const selectedCountryData = useMemo(
-    () =>
-      _find(CountryDetails, (country) => country.countryCode === selectedCountry),
-    [selectedCountry]
-  );
-
-  const states = useMemo(
-    () => (selectedCountryData ? selectedCountryData.states : []),
-    [selectedCountryData]
-  );
-
-  const stateSelectOptions = useMemo(
-    () =>
-      _map(states, (state) => ({
-        label: state,
-        value: state,
-      })),
-    [states]
   );
 
   // Currency options
@@ -186,10 +165,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         }
       }
 
-      if (countryCode) {
-        setSelectedCountry(countryCode);
-      }
-
       // Parse deadline
       let deadlineValue = null;
       if (job.applicationDeadline) {
@@ -237,20 +212,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
       }, 300);
     }
   }, [isOpen, form, selectedJob]);
-
-  // Handle country change
-  const handleCountryChange = useCallback(
-    (value) => {
-      setSelectedCountry(value);
-      form.setFieldsValue({
-        location: {
-          ...form.getFieldValue("location"),
-          state: undefined,
-        },
-      });
-    },
-    [form]
-  );
 
   // Parse salary range
   const parseSalaryRange = useCallback((rangeString, currencySymbol) => {
@@ -387,7 +348,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
   const handleCancel = useCallback(() => {
     if (!isSubmitting) {
       form.resetFields();
-      setSelectedCountry(null);
       onCancel();
     }
   }, [form, onCancel, isSubmitting]);
@@ -571,7 +531,7 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
             </Col>
 
             {/* Country */}
-            <Col span={!_isEmpty(states) ? 6 : 12}>
+            <Col span={6}>
               <Form.Item
                 label={
                   <span className="C-heading size-xs semiBold mb-0">
@@ -588,7 +548,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                   size="large"
                   showSearch
                   optionFilterProp="label"
-                  onChange={handleCountryChange}
                   filterOption={(input, option) =>
                     (option?.label || "")
                       .toLowerCase()
@@ -600,35 +559,29 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
             </Col>
 
             {/* State */}
-            {!_isEmpty(states) && (
-              <Col span={6}>
-                <Form.Item
-                  label={
-                    <span className="C-heading size-xs semiBold mb-0">
-                      State/Province
-                    </span>
-                  }
-                  name={["location", "state"]}
-                  rules={[
-                    { required: true, message: "Please select state" },
-                  ]}
-                >
-                  <Select
-                    placeholder="Select State/Province"
-                    size="large"
-                    showSearch
-                    optionFilterProp="label"
-                    disabled={!selectedCountry || states.length === 0}
-                    filterOption={(input, option) =>
-                      (option?.label || "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
-                    options={stateSelectOptions}
-                  />
-                </Form.Item>
-              </Col>
-            )}
+            <Col span={6}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    State/Province
+                  </span>
+                }
+                name={["location", "state"]}
+                rules={[
+                  { required: true, message: "Please enter state/province" },
+                  {
+                    pattern: /^[A-Za-z\s]+$/,
+                    message: "Only alphabets and spaces are allowed.",
+                  },
+                ]}
+              >
+                <Input
+                  placeholder="State/Province"
+                  size="large"
+                  prefix={<Icon name="location_on" isFilled color="#ccc" />}
+                />
+              </Form.Item>
+            </Col>
 
             {/* City */}
             <Col span={12}>

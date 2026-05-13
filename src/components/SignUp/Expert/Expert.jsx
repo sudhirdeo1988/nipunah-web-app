@@ -2,12 +2,7 @@
 
 import React, { useState, useMemo, useCallback, memo } from "react";
 import { Form, Input, message, Select, Divider, Space } from "antd";
-import {
-  map as _map,
-  find as _find,
-  isEmpty as _isEmpty,
-  groupBy as _groupBy,
-} from "lodash-es";
+import { map as _map, groupBy as _groupBy } from "lodash-es";
 import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
@@ -33,7 +28,6 @@ import { EXPERTS_DATA } from "@/module/Experts/constants/expertsConfig";
  */
 const ExpertRegistration = () => {
   const router = useRouter();
-  const [selectedCountry, setSelectedCountry] = useState(null);
   const [form] = Form.useForm();
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
@@ -65,28 +59,6 @@ const ExpertRegistration = () => {
   );
 
   /**
-   * Get selected country's detailed information
-   * Used to determine available states/provinces
-   */
-  const selectedCountryData = useMemo(
-    () =>
-      _find(
-        CountryDetails,
-        (country) => country.countryName === selectedCountry
-      ),
-    [selectedCountry]
-  );
-
-  /**
-   * Extract states/provinces for the selected country
-   * Returns empty array if no country selected or no states available
-   */
-  const states = useMemo(
-    () => (selectedCountryData ? selectedCountryData.states : []),
-    [selectedCountryData]
-  );
-
-  /**
    * Format country options for contact number dropdown
    * Shows country name with dial code for easy selection
    */
@@ -114,19 +86,6 @@ const ExpertRegistration = () => {
         value: country,
       })),
     [countries]
-  );
-
-  /**
-   * Format state/province options for address dropdown
-   * Only shows states for the currently selected country
-   */
-  const stateSelectOptions = useMemo(
-    () =>
-      _map(states, (state) => ({
-        label: state,
-        value: state,
-      })),
-    [states]
   );
 
   // ===== EVENT HANDLERS =====
@@ -247,25 +206,6 @@ const ExpertRegistration = () => {
       // Set username field to match email (email field)
       form.setFieldsValue({
         username: emailValue,
-      });
-    },
-    [form]
-  );
-
-  /**
-   * Handle country selection change
-   * Updates selected country and resets state/province field
-   * This ensures state dropdown shows correct options for selected country
-   */
-  const handleCountryChange = useCallback(
-    (value) => {
-      setSelectedCountry(value);
-      // Reset state field when country changes since states are country-specific
-      form.setFieldsValue({
-        address: {
-          ...form.getFieldValue("address"),
-          state: undefined,
-        },
       });
     },
     [form]
@@ -433,7 +373,7 @@ const ExpertRegistration = () => {
                 </div>
 
                 {/* Country Selection Field */}
-                <div className={`col-${_isEmpty(states) ? "12" : "6"}`}>
+                <div className="col-6">
                   <Form.Item
                     label={
                       <span className="C-heading size-6 semiBold color-light mb-0">
@@ -451,7 +391,6 @@ const ExpertRegistration = () => {
                       size="large"
                       showSearch
                       optionFilterProp="label"
-                      onChange={handleCountryChange}
                       filterOption={(input, option) =>
                         (option?.label || "")
                           .toLowerCase()
@@ -463,55 +402,31 @@ const ExpertRegistration = () => {
                   </Form.Item>
                 </div>
 
-                {/* State/Province Field - Only shown if selected country has states */}
-                {!_isEmpty(states) && (
-                  <div className="col-6">
-                    <Form.Item
-                      label={
-                        <span className="C-heading size-6 semiBold color-light mb-0">
-                          State/Province
-                        </span>
-                      }
-                      name={["address", "state"]}
-                      rules={[
-                        {
-                          required: true,
-                          message: "Please select a state/province.",
-                        },
-                        {
-                          validator: (_, value) => {
-                            if (
-                              selectedCountry &&
-                              selectedCountryData &&
-                              selectedCountryData.states.length > 0 &&
-                              !value
-                            ) {
-                              return Promise.reject(
-                                new Error("Please select a state/province.")
-                              );
-                            }
-                            return Promise.resolve();
-                          },
-                        },
-                      ]}
-                      className="mb-2"
-                    >
-                      <Select
-                        placeholder="Select State/Province"
-                        size="large"
-                        showSearch
-                        optionFilterProp="label"
-                        disabled={!selectedCountry || states.length === 0}
-                        filterOption={(input, option) =>
-                          (option?.label || "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
-                        options={stateSelectOptions}
-                      />
-                    </Form.Item>
-                  </div>
-                )}
+                {/* State/Province Field - Free-text entry, alphabets + spaces only */}
+                <div className="col-6">
+                  <Form.Item
+                    label={
+                      <span className="C-heading size-6 semiBold color-light mb-0">
+                        State/Province
+                      </span>
+                    }
+                    name={["address", "state"]}
+                    rules={[
+                      { required: true, message: "Please enter state/province." },
+                      {
+                        pattern: /^[A-Za-z\s]+$/,
+                        message: "Only alphabets and spaces are allowed.",
+                      },
+                    ]}
+                    className="mb-2"
+                  >
+                    <Input
+                      placeholder="State/Province"
+                      size="large"
+                      prefix={<Icon name="location_on" isFilled color="#ccc" />}
+                    />
+                  </Form.Item>
+                </div>
 
                 {/* Detailed Address Field */}
                 <div className="col-12">

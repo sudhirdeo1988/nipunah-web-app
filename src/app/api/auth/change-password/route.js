@@ -94,7 +94,7 @@ export async function GET() {
     {
       ok: true,
       nextRoute: "/api/auth/change-password",
-      method: "POST",
+      method: "PUT",
       body: { oldPassword: "string", newPassword: "string" },
       auth: "Authorization: Bearer <token> or access_token cookie",
       upstream,
@@ -104,10 +104,11 @@ export async function GET() {
 }
 
 /**
- * POST /api/auth/change-password
- * Proxies to backend change-password with Bearer token.
+ * Core handler shared by PUT (and POST kept as a compatibility alias).
+ * Proxies to backend change-password with Bearer token using PUT first, then
+ * falling back to PATCH/POST if the upstream rejects the method.
  */
-export async function POST(request) {
+async function handleChangePassword(request) {
   try {
     let body;
     try {
@@ -166,7 +167,8 @@ export async function POST(request) {
         new_password: String(newPassword),
       },
     ];
-    const candidateMethods = ["POST", "PUT", "PATCH"];
+    // Try PUT first (preferred), then PATCH and POST as fallbacks.
+    const candidateMethods = ["PUT", "PATCH", "POST"];
 
     let finalResponse = null;
     let finalData = {};
@@ -214,4 +216,21 @@ export async function POST(request) {
       { status: 500 }
     );
   }
+}
+
+/**
+ * PUT /api/auth/change-password
+ * Primary method for changing the password. Proxies to backend with Bearer token.
+ */
+export async function PUT(request) {
+  return handleChangePassword(request);
+}
+
+/**
+ * POST /api/auth/change-password
+ * Kept as a backward-compatibility alias for older clients still issuing POST.
+ * Internally proxies the same way as PUT.
+ */
+export async function POST(request) {
+  return handleChangePassword(request);
 }

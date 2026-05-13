@@ -40,7 +40,7 @@ const ChangePasswordPage = memo(function ChangePasswordPage() {
           newPassword: values.newPassword,
         };
         const res = await fetch(CHANGE_PASSWORD_API, {
-          method: "POST",
+          method: "PUT",
           headers: {
             "Content-Type": "application/json",
             Accept: "application/json",

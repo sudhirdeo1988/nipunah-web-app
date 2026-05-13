@@ -21,7 +21,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 
-import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
+import { map as _map } from "lodash-es";
 import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
@@ -49,7 +49,6 @@ const Company = () => {
   const [form] = Form.useForm();
   const [currentStep, setCurrentStep] = useState(0);
   const [capturedEmail, setCapturedEmail] = useState(""); // Store email from step 0
-  const [selectedCountry, setSelectedCountry] = useState(null);
   const [categoriesData, setCategoriesData] = useState([
     { mainCategoryId: undefined, subCategoryId: undefined },
   ]);
@@ -69,20 +68,6 @@ const Company = () => {
   const countries = useMemo(
     () => _map(countryDetails, (country) => country.countryName) || [],
     []
-  );
-
-  const selectedCountryData = useMemo(
-    () =>
-      _find(
-        countryDetails,
-        (country) => country.countryName === selectedCountry
-      ),
-    [selectedCountry]
-  );
-
-  const states = useMemo(
-    () => (selectedCountryData ? selectedCountryData.states : []),
-    [selectedCountryData]
   );
 
   // Memoize country options for contact dropdown
@@ -121,31 +106,6 @@ const Company = () => {
       }).filter(Boolean);
     },
     []
-  );
-
-  // Optimize country change handler
-  const handleCountryChange = useCallback(
-    (value, addressIndex) => {
-      if (addressIndex !== undefined) {
-        // For multiple addresses - just reset state for this specific address
-        const addresses = form.getFieldValue("addresses") || [];
-        addresses[addressIndex] = {
-          ...addresses[addressIndex],
-          state: undefined,
-        };
-        form.setFieldsValue({ addresses });
-      } else {
-        // For single address (backward compatibility)
-        setSelectedCountry(value);
-        form.setFieldsValue({
-          address: {
-            ...form.getFieldValue("address"),
-            state: undefined,
-          },
-        });
-      }
-    },
-    [form]
   );
 
   // --- Form Submit ---
@@ -825,17 +785,6 @@ const Company = () => {
             {(fields, { add, remove }) => (
               <>
                 {fields.map(({ key, name, ...restField }, idx) => {
-                  const addresses = form.getFieldValue("addresses") || [];
-                  const currentAddress = addresses[idx];
-                  const currentCountry = currentAddress?.country;
-                  const currentCountryData = _find(
-                    countryDetails,
-                    (c) => c.countryName === currentCountry
-                  );
-                  const currentStates = currentCountryData
-                    ? currentCountryData.states
-                    : [];
-
                   return (
                     <div key={key}>
                       <div className="row g-3">
@@ -862,11 +811,7 @@ const Company = () => {
                           </div>
                         </div>
 
-                        <div
-                          className={`col-${
-                            _isEmpty(currentStates) ? "12" : "6"
-                          }`}
-                        >
+                        <div className="col-6">
                           <Form.Item
                             label={
                               <span className="C-heading size-6 semiBold color-light mb-0">
@@ -888,9 +833,6 @@ const Company = () => {
                               size="large"
                               showSearch
                               optionFilterProp="label"
-                              onChange={(value) =>
-                                handleCountryChange(value, idx)
-                              }
                               filterOption={(input, option) => {
                                 const labelText =
                                   typeof option?.label === "string"
@@ -912,66 +854,37 @@ const Company = () => {
                           </Form.Item>
                         </div>
 
-                        {!_isEmpty(currentStates) && (
-                          <div className="col-6">
-                            <Form.Item
-                              label={
-                                <span className="C-heading size-6 semiBold color-light mb-0">
-                                  State/Province
-                                </span>
+                        <div className="col-6">
+                          <Form.Item
+                            label={
+                              <span className="C-heading size-6 semiBold color-light mb-0">
+                                State/Province
+                              </span>
+                            }
+                            {...restField}
+                            name={[name, "state"]}
+                            rules={[
+                              {
+                                required: true,
+                                message: "Please enter state/province.",
+                              },
+                              {
+                                pattern: /^[A-Za-z\s]+$/,
+                                message:
+                                  "Only alphabets and spaces are allowed.",
+                              },
+                            ]}
+                            className="mb-2"
+                          >
+                            <Input
+                              placeholder="State/Province"
+                              size="large"
+                              prefix={
+                                <Icon name="location_on" isFilled color="#ccc" />
                               }
-                              {...restField}
-                              name={[name, "state"]}
-                              rules={[
-                                {
-                                  validator: (_, value) => {
-                                    if (
-                                      currentCountry &&
-                                      currentCountryData &&
-                                      currentCountryData.states.length > 0 &&
-                                      !value
-                                    ) {
-                                      return Promise.reject(
-                                        new Error(
-                                          "Please select a state/province."
-                                        )
-                                      );
-                                    }
-                                    return Promise.resolve();
-                                  },
-                                },
-                              ]}
-                              className="mb-2"
-                            >
-                              <Select
-                                placeholder="Select State/Province"
-                                size="large"
-                                showSearch
-                                optionFilterProp="label"
-                                disabled={
-                                  !currentCountry || currentStates.length === 0
-                                }
-                                filterOption={(input, option) => {
-                                  const labelText =
-                                    typeof option?.label === "string"
-                                      ? option.label
-                                      : option?.label?.props?.children || "";
-                                  return String(labelText)
-                                    .toLowerCase()
-                                    .includes(input.toLowerCase());
-                                }}
-                                options={_map(currentStates, (state) => ({
-                                  label: (
-                                    <span className="C-heading size-6 semiBold mb-0">
-                                      {state}
-                                    </span>
-                                  ),
-                                  value: state,
-                                }))}
-                              />
-                            </Form.Item>
-                          </div>
-                        )}
+                            />
+                          </Form.Item>
+                        </div>
 
                         <div className="col-12">
                           <Form.Item
