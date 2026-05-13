@@ -66,5 +66,37 @@ export const PROFILE_SCHEMAS = {
       ],
     },
   ],
+  /** Same core fields as user; work/education/skills are shown in `ExpertCareerSection`. */
+  expert: [
+    {
+      title: "Basic Information",
+      fields: [
+        { path: ["first_name"], label: "First Name" },
+        { path: ["last_name"], label: "Last Name" },
+        { path: ["email"], label: "Email", type: "email", readOnly: true },
+        { path: ["username"], label: "Username", readOnly: true },
+        { path: ["contact_country_code"], label: "Country Code" },
+        { path: ["contact_number"], label: "Contact Number" },
+      ],
+    },
+    {
+      title: "Address",
+      fields: [
+        { path: ["address", "country"], label: "Country" },
+        { path: ["address", "state"], label: "State" },
+        { path: ["address", "city"], label: "City" },
+        { path: ["address", "location"], label: "Location" },
+        { path: ["address", "postal_code"], label: "Postal Code" },
+      ],
+    },
+    {
+      title: "Social Media",
+      fields: [
+        { path: ["social_media", "facebook"], label: "Facebook" },
+        { path: ["social_media", "instagram"], label: "Instagram" },
+        { path: ["social_media", "linkedin"], label: "LinkedIn" },
+      ],
+    },
+  ],
 };
 

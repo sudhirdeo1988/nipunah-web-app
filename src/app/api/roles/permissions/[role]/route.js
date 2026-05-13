@@ -3,7 +3,8 @@ import { ROLE_MANAGEMENT_MOCK } from "@/constants/roleManagementMock";
 import { API_BASE_URL } from "@/constants/api";
 import {
   extractRolePermissions,
-  sanitizeRolePermissions
+  normalizeRolesPermissions,
+  sanitizeRolePermissions,
 } from "@/utilities/rolePermissionsMapper";
 
 const ROLE_KEYS = Object.keys(ROLE_MANAGEMENT_MOCK);
@@ -90,9 +91,42 @@ async function updateRolePermissions(request, params, method) {
           typeof incoming[roleKey] === "object" &&
           !Array.isArray(incoming[roleKey])
       );
+
+    // Bulk body on admin URL: fan out one upstream PUT per role (same contract as /api/roles/permissions PUT).
+    const isBulkAdminUpdate = role === "admin" && hasRoleMapPayload;
+    if (isBulkAdminUpdate) {
+      const normalized = normalizeRolesPermissions(incoming);
+      const headers = getForwardHeaders(request);
+      const updates = await Promise.all(
+        ROLE_KEYS.map(async (roleKey) => {
+          const res = await fetch(`${API_BASE_URL}/roles/permissions/${roleKey}`, {
+            method,
+            headers,
+            body: JSON.stringify(normalized[roleKey] || {}),
+            cache: "no-store",
+          });
+          const payload = await res.json().catch(() => ({}));
+          if (!res.ok) {
+            const err = new Error(
+              payload?.error || payload?.message || `Failed to ${method} ${roleKey} role permissions`
+            );
+            err.status = res.status;
+            throw err;
+          }
+          return [roleKey, payload];
+        })
+      );
+      const merged = updates.reduce((acc, [roleKey, payload]) => {
+        acc[roleKey] = extractRolePermissions(roleKey, payload);
+        return acc;
+      }, {});
+      return NextResponse.json({ success: true, data: merged });
+    }
+
     const outgoingPayload = hasRoleMapPayload
-      ? incoming
+      ? sanitizeRolePayload(role, incoming[role] || {})
       : extractRolePermissions(role, incoming);
+
     const endpoint = `${API_BASE_URL}/roles/permissions/${role}`;
     const response = await fetch(endpoint, {
       method,

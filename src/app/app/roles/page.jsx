@@ -484,8 +484,8 @@ const RoleManagementPage = () => {
     setSaving(true);
     try {
       const saved = normalizeRolesPayload(rolesData);
-      const roleToSave = "admin";
-      const res = await fetch(`/api/roles/permissions/${roleToSave}`, {
+      // Next BFF fans out to PUT ${API}/roles/permissions/{admin|user|expert|company} per role (flat body each).
+      const res = await fetch("/api/roles/permissions", {
         method: "PUT",
         credentials: "include",
         headers: {
@@ -497,13 +497,12 @@ const RoleManagementPage = () => {
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
         throw new Error(
-          payload?.error || payload?.message || `Failed to save ${roleToSave} permissions`
+          payload?.error || payload?.message || "Failed to save role permissions"
         );
       }
-      const persistedFromResponses = normalizeRolesPayload({
-        ...saved,
-        [roleToSave]: payload?.data || payload || saved[roleToSave] || {},
-      });
+      const persistedFromResponses = normalizeRolesPayload(
+        payload?.data && typeof payload.data === "object" ? payload.data : saved
+      );
       clearRolePermissionsCache();
       const latestFromApi = await fetchRolePermissions({ forceRefresh: true }).catch(
         () => persistedFromResponses
@@ -523,7 +522,7 @@ const RoleManagementPage = () => {
       setNavOrder(persistedNavOrder);
       setInitialNavOrder(persistedNavOrder);
       setHasChanges(false);
-      message.success(`${ROLE_LABELS[roleToSave] || roleToSave} permissions saved successfully`);
+      message.success("Role permissions saved successfully");
     } catch (err) {
       message.error(err?.message || "Failed to save");
     } finally {

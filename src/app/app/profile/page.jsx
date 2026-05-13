@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
+import ExpertCareerSection from "@/components/Profile/ExpertCareerSection";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
 import { setUser } from "@/store/slices/userSlice";
 import { Spin } from "antd";
@@ -40,6 +41,7 @@ const ProfilePage = () => {
 
   const sections = useMemo(() => {
     if (role === "company") return PROFILE_SCHEMAS.company;
+    if (role === "expert") return PROFILE_SCHEMAS.expert;
     return PROFILE_SCHEMAS.user;
   }, [role]);
 
@@ -127,6 +129,33 @@ const ProfilePage = () => {
     [dispatch, user, role, router]
   );
 
+  const handleExpertCareerSave = useCallback(
+    async (careerPayload) => {
+      const id = getIdFromStoredUser(user);
+      if (!id) {
+        throw new Error("Unable to save: user id not found.");
+      }
+      await updateUserDetailsByRole({
+        role: "expert",
+        id,
+        payload: {
+          ...user,
+          workExperience: careerPayload.workExperience,
+          education: careerPayload.education,
+          skills: careerPayload.skills,
+        },
+      });
+      const latest = await fetchUserDetailsByRole({ role: "expert", id });
+      const merged = applyRolePermissionsToUser({
+        ...user,
+        ...latest,
+      });
+      saveUserSession(merged);
+      dispatch(setUser(merged));
+    },
+    [dispatch, user]
+  );
+
   return (
     <div className="bg-white rounded shadow-sm p-4" style={{ minHeight: "100%" }}>
       <AppPageHeader
@@ -146,6 +175,9 @@ const ProfilePage = () => {
             onSave={handleSave}
             startInEditMode={startInEditMode}
           />
+        )}
+        {role === "expert" && (
+          <ExpertCareerSection data={user} onSave={handleExpertCareerSave} />
         )}
       </div>
     </div>

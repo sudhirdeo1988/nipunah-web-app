@@ -10,6 +10,7 @@ import AnalyticsOverview from "./components/AnalyticsOverview";
 import { useDashboard } from "./hooks/useDashboard";
 import { useAppSelector } from "@/store/hooks";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
+import ExpertCareerSection from "@/components/Profile/ExpertCareerSection";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
 
 const Dashboard = () => {
@@ -58,7 +59,7 @@ const Dashboard = () => {
             <ProfileDetails
               title="Profile"
               data={user || {}}
-              sections={PROFILE_SCHEMAS.user}
+              sections={isExpertRole ? PROFILE_SCHEMAS.expert : PROFILE_SCHEMAS.user}
               showEditButton={false}
               headerAction={
                 <Button onClick={() => router.push("/app/profile?edit=true")}>
@@ -66,6 +67,9 @@ const Dashboard = () => {
                 </Button>
               }
             />
+            {isExpertRole && (
+              <ExpertCareerSection data={user || {}} />
+            )}
           </div>
         )}
         <DashboardWidgets stats={stats} loading={loading} />

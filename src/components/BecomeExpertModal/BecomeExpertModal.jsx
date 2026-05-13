@@ -18,8 +18,9 @@ import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
   EMPLOYMENT_TYPES,
   INITIAL_VALUES,
-  formatMonthYearRange,
+  formatMonthYearToken,
   parseMonthYearRange,
+  parseMonthYearToken,
 } from "./constants";
 import "./BecomeExpertModal.scss";
 
@@ -51,8 +52,8 @@ const disableFutureMonths = (current) => {
  * Normalize incoming form values so the From / To year pickers are populated
  * from an existing wire-format string (edit-profile flow).
  *
- * - Work experience: parses `companyWorkDuration`.
- * - Education: parses `timePeriod`.
+ * - Work experience: `fromDate` / `toDate` ("MMM YYYY") or legacy `companyWorkDuration`.
+ * - Education: `fromDate` / `toDate` or legacy `timePeriod`.
  *
  * Falls back to the default INITIAL_VALUES shape if nothing usable is passed.
  */
@@ -67,15 +68,29 @@ const normalizeInitialValues = (incoming) => {
     : [];
   const workExperience = incomingWE.length
     ? incomingWE.map((entry) => {
+        const fromStr = entry?.fromDate;
+        const toStr = entry?.toDate;
+        const fromApi =
+          typeof fromStr === "string" && fromStr.trim()
+            ? parseMonthYearToken(fromStr.trim())
+            : null;
+        const toApi =
+          typeof toStr === "string" && toStr.trim()
+            ? parseMonthYearToken(toStr.trim())
+            : null;
         const parsed = parseMonthYearRange(entry?.companyWorkDuration);
         return {
           jobTitle: entry?.jobTitle ?? "",
           employmentType: entry?.employmentType,
           company: entry?.company ?? "",
           companyWorkDurationFrom:
-            toDayjs(entry?.companyWorkDurationFrom) ?? parsed.from,
+            toDayjs(entry?.companyWorkDurationFrom) ??
+            (fromApi && fromApi.isValid() ? fromApi : undefined) ??
+            parsed.from,
           companyWorkDurationTo:
-            toDayjs(entry?.companyWorkDurationTo) ?? parsed.to,
+            toDayjs(entry?.companyWorkDurationTo) ??
+            (toApi && toApi.isValid() ? toApi : undefined) ??
+            parsed.to,
         };
       })
     : INITIAL_VALUES.workExperience;
@@ -83,12 +98,28 @@ const normalizeInitialValues = (incoming) => {
   const incomingEdu = Array.isArray(base.education) ? base.education : [];
   const education = incomingEdu.length
     ? incomingEdu.map((entry) => {
+        const fromStr = entry?.fromDate;
+        const toStr = entry?.toDate;
+        const fromApi =
+          typeof fromStr === "string" && fromStr.trim()
+            ? parseMonthYearToken(fromStr.trim())
+            : null;
+        const toApi =
+          typeof toStr === "string" && toStr.trim()
+            ? parseMonthYearToken(toStr.trim())
+            : null;
         const parsed = parseMonthYearRange(entry?.timePeriod);
         return {
           title: entry?.title ?? "",
           schoolCollege: entry?.schoolCollege ?? "",
-          timePeriodFrom: toDayjs(entry?.timePeriodFrom) ?? parsed.from,
-          timePeriodTo: toDayjs(entry?.timePeriodTo) ?? parsed.to,
+          timePeriodFrom:
+            toDayjs(entry?.timePeriodFrom) ??
+            (fromApi && fromApi.isValid() ? fromApi : undefined) ??
+            parsed.from,
+          timePeriodTo:
+            toDayjs(entry?.timePeriodTo) ??
+            (toApi && toApi.isValid() ? toApi : undefined) ??
+            parsed.to,
           description: entry?.description ?? "",
         };
       })
@@ -127,9 +158,8 @@ const BecomeExpertModal = ({
   const [error, setError] = useState(null);
   const isPageVariant = variant === "page";
 
-  // Normalize once per incoming initialValues reference so an edit-profile
-  // caller can pass existing data (including the wire-format
-  // `companyWorkDuration` string) and have all selects pre-populated.
+  // Normalize once per incoming initialValues so edit flows can pass API
+  // `fromDate`/`toDate` strings or legacy `companyWorkDuration` / `timePeriod`.
   const normalizedInitialValues = useMemo(
     () => normalizeInitialValues(initialValues),
     [initialValues]
@@ -156,31 +186,30 @@ const BecomeExpertModal = ({
       setLoading(true);
       try {
         const workExperience = Array.isArray(values.workExperience)
-          ? values.workExperience.map((entry) => ({
-              jobTitle: entry?.jobTitle ?? "",
-              employmentType: entry?.employmentType,
-              company: entry?.company ?? "",
-              // Recombine the two month-year pickers into the single string
-              // the API expects ("MMM YYYY - MMM YYYY"). Payload shape stays
-              // a single `companyWorkDuration` string field.
-              companyWorkDuration: formatMonthYearRange(
-                toDayjs(entry?.companyWorkDurationFrom),
-                toDayjs(entry?.companyWorkDurationTo)
-              ),
-            }))
+          ? values.workExperience.map((entry) => {
+              const fromD = toDayjs(entry?.companyWorkDurationFrom);
+              const toD = toDayjs(entry?.companyWorkDurationTo);
+              return {
+                jobTitle: entry?.jobTitle ?? "",
+                employmentType: entry?.employmentType,
+                company: entry?.company ?? "",
+                fromDate: formatMonthYearToken(fromD) || "",
+                toDate: formatMonthYearToken(toD) || "",
+              };
+            })
           : [];
 
-        const education = (values.education ?? []).map((e) => ({
-          title: e?.title ?? "",
-          schoolCollege: e?.schoolCollege ?? "",
-          // Same pattern: combine the two month-year pickers into the API
-          // `timePeriod` string. Single-string shape preserved.
-          timePeriod: formatMonthYearRange(
-            toDayjs(e?.timePeriodFrom),
-            toDayjs(e?.timePeriodTo)
-          ),
-          description: e?.description ?? "",
-        }));
+        const education = (values.education ?? []).map((e) => {
+          const fromD = toDayjs(e?.timePeriodFrom);
+          const toD = toDayjs(e?.timePeriodTo);
+          return {
+            title: e?.title ?? "",
+            schoolCollege: e?.schoolCollege ?? "",
+            fromDate: formatMonthYearToken(fromD) || "",
+            toDate: formatMonthYearToken(toD) || "",
+            description: e?.description ?? "",
+          };
+        });
 
         const payload = {
           workExperience,

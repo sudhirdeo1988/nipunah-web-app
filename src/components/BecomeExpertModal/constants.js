@@ -17,9 +17,7 @@ export const INITIAL_VALUES = {
       jobTitle: "",
       employmentType: undefined,
       company: "",
-      // Internal form-only fields (dayjs objects from the month/year picker).
-      // On submit they are combined into the outgoing `companyWorkDuration`
-      // string so the API payload shape stays a single string field.
+      // Internal-only: month pickers; submitted as `fromDate` / `toDate` strings ("MMM YYYY").
       companyWorkDurationFrom: undefined,
       companyWorkDurationTo: undefined,
     },
@@ -29,8 +27,7 @@ export const INITIAL_VALUES = {
     {
       title: "",
       schoolCollege: "",
-      // Same pattern as work duration: internal-only dayjs values that get
-      // re-serialized into the API `timePeriod` string on submit.
+      // Internal-only pickers → API `fromDate` / `toDate` on submit.
       timePeriodFrom: undefined,
       timePeriodTo: undefined,
       description: "",
@@ -72,7 +69,7 @@ const MONTH_NAME_TO_INDEX = (() => {
  *
  * Returns a `dayjs` object at the start of that month, or `null` if unparseable.
  */
-const parseMonthYearToken = (token) => {
+export const parseMonthYearToken = (token) => {
   if (!token || typeof token !== "string") return null;
   const t = token.trim();
   if (!t) return null;
@@ -118,6 +115,12 @@ const parseMonthYearToken = (token) => {
   }
 
   return null;
+};
+
+/** Single month-year string for API fields `fromDate` / `toDate`, e.g. "Jan 2026". */
+export const formatMonthYearToken = (dayjsValue) => {
+  if (!dayjsValue || typeof dayjsValue?.format !== "function") return "";
+  return dayjsValue.format(MONTH_YEAR_TOKEN_FORMAT);
 };
 
 /**
