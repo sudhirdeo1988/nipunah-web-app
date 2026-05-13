@@ -21,14 +21,6 @@ export const PROFILE_SCHEMAS = {
         { path: ["address", "postal_code"], label: "Postal Code" },
       ],
     },
-    {
-      title: "Social Media",
-      fields: [
-        { path: ["social_media", "facebook"], label: "Facebook" },
-        { path: ["social_media", "instagram"], label: "Instagram" },
-        { path: ["social_media", "linkedin"], label: "LinkedIn" },
-      ],
-    },
   ],
   company: [
     {
@@ -57,14 +49,6 @@ export const PROFILE_SCHEMAS = {
       title: "Categories",
       fields: [{ path: ["categories"], label: "Categories (JSON)", type: "json" }],
     },
-    {
-      title: "Social Media",
-      fields: [
-        { path: ["social_media", "facebook"], label: "Facebook" },
-        { path: ["social_media", "instagram"], label: "Instagram" },
-        { path: ["social_media", "linkedin"], label: "LinkedIn" },
-      ],
-    },
   ],
   /** Same core fields as user; work/education/skills are shown in `ExpertCareerSection`. */
   expert: [
@@ -87,14 +71,6 @@ export const PROFILE_SCHEMAS = {
         { path: ["address", "city"], label: "City" },
         { path: ["address", "location"], label: "Location" },
         { path: ["address", "postal_code"], label: "Postal Code" },
-      ],
-    },
-    {
-      title: "Social Media",
-      fields: [
-        { path: ["social_media", "facebook"], label: "Facebook" },
-        { path: ["social_media", "instagram"], label: "Instagram" },
-        { path: ["social_media", "linkedin"], label: "LinkedIn" },
       ],
     },
   ],

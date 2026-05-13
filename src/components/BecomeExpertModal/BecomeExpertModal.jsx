@@ -13,6 +13,7 @@ import {
   Divider,
   DatePicker,
   message,
+  Radio,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
@@ -83,6 +84,7 @@ const normalizeInitialValues = (incoming) => {
           jobTitle: entry?.jobTitle ?? "",
           employmentType: entry?.employmentType,
           company: entry?.company ?? "",
+          isCurrentJob: Boolean(entry?.isCurrentJob),
           companyWorkDurationFrom:
             toDayjs(entry?.companyWorkDurationFrom) ??
             (fromApi && fromApi.isValid() ? fromApi : undefined) ??
@@ -112,6 +114,7 @@ const normalizeInitialValues = (incoming) => {
         return {
           title: entry?.title ?? "",
           schoolCollege: entry?.schoolCollege ?? "",
+          isCurrentlyServing: Boolean(entry?.isCurrentlyServing),
           timePeriodFrom:
             toDayjs(entry?.timePeriodFrom) ??
             (fromApi && fromApi.isValid() ? fromApi : undefined) ??
@@ -185,8 +188,16 @@ const BecomeExpertModal = ({
       setError(null);
       setLoading(true);
       try {
-        const workExperience = Array.isArray(values.workExperience)
-          ? values.workExperience.map((entry) => {
+        const merged = form.getFieldsValue(true);
+        const workRows = Array.isArray(merged.workExperience)
+          ? merged.workExperience
+          : values.workExperience;
+        const eduRows = Array.isArray(merged.education)
+          ? merged.education
+          : values.education;
+
+        const workExperience = Array.isArray(workRows)
+          ? workRows.map((entry) => {
               const fromD = toDayjs(entry?.companyWorkDurationFrom);
               const toD = toDayjs(entry?.companyWorkDurationTo);
               return {
@@ -195,11 +206,12 @@ const BecomeExpertModal = ({
                 company: entry?.company ?? "",
                 fromDate: formatMonthYearToken(fromD) || "",
                 toDate: formatMonthYearToken(toD) || "",
+                isCurrentJob: Boolean(entry?.isCurrentJob),
               };
             })
           : [];
 
-        const education = (values.education ?? []).map((e) => {
+        const education = (eduRows ?? []).map((e) => {
           const fromD = toDayjs(e?.timePeriodFrom);
           const toD = toDayjs(e?.timePeriodTo);
           return {
@@ -208,6 +220,7 @@ const BecomeExpertModal = ({
             fromDate: formatMonthYearToken(fromD) || "",
             toDate: formatMonthYearToken(toD) || "",
             description: e?.description ?? "",
+            isCurrentlyServing: Boolean(e?.isCurrentlyServing),
           };
         });
 
@@ -244,7 +257,7 @@ const BecomeExpertModal = ({
         setLoading(false);
       }
     },
-    [onSubmit, submitApiUrl, handleClose, closeAfterSubmit, successMessage, onSuccess]
+    [form, onSubmit, submitApiUrl, handleClose, closeAfterSubmit, successMessage, onSuccess]
   );
 
   const content = (
@@ -364,6 +377,23 @@ const BecomeExpertModal = ({
                         </Form.Item>
                       </div>
                     </div>
+                    <Form.Item label="Current job">
+                      <Radio
+                        checked={Boolean(
+                          form.getFieldValue(["workExperience", name, "isCurrentJob"])
+                        )}
+                        onChange={() => {
+                          const list = form.getFieldValue("workExperience") || [];
+                          const next = list.map((row, idx) => ({
+                            ...row,
+                            isCurrentJob: idx === name,
+                          }));
+                          form.setFieldsValue({ workExperience: next });
+                        }}
+                      >
+                        This is my current job
+                      </Radio>
+                    </Form.Item>
                     <div className="becomeExpertModal__educationActions">
                       <Button
                         type="text"
@@ -385,6 +415,7 @@ const BecomeExpertModal = ({
                         jobTitle: "",
                         employmentType: undefined,
                         company: "",
+                        isCurrentJob: false,
                         companyWorkDurationFrom: undefined,
                         companyWorkDurationTo: undefined,
                       })
@@ -530,6 +561,27 @@ const BecomeExpertModal = ({
                           </Form.Item>
                         </div>
                       </div>
+                      <Form.Item label="Currently serving">
+                        <Radio
+                          checked={Boolean(
+                            form.getFieldValue([
+                              "education",
+                              name,
+                              "isCurrentlyServing",
+                            ])
+                          )}
+                          onChange={() => {
+                            const list = form.getFieldValue("education") || [];
+                            const next = list.map((row, idx) => ({
+                              ...row,
+                              isCurrentlyServing: idx === name,
+                            }));
+                            form.setFieldsValue({ education: next });
+                          }}
+                        >
+                          I am currently studying here
+                        </Radio>
+                      </Form.Item>
                       <Form.Item
                         name={[name, "description"]}
                         label="Description"
@@ -555,6 +607,7 @@ const BecomeExpertModal = ({
                         add({
                           title: "",
                           schoolCollege: "",
+                          isCurrentlyServing: false,
                           timePeriodFrom: undefined,
                           timePeriodTo: undefined,
                           description: "",

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
+import { verifyAndStripRegisterCaptcha } from "@/lib/registerCaptchaGuard";
 
 /**
  * POST /api/users/register
@@ -9,6 +10,10 @@ import { API_BASE_URL } from "@/constants/api";
 export async function POST(request) {
   try {
     const body = await request.json();
+    const captcha = await verifyAndStripRegisterCaptcha(body);
+    if (!captcha.ok) {
+      return captcha.response;
+    }
 
     const url = `${API_BASE_URL}/users/register`;
 
@@ -18,7 +23,7 @@ export async function POST(request) {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(captcha.payload),
     });
 
     const contentType = response.headers.get("content-type");
@@ -50,4 +55,3 @@ export async function POST(request) {
     );
   }
 }
-

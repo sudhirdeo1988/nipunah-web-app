@@ -1,14 +1,23 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, memo } from "react";
+import React, { useState, useMemo, useCallback, memo, useRef } from "react";
+import dynamic from "next/dynamic";
 import { Form, Input, message, Select, Divider, Space } from "antd";
 import { map as _map, find as _find, isEmpty as _isEmpty } from "lodash-es";
 import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import {
+  RECAPTCHA_SITE_KEY,
+  RECAPTCHA_DUMMY_SITE_KEY,
+} from "@/constants/recaptcha";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
 import axiosPublicInstance from "@/utilities/axiosPublicInstance";
+
+const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), {
+  ssr: false,
+});
 
 /**
  * UserRegistration Component
@@ -26,6 +35,9 @@ import axiosPublicInstance from "@/utilities/axiosPublicInstance";
  */
 const UserRegistration = () => {
   const router = useRouter();
+  const recaptchaRef = useRef(null);
+  const needsClientCaptcha = RECAPTCHA_SITE_KEY !== RECAPTCHA_DUMMY_SITE_KEY;
+  const [captchaDone, setCaptchaDone] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(null);
   const [form] = Form.useForm();
   const [showThankYouModal, setShowThankYouModal] = useState(false);
@@ -203,6 +215,15 @@ const UserRegistration = () => {
       // Validate all form fields before submission
       await form.validateFields();
 
+      let captchaTokenValue;
+      if (needsClientCaptcha) {
+        captchaTokenValue = recaptchaRef.current?.getValue();
+        if (!captchaTokenValue) {
+          message.error("Please complete the reCAPTCHA.");
+          return;
+        }
+      }
+
       // Set loading state to prevent multiple submissions
       setIsSubmitting(true);
 
@@ -226,17 +247,16 @@ const UserRegistration = () => {
           city: allFields.address?.city || "",
           postal_code: allFields.address?.postal_code || "",
         },
-        social_media: {
-          facebook: allFields.social_media?.facebook || "",
-          instagram: allFields.social_media?.instagram || "",
-          linkedin: allFields.social_media?.linkedin || "",
-        },
         subscription_plan: "Free",
         payment_details: {
           is_paid_user: false,
         },
         created_on: Date.now(),
       };
+
+      if (needsClientCaptcha) {
+        payload.captchaToken = captchaTokenValue;
+      }
 
       // Log final payload before API call
       console.log("User Registration Payload:", payload);
@@ -263,37 +283,69 @@ const UserRegistration = () => {
       // Ensure ThankYouModal is not shown on error
       setShowThankYouModal(false);
 
-      // Extract error message from axios error
+      const isFormValidationError =
+        Array.isArray(err?.errorFields) && err.errorFields.length > 0;
+
+      // axiosPublicInstance rejects with Error + status/data (no err.response)
+      const errorData = err?.data ?? err?.response?.data;
+      const status = err?.status ?? err?.response?.status;
+
       let errorMessage = "Failed to register user. Please try again.";
 
-      if (err?.response?.data) {
-        // API returned error response
-        const errorData = err.response.data;
-        errorMessage =
-          errorData.message ||
-          errorData.error ||
-          errorData.detail ||
-          errorMessage;
+      if (errorData) {
+        if (Array.isArray(errorData)) {
+          errorMessage = errorData.map((e) => e.message || e).join(", ");
+        } else if (errorData.errors) {
+          const errors = Object.values(errorData.errors).flat();
+          errorMessage = errors.join(", ");
+        } else {
+          errorMessage =
+            errorData.message ||
+            errorData.detail ||
+            (typeof errorData.error === "string" ? errorData.error : null) ||
+            errorMessage;
+        }
       } else if (err?.message) {
-        // Axios error message
         errorMessage = err.message;
+      } else if (typeof err?.response?.data === "string") {
+        errorMessage = err.response.data;
+      }
+
+      const captchaErrorCodes = new Set([
+        "CaptchaRequired",
+        "CaptchaVerificationFailed",
+      ]);
+      const isCaptchaFailure =
+        status === 400 &&
+        (captchaErrorCodes.has(errorData?.error) ||
+          /captcha/i.test(errorMessage));
+
+      if (isCaptchaFailure) {
+        errorMessage =
+          errorData?.message ||
+          "Captcha verification failed. Please complete the reCAPTCHA again.";
       }
 
       // Log error for debugging
       console.error("Registration error details:", {
         message: err?.message,
-        status: err?.response?.status,
-        data: err?.response?.data,
+        status,
+        data: errorData,
         error: err,
       });
 
-      // Show error message to user
-      message.error(errorMessage);
+      if (!isFormValidationError) {
+        message.error(errorMessage);
+      }
+      if (needsClientCaptcha && !isFormValidationError) {
+        setCaptchaDone(false);
+        recaptchaRef.current?.reset();
+      }
     } finally {
       // Reset loading state regardless of success or failure
       setIsSubmitting(false);
     }
-  }, [form]);
+  }, [form, needsClientCaptcha]);
 
   /**
    * Handle email field change
@@ -635,72 +687,6 @@ const UserRegistration = () => {
                   </Form.Item>
                 </div>
 
-                {/* ===== SOCIAL MEDIA SECTION ===== */}
-                <div className="col-12">
-                  <Divider titlePlacement="left">
-                    <span className="C-heading size-xss bold mb-0">
-                      SOCIAL MEDIA
-                    </span>
-                  </Divider>
-                </div>
-
-                {/* Facebook Field */}
-                <div className="col-12 col-md-6">
-                  <Form.Item
-                    label={
-                      <span className="C-heading size-6 semiBold color-light mb-0">
-                        Facebook
-                      </span>
-                    }
-                    name={["social_media", "facebook"]}
-                    className="mb-2"
-                  >
-                    <Input
-                      placeholder="Facebook profile URL"
-                      size="large"
-                      prefix={<Icon name="link" isFilled color="#ccc" />}
-                    />
-                  </Form.Item>
-                </div>
-
-                {/* Instagram Field */}
-                <div className="col-12 col-md-6">
-                  <Form.Item
-                    label={
-                      <span className="C-heading size-6 semiBold color-light mb-0">
-                        Instagram
-                      </span>
-                    }
-                    name={["social_media", "instagram"]}
-                    className="mb-2"
-                  >
-                    <Input
-                      placeholder="Instagram profile URL"
-                      size="large"
-                      prefix={<Icon name="link" isFilled color="#ccc" />}
-                    />
-                  </Form.Item>
-                </div>
-
-                {/* LinkedIn Field */}
-                <div className="col-12 col-md-6">
-                  <Form.Item
-                    label={
-                      <span className="C-heading size-6 semiBold color-light mb-0">
-                        LinkedIn
-                      </span>
-                    }
-                    name={["social_media", "linkedin"]}
-                    className="mb-2"
-                  >
-                    <Input
-                      placeholder="LinkedIn profile URL"
-                      size="large"
-                      prefix={<Icon name="link" isFilled color="#ccc" />}
-                    />
-                  </Form.Item>
-                </div>
-
                 {/* ===== CREDENTIALS SECTION ===== */}
                 <div className="col-12">
                   <Divider titlePlacement="left">
@@ -797,6 +783,28 @@ const UserRegistration = () => {
                     />
                   </Form.Item>
                 </div>
+
+                <div className="col-12">
+                  <div className="d-flex flex-column align-items-center mt-2 mb-1">
+                    <ReCAPTCHA
+                      ref={recaptchaRef}
+                      sitekey={RECAPTCHA_SITE_KEY}
+                      onChange={(token) => setCaptchaDone(!!token)}
+                      onExpired={() => {
+                        setCaptchaDone(false);
+                        recaptchaRef.current?.reset();
+                      }}
+                    />
+                    {RECAPTCHA_SITE_KEY === RECAPTCHA_DUMMY_SITE_KEY && (
+                      <span className="C-heading size-xs color-light mt-2 text-center px-2">
+                        Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY
+                        in <code className="small">.env</code> (see{" "}
+                        <code className="small">.env.example</code>) to load
+                        reCAPTCHA and require it before register.
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -815,7 +823,9 @@ const UserRegistration = () => {
             <button
               className="C-button is-filled"
               type="submit"
-              disabled={isSubmitting}
+              disabled={
+                isSubmitting || (needsClientCaptcha && !captchaDone)
+              }
             >
               {isSubmitting ? "Registering..." : "Register"}
             </button>

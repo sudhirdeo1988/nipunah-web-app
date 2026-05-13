@@ -6,6 +6,7 @@ import Icon from "@/components/Icon";
 import { enquiryService } from "@/utilities/apiServices";
 import { useAppSelector } from "@/store/hooks";
 import { getIdFromStoredUser } from "@/utilities/sessionUser";
+import { useRole } from "@/hooks/useRole";
 import { useEffect } from "react";
 
 const { TextArea } = Input;
@@ -127,8 +128,20 @@ function normalizeEnquiryRecord(item) {
     title: e.title || "—",
     description: e.description || "—",
     byName: normalizeName(e.enquiryFrom) || "User",
+    replyCount: replies.length,
     thread,
   };
+}
+
+/** Pull a stable id out of the various shapes the upstream may return. */
+function getEnquiryFromId(record) {
+  const from =
+    record?.enquiryFrom ?? record?.enquiry_from ?? record?.from ?? record?.sender;
+  if (from === null || from === undefined) return "";
+  if (typeof from === "object") {
+    return String(from.id ?? from._id ?? from.user_id ?? from.userId ?? "");
+  }
+  return String(from);
 }
 
 const EnquiryListing = ({ permissions = {} }) => {
@@ -136,6 +149,8 @@ const EnquiryListing = ({ permissions = {} }) => {
   const canDelete = Boolean(permissions.delete);
   const canRespond = Boolean(permissions.respond);
   const user = useAppSelector((state) => state.user.user);
+  const { isUser } = useRole();
+  const isUserRole = isUser();
 
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -238,7 +253,9 @@ const EnquiryListing = ({ permissions = {} }) => {
         ),
       });
     }
-    if (canRespond) {
+    // Users only see/send their own enquiries; the Respond action is reserved
+    // for admin/company who reply to them.
+    if (canRespond && !isUserRole) {
       items.push({
         key: "respond",
         label: (
@@ -261,7 +278,7 @@ const EnquiryListing = ({ permissions = {} }) => {
       });
     }
     return items;
-  }, [canView, canRespond, canDelete]);
+  }, [canView, canRespond, canDelete, isUserRole]);
 
   const handleMenuClick = useCallback(
     async (menuInfo, record) => {
@@ -274,36 +291,44 @@ const EnquiryListing = ({ permissions = {} }) => {
   );
 
   const columns = useMemo(
-    () => [
-      {
+    () => {
+      const titleCol = {
         title: "Title",
         dataIndex: "title",
         key: "title",
-        width: "25%",
+        width: isUserRole ? "25%" : "25%",
         render: (v) => <span className="C-heading size-xs">{v || "—"}</span>,
-      },
-      {
+      };
+      const descriptionCol = {
         title: "Description",
         dataIndex: "description",
         key: "description",
-        width: "45%",
+        width: isUserRole ? "50%" : "45%",
         render: (v) => (
           <span title={v || ""} className="text-truncate d-block" style={{ maxWidth: 520 }}>
             {v || "—"}
           </span>
         ),
-      },
-      {
+      };
+      const byCol = {
         title: "By",
         dataIndex: "byName",
         key: "byName",
         width: "20%",
         render: (v) => <span>{v || "—"}</span>,
-      },
-      {
+      };
+      const repliesCol = {
+        title: "Replies",
+        key: "replyCount",
+        width: "10%",
+        render: (_, record) => (
+          <span>{Number.isFinite(record?.replyCount) ? record.replyCount : 0}</span>
+        ),
+      };
+      const actionCol = {
         title: "Action",
         key: "action",
-        width: "10%",
+        width: isUserRole ? "15%" : "10%",
         render: (_, record) => {
           if (actionMenuItems.length === 0) return null;
           return (
@@ -320,10 +345,26 @@ const EnquiryListing = ({ permissions = {} }) => {
             </Dropdown>
           );
         },
-      },
-    ],
-    [actionMenuItems, handleMenuClick]
+      };
+
+      // User view: drop "By" (always themselves) and add a reply count instead.
+      if (isUserRole) {
+        return [titleCol, descriptionCol, repliesCol, actionCol];
+      }
+      return [titleCol, descriptionCol, byCol, actionCol];
+    },
+    [actionMenuItems, handleMenuClick, isUserRole]
   );
+
+  // For the user role the listing must only contain enquiries this user sent.
+  // Backend may return both sent + received for the same id, so we filter
+  // client-side by the normalized `enquiryFrom` identifier.
+  const visibleEnquiries = useMemo(() => {
+    if (!isUserRole) return enquiries;
+    const myId = String(companyId ?? "");
+    if (!myId) return enquiries;
+    return enquiries.filter((record) => getEnquiryFromId(record) === myId);
+  }, [enquiries, isUserRole, companyId]);
 
   const threadItems = useMemo(() => {
     return getThreadItems(selectedEnquiryDetails);
@@ -388,7 +429,7 @@ const EnquiryListing = ({ permissions = {} }) => {
     <>
       <Table
         columns={columns}
-        dataSource={enquiries}
+        dataSource={visibleEnquiries}
         rowKey="id"
         loading={loading}
         pagination={false}

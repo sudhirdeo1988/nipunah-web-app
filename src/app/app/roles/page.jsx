@@ -27,8 +27,12 @@ const ROLE_LABELS = {
   company: "Company",
 };
 
+/** Sidebar item fixed in UI for users; role UI shows it as locked. */
+const NAV_PERMISSION_UI_LOCKED = new Set(["nav_become_expert"]);
+
 const NAV_KEYS = [
   "nav_dashboard",
+  "nav_become_expert",
   "nav_categories",
   "nav_experts",
   "nav_users",
@@ -143,9 +147,10 @@ const SortableNavRow = memo(function SortableNavRow({
   enabled,
   onToggle,
   disabled,
+  interactionLocked,
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id: permissionKey });
+    useSortable({ id: permissionKey, disabled: interactionLocked });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -162,7 +167,7 @@ const SortableNavRow = memo(function SortableNavRow({
             className="C-settingButton is-clean small"
             {...attributes}
             {...listeners}
-            disabled={disabled}
+            disabled={disabled || interactionLocked}
             aria-label={`Drag to reorder ${getHumanLabel(permissionKey)}`}
           >
             <Icon name="drag_indicator" size="small" />
@@ -175,7 +180,12 @@ const SortableNavRow = memo(function SortableNavRow({
           </span>
           <span style={PERM_LABEL_STYLE}>{getHumanLabel(permissionKey)}</span>
         </div>
-        <Switch size="small" checked={enabled} onChange={onToggle} disabled={disabled} />
+        <Switch
+          size="small"
+          checked={enabled}
+          onChange={onToggle}
+          disabled={disabled || interactionLocked}
+        />
       </div>
     </div>
   );
@@ -238,8 +248,15 @@ const PermissionsPanel = memo(function PermissionsPanel({
               );
         if (filteredKeys.length === 0) return null;
 
+        const isNavigationGroup = group.label === "Navigation";
+        const navBulkKeys = isNavigationGroup
+          ? filteredKeys.filter((key) => !NAV_PERMISSION_UI_LOCKED.has(key))
+          : filteredKeys;
+
         const enabledCount = filteredKeys.filter((key) => !!data[key]).length;
-        const allEnabled = enabledCount === filteredKeys.length;
+        const allEnabled = isNavigationGroup
+          ? navBulkKeys.length > 0 && navBulkKeys.every((key) => !!data[key])
+          : enabledCount === filteredKeys.length;
 
         return (
           <div key={group.label} className="rounded p-3" style={MODULE_BLOCK_STYLE}>
@@ -249,7 +266,13 @@ const PermissionsPanel = memo(function PermissionsPanel({
               </span>
               <Button
                 size="small"
-                onClick={() => onToggleGroup(roleKey, filteredKeys, !allEnabled)}
+                onClick={() =>
+                  onToggleGroup(
+                    roleKey,
+                    isNavigationGroup ? navBulkKeys : filteredKeys,
+                    !allEnabled
+                  )
+                }
                 disabled={disabled}
               >
                 {allEnabled ? "Disable all" : "Enable all"}
@@ -336,6 +359,7 @@ const NavigationPermissionsGrid = memo(function NavigationPermissionsGrid({
     (event) => {
       const { active, over } = event;
       if (!active?.id || !over?.id || active.id === over.id) return;
+      if (NAV_PERMISSION_UI_LOCKED.has(String(active.id))) return;
       const oldIndex = visibleOrder.indexOf(active.id);
       const newIndex = visibleOrder.indexOf(over.id);
       if (oldIndex < 0 || newIndex < 0) return;
@@ -357,6 +381,7 @@ const NavigationPermissionsGrid = memo(function NavigationPermissionsGrid({
               enabled={!!data[key]}
               onToggle={() => onToggleKey(roleKey, key)}
               disabled={disabled}
+              interactionLocked={NAV_PERMISSION_UI_LOCKED.has(key)}
             />
           ))}
         </div>
@@ -425,6 +450,7 @@ const RoleManagementPage = () => {
   }, [loadPermissions]);
 
   const toggleKey = useCallback((roleKey, key) => {
+    if (NAV_PERMISSION_UI_LOCKED.has(key)) return;
     setRolesData((prev) => ({
       ...prev,
       [roleKey]: {

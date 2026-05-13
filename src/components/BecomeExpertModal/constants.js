@@ -17,6 +17,7 @@ export const INITIAL_VALUES = {
       jobTitle: "",
       employmentType: undefined,
       company: "",
+      isCurrentJob: false,
       // Internal-only: month pickers; submitted as `fromDate` / `toDate` strings ("MMM YYYY").
       companyWorkDurationFrom: undefined,
       companyWorkDurationTo: undefined,
@@ -27,6 +28,7 @@ export const INITIAL_VALUES = {
     {
       title: "",
       schoolCollege: "",
+      isCurrentlyServing: false,
       // Internal-only pickers → API `fromDate` / `toDate` on submit.
       timePeriodFrom: undefined,
       timePeriodTo: undefined,

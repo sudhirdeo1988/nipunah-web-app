@@ -2,6 +2,7 @@
   "permissions": {
     "admin": {
       "nav_dashboard": true,
+      "nav_become_expert": false,
       "nav_categories": true,
       "nav_experts": true,
       "nav_users": true,
@@ -67,6 +68,7 @@
     },
     "user": {
       "nav_dashboard": true,
+      "nav_become_expert": true,
       "nav_categories": false,
       "nav_experts": false,
       "nav_users": false,
@@ -132,6 +134,7 @@
     },
     "expert": {
       "nav_dashboard": true,
+      "nav_become_expert": false,
       "nav_categories": true,
       "nav_experts": true,
       "nav_users": true,
@@ -197,6 +200,7 @@
     },
     "company": {
       "nav_dashboard": true,
+      "nav_become_expert": false,
       "nav_categories": true,
       "nav_experts": true,
       "nav_users": true,
@@ -263,6 +267,7 @@
   },
   "navOrder": [
     "nav_dashboard",
+    "nav_become_expert",
     "nav_categories",
     "nav_experts",
     "nav_users",

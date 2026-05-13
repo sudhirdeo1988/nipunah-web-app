@@ -131,6 +131,12 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
                       <Text type="secondary">{w?.company || "—"}</Text>
                       {" · "}
                       <Text type="secondary">{employmentLabel(w?.employmentType)}</Text>
+                      {w?.isCurrentJob ? (
+                        <>
+                          {" · "}
+                          <Tag color="blue">Current job</Tag>
+                        </>
+                      ) : null}
                     </div>
                     <Text>{formatDurationLine(w, "companyWorkDuration")}</Text>
                   </div>
@@ -153,6 +159,12 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
                     <Text strong>{ed?.title || "—"}</Text>
                     <div>
                       <Text type="secondary">{ed?.schoolCollege || "—"}</Text>
+                      {ed?.isCurrentlyServing ? (
+                        <>
+                          {" · "}
+                          <Tag color="geekblue">Currently serving</Tag>
+                        </>
+                      ) : null}
                     </div>
                     <Text>{formatDurationLine(ed, "timePeriod")}</Text>
                     {ed?.description ? (

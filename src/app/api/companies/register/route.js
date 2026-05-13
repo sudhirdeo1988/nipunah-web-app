@@ -1,17 +1,21 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
+import { verifyAndStripRegisterCaptcha } from "@/lib/registerCaptchaGuard";
 
 /**
  * POST /api/companies/register
  * Proxy endpoint for company registration API to avoid CORS issues
  * Public endpoint - no authentication required
  *
- * Same pattern as /api/categories/getAllCategories and /api/experts/register:
- * Client calls this Next.js route; route forwards to external API.
+ * Same pattern as /api/users/register: captcha verified here, then body forwarded upstream.
  */
 export async function POST(request) {
   try {
     const body = await request.json();
+    const captcha = await verifyAndStripRegisterCaptcha(body);
+    if (!captcha.ok) {
+      return captcha.response;
+    }
 
     const url = `${API_BASE_URL}/companies/register`;
 
@@ -21,7 +25,7 @@ export async function POST(request) {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify(captcha.payload),
     });
 
     const contentType = response.headers.get("content-type");

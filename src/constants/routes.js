@@ -15,6 +15,7 @@ export const ROUTES = {
   },
   PRIVATE: {
     DASHBOARD: "/app/dashboard",
+    UPGRADE_EXPERT: "/app/dashboard/upgrade-expert",
     CATEGORY: "/app/category",
     JOB: "/app/job",
     USERS: "/app/users",

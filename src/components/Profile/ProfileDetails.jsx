@@ -1,6 +1,6 @@
 "use client";
 
-import React, { memo, useMemo, useState, useEffect } from "react";
+import React, { memo, useMemo, useState, useEffect, useCallback } from "react";
 import {
   Button,
   Card,
@@ -15,11 +15,15 @@ import {
   message,
 } from "antd";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import "./ProfileDetails.scss";
 
 const { Text } = Typography;
 
 const getByPath = (obj, path) =>
-  path.reduce((acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined), obj);
+  path.reduce(
+    (acc, key) => (acc && acc[key] !== undefined ? acc[key] : undefined),
+    obj
+  );
 
 const setByPath = (obj, path, value) => {
   if (!path.length) return obj;
@@ -27,7 +31,8 @@ const setByPath = (obj, path, value) => {
   let cur = root;
   for (let i = 0; i < path.length - 1; i += 1) {
     const key = path[i];
-    cur[key] = typeof cur[key] === "object" && cur[key] !== null ? { ...cur[key] } : {};
+    cur[key] =
+      typeof cur[key] === "object" && cur[key] !== null ? { ...cur[key] } : {};
     cur = cur[key];
   }
   cur[path[path.length - 1]] = value;
@@ -35,11 +40,15 @@ const setByPath = (obj, path, value) => {
 };
 
 const fieldName = (path) => path.join("__");
-const sectionCardStyle = {
-  borderRadius: 10,
-  border: "1px solid #f0f0f0",
-  background: "#fcfcfd",
-};
+
+const COUNTRY_FIELD_KEY = fieldName(["address", "country"]);
+const STATE_FIELD_KEY = fieldName(["address", "state"]);
+
+/** Lower-cased startsWith filter (used for country dropdowns). */
+const startsWithFilter = (input, option) =>
+  String(option?.label || "")
+    .toLowerCase()
+    .startsWith(String(input || "").toLowerCase());
 
 const ProfileDetails = memo(function ProfileDetails({
   data = {},
@@ -55,6 +64,7 @@ const ProfileDetails = memo(function ProfileDetails({
   const [saving, setSaving] = useState(false);
   const [form] = Form.useForm();
   const canEdit = typeof onSave === "function";
+
   const countryCodeOptions = useMemo(
     () =>
       (Array.isArray(CountryDetails) ? CountryDetails : []).map((c) => ({
@@ -64,6 +74,7 @@ const ProfileDetails = memo(function ProfileDetails({
       })),
     []
   );
+
   const countryOptions = useMemo(
     () =>
       (Array.isArray(CountryDetails) ? CountryDetails : []).map((c) => ({
@@ -72,6 +83,23 @@ const ProfileDetails = memo(function ProfileDetails({
       })),
     []
   );
+
+  const selectedCountry = Form.useWatch(COUNTRY_FIELD_KEY, form);
+
+  const statesForSelectedCountry = useMemo(() => {
+    if (!selectedCountry) return [];
+    const match = (Array.isArray(CountryDetails) ? CountryDetails : []).find(
+      (c) => c.countryName === selectedCountry
+    );
+    return Array.isArray(match?.states) ? match.states : [];
+  }, [selectedCountry]);
+
+  const stateOptions = useMemo(
+    () => statesForSelectedCountry.map((s) => ({ label: s, value: s })),
+    [statesForSelectedCountry]
+  );
+
+  const stateDisabled = !selectedCountry || stateOptions.length === 0;
 
   const formInitialValues = useMemo(() => {
     const initial = {};
@@ -104,6 +132,10 @@ const ProfileDetails = memo(function ProfileDetails({
     setEditing(false);
     form.resetFields();
   };
+
+  const handleCountryChange = useCallback(() => {
+    form.setFieldValue(STATE_FIELD_KEY, undefined);
+  }, [form]);
 
   const handleFinish = async (values) => {
     try {
@@ -141,127 +173,171 @@ const ProfileDetails = memo(function ProfileDetails({
     return String(value);
   };
 
+  const renderEditField = (f) => {
+    const lastSegment = f.path?.[f.path.length - 1];
+    const isAddressCountry =
+      lastSegment === "country" && f.path?.[0] === "address";
+    const isAddressState =
+      lastSegment === "state" && f.path?.[0] === "address";
+
+    if (lastSegment === "contact_country_code") {
+      return (
+        <Select
+          showSearch
+          placeholder="Select country code"
+          options={countryCodeOptions}
+          optionFilterProp="label"
+          filterOption={(input, option) =>
+            String(option?.searchLabel || "")
+              .toLowerCase()
+              .startsWith(String(input || "").toLowerCase())
+          }
+          disabled={!!f.readOnly}
+        />
+      );
+    }
+
+    if (isAddressCountry) {
+      return (
+        <Select
+          showSearch
+          placeholder="Select country"
+          options={countryOptions}
+          optionFilterProp="label"
+          filterOption={startsWithFilter}
+          disabled={!!f.readOnly}
+          onChange={handleCountryChange}
+          allowClear
+        />
+      );
+    }
+
+    if (isAddressState) {
+      return (
+        <Select
+          showSearch
+          placeholder={
+            stateDisabled
+              ? selectedCountry
+                ? "No states available"
+                : "Select a country first"
+              : "Select state/province"
+          }
+          options={stateOptions}
+          optionFilterProp="label"
+          filterOption={startsWithFilter}
+          disabled={!!f.readOnly || stateDisabled}
+          allowClear
+        />
+      );
+    }
+
+    if (f.type === "textarea" || f.type === "json") {
+      return (
+        <Input.TextArea
+          rows={f.type === "json" ? 6 : 3}
+          disabled={!!f.readOnly}
+        />
+      );
+    }
+
+    return (
+      <Input
+        type={f.type === "email" ? "email" : "text"}
+        disabled={!!f.readOnly}
+      />
+    );
+  };
+
   return (
-    <Card
-      title={title}
-      extra={
-        headerAction ? (
-          headerAction
-        ) : showEditButton && canEdit && !editing ? (
-          <Button type="primary" onClick={handleEdit}>
-            Edit
-          </Button>
-        ) : null
-      }
-    >
-      {!editing ? (
-        <Space orientation="vertical" style={{ width: "100%" }} size={20}>
-          {sections.map((section) => (
-            <Card key={section.title} size="small" style={sectionCardStyle}>
-              <Typography.Title level={5} style={{ margin: 0 }}>
-                {section.title}
-              </Typography.Title>
-              <Divider style={{ margin: "10px 0 14px" }} />
-              <Row gutter={[16, 14]}>
-                {section.fields.map((f) => (
-                  <Col xs={24} md={12} key={fieldName(f.path)}>
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {f.label}
-                    </Text>
-                    <pre
-                      style={{
-                        margin: "4px 0 0",
-                        whiteSpace: "pre-wrap",
-                        wordBreak: "break-word",
-                        fontFamily: "inherit",
-                        fontSize: 14,
-                        lineHeight: 1.5,
-                        color: "#1f2937",
-                      }}
-                    >
-                      {renderFieldValue(f)}
-                    </pre>
-                  </Col>
-                ))}
-              </Row>
-            </Card>
-          ))}
-        </Space>
-      ) : (
-        <Form form={form} layout="vertical" onFinish={handleFinish}>
-          {sections.map((section) => (
-            <Card key={section.title} size="small" style={{ ...sectionCardStyle, marginBottom: 16 }}>
-              <Typography.Title level={5} style={{ margin: 0 }}>
-                {section.title}
-              </Typography.Title>
-              <Divider style={{ margin: "10px 0 14px" }} />
-              <Row gutter={[16, 12]}>
-                {section.fields.map((f) => (
-                  <Col xs={24} md={12} key={fieldName(f.path)}>
-                    <Form.Item
-                      name={fieldName(f.path)}
-                      label={f.label}
-                      rules={
-                        f.type === "json"
-                          ? [{ validator: () => Promise.resolve() }]
-                          : undefined
-                      }
-                    >
-                      {f.path?.[f.path.length - 1] === "contact_country_code" ? (
-                        <Select
-                          showSearch
-                          placeholder="Select country code"
-                          options={countryCodeOptions}
-                          optionFilterProp="label"
-                          filterOption={(input, option) =>
-                            String(option?.searchLabel || "")
-                              .toLowerCase()
-                              .startsWith(String(input || "").toLowerCase())
-                          }
-                          disabled={!!f.readOnly}
-                        />
-                      ) : f.path?.[f.path.length - 1] === "country" ? (
-                        <Select
-                          showSearch
-                          placeholder="Select country"
-                          options={countryOptions}
-                          optionFilterProp="label"
-                          filterOption={(input, option) =>
-                            String(option?.label || "")
-                              .toLowerCase()
-                              .includes(String(input || "").toLowerCase())
-                          }
-                          disabled={!!f.readOnly}
-                        />
-                      ) : f.type === "textarea" || f.type === "json" ? (
-                        <Input.TextArea
-                          rows={f.type === "json" ? 6 : 3}
-                          disabled={!!f.readOnly}
-                        />
-                      ) : (
-                        <Input
-                          type={f.type === "email" ? "email" : "text"}
-                          disabled={!!f.readOnly}
-                        />
-                      )}
-                    </Form.Item>
-                  </Col>
-                ))}
-              </Row>
-            </Card>
-          ))}
-          <Divider style={{ margin: "8px 0 14px" }} />
-          <Space>
-            <Button type="primary" htmlType="submit" loading={saving}>
-              Save
-            </Button>
-            <Button onClick={handleCancel}>Cancel</Button>
-          </Space>
-        </Form>
-      )}
-    </Card>
+    <div className="profileDetails">
+      <div className="profileDetails__pageCard">
+        <div className="d-flex align-items-center justify-content-between mb-3">
+          <Typography.Title level={4} style={{ margin: 0 }}>
+            {title}
+          </Typography.Title>
+          {headerAction
+            ? headerAction
+            : showEditButton && canEdit && !editing
+            ? (
+              <Button type="primary" onClick={handleEdit}>
+                Edit
+              </Button>
+            )
+            : null}
+        </div>
+
+        {!editing ? (
+          <div>
+            {sections.map((section) => (
+              <Card
+                key={section.title}
+                size="small"
+                className="profileDetails__sectionCard"
+              >
+                <h4 className="profileDetails__sectionTitle">
+                  {section.title}
+                </h4>
+                <Divider className="profileDetails__sectionDivider" />
+                <Row gutter={[16, 14]}>
+                  {section.fields.map((f) => (
+                    <Col xs={24} md={12} key={fieldName(f.path)}>
+                      <Text className="profileDetails__viewLabel">
+                        {f.label}
+                      </Text>
+                      <pre className="profileDetails__viewValue">
+                        {renderFieldValue(f)}
+                      </pre>
+                    </Col>
+                  ))}
+                </Row>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Form form={form} layout="vertical" onFinish={handleFinish}>
+            {sections.map((section) => (
+              <Card
+                key={section.title}
+                size="small"
+                className="profileDetails__sectionCard"
+              >
+                <h4 className="profileDetails__sectionTitle">
+                  {section.title}
+                </h4>
+                <Divider className="profileDetails__sectionDivider" />
+                <Row gutter={[16, 0]}>
+                  {section.fields.map((f) => (
+                    <Col xs={24} md={12} key={fieldName(f.path)}>
+                      <Form.Item
+                        name={fieldName(f.path)}
+                        label={f.label}
+                        rules={
+                          f.type === "json"
+                            ? [{ validator: () => Promise.resolve() }]
+                            : undefined
+                        }
+                      >
+                        {renderEditField(f)}
+                      </Form.Item>
+                    </Col>
+                  ))}
+                </Row>
+              </Card>
+            ))}
+            <div className="profileDetails__footer">
+              <Button onClick={handleCancel} disabled={saving}>
+                Cancel
+              </Button>
+              <Button type="primary" htmlType="submit" loading={saving}>
+                Save
+              </Button>
+            </div>
+          </Form>
+        )}
+      </div>
+    </div>
   );
 });
 
 export default ProfileDetails;
-

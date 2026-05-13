@@ -6,6 +6,7 @@
 export const ROLE_MANAGEMENT_MOCK = {
   admin: {
     nav_dashboard: true,
+    nav_become_expert: false,
     nav_categories: true,
     nav_experts: true,
     nav_users: true,
@@ -74,6 +75,7 @@ export const ROLE_MANAGEMENT_MOCK = {
   },
   user: {
     nav_dashboard: true,
+    nav_become_expert: true,
     nav_categories: false,
     nav_experts: false,
     nav_users: false,
@@ -142,6 +144,7 @@ export const ROLE_MANAGEMENT_MOCK = {
   },
   expert: {
     nav_dashboard: true,
+    nav_become_expert: false,
     nav_categories: true,
     nav_experts: true,
     nav_users: true,
@@ -210,6 +213,7 @@ export const ROLE_MANAGEMENT_MOCK = {
   },
   company: {
     nav_dashboard: true,
+    nav_become_expert: false,
     nav_categories: true,
     nav_experts: true,
     nav_users: true,

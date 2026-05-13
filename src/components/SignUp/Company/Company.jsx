@@ -1,4 +1,5 @@
-import React, { useMemo, useState, useCallback, memo } from "react";
+import React, { useMemo, useState, useCallback, memo, useRef } from "react";
+import dynamic from "next/dynamic";
 import {
   Button,
   Form,
@@ -26,11 +27,22 @@ import countryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
+import {
+  RECAPTCHA_SITE_KEY,
+  RECAPTCHA_DUMMY_SITE_KEY,
+} from "@/constants/recaptcha";
 import axiosPublicInstance from "@/utilities/axiosPublicInstance";
 import { useEffect } from "react";
 import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
 
 const { TextArea } = Input;
+
+/** Last step index in `steps` (credentials); must match steps array length. */
+const COMPANY_REGISTRATION_LAST_STEP_INDEX = 3;
+
+const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), {
+  ssr: false,
+});
 
 const Company = () => {
   const router = useRouter();
@@ -43,6 +55,9 @@ const Company = () => {
   ]);
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
+  const recaptchaRef = useRef(null);
+  const needsClientCaptcha = RECAPTCHA_SITE_KEY !== RECAPTCHA_DUMMY_SITE_KEY;
+  const [captchaDone, setCaptchaDone] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null); // Preview image URL
   const [logoUploading, setLogoUploading] = useState(false); // Upload loading state
   const [categoriesList, setCategoriesList] = useState([]); // Categories from API
@@ -101,6 +116,7 @@ const Company = () => {
             </span>
           ),
           value: code,
+          searchLabel: `${code} ${symbol}`.trim(),
         };
       }).filter(Boolean);
     },
@@ -145,6 +161,15 @@ const Company = () => {
       // Validate all form fields before submission
       await form.validateFields();
 
+      let captchaTokenValue;
+      if (needsClientCaptcha) {
+        captchaTokenValue = recaptchaRef.current?.getValue();
+        if (!captchaTokenValue) {
+          message.error("Please complete the reCAPTCHA.");
+          return;
+        }
+      }
+
       // Set loading state to prevent multiple submissions
       setIsSubmitting(true);
 
@@ -178,6 +203,8 @@ const Company = () => {
       // Remove confirm_password from payload (only used for frontend validation)
       const payload = { ...allFields };
       delete payload.confirm_password;
+      delete payload.captchaToken;
+      delete payload.recaptcha_token;
 
       // Ignore logo_url as requested (and avoid sending any raw Upload object if present)
       delete payload.logo_url;
@@ -210,6 +237,10 @@ const Company = () => {
           }))
         : payload.addresses;
 
+      if (needsClientCaptcha) {
+        payload.captchaToken = captchaTokenValue;
+      }
+
       console.log("=== COMPANY FORM SUBMISSION ===");
       console.log("Payload:", payload);
 
@@ -238,37 +269,60 @@ const Company = () => {
       // Ensure ThankYouModal is not shown on error
       setShowThankYouModal(false);
 
-      // Extract error message from axios error
-      // The axiosPublicInstance interceptor already formats errors, but we handle edge cases
+      const isFormValidationError =
+        Array.isArray(err?.errorFields) && err.errorFields.length > 0;
+
+      const errorData = err?.data ?? err?.response?.data;
+      const status = err?.status ?? err?.response?.status;
+
       let errorMessage = "Failed to register company. Please try again.";
 
-      if (err?.message) {
-        errorMessage = err.message;
-      } else if (err?.response?.data?.message) {
-        errorMessage = err.response.data.message;
-      } else if (err?.response?.data?.error) {
-        errorMessage = err.response.data.error;
-      } else if (typeof err?.response?.data === "string") {
-        errorMessage = err.response.data;
-      } else if (err?.response?.data) {
-        // Handle validation errors or other structured error responses
-        const errorData = err.response.data;
+      if (errorData) {
         if (Array.isArray(errorData)) {
           errorMessage = errorData.map((e) => e.message || e).join(", ");
         } else if (errorData.errors) {
-          // Handle validation errors object
           const errors = Object.values(errorData.errors).flat();
           errorMessage = errors.join(", ");
+        } else {
+          errorMessage =
+            errorData.message ||
+            errorData.detail ||
+            (typeof errorData.error === "string" ? errorData.error : null) ||
+            errorMessage;
         }
+      } else if (err?.message) {
+        errorMessage = err.message;
+      } else if (typeof err?.response?.data === "string") {
+        errorMessage = err.response.data;
       }
 
-      // Show error message to user
-      message.error(errorMessage);
+      const captchaErrorCodes = new Set([
+        "CaptchaRequired",
+        "CaptchaVerificationFailed",
+      ]);
+      const isCaptchaFailure =
+        status === 400 &&
+        (captchaErrorCodes.has(errorData?.error) ||
+          /captcha/i.test(errorMessage));
+
+      if (isCaptchaFailure) {
+        errorMessage =
+          errorData?.message ||
+          "Captcha verification failed. Please complete the reCAPTCHA again.";
+      }
+
+      if (!isFormValidationError) {
+        message.error(errorMessage);
+      }
+      if (needsClientCaptcha && !isFormValidationError) {
+        setCaptchaDone(false);
+        recaptchaRef.current?.reset();
+      }
     } finally {
       // Reset loading state regardless of success or failure
       setIsSubmitting(false);
     }
-  }, [form]);
+  }, [form, needsClientCaptcha]);
 
   // --- Step Navigation ---
   const next = useCallback(async () => {
@@ -355,14 +409,14 @@ const Company = () => {
           return;
         }
       }
-      if (currentStep === 3) {
+      if (currentStep === COMPANY_REGISTRATION_LAST_STEP_INDEX) {
         try {
           await form.validateFields([
             "username",
             "password",
             "confirm_password",
           ]);
-          onFinish();
+          await onFinish();
           return;
         } catch (validationError) {
           console.error("Step 3 validation error:", validationError);
@@ -382,10 +436,16 @@ const Company = () => {
     }
   }, [currentStep, form, onFinish]);
 
-  const prev = useCallback(
-    () => setCurrentStep(currentStep - 1),
-    [currentStep]
-  );
+  const prev = useCallback(() => {
+    if (
+      currentStep === COMPANY_REGISTRATION_LAST_STEP_INDEX &&
+      needsClientCaptcha
+    ) {
+      setCaptchaDone(false);
+      recaptchaRef.current?.reset();
+    }
+    setCurrentStep(currentStep - 1);
+  }, [currentStep, needsClientCaptcha]);
 
   // --- Logo Upload Handler ---
   /**
@@ -1336,15 +1396,13 @@ const Company = () => {
                     size="large"
                     style={{ width: "30%" }}
                     options={currencyOptions}
-                    filterOption={(input, option) => {
-                      const labelText =
-                        typeof option?.label === "string"
-                          ? option.label
-                          : option?.label?.props?.children || "";
-                      return labelText
+                    showSearch
+                    optionFilterProp="searchLabel"
+                    filterOption={(input, option) =>
+                      String(option?.searchLabel ?? "")
                         .toLowerCase()
-                        .includes(input.toLowerCase());
-                    }}
+                        .includes(String(input ?? "").toLowerCase())
+                    }
                   />
                 </Form.Item>
                 <Form.Item
@@ -1649,6 +1707,32 @@ const Company = () => {
           </div>
         </div>
 
+        {currentStep === COMPANY_REGISTRATION_LAST_STEP_INDEX && (
+          <div className="row justify-content-center">
+            <div className="col-md-10 col-sm-12">
+              <div className="d-flex flex-column align-items-center mt-2 mb-2">
+                <ReCAPTCHA
+                  ref={recaptchaRef}
+                  sitekey={RECAPTCHA_SITE_KEY}
+                  onChange={(token) => setCaptchaDone(!!token)}
+                  onExpired={() => {
+                    setCaptchaDone(false);
+                    recaptchaRef.current?.reset();
+                  }}
+                />
+                {RECAPTCHA_SITE_KEY === RECAPTCHA_DUMMY_SITE_KEY && (
+                  <span className="C-heading size-xs color-light mt-2 text-center px-2">
+                    Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY
+                    in <code className="small">.env</code> (see{" "}
+                    <code className="small">.env.example</code>) to load
+                    reCAPTCHA and require it before registration.
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Navigation */}
         <div className="text-center mt-3">
           {currentStep > 0 && (
@@ -1665,7 +1749,12 @@ const Company = () => {
             className="C-button is-filled"
             onClick={next}
             loading={isSubmitting}
-            disabled={isSubmitting}
+            disabled={
+              isSubmitting ||
+              (currentStep === COMPANY_REGISTRATION_LAST_STEP_INDEX &&
+                needsClientCaptcha &&
+                !captchaDone)
+            }
           >
             {currentStep === steps.length - 1 ? "Register" : "Next"}
           </Button>

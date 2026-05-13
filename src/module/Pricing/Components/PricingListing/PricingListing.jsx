@@ -144,12 +144,17 @@ const PricingListing = ({ permissions = {} }) => {
   const [pricingData, setPricingData] = useState(FALLBACK_PRICING);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedPlan, setSelectedPlan] = useState(null);
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [selectedBillingCycle, setSelectedBillingCycle] = useState("monthly");
   const [form] = Form.useForm();
 
   const fetchPricing = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await pricingService.getPricing();
+      const response = await pricingService.getPricing({
+        currency: selectedCurrency,
+        billingCycle: selectedBillingCycle,
+      });
       const normalized = normalizePricingPayload(response);
       if (!Array.isArray(normalized.plans) || normalized.plans.length === 0) {
         setPricingData(FALLBACK_PRICING);
@@ -162,7 +167,7 @@ const PricingListing = ({ permissions = {} }) => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [selectedCurrency, selectedBillingCycle]);
 
   useEffect(() => {
     if (!canView) return;
@@ -226,14 +231,48 @@ const PricingListing = ({ permissions = {} }) => {
 
   return (
     <>
-      <div className="d-flex justify-content-between align-items-center mb-3">
-        <Space wrap>
-          <Tag color="blue">Currency: {pricingData?.currency || "USD"}</Tag>
-          <Tag color="purple">Billing Cycle: {pricingData?.billing_cycle || "monthly"}</Tag>
+      <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <Space wrap size={12} align="center">
+          <Space size={6} align="center">
+            <span className="C-heading size-xs color-light mb-0">Currency:</span>
+            <Select
+              value={selectedCurrency}
+              onChange={setSelectedCurrency}
+              style={{ width: 130 }}
+              disabled={loading}
+              options={[
+                { label: "USD ($)", value: "USD" },
+                { label: "INR (₹)", value: "INR" },
+              ]}
+            />
+          </Space>
+          <Space size={6} align="center">
+            <span className="C-heading size-xs color-light mb-0">Billing cycle:</span>
+            <Select
+              value={selectedBillingCycle}
+              onChange={setSelectedBillingCycle}
+              style={{ width: 130 }}
+              disabled={loading}
+              options={[
+                { label: "Monthly", value: "monthly" },
+                { label: "Yearly", value: "yearly" },
+              ]}
+            />
+          </Space>
         </Space>
-        <Button className="C-button is-bordered small" onClick={fetchPricing} loading={loading}>
-          Refresh
-        </Button>
+        <Space wrap size={8}>
+          <Tag color="blue">Currency: {pricingData?.currency || selectedCurrency}</Tag>
+          <Tag color="purple">
+            Billing Cycle: {pricingData?.billing_cycle || selectedBillingCycle}
+          </Tag>
+          <Button
+            className="C-button is-bordered small"
+            onClick={fetchPricing}
+            loading={loading}
+          >
+            Refresh
+          </Button>
+        </Space>
       </div>
 
       <Row gutter={[16, 16]}>

@@ -179,10 +179,16 @@ export const enquiryService = {
 export const pricingService = {
   /**
    * Get current pricing configuration
-   * Endpoint: GET /api/pricing
+   * Endpoint: GET /api/pricing/getPricingDetails?currency={currency}&billingCycle={cycle}
+   *
+   * Accepts `{ currency, billingCycle }`; both default to undefined so the
+   * upstream can fall back to its own defaults when omitted.
    */
-  getPricing: async () => {
-    return axiosInstance.get("/pricing");
+  getPricing: async ({ currency, billingCycle } = {}) => {
+    const params = {};
+    if (currency) params.currency = currency;
+    if (billingCycle) params.billingCycle = billingCycle;
+    return axiosInstance.get("/pricing/getPricingDetails", { params });
   },
 
   /**

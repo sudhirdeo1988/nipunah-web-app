@@ -26,9 +26,9 @@ const SubscriptionPage = () => {
 
     try {
       const response = await fetch(
-        `/api/pricing?currency=${encodeURIComponent(
+        `/api/pricing/getPricingDetails?currency=${encodeURIComponent(
           selectedCurrency
-        )}&cycle=${encodeURIComponent(selectedFrequency)}`
+        )}&billingCycle=${encodeURIComponent(selectedFrequency)}`
       );
 
       if (!response.ok) {

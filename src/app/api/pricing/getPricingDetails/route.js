@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+/** Next.js App Router: always run on the server; no static caching of proxy responses */
+export const dynamic = "force-dynamic";
+
 function getBearerTokenFromAuthorizationHeader(request) {
   const auth = request.headers.get("authorization");
   if (!auth || typeof auth !== "string") return null;
@@ -36,6 +39,17 @@ function resolveBearerToken(request) {
   );
 }
 
+/**
+ * GET /api/pricing/getPricingDetails?currency={currency}&billingCycle={cycle}
+ *
+ * Proxies to upstream `${API_BASE_URL}/pricing/getPricingDetails` with the
+ * same query string, preserving currency + billingCycle. Both params are
+ * forwarded as-is so the upstream stays the single source of truth for
+ * defaults / casing.
+ *
+ * Accepts legacy `cycle` alias for `billingCycle` so older callers don't
+ * silently drop the param.
+ */
 export async function GET(request) {
   try {
     const token = resolveBearerToken(request);
@@ -46,9 +60,6 @@ export async function GET(request) {
       );
     }
 
-    // Legacy path — forwards to the canonical upstream endpoint
-    // `${API_BASE_URL}/pricing/getPricingDetails` and preserves currency /
-    // billingCycle (accepting `cycle` as an alias for back-compat).
     const { searchParams } = new URL(request.url);
     const currency = (searchParams.get("currency") || "").trim();
     const billingCycle = (
@@ -90,9 +101,12 @@ export async function GET(request) {
       { status: response.status, statusText: response.statusText }
     );
   } catch (error) {
-    console.error("GET /api/pricing proxy error:", error);
+    console.error("GET /api/pricing/getPricingDetails proxy error:", error);
     return NextResponse.json(
-      { error: "Internal server error", message: error.message || "Failed to fetch pricing" },
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to fetch pricing details",
+      },
       { status: 500 }
     );
   }

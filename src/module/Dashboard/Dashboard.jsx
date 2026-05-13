@@ -22,7 +22,12 @@ const Dashboard = () => {
   const isUserRole = role === "user";
   const isExpertRole = role === "expert";
   const showProfileCard = isUserRole || isExpertRole;
-  const showAnalyticsOverview = user?.dashboard_analytics_overview !== false;
+  // Analytics is for admin/company only; users and experts never see it,
+  // regardless of the per-role permission flag.
+  const showAnalyticsOverview =
+    !isUserRole &&
+    !isExpertRole &&
+    user?.dashboard_analytics_overview !== false;
 
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
@@ -30,25 +35,15 @@ const Dashboard = () => {
         title="Dashboard"
         subtitle="Overview of platform activity, stats and analytics"
         children={
-          <div className="d-flex align-items-center gap-3 flex-wrap">
-            {!isUserRole && (
-              <>
-                <span className="color-light semiBold">Date Range:</span>
-                <DashboardDateRangePicker
-                  value={dateRange}
-                  onChange={handleDateRangeChange}
-                />
-              </>
-            )}
-            {isUserRole && (
-              <Button
-                type="primary"
-                onClick={() => router.push("/app/dashboard/upgrade-expert")}
-              >
-                Upgrade to expert profile (Free)
-              </Button>
-            )}
-          </div>
+          !isUserRole ? (
+            <div className="d-flex align-items-center gap-3 flex-wrap">
+              <span className="color-light semiBold">Date Range:</span>
+              <DashboardDateRangePicker
+                value={dateRange}
+                onChange={handleDateRangeChange}
+              />
+            </div>
+          ) : null
         }
       />
 

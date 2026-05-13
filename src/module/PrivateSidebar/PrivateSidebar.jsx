@@ -6,6 +6,8 @@ import { map as _map } from "lodash-es";
 import { DASHBOARD_ROUTES } from "module/utility/utility";
 import { usePathname, useRouter } from "next/navigation";
 import { useRolePermissions } from "@/hooks/useRolePermissions";
+import { useRole } from "@/hooks/useRole";
+import { ROUTES } from "@/constants/routes";
 
 const DASHBOARD_NAVS = DASHBOARD_ROUTES?.COMPANY ?? [];
 const SIDEBAR_NAV_ORDER_STORAGE_KEY = "nipunah_sidebar_nav_order";
@@ -24,10 +26,40 @@ const MODULE_KEY_TO_NAV_KEY = {
 };
 const DASHBOARD_MODULE_KEY = "dashboard";
 
+/** Injected for regular users only; not part of role-based module visibility. */
+const USER_BECOME_EXPERT_NAV = {
+  route: ROUTES?.PRIVATE?.UPGRADE_EXPERT,
+  label: "Become an Expert",
+  subHeading: "Request upgrade to an expert profile",
+  id: "user-become-expert-sidebar",
+  icon: "workspace_premium",
+  moduleKey: "__user_become_expert__",
+};
+
+function applyStoredNavOrder(navItems) {
+  if (typeof window === "undefined") return navItems;
+  try {
+    const raw = window.localStorage.getItem(SIDEBAR_NAV_ORDER_STORAGE_KEY);
+    const order = JSON.parse(raw || "[]");
+    if (!Array.isArray(order) || order.length === 0) return navItems;
+    const orderIndex = new Map(order.map((key, idx) => [key, idx]));
+    return [...navItems].sort((a, b) => {
+      const aKey = MODULE_KEY_TO_NAV_KEY[a.moduleKey] || "";
+      const bKey = MODULE_KEY_TO_NAV_KEY[b.moduleKey] || "";
+      const ai = orderIndex.has(aKey) ? orderIndex.get(aKey) : Number.MAX_SAFE_INTEGER;
+      const bi = orderIndex.has(bKey) ? orderIndex.get(bKey) : Number.MAX_SAFE_INTEGER;
+      return ai - bi;
+    });
+  } catch {
+    return navItems;
+  }
+}
+
 const PrivateSidebar = memo(function PrivateSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { visibleModuleKeys } = useRolePermissions();
+  const { isUser } = useRole();
   const [orderVersion, setOrderVersion] = useState(0);
 
   useEffect(() => {
@@ -55,39 +87,26 @@ const PrivateSidebar = memo(function PrivateSidebar() {
           nav.moduleKey === DASHBOARD_MODULE_KEY ||
           visibleModuleKeys.has(nav.moduleKey)
       );
-      if (typeof window === "undefined") return filtered;
-      try {
-        const raw = window.localStorage.getItem(SIDEBAR_NAV_ORDER_STORAGE_KEY);
-        const order = JSON.parse(raw || "[]");
-        if (!Array.isArray(order) || order.length === 0) return filtered;
-        const orderIndex = new Map(order.map((key, idx) => [key, idx]));
-        const sorted = [...filtered].sort((a, b) => {
-          const aKey = MODULE_KEY_TO_NAV_KEY[a.moduleKey] || "";
-          const bKey = MODULE_KEY_TO_NAV_KEY[b.moduleKey] || "";
-          const ai = orderIndex.has(aKey) ? orderIndex.get(aKey) : Number.MAX_SAFE_INTEGER;
-          const bi = orderIndex.has(bKey) ? orderIndex.get(bKey) : Number.MAX_SAFE_INTEGER;
-          return ai - bi;
-        });
-        const dashboardItem = sorted.find(
-          (item) => item?.moduleKey === DASHBOARD_MODULE_KEY
+
+      const dashboardItem = filtered.find(
+        (item) => item?.moduleKey === DASHBOARD_MODULE_KEY
+      );
+
+      // User role: Dashboard pinned first, Become an Expert pinned second,
+      // remaining items follow the role-management order.
+      if (isUser() && dashboardItem?.route) {
+        const rest = filtered.filter(
+          (item) => item?.moduleKey !== DASHBOARD_MODULE_KEY
         );
-        if (!dashboardItem) return sorted;
-        return [
-          ...sorted.filter((item) => item?.moduleKey !== DASHBOARD_MODULE_KEY),
-          dashboardItem,
-        ];
-      } catch {
-        const dashboardItem = filtered.find(
-          (item) => item?.moduleKey === DASHBOARD_MODULE_KEY
-        );
-        if (!dashboardItem) return filtered;
-        return [
-          ...filtered.filter((item) => item?.moduleKey !== DASHBOARD_MODULE_KEY),
-          dashboardItem,
-        ];
+        const sortedRest = applyStoredNavOrder(rest);
+        return [dashboardItem, USER_BECOME_EXPERT_NAV, ...sortedRest];
       }
+
+      // All other roles: respect role-management order for every item,
+      // including Dashboard.
+      return applyStoredNavOrder(filtered);
     },
-    [visibleModuleKeys, orderVersion]
+    [visibleModuleKeys, orderVersion, isUser]
   );
 
   return (
