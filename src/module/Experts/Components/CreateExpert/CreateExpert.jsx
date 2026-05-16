@@ -6,6 +6,8 @@ import PropTypes from "prop-types";
 import { map as _map, groupBy as _groupBy } from "lodash-es";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import { EXPERTS_DATA } from "../../constants/expertsConfig";
 
 /**
@@ -270,6 +272,7 @@ const CreateExpert = memo(
                         <Form.Item
                           name="contact_number"
                           noStyle
+                          normalize={digitsOnlyNormalize(15)}
                           rules={[
                             { required: true, message: "Enter contact number" },
                             {
@@ -279,8 +282,9 @@ const CreateExpert = memo(
                             },
                           ]}
                         >
-                          <Input
+                          <DigitsOnlyInput
                             placeholder="Phone number"
+                            maxLength={15}
                             size="large"
                             style={{ width: "70%" }}
                             prefix={<Icon name="phone" isFilled color="#ccc" />}
@@ -416,6 +420,7 @@ const CreateExpert = memo(
                         </span>
                       }
                       name={["address", "postal_code"]}
+                      normalize={digitsOnlyNormalize(10)}
                       rules={[
                         {
                           required: true,
@@ -428,8 +433,9 @@ const CreateExpert = memo(
                       ]}
                       className="mb-2"
                     >
-                      <Input
+                      <DigitsOnlyInput
                         placeholder="Postal Code / Pincode"
+                        maxLength={10}
                         size="large"
                         prefix={<Icon name="pin_drop" isFilled color="#ccc" />}
                         maxLength={10}

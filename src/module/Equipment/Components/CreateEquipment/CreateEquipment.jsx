@@ -13,6 +13,8 @@ import { useCategory } from "@/module/Category/hooks/useCategory";
 import { companyService } from "@/utilities/apiServices";
 import { useAppSelector } from "@/store/hooks";
 import dayjs from "dayjs";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 
 const { TextArea } = Input;
 
@@ -539,6 +541,7 @@ const CreateEquipment = memo(
               <Form.Item
                 name={["address", "postal_code"]}
                 className="mb-1"
+                normalize={digitsOnlyNormalize(10)}
                 label={
                   <span className="C-heading size-xs semiBold mb-0">
                     Postal Code
@@ -546,10 +549,15 @@ const CreateEquipment = memo(
                 }
                 rules={[
                   { required: true, message: "Please enter postal code" },
+                  {
+                    pattern: /^\d{4,10}$/,
+                    message: "Postal code must be 4-10 digits.",
+                  },
                 ]}
               >
-                <Input
+                <DigitsOnlyInput
                   placeholder="Enter Postal Code"
+                  maxLength={10}
                   size="large"
                   prefix={<Icon name="pin_drop" isFilled color="#ccc" />}
                 />
@@ -609,6 +617,7 @@ const CreateEquipment = memo(
                   <Form.Item
                     name="contact_number"
                     noStyle
+                    normalize={digitsOnlyNormalize(15)}
                     rules={[
                       { required: true, message: "Enter contact number" },
                       {
@@ -617,8 +626,9 @@ const CreateEquipment = memo(
                       },
                     ]}
                   >
-                    <Input
+                    <DigitsOnlyInput
                       placeholder="Phone number"
+                      maxLength={15}
                       size="large"
                       style={{ width: "70%" }}
                       prefix={<Icon name="phone" isFilled color="#ccc" />}

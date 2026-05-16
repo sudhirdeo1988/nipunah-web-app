@@ -29,6 +29,8 @@ import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import { map as _map, find as _find } from "lodash-es";
 import dayjs from "dayjs";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 
 const { TextArea } = Input;
 
@@ -613,16 +615,18 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                   </span>
                 }
                 name={["location", "pincode"]}
+                normalize={digitsOnlyNormalize(10)}
                 rules={[
                   { required: true, message: "Please enter pincode" },
                   {
-                    pattern: /^[0-9A-Za-z\s-]{3,10}$/,
-                    message: "Please enter a valid pincode",
+                    pattern: /^\d{4,10}$/,
+                    message: "Pincode must be 4-10 digits.",
                   },
                 ]}
               >
-                <Input
+                <DigitsOnlyInput
                   placeholder="Enter Pincode"
+                  maxLength={10}
                   size="large"
                   prefix={<Icon name="pin_drop" isFilled color="#ccc" />}
                 />

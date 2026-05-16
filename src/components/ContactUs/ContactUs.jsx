@@ -1,6 +1,9 @@
+"use client";
+
 import React from "react";
 import Icon from "components/Icon/Icon";
 import { Space } from "antd";
+import { digitsOnlyInputProps } from "@/utilities/numericInput";
 import "./ContactUs.scss";
 
 const ContactUs = ({ hideInfo }) => {
@@ -104,6 +107,7 @@ const ContactUs = ({ hideInfo }) => {
                         name="phone"
                         id="phone"
                         placeholder="Phone Number"
+                        {...digitsOnlyInputProps({ maxLength: 15 })}
                       />
                     </div>
                   </div>

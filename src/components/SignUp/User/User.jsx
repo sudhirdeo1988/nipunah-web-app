@@ -13,6 +13,8 @@ import {
 } from "@/constants/recaptcha";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import axiosPublicInstance from "@/utilities/axiosPublicInstance";
 
 const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), {
@@ -447,6 +449,7 @@ const UserRegistration = () => {
                       <Form.Item
                         name="contact_number"
                         noStyle
+                        normalize={digitsOnlyNormalize(15)}
                         rules={[
                           { required: true, message: "Enter contact number" },
                           {
@@ -455,8 +458,9 @@ const UserRegistration = () => {
                           },
                         ]}
                       >
-                        <Input
+                        <DigitsOnlyInput
                           placeholder="Phone number"
+                          maxLength={15}
                           size="large"
                           style={{ width: "70%" }}
                           prefix={<Icon name="phone" isFilled color="#ccc" />}
@@ -585,6 +589,7 @@ const UserRegistration = () => {
                       </span>
                     }
                     name={["address", "postal_code"]}
+                    normalize={digitsOnlyNormalize(10)}
                     rules={[
                       {
                         required: true,
@@ -597,7 +602,7 @@ const UserRegistration = () => {
                     ]}
                     className="mb-2"
                   >
-                    <Input
+                    <DigitsOnlyInput
                       placeholder="Postal Code / Pincode"
                       size="large"
                       prefix={<Icon name="pin_drop" isFilled color="#ccc" />}

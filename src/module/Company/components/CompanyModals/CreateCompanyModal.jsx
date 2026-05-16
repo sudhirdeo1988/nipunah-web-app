@@ -18,6 +18,8 @@ import {
 import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
 import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 
 /**
  * CreateCompanyModal Component
@@ -283,18 +285,22 @@ const CreateCompanyModal = memo(({ isOpen, onCancel, onSubmit }) => {
                   <Form.Item
                     label="Contact Number"
                     name="contactNumber"
+                    normalize={digitsOnlyNormalize(15)}
                     rules={[
                       {
                         required: true,
                         message: "Please enter contact number",
                       },
                       {
-                        pattern: /^[\+]?[1-9][\d]{0,15}$/,
-                        message: "Please enter a valid phone number",
+                        pattern: /^\d{7,15}$/,
+                        message: "Enter a valid phone number (7-15 digits)",
                       },
                     ]}
                   >
-                    <Input placeholder="Enter contact number" />
+                    <DigitsOnlyInput
+                      placeholder="Enter contact number"
+                      maxLength={15}
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={24}>

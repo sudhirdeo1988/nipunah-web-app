@@ -16,6 +16,8 @@ import {
 } from "antd";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import { resolveProfileUsername } from "@/utilities/profileUtils";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import "./ProfileDetails.scss";
 
 const { Text } = Typography;
@@ -205,6 +207,16 @@ const ProfileDetails = memo(function ProfileDetails({
       );
     }
 
+    if (f.type === "digits") {
+      return (
+        <DigitsOnlyInput
+          placeholder={f.label}
+          maxLength={f.maxLength}
+          disabled={!!f.readOnly}
+        />
+      );
+    }
+
     if (f.type === "textarea" || f.type === "json") {
       return (
         <Input.TextArea
@@ -285,7 +297,16 @@ const ProfileDetails = memo(function ProfileDetails({
                     const isStateField =
                       lastSegment === "state" && f.path?.[0] === "address";
                     let rules;
-                    if (f.type === "json") {
+                    let normalize;
+                    if (f.type === "digits") {
+                      normalize = digitsOnlyNormalize(f.maxLength);
+                      rules = [
+                        {
+                          pattern: /^\d+$/,
+                          message: "Only numbers are allowed.",
+                        },
+                      ];
+                    } else if (f.type === "json") {
                       rules = [{ validator: () => Promise.resolve() }];
                     } else if (isStateField && !f.readOnly) {
                       rules = [
@@ -301,6 +322,7 @@ const ProfileDetails = memo(function ProfileDetails({
                           name={fieldName(f.path)}
                           label={f.label}
                           rules={rules}
+                          normalize={normalize}
                         >
                           {renderEditField(f)}
                         </Form.Item>

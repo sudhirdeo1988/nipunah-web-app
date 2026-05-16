@@ -25,6 +25,8 @@ import { map as _map } from "lodash-es";
 import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
 import ThankYouModal from "@/components/ThankYouModal";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -736,6 +738,7 @@ const Company = () => {
                 <Form.Item
                   name="contact_number"
                   noStyle
+                  normalize={digitsOnlyNormalize(15)}
                   rules={[
                     { required: true, message: "Enter contact number" },
                     {
@@ -744,8 +747,9 @@ const Company = () => {
                     },
                   ]}
                 >
-                  <Input
+                  <DigitsOnlyInput
                     placeholder="Phone number"
+                    maxLength={15}
                     size="large"
                     style={{ width: "70%" }}
                     prefix={<Icon name="phone" isFilled color="#ccc" />}
@@ -951,6 +955,7 @@ const Company = () => {
                             }
                             {...restField}
                             name={[name, "postal_code"]}
+                            normalize={digitsOnlyNormalize(10)}
                             rules={[
                               {
                                 required: true,
@@ -963,8 +968,9 @@ const Company = () => {
                             ]}
                             className="mb-2"
                           >
-                            <Input
+                            <DigitsOnlyInput
                               placeholder="Postal Code / Pincode"
+                              maxLength={10}
                               size="large"
                               prefix={
                                 <Icon name="pin_drop" isFilled color="#ccc" />

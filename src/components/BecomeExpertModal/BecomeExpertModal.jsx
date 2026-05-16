@@ -25,6 +25,8 @@ import {
 } from "./constants";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import { expertBasicInfoFormValues } from "@/utilities/expertProfileNormalize";
+import DigitsOnlyInput from "@/components/DigitsOnlyInput";
+import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import "./BecomeExpertModal.scss";
 
 const { TextArea } = Input;
@@ -394,6 +396,7 @@ const BecomeExpertModal = ({
                   <Form.Item
                     name="contact_number"
                     noStyle
+                    normalize={digitsOnlyNormalize(15)}
                     rules={[
                       { required: true, message: "Enter contact number" },
                       {
@@ -402,7 +405,11 @@ const BecomeExpertModal = ({
                       },
                     ]}
                   >
-                    <Input placeholder="Phone number" style={{ width: "62%" }} />
+                    <DigitsOnlyInput
+                      placeholder="Phone number"
+                      maxLength={15}
+                      style={{ width: "62%" }}
+                    />
                   </Form.Item>
                 </Space.Compact>
               </Form.Item>
@@ -438,8 +445,18 @@ const BecomeExpertModal = ({
                 <Form.Item name={["address", "city"]} label="City">
                   <Input placeholder="City" />
                 </Form.Item>
-                <Form.Item name={["address", "postal_code"]} label="Postal code">
-                  <Input placeholder="Postal code" />
+                <Form.Item
+                  name={["address", "postal_code"]}
+                  label="Postal code"
+                  normalize={digitsOnlyNormalize(10)}
+                  rules={[
+                    {
+                      pattern: /^\d{4,10}$/,
+                      message: "Postal code must be 4-10 digits.",
+                    },
+                  ]}
+                >
+                  <DigitsOnlyInput placeholder="Postal code" maxLength={10} />
                 </Form.Item>
               </div>
               <Form.Item name={["address", "location"]} label="Location">
