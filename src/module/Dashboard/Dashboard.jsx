@@ -5,25 +5,19 @@ import { Button } from "antd";
 import { useRouter } from "next/navigation";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import DashboardWidgets from "./components/DashboardWidgets";
-import DashboardDateRangePicker from "./components/DateRangePicker";
 import AnalyticsOverview from "./components/AnalyticsOverview";
 import { useDashboard } from "./hooks/useDashboard";
-import { useAppSelector } from "@/store/hooks";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
 import ExpertCareerSection from "@/components/Profile/ExpertCareerSection";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
+import { useNormalizedProfileUser } from "@/hooks/useNormalizedProfileUser";
 
 const Dashboard = () => {
   const router = useRouter();
-  const { dateRange, loading, stats, handleDateRangeChange } = useDashboard();
-  const user = useAppSelector((state) => state.user.user);
-  const reduxRole = useAppSelector((state) => state.user.role);
-  const role = String(reduxRole || user?.role || user?.type || "").toLowerCase();
+  const { loading, stats } = useDashboard();
+  const { user, role, isExpert: isExpertRole } = useNormalizedProfileUser();
   const isUserRole = role === "user";
-  const isExpertRole = role === "expert";
   const showProfileCard = isUserRole || isExpertRole;
-  // Analytics is for admin/company only; users and experts never see it,
-  // regardless of the per-role permission flag.
   const showAnalyticsOverview =
     !isUserRole &&
     !isExpertRole &&
@@ -34,20 +28,8 @@ const Dashboard = () => {
       <AppPageHeader
         title="Dashboard"
         subtitle="Overview of platform activity, stats and analytics"
-        children={
-          !isUserRole ? (
-            <div className="d-flex align-items-center gap-3 flex-wrap">
-              <span className="color-light semiBold">Date Range:</span>
-              <DashboardDateRangePicker
-                value={dateRange}
-                onChange={handleDateRangeChange}
-              />
-            </div>
-          ) : null
-        }
       />
 
-      {/* Stats Widgets */}
       <div className="p-4">
         {showProfileCard && (
           <div className="mb-4">
@@ -68,7 +50,7 @@ const Dashboard = () => {
           </div>
         )}
         <DashboardWidgets stats={stats} loading={loading} />
-        {showAnalyticsOverview && <AnalyticsOverview dateRange={dateRange} />}
+        {showAnalyticsOverview && <AnalyticsOverview />}
       </div>
     </div>
   );

@@ -4,11 +4,20 @@ import React from "react";
 import { Modal, Button } from "antd";
 import Icon from "@/components/Icon";
 
+const DEFAULT_TITLE = "Thank You!";
+const DEFAULT_MESSAGE =
+  "Thank you for submitting your profile. We're reviewing it now. High traffic is causing a slight delay, and the process may take longer than expected. Thank you for your patience.";
+
 /**
  * ThankYouModal Component
  * Displays a thank you message after successful registration
  */
-const ThankYouModal = ({ isOpen, onClose }) => {
+const ThankYouModal = ({
+  isOpen,
+  onClose,
+  title = DEFAULT_TITLE,
+  message = DEFAULT_MESSAGE,
+}) => {
   return (
     <Modal
       open={isOpen}
@@ -46,13 +55,11 @@ const ThankYouModal = ({ isOpen, onClose }) => {
         </div>
 
         {/* Title */}
-        <h3 className="C-heading size-4 extraBold mb-3">Thank You!</h3>
+        <h3 className="C-heading size-4 extraBold mb-3">{title}</h3>
 
         {/* Message */}
         <p className="C-heading size-6 color-light mb-4" style={{ lineHeight: "1.6" }}>
-          Thank you for submitting your profile. We're reviewing it now. High
-          traffic is causing a slight delay, and the process may take longer than
-          expected. Thank you for your patience.
+          {message}
         </p>
 
         {/* Close Button */}

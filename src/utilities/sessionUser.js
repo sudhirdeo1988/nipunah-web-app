@@ -1,5 +1,9 @@
 "use client";
 import { clearToken, getUserIdFromCookie } from "./auth";
+import {
+  normalizeExpertUser,
+  expertProfileToApiPayload,
+} from "./expertProfileNormalize";
 
 const STORAGE_KEY = "nipunah_user_session";
 
@@ -217,6 +221,9 @@ export async function fetchUserDetailsByRole({ role, id }) {
   if (result && typeof result === "object") {
     // eslint-disable-next-line no-unused-vars
     const { token, access_token, status, ...rest } = result;
+    if (cleanRole === "expert") {
+      return normalizeExpertUser(rest);
+    }
     return rest;
   }
 
@@ -236,6 +243,11 @@ export async function updateUserDetailsByRole({ role, id, payload }) {
       ? `/api/experts/${resolvedId}`
       : `/api/users/${resolvedId}`;
 
+  const bodyPayload =
+    cleanRole === "expert"
+      ? expertProfileToApiPayload(payload || {})
+      : payload || {};
+
   const res = await fetch(endpoint, {
     method: "PUT",
     credentials: "include",
@@ -243,7 +255,7 @@ export async function updateUserDetailsByRole({ role, id, payload }) {
       "Content-Type": "application/json",
       Accept: "application/json",
     },
-    body: JSON.stringify(payload || {}),
+    body: JSON.stringify(bodyPayload),
   });
 
   const data = await res.json().catch(() => ({}));

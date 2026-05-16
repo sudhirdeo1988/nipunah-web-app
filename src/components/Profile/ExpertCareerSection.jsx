@@ -1,24 +1,20 @@
 "use client";
 
 import React, { memo, useCallback, useMemo, useState } from "react";
-import {
-  Button,
-  Card,
-  Divider,
-  Space,
-  Tag,
-  Typography,
-  message,
-} from "antd";
+import { Button, Card, Col, Divider, Row, Space, Tag, Typography, message } from "antd";
 import BecomeExpertModal from "@/components/BecomeExpertModal";
 import { EMPLOYMENT_TYPES } from "@/components/BecomeExpertModal/constants";
+import {
+  isExpertProfileNormalized,
+  normalizeExpertUser,
+} from "@/utilities/expertProfileNormalize";
+import "./ProfileDetails.scss";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 const employmentLabel = (value) =>
   EMPLOYMENT_TYPES.find((o) => o.value === value)?.label || value || "—";
 
-/** Prefer API `fromDate` / `toDate`; fall back to legacy combined strings. */
 function formatDurationLine(entry, legacyKey) {
   const a = typeof entry?.fromDate === "string" ? entry.fromDate.trim() : "";
   const b = typeof entry?.toDate === "string" ? entry.toDate.trim() : "";
@@ -29,15 +25,8 @@ function formatDurationLine(entry, legacyKey) {
   return "—";
 }
 
-const sectionCardStyle = {
-  borderRadius: 10,
-  border: "1px solid #f0f0f0",
-  background: "#fcfcfd",
-};
-
 /**
- * Expert-only: read-only summary of become-expert data + modal editor
- * (same fields as upgrade flow). `onSave` receives { workExperience, skills, education }.
+ * Expert-only: read-only career summary + modal editor (same fields as become-expert).
  */
 const ExpertCareerSection = memo(function ExpertCareerSection({
   data = {},
@@ -46,18 +35,13 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
   const [modalOpen, setModalOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const workExperience = useMemo(
-    () => (Array.isArray(data.workExperience) ? data.workExperience : []),
-    [data.workExperience]
-  );
-  const education = useMemo(
-    () => (Array.isArray(data.education) ? data.education : []),
-    [data.education]
-  );
-  const skills = useMemo(
-    () => (Array.isArray(data.skills) ? data.skills.filter(Boolean) : []),
-    [data.skills]
-  );
+  const normalized = useMemo(() => {
+    if (!data || typeof data !== "object") return {};
+    return isExpertProfileNormalized(data) ? data : normalizeExpertUser(data);
+  }, [data]);
+  const workExperience = normalized.workExperience ?? [];
+  const education = normalized.education ?? [];
+  const skills = normalized.skills ?? [];
 
   const modalInitialValues = useMemo(
     () => ({
@@ -89,23 +73,22 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
 
   return (
     <>
-      <Card
-        title="Experience & education"
-        className="mt-4"
-        extra={
-          canEdit ? (
-            <Button type="primary" onClick={() => setModalOpen(true)}>
-              Edit experience &amp; education
-            </Button>
-          ) : null
-        }
-      >
-        <Space orientation="vertical" size={20} style={{ width: "100%" }}>
-          <Card size="small" style={sectionCardStyle}>
-            <Title level={5} style={{ margin: 0 }}>
-              Skills
-            </Title>
-            <Divider style={{ margin: "10px 0 14px" }} />
+      <div className="profileDetails mt-3">
+        <div className="profileDetails__pageCard">
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <Typography.Title level={4} style={{ margin: 0 }}>
+              Experience &amp; education
+            </Typography.Title>
+            {canEdit ? (
+              <Button type="primary" onClick={() => setModalOpen(true)}>
+                Edit experience &amp; education
+              </Button>
+            ) : null}
+          </div>
+
+          <Card size="small" className="profileDetails__sectionCard">
+            <h4 className="profileDetails__sectionTitle">Skills</h4>
+            <Divider className="profileDetails__sectionDivider" />
             {skills.length ? (
               <Space wrap size={[8, 8]}>
                 {skills.map((s, idx) => (
@@ -113,82 +96,113 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
                 ))}
               </Space>
             ) : (
-              <Text type="secondary">—</Text>
+              <Text className="profileDetails__viewValue" type="secondary">
+                —
+              </Text>
             )}
           </Card>
 
-          <Card size="small" style={sectionCardStyle}>
-            <Title level={5} style={{ margin: 0 }}>
-              Work experience
-            </Title>
-            <Divider style={{ margin: "10px 0 14px" }} />
+          <Card size="small" className="profileDetails__sectionCard">
+            <h4 className="profileDetails__sectionTitle">Work experience</h4>
+            <Divider className="profileDetails__sectionDivider" />
             {workExperience.length ? (
               <Space orientation="vertical" size={16} style={{ width: "100%" }}>
                 {workExperience.map((w, i) => (
-                  <div key={`we-${i}`}>
-                    <Text strong>{w?.jobTitle || "—"}</Text>
-                    <div>
-                      <Text type="secondary">{w?.company || "—"}</Text>
-                      {" · "}
-                      <Text type="secondary">{employmentLabel(w?.employmentType)}</Text>
-                      {w?.isCurrentJob ? (
-                        <>
-                          {" · "}
-                          <Tag color="blue">Current job</Tag>
-                        </>
-                      ) : null}
-                    </div>
-                    <Text>{formatDurationLine(w, "companyWorkDuration")}</Text>
-                  </div>
+                  <Row gutter={[16, 8]} key={`we-${i}`}>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Job title</Text>
+                      <pre className="profileDetails__viewValue">
+                        {w?.jobTitle || "—"}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Company</Text>
+                      <pre className="profileDetails__viewValue">
+                        {w?.company || "—"}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">
+                        Employment type
+                      </Text>
+                      <pre className="profileDetails__viewValue">
+                        {employmentLabel(w?.employmentType)}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Duration</Text>
+                      <pre className="profileDetails__viewValue">
+                        {formatDurationLine(w, "companyWorkDuration")}
+                      </pre>
+                    </Col>
+                    {w?.isCurrentJob ? (
+                      <Col xs={24}>
+                        <Tag color="blue">Current job</Tag>
+                      </Col>
+                    ) : null}
+                  </Row>
                 ))}
               </Space>
             ) : (
-              <Text type="secondary">—</Text>
+              <Text className="profileDetails__viewValue" type="secondary">
+                —
+              </Text>
             )}
           </Card>
 
-          <Card size="small" style={sectionCardStyle}>
-            <Title level={5} style={{ margin: 0 }}>
-              Education
-            </Title>
-            <Divider style={{ margin: "10px 0 14px" }} />
+          <Card size="small" className="profileDetails__sectionCard">
+            <h4 className="profileDetails__sectionTitle">Education</h4>
+            <Divider className="profileDetails__sectionDivider" />
             {education.length ? (
               <Space orientation="vertical" size={16} style={{ width: "100%" }}>
                 {education.map((ed, i) => (
-                  <div key={`ed-${i}`}>
-                    <Text strong>{ed?.title || "—"}</Text>
-                    <div>
-                      <Text type="secondary">{ed?.schoolCollege || "—"}</Text>
-                      {ed?.isCurrentlyServing ? (
-                        <>
-                          {" · "}
-                          <Tag color="geekblue">Currently serving</Tag>
-                        </>
-                      ) : null}
-                    </div>
-                    <Text>{formatDurationLine(ed, "timePeriod")}</Text>
-                    {ed?.description ? (
-                      <pre
-                        style={{
-                          margin: "8px 0 0",
-                          whiteSpace: "pre-wrap",
-                          wordBreak: "break-word",
-                          fontFamily: "inherit",
-                          fontSize: 14,
-                        }}
-                      >
-                        {ed.description}
+                  <Row gutter={[16, 8]} key={`ed-${i}`}>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Title</Text>
+                      <pre className="profileDetails__viewValue">
+                        {ed?.title || "—"}
                       </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">
+                        School / college
+                      </Text>
+                      <pre className="profileDetails__viewValue">
+                        {ed?.schoolCollege || "—"}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Time period</Text>
+                      <pre className="profileDetails__viewValue">
+                        {formatDurationLine(ed, "timePeriod")}
+                      </pre>
+                    </Col>
+                    {ed?.isCurrentlyServing ? (
+                      <Col xs={24}>
+                        <Tag color="geekblue">Currently studying here</Tag>
+                      </Col>
                     ) : null}
-                  </div>
+                    {ed?.description ? (
+                      <Col xs={24}>
+                        <Text className="profileDetails__viewLabel">
+                          Description
+                        </Text>
+                        <pre className="profileDetails__viewValue">
+                          {ed.description}
+                        </pre>
+                      </Col>
+                    ) : null}
+                  </Row>
                 ))}
               </Space>
             ) : (
-              <Text type="secondary">—</Text>
+              <Text className="profileDetails__viewValue" type="secondary">
+                —
+              </Text>
             )}
           </Card>
-        </Space>
-      </Card>
+        </div>
+      </div>
 
       {modalOpen ? (
         <BecomeExpertModal

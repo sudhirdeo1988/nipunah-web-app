@@ -16,7 +16,7 @@ export async function POST(request) {
     const body = await request.json();
 
     // Use API base URL from constants
-    const url = `${API_BASE_URL}/category`;
+    const url = `${API_BASE_URL}/categories`;
 
     console.log("🎯 Final API URL:", url);
     console.log("📝 Request body:", JSON.stringify(body));

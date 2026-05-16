@@ -4,7 +4,7 @@ import React from "react";
 import { Card } from "antd";
 import Icon from "@/components/Icon";
 
-const AnalyticsOverview = ({ dateRange }) => {
+const AnalyticsOverview = () => {
   return (
     <div className="mt-4">
       <Card
@@ -29,8 +29,7 @@ const AnalyticsOverview = ({ dateRange }) => {
             Analytics Overview
           </h4>
           <p className="color-light mb-0">
-            Data shown for the period: {dateRange[0]?.format("DD MMM YYYY")} -{" "}
-            {dateRange[1]?.format("DD MMM YYYY")}
+            Platform analytics and insights will appear here.
           </p>
         </div>
       </Card>

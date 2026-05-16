@@ -769,6 +769,8 @@ const UserRegistration = () => {
       {/* Thank You Modal */}
       <ThankYouModal
         isOpen={showThankYouModal}
+        title="Thank You!"
+        message="Your Profile has been created Successfully"
         onClose={() => {
           setShowThankYouModal(false);
           router.push(ROUTES?.PUBLIC.LOGIN);

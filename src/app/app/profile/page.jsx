@@ -3,13 +3,13 @@
 import React, { useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { useAppDispatch, useAppSelector } from "@/store/hooks";
+import { useAppDispatch } from "@/store/hooks";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
 import ExpertCareerSection from "@/components/Profile/ExpertCareerSection";
+import BecomeExpertModal from "@/components/BecomeExpertModal";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
 import { setUser } from "@/store/slices/userSlice";
-import { Spin } from "antd";
 import {
   applyRolePermissionsToUser,
   saveUserSession,
@@ -20,23 +20,26 @@ import {
   fetchCurrentUserMe,
   applyUserIdFromCookieIfMissing,
 } from "@/utilities/sessionUser";
+import { expertBasicInfoFormValues } from "@/utilities/expertProfileNormalize";
+import { useNormalizedProfileUser } from "@/hooks/useNormalizedProfileUser";
 import { useAuth } from "@/utilities/AuthContext";
+import { Button } from "antd";
 
 const ProfilePage = () => {
   const dispatch = useAppDispatch();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoggedIn } = useAuth();
-  const reduxUser = useAppSelector((state) => state.user.user);
-  const user = reduxUser || {};
-  const role = String(reduxUser?.role || reduxUser?.type || "user").toLowerCase();
+  const { user, role, isExpert, reduxUser } = useNormalizedProfileUser();
   const startInEditMode = String(searchParams?.get("edit") || "").toLowerCase() === "true";
   const hasRenderableProfileData = Boolean(
     user?.first_name ||
       user?.last_name ||
       user?.email ||
       user?.name ||
-      user?.title
+      user?.title ||
+      user?.username ||
+      user?.contact_number
   );
 
   const sections = useMemo(() => {
@@ -45,14 +48,28 @@ const ProfilePage = () => {
     return PROFILE_SCHEMAS.user;
   }, [role]);
 
-  // If Redux user has null id but `user_id` cookie was set at login, sync id into Redux + storage
+  const expertFormInitialValues = useMemo(() => {
+    if (!isExpert) return null;
+    const basic = expertBasicInfoFormValues(user);
+    return {
+      ...basic,
+      workExperience: user.workExperience?.length
+        ? user.workExperience
+        : undefined,
+      education: user.education?.length ? user.education : undefined,
+      skills: user.skills?.length ? user.skills : undefined,
+    };
+  }, [isExpert, user]);
+
+  // Sync cookie user id into Redux only — depend on reduxUser, not derived `user`.
   useEffect(() => {
-    const patched = applyUserIdFromCookieIfMissing(user);
-    if (patched === user) return;
+    if (!reduxUser) return;
+    const patched = applyUserIdFromCookieIfMissing(reduxUser);
+    if (patched === reduxUser) return;
     const merged = applyRolePermissionsToUser(patched);
     saveUserSession(merged);
     dispatch(setUser(merged));
-  }, [user, dispatch]);
+  }, [reduxUser, dispatch]);
 
   useEffect(() => {
     const hydrateProfileOnRefresh = async () => {
@@ -100,61 +117,74 @@ const ProfilePage = () => {
     hydrateProfileOnRefresh();
   }, [dispatch, hasRenderableProfileData, isLoggedIn, reduxUser]);
 
-  const handleSave = useCallback(
-    async (updated) => {
-      const id = getIdFromStoredUser(user);
+  const syncExpertAfterSave = useCallback(
+    async (payload) => {
+      const id = getIdFromStoredUser(reduxUser);
       if (!id) {
         throw new Error("Unable to update profile: user id not found.");
       }
 
-      // 1) Update via role-based PUT
+      const base = reduxUser || {};
+      await updateUserDetailsByRole({
+        role: "expert",
+        id,
+        payload: { ...base, ...payload },
+      });
+
+      const latest = await fetchUserDetailsByRole({ role: "expert", id });
+      const merged = applyRolePermissionsToUser({
+        ...base,
+        ...(latest || {}),
+      });
+      saveUserSession(merged);
+      dispatch(setUser(merged));
+    },
+    [dispatch, reduxUser]
+  );
+
+  const handleSave = useCallback(
+    async (updated) => {
+      const id = getIdFromStoredUser(reduxUser);
+      if (!id) {
+        throw new Error("Unable to update profile: user id not found.");
+      }
+
       await updateUserDetailsByRole({
         role,
         id,
         payload: updated,
       });
 
-      // 2) Re-fetch latest data via role-based GET
       const latest = await fetchUserDetailsByRole({ role, id });
-
-      // 3) Apply permissions keys and sync storage + Redux
       const merged = applyRolePermissionsToUser({
-        ...user,
-        ...latest,
+        ...(reduxUser || {}),
+        ...(latest || {}),
       });
       saveUserSession(merged);
       dispatch(setUser(merged));
       router.push("/app/dashboard");
     },
-    [dispatch, user, role, router]
+    [dispatch, reduxUser, role, router]
+  );
+
+  const handleExpertProfileSave = useCallback(
+    async (payload) => {
+      await syncExpertAfterSave(payload);
+      router.push("/app/dashboard");
+    },
+    [syncExpertAfterSave, router]
   );
 
   const handleExpertCareerSave = useCallback(
     async (careerPayload) => {
-      const id = getIdFromStoredUser(user);
-      if (!id) {
-        throw new Error("Unable to save: user id not found.");
-      }
-      await updateUserDetailsByRole({
-        role: "expert",
-        id,
-        payload: {
-          ...user,
-          workExperience: careerPayload.workExperience,
-          education: careerPayload.education,
-          skills: careerPayload.skills,
-        },
-      });
-      const latest = await fetchUserDetailsByRole({ role: "expert", id });
-      const merged = applyRolePermissionsToUser({
-        ...user,
-        ...latest,
-      });
-      saveUserSession(merged);
-      dispatch(setUser(merged));
+      await syncExpertAfterSave(careerPayload);
     },
-    [dispatch, user]
+    [syncExpertAfterSave]
   );
+
+  const goToDashboard = useCallback(() => {
+    router.push("/app/dashboard");
+  }, [router]);
 
   return (
     <div className="bg-white rounded shadow-sm p-4" style={{ minHeight: "100%" }}>
@@ -163,21 +193,43 @@ const ProfilePage = () => {
         subtitle="View and update your profile information."
       />
       <div className="mt-3">
-        {startInEditMode && !hasRenderableProfileData ? (
-          <div className="py-5 text-center">
-            <Spin size="large" />
-          </div>
-        ) : (
-          <ProfileDetails
-            title={"Profile"}
-            data={user}
-            sections={sections}
-            onSave={handleSave}
-            startInEditMode={startInEditMode}
+        {isExpert && startInEditMode ? (
+          <BecomeExpertModal
+            variant="page"
+            includeBasicInfo
+            profileData={user}
+            initialValues={expertFormInitialValues}
+            onCancel={goToDashboard}
+            onSubmit={handleExpertProfileSave}
+            title="Edit profile"
+            okText="Save profile"
+            closeAfterSubmit={false}
+            successMessage="Profile updated successfully."
           />
-        )}
-        {role === "expert" && (
-          <ExpertCareerSection data={user} onSave={handleExpertCareerSave} />
+        ) : (
+          <>
+            <ProfileDetails
+              title="Profile"
+              data={user}
+              sections={sections}
+              onSave={isExpert ? undefined : handleSave}
+              startInEditMode={!isExpert && startInEditMode}
+              showEditButton={!isExpert}
+              headerAction={
+                isExpert ? (
+                  <Button
+                    type="primary"
+                    onClick={() => router.push("/app/profile?edit=true")}
+                  >
+                    Edit profile
+                  </Button>
+                ) : null
+              }
+            />
+            {isExpert && (
+              <ExpertCareerSection data={user} onSave={handleExpertCareerSave} />
+            )}
+          </>
         )}
       </div>
     </div>
@@ -185,4 +237,3 @@ const ProfilePage = () => {
 };
 
 export default ProfilePage;
-

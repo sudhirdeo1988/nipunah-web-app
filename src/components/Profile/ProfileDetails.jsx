@@ -15,6 +15,7 @@ import {
   message,
 } from "antd";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import { resolveProfileUsername } from "@/utilities/profileUtils";
 import "./ProfileDetails.scss";
 
 const { Text } = Typography;
@@ -81,11 +82,19 @@ const ProfileDetails = memo(function ProfileDetails({
     []
   );
 
+  const resolveFieldValue = (f) => {
+    const lastSegment = f.path?.[f.path.length - 1];
+    if (lastSegment === "username") {
+      return resolveProfileUsername(data);
+    }
+    return getByPath(data, f.path);
+  };
+
   const formInitialValues = useMemo(() => {
     const initial = {};
     sections.forEach((section) => {
       section.fields.forEach((f) => {
-        const value = getByPath(data, f.path);
+        const value = resolveFieldValue(f);
         initial[fieldName(f.path)] =
           f.type === "json"
             ? JSON.stringify(value ?? (Array.isArray(value) ? [] : {}), null, 2)
@@ -143,7 +152,7 @@ const ProfileDetails = memo(function ProfileDetails({
   };
 
   const renderFieldValue = (f) => {
-    const value = getByPath(data, f.path);
+    const value = resolveFieldValue(f);
     if (value === undefined || value === null || value === "") return "—";
     if (typeof value === "object") return JSON.stringify(value, null, 2);
     return String(value);
@@ -225,7 +234,7 @@ const ProfileDetails = memo(function ProfileDetails({
             : showEditButton && canEdit && !editing
             ? (
               <Button type="primary" onClick={handleEdit}>
-                Edit
+                Edit Profile
               </Button>
             )
             : null}

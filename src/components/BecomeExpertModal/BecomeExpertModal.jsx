@@ -23,6 +23,8 @@ import {
   parseMonthYearRange,
   parseMonthYearToken,
 } from "./constants";
+import CountryDetails from "@/utilities/CountryDetails.json";
+import { expertBasicInfoFormValues } from "@/utilities/expertProfileNormalize";
 import "./BecomeExpertModal.scss";
 
 const { TextArea } = Input;
@@ -66,6 +68,8 @@ const normalizeInitialValues = (incoming) => {
 
   const incomingWE = Array.isArray(base.workExperience)
     ? base.workExperience
+    : Array.isArray(base.workExperienceDTO)
+    ? base.workExperienceDTO
     : [];
   const workExperience = incomingWE.length
     ? incomingWE.map((entry) => {
@@ -97,7 +101,11 @@ const normalizeInitialValues = (incoming) => {
       })
     : INITIAL_VALUES.workExperience;
 
-  const incomingEdu = Array.isArray(base.education) ? base.education : [];
+  const incomingEdu = Array.isArray(base.education)
+    ? base.education
+    : Array.isArray(base.educationDTO)
+    ? base.educationDTO
+    : [];
   const education = incomingEdu.length
     ? incomingEdu.map((entry) => {
         const fromStr = entry?.fromDate;
@@ -128,12 +136,17 @@ const normalizeInitialValues = (incoming) => {
       })
     : INITIAL_VALUES.education;
 
+  const rawSkills = Array.isArray(base.skills)
+    ? base.skills
+    : Array.isArray(base.skillDTO)
+    ? base.skillDTO.map((item) =>
+        typeof item === "string" ? item : item?.skill ?? ""
+      )
+    : [];
+
   return {
     workExperience,
-    skills:
-      Array.isArray(base.skills) && base.skills.length
-        ? base.skills
-        : INITIAL_VALUES.skills,
+    skills: rawSkills.length ? rawSkills : INITIAL_VALUES.skills,
     education,
   };
 };
@@ -143,6 +156,11 @@ const normalizeInitialValues = (incoming) => {
  * Handles: Work Experience, Roles & Responsibilities, Skills, Education.
  * Loading and error states included. Pass onSubmit and API base URL or use default.
  */
+const startsWithFilter = (input, option) =>
+  String(option?.label || "")
+    .toLowerCase()
+    .startsWith(String(input || "").toLowerCase());
+
 const BecomeExpertModal = ({
   open,
   onCancel,
@@ -155,6 +173,8 @@ const BecomeExpertModal = ({
   successMessage = "Application submitted successfully.",
   onSuccess,
   initialValues,
+  includeBasicInfo = false,
+  profileData = null,
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
@@ -163,10 +183,29 @@ const BecomeExpertModal = ({
 
   // Normalize once per incoming initialValues so edit flows can pass API
   // `fromDate`/`toDate` strings or legacy `companyWorkDuration` / `timePeriod`.
-  const normalizedInitialValues = useMemo(
-    () => normalizeInitialValues(initialValues),
-    [initialValues]
-  );
+  const countryCodeOptions = useMemo(() => {
+    if (!includeBasicInfo) return [];
+    return (Array.isArray(CountryDetails) ? CountryDetails : []).map((c) => ({
+      label: `${c.countryName} (${c.dailCode})`,
+      value: c.dailCode,
+      searchLabel: `${c.countryName} ${c.dailCode}`,
+    }));
+  }, [includeBasicInfo]);
+
+  const countryOptions = useMemo(() => {
+    if (!includeBasicInfo) return [];
+    return (Array.isArray(CountryDetails) ? CountryDetails : []).map((c) => ({
+      label: c.countryName,
+      value: c.countryName,
+    }));
+  }, [includeBasicInfo]);
+
+  const normalizedInitialValues = useMemo(() => {
+    const career = normalizeInitialValues(initialValues);
+    if (!includeBasicInfo) return career;
+    const basic = expertBasicInfoFormValues(profileData || initialValues || {});
+    return { ...basic, ...career };
+  }, [initialValues, includeBasicInfo, profileData]);
 
   // If the caller hands us fresh initialValues after mount (e.g. async
   // edit-profile fetch resolves), reset the antd form so the UI reflects it.
@@ -230,6 +269,22 @@ const BecomeExpertModal = ({
           education,
         };
 
+        if (includeBasicInfo) {
+          const mergedBasic = form.getFieldsValue(true);
+          const email = mergedBasic.email ?? values.email ?? "";
+          Object.assign(payload, {
+            first_name: mergedBasic.first_name ?? values.first_name ?? "",
+            last_name: mergedBasic.last_name ?? values.last_name ?? "",
+            email,
+            username: mergedBasic.username || email || "",
+            contact_country_code:
+              mergedBasic.contact_country_code ?? values.contact_country_code,
+            contact_number:
+              mergedBasic.contact_number ?? values.contact_number ?? "",
+            address: mergedBasic.address ?? values.address ?? {},
+          });
+        }
+
         if (typeof onSubmit === "function") {
           await onSubmit(payload);
         } else if (submitApiUrl) {
@@ -257,7 +312,16 @@ const BecomeExpertModal = ({
         setLoading(false);
       }
     },
-    [form, onSubmit, submitApiUrl, handleClose, closeAfterSubmit, successMessage, onSuccess]
+    [
+      form,
+      onSubmit,
+      submitApiUrl,
+      handleClose,
+      closeAfterSubmit,
+      successMessage,
+      onSuccess,
+      includeBasicInfo,
+    ]
   );
 
   const content = (
@@ -279,6 +343,114 @@ const BecomeExpertModal = ({
         initialValues={normalizedInitialValues}
         onFinish={handleSubmit}
       >
+        {includeBasicInfo ? (
+          <>
+            <div className="becomeExpertModal__section">
+              <h4 className="becomeExpertModal__sectionTitle">Basic information</h4>
+              <div className="becomeExpertModal__twoColRow">
+                <Form.Item
+                  name="first_name"
+                  label="First name"
+                  rules={[{ required: true, message: "First name is required." }]}
+                >
+                  <Input placeholder="First name" />
+                </Form.Item>
+                <Form.Item
+                  name="last_name"
+                  label="Last name"
+                  rules={[{ required: true, message: "Last name is required." }]}
+                >
+                  <Input placeholder="Last name" />
+                </Form.Item>
+              </div>
+              <div className="becomeExpertModal__twoColRow">
+                <Form.Item name="email" label="Email">
+                  <Input type="email" disabled />
+                </Form.Item>
+                <Form.Item name="username" label="Username">
+                  <Input disabled placeholder="Same as email" />
+                </Form.Item>
+              </div>
+              <Form.Item label="Contact number" required>
+                <Space.Compact block>
+                  <Form.Item
+                    name="contact_country_code"
+                    noStyle
+                    rules={[{ required: true, message: "Select country code" }]}
+                  >
+                    <Select
+                      showSearch
+                      placeholder="Code"
+                      style={{ width: "38%" }}
+                      options={countryCodeOptions}
+                      optionFilterProp="label"
+                      filterOption={(input, option) =>
+                        String(option?.searchLabel || "")
+                          .toLowerCase()
+                          .startsWith(String(input || "").toLowerCase())
+                      }
+                    />
+                  </Form.Item>
+                  <Form.Item
+                    name="contact_number"
+                    noStyle
+                    rules={[
+                      { required: true, message: "Enter contact number" },
+                      {
+                        pattern: /^\d{7,15}$/,
+                        message: "Enter a valid phone number (7-15 digits)",
+                      },
+                    ]}
+                  >
+                    <Input placeholder="Phone number" style={{ width: "62%" }} />
+                  </Form.Item>
+                </Space.Compact>
+              </Form.Item>
+            </div>
+
+            <div className="becomeExpertModal__section">
+              <h4 className="becomeExpertModal__sectionTitle">Address</h4>
+              <div className="becomeExpertModal__twoColRow">
+                <Form.Item name={["address", "country"]} label="Country">
+                  <Select
+                    showSearch
+                    placeholder="Select country"
+                    options={countryOptions}
+                    optionFilterProp="label"
+                    filterOption={startsWithFilter}
+                    allowClear
+                  />
+                </Form.Item>
+                <Form.Item
+                  name={["address", "state"]}
+                  label="State"
+                  rules={[
+                    {
+                      pattern: /^[A-Za-z\s]*$/,
+                      message: "Only alphabets and spaces are allowed.",
+                    },
+                  ]}
+                >
+                  <Input placeholder="State / province" />
+                </Form.Item>
+              </div>
+              <div className="becomeExpertModal__twoColRow">
+                <Form.Item name={["address", "city"]} label="City">
+                  <Input placeholder="City" />
+                </Form.Item>
+                <Form.Item name={["address", "postal_code"]} label="Postal code">
+                  <Input placeholder="Postal code" />
+                </Form.Item>
+              </div>
+              <Form.Item name={["address", "location"]} label="Location">
+                <Input placeholder="Street / area" />
+              </Form.Item>
+            </div>
+
+            <Divider />
+          </>
+        ) : null}
+
         {/* Work Experience (multiple, with delete; at least one block) */}
         <div className="becomeExpertModal__section">
           <h4 className="becomeExpertModal__sectionTitle">Work Experience</h4>

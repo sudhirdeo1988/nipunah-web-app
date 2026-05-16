@@ -365,7 +365,7 @@ const LoginPage = () => {
                 <Form.Item
                   label={
                     <span className="C-heading size-xs semiBold mb-0">
-                      User Name
+                      Email ID
                     </span>
                   }
                   name="username"
@@ -378,7 +378,7 @@ const LoginPage = () => {
                   className="mb-3"
                 >
                   <Input
-                    placeholder="Enter username"
+                    placeholder="Enter Email ID"
                     size="large"
                     prefix={<Icon name="person" isFilled color="#ccc" />}
                   />
@@ -401,7 +401,7 @@ const LoginPage = () => {
                   className="mb-3"
                 >
                   <Input.Password
-                    placeholder="Enter password"
+                    placeholder="Enter Password"
                     size="large"
                     prefix={<Icon name="passkey" isFilled color="#ccc" />}
                   />

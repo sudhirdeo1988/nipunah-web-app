@@ -23,6 +23,10 @@ import {
   applyRolePermissionsToUser,
   applyUserIdFromCookieIfMissing,
 } from "@/utilities/sessionUser";
+import {
+  isExpertProfileNormalized,
+  normalizeExpertUser,
+} from "@/utilities/expertProfileNormalize";
 
 /** Parse categories from API response (same shape as SignUp Company / getAllCategories) */
 function parseCategoriesFromResponse(response) {
@@ -70,6 +74,10 @@ const AppInitializer = ({ children }) => {
           if (withIdFromCookie !== cached) {
             cached = withIdFromCookie;
             saveUserSession(cached);
+          }
+          const cachedRole = getRoleFromStoredUser(cached);
+          if (cachedRole === "expert" && !isExpertProfileNormalized(cached)) {
+            cached = normalizeExpertUser(cached);
           }
           dispatch(setUser(applyRolePermissionsToUser(cached)));
         }
