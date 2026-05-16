@@ -16,6 +16,8 @@ import {
 } from "antd";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import { resolveProfileUsername } from "@/utilities/profileUtils";
+import { buildProfileFieldRules } from "@/utilities/profileFormRules";
+import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import "./ProfileDetails.scss";
@@ -53,6 +55,7 @@ const startsWithFilter = (input, option) =>
 const ProfileDetails = memo(function ProfileDetails({
   data = {},
   sections = [],
+  role = "user",
   title = "Profile",
   onSave,
   showEditButton = true,
@@ -217,6 +220,19 @@ const ProfileDetails = memo(function ProfileDetails({
       );
     }
 
+    if (f.type === "employeeCount") {
+      return (
+        <Select
+          placeholder="Select employee count range"
+          options={EMPLOYEE_COUNT_RANGES.map((range) => ({
+            label: range.label,
+            value: range.value,
+          }))}
+          disabled={!!f.readOnly}
+        />
+      );
+    }
+
     if (f.type === "textarea" || f.type === "json") {
       return (
         <Input.TextArea
@@ -293,29 +309,11 @@ const ProfileDetails = memo(function ProfileDetails({
                 <Divider className="profileDetails__sectionDivider" />
                 <Row gutter={[16, 0]}>
                   {section.fields.map((f) => {
-                    const lastSegment = f.path?.[f.path.length - 1];
-                    const isStateField =
-                      lastSegment === "state" && f.path?.[0] === "address";
-                    let rules;
-                    let normalize;
-                    if (f.type === "digits") {
-                      normalize = digitsOnlyNormalize(f.maxLength);
-                      rules = [
-                        {
-                          pattern: /^\d+$/,
-                          message: "Only numbers are allowed.",
-                        },
-                      ];
-                    } else if (f.type === "json") {
-                      rules = [{ validator: () => Promise.resolve() }];
-                    } else if (isStateField && !f.readOnly) {
-                      rules = [
-                        {
-                          pattern: /^[A-Za-z\s]*$/,
-                          message: "Only alphabets and spaces are allowed.",
-                        },
-                      ];
-                    }
+                    const rules = buildProfileFieldRules(f, role);
+                    const normalize =
+                      f.type === "digits"
+                        ? digitsOnlyNormalize(f.maxLength)
+                        : undefined;
                     return (
                       <Col xs={24} md={12} key={fieldName(f.path)}>
                         <Form.Item
@@ -323,6 +321,7 @@ const ProfileDetails = memo(function ProfileDetails({
                           label={f.label}
                           rules={rules}
                           normalize={normalize}
+                          required={Boolean(f.required && !f.readOnly)}
                         >
                           {renderEditField(f)}
                         </Form.Item>

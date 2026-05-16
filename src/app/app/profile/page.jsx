@@ -212,6 +212,7 @@ const ProfilePage = () => {
               title="Profile"
               data={user}
               sections={sections}
+              role={role}
               onSave={isExpert ? undefined : handleSave}
               startInEditMode={!isExpert && startInEditMode}
               showEditButton={!isExpert}

@@ -119,6 +119,7 @@ export function expertBasicInfoFormValues(user) {
     last_name: u.last_name ?? "",
     email,
     username: resolveProfileUsername(u),
+    expertise: u.expertise ?? undefined,
     contact_country_code: u.contact_country_code ?? undefined,
     contact_number: u.contact_number ?? "",
     address: {

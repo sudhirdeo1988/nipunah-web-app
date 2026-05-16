@@ -25,8 +25,14 @@ import {
 } from "./constants";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import { expertBasicInfoFormValues } from "@/utilities/expertProfileNormalize";
+import {
+  EXPERT_ADDRESS_FORM_RULES,
+  EXPERT_BASIC_FORM_RULES,
+} from "@/utilities/profileFormRules";
+import { EXPERTS_DATA } from "@/module/Experts/constants/expertsConfig";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
+import { groupBy as _groupBy, map as _map } from "lodash-es";
 import "./BecomeExpertModal.scss";
 
 const { TextArea } = Input;
@@ -202,6 +208,18 @@ const BecomeExpertModal = ({
     }));
   }, [includeBasicInfo]);
 
+  const expertiseOptions = useMemo(() => {
+    if (!includeBasicInfo) return [];
+    const groupedByCategory = _groupBy(EXPERTS_DATA, "category");
+    return _map(groupedByCategory, (experts, categoryName) => ({
+      label: categoryName,
+      options: _map(experts, (expert) => ({
+        label: expert.name,
+        value: expert.name,
+      })),
+    }));
+  }, [includeBasicInfo]);
+
   const normalizedInitialValues = useMemo(() => {
     const career = normalizeInitialValues(initialValues);
     if (!includeBasicInfo) return career;
@@ -283,6 +301,7 @@ const BecomeExpertModal = ({
               mergedBasic.contact_country_code ?? values.contact_country_code,
             contact_number:
               mergedBasic.contact_number ?? values.contact_number ?? "",
+            expertise: mergedBasic.expertise ?? values.expertise,
             address: mergedBasic.address ?? values.address ?? {},
           });
         }
@@ -353,14 +372,16 @@ const BecomeExpertModal = ({
                 <Form.Item
                   name="first_name"
                   label="First name"
-                  rules={[{ required: true, message: "First name is required." }]}
+                  rules={EXPERT_BASIC_FORM_RULES.first_name}
+                  required
                 >
                   <Input placeholder="First name" />
                 </Form.Item>
                 <Form.Item
                   name="last_name"
                   label="Last name"
-                  rules={[{ required: true, message: "Last name is required." }]}
+                  rules={EXPERT_BASIC_FORM_RULES.last_name}
+                  required
                 >
                   <Input placeholder="Last name" />
                 </Form.Item>
@@ -369,16 +390,29 @@ const BecomeExpertModal = ({
                 <Form.Item name="email" label="Email">
                   <Input type="email" disabled />
                 </Form.Item>
-                <Form.Item name="username" label="Username">
-                  <Input disabled placeholder="Same as email" />
+                <Form.Item
+                  name="expertise"
+                  label="Expertise"
+                  rules={EXPERT_BASIC_FORM_RULES.expertise}
+                  required
+                >
+                  <Select
+                    placeholder="Select expertise"
+                    options={expertiseOptions}
+                    showSearch
+                    optionFilterProp="label"
+                  />
                 </Form.Item>
               </div>
+              <Form.Item name="username" label="Username" hidden>
+                <Input disabled />
+              </Form.Item>
               <Form.Item label="Contact number" required>
                 <Space.Compact block>
                   <Form.Item
                     name="contact_country_code"
                     noStyle
-                    rules={[{ required: true, message: "Select country code" }]}
+                    rules={EXPERT_BASIC_FORM_RULES.contact_country_code}
                   >
                     <Select
                       showSearch
@@ -397,13 +431,7 @@ const BecomeExpertModal = ({
                     name="contact_number"
                     noStyle
                     normalize={digitsOnlyNormalize(15)}
-                    rules={[
-                      { required: true, message: "Enter contact number" },
-                      {
-                        pattern: /^\d{7,15}$/,
-                        message: "Enter a valid phone number (7-15 digits)",
-                      },
-                    ]}
+                    rules={EXPERT_BASIC_FORM_RULES.contact_number}
                   >
                     <DigitsOnlyInput
                       placeholder="Phone number"
@@ -418,48 +446,54 @@ const BecomeExpertModal = ({
             <div className="becomeExpertModal__section">
               <h4 className="becomeExpertModal__sectionTitle">Address</h4>
               <div className="becomeExpertModal__twoColRow">
-                <Form.Item name={["address", "country"]} label="Country">
+                <Form.Item
+                  name={["address", "country"]}
+                  label="Country"
+                  rules={EXPERT_ADDRESS_FORM_RULES.country}
+                  required
+                >
                   <Select
                     showSearch
                     placeholder="Select country"
                     options={countryOptions}
                     optionFilterProp="label"
                     filterOption={startsWithFilter}
-                    allowClear
                   />
                 </Form.Item>
                 <Form.Item
                   name={["address", "state"]}
                   label="State"
-                  rules={[
-                    {
-                      pattern: /^[A-Za-z\s]*$/,
-                      message: "Only alphabets and spaces are allowed.",
-                    },
-                  ]}
+                  rules={EXPERT_ADDRESS_FORM_RULES.state}
+                  required
                 >
                   <Input placeholder="State / province" />
                 </Form.Item>
               </div>
               <div className="becomeExpertModal__twoColRow">
-                <Form.Item name={["address", "city"]} label="City">
+                <Form.Item
+                  name={["address", "city"]}
+                  label="City"
+                  rules={EXPERT_ADDRESS_FORM_RULES.city}
+                  required
+                >
                   <Input placeholder="City" />
                 </Form.Item>
                 <Form.Item
                   name={["address", "postal_code"]}
                   label="Postal code"
                   normalize={digitsOnlyNormalize(10)}
-                  rules={[
-                    {
-                      pattern: /^\d{4,10}$/,
-                      message: "Postal code must be 4-10 digits.",
-                    },
-                  ]}
+                  rules={EXPERT_ADDRESS_FORM_RULES.postal_code}
+                  required
                 >
                   <DigitsOnlyInput placeholder="Postal code" maxLength={10} />
                 </Form.Item>
               </div>
-              <Form.Item name={["address", "location"]} label="Location">
+              <Form.Item
+                name={["address", "location"]}
+                label="Location"
+                rules={EXPERT_ADDRESS_FORM_RULES.location}
+                required
+              >
                 <Input placeholder="Street / area" />
               </Form.Item>
             </div>
