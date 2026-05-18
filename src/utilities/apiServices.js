@@ -138,8 +138,8 @@ export const enquiryService = {
    * Get enquiry details + thread
    * Proxy route: /api/enquiries/:id -> ${API_BASE_URL}/enquiries/:id
    */
-  getEnquiryById: async (enquiryId) => {
-    return axiosInstance.get(`/enquiries/${enquiryId}`);
+  getEnquiryById: async (enquiryId, params = {}) => {
+    return axiosInstance.get(`/enquiries/${enquiryId}`, { params });
   },
 
   /**

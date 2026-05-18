@@ -1,18 +1,33 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
-import { Table, Modal, Dropdown, Space, Button, Input, message } from "antd";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { Table, Modal, Dropdown, Space, message } from "antd";
 import Icon from "@/components/Icon";
 import { enquiryService } from "@/utilities/apiServices";
 import { useAppSelector } from "@/store/hooks";
 import { getIdFromStoredUser } from "@/utilities/sessionUser";
 import { useRole } from "@/hooks/useRole";
-import { useEffect } from "react";
+import EnquiryThreadModal from "../EnquiryThreadModal/EnquiryThreadModal";
+import {
+  ENQUIRIES_CACHE_TTL_MS,
+  ENQUIRY_DETAIL_CACHE_TTL_MS,
+  buildConversationThread,
+  canReplyToEnquiry,
+  extractEnquiryFromResponse,
+  getReplyBlockedHint,
+  buildEnquiryPartiesPayload,
+  idsMatch,
+  invalidateEnquiriesListCache,
+  invalidateEnquiryDetailCache,
+  normalizeEnquiryRecord,
+  resolveEnquiryParties,
+  enquiriesInFlightByCompany,
+  enquiriesCacheByCompany,
+  enquiryDetailInFlightById,
+  enquiryDetailCacheById,
+} from "../../utils/enquiryThreadUtils";
 
-const { TextArea } = Input;
-const ENQUIRIES_CACHE_TTL_MS = 5000;
-const enquiriesInFlightByCompany = new Map();
-const enquiriesCacheByCompany = new Map();
+const viewerContextFor = (myId, isUser) => ({ myId, isUser });
 
 async function getEnquiriesWithDedupe(companyId, { force = false } = {}) {
   const key = String(companyId);
@@ -43,105 +58,39 @@ async function getEnquiriesWithDedupe(companyId, { force = false } = {}) {
   return requestPromise;
 }
 
-function getThreadItems(enquiryDetails) {
-  const e = enquiryDetails && typeof enquiryDetails === "object" ? enquiryDetails : {};
-  const candidates = [
-    e.thread,
-    e.messages,
-    e.responses,
-    e.conversation,
-    e.items,
-  ];
+async function fetchEnquiryDetail(enquiryId, { force = false, companyId } = {}) {
+  const key = String(enquiryId);
+  if (!key) return null;
 
-  const firstArray = candidates.find((c) => Array.isArray(c));
-  if (firstArray) return firstArray;
-
-  // Fallback: treat enquiry as single message
-  const single =
-    e.description || e.body || e.message || e.text || e.content ? [
-      {
-        from: e.by || e.sender || e.createdBy,
-        by: e.by || e.sender || e.createdBy,
-        text: e.description || e.body || e.message || e.text || e.content,
-        message:
-          e.description || e.body || e.message || e.text || e.content,
-      },
-    ] : [];
-
-  return single;
-}
-
-function normalizeName(val) {
-  if (!val) return "";
-  if (typeof val === "string") return val;
-  if (typeof val === "object") {
-    return val.name || val.username || val.email || "";
+  if (force) {
+    invalidateEnquiryDetailCache(key);
+  } else {
+    const now = Date.now();
+    const cached = enquiryDetailCacheById.get(key);
+    if (cached && now - cached.timestamp < ENQUIRY_DETAIL_CACHE_TTL_MS) {
+      return cached.data;
+    }
   }
-  return String(val);
-}
 
-function normalizeThreadSender(threadItem) {
-  const t = threadItem && typeof threadItem === "object" ? threadItem : {};
-  const sender =
-    normalizeName(t.from) ||
-    normalizeName(t.by) ||
-    normalizeName(t.sender) ||
-    normalizeName(t.user) ||
-    normalizeName(t.createdBy);
-  return sender || "User";
-}
-
-function normalizeThreadText(threadItem) {
-  const t = threadItem && typeof threadItem === "object" ? threadItem : {};
-  return (
-    t.response ||
-    t.responseText ||
-    t.message ||
-    t.text ||
-    t.content ||
-    t.description ||
-    ""
-  );
-}
-
-function normalizeEnquiryRecord(item) {
-  const e = item && typeof item === "object" ? item : {};
-  const replies = Array.isArray(e.replies) ? e.replies : [];
-  const thread = [
-    ...(e.description
-      ? [
-          {
-            by: normalizeName(e.enquiryFrom) || "User",
-            message: e.description,
-          },
-        ]
-      : []),
-    ...replies.map((reply) => ({
-      by: "Reply",
-      message: typeof reply === "string" ? reply : normalizeThreadText(reply),
-    })),
-  ];
-
-  return {
-    ...e,
-    id: e.id,
-    title: e.title || "—",
-    description: e.description || "—",
-    byName: normalizeName(e.enquiryFrom) || "User",
-    replyCount: replies.length,
-    thread,
-  };
-}
-
-/** Pull a stable id out of the various shapes the upstream may return. */
-function getEnquiryFromId(record) {
-  const from =
-    record?.enquiryFrom ?? record?.enquiry_from ?? record?.from ?? record?.sender;
-  if (from === null || from === undefined) return "";
-  if (typeof from === "object") {
-    return String(from.id ?? from._id ?? from.user_id ?? from.userId ?? "");
+  if (enquiryDetailInFlightById.has(key)) {
+    return enquiryDetailInFlightById.get(key);
   }
-  return String(from);
+
+  const params =
+    companyId != null && companyId !== "" ? { companyId: String(companyId) } : {};
+
+  const requestPromise = enquiryService
+    .getEnquiryById(key, params)
+    .then((res) => {
+      enquiryDetailCacheById.set(key, { data: res, timestamp: Date.now() });
+      return res;
+    })
+    .finally(() => {
+      enquiryDetailInFlightById.delete(key);
+    });
+
+  enquiryDetailInFlightById.set(key, requestPromise);
+  return requestPromise;
 }
 
 const EnquiryListing = ({ permissions = {} }) => {
@@ -155,20 +104,38 @@ const EnquiryListing = ({ permissions = {} }) => {
   const [enquiries, setEnquiries] = useState([]);
   const [loading, setLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+
+  const [threadModalOpen, setThreadModalOpen] = useState(false);
+  const [threadLoading, setThreadLoading] = useState(false);
+  const [threadRefreshing, setThreadRefreshing] = useState(false);
   const [selectedEnquiryId, setSelectedEnquiryId] = useState(null);
   const [selectedEnquiryDetails, setSelectedEnquiryDetails] = useState(null);
+  const [replyText, setReplyText] = useState("");
 
-  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
-  const [isRespondModalOpen, setIsRespondModalOpen] = useState(false);
-  const [responseText, setResponseText] = useState("");
+  const currentUserId = useMemo(() => getIdFromStoredUser(user), [user]);
+  const myId = useMemo(() => String(currentUserId ?? ""), [currentUserId]);
+  const viewerCtx = useMemo(
+    () => viewerContextFor(myId, isUserRole),
+    [myId, isUserRole]
+  );
 
-  const companyId = useMemo(() => getIdFromStoredUser(user), [user]);
+  const applyEnquiryToState = useCallback((enquiryId, raw, listFallback = {}) => {
+    if (!raw || typeof raw !== "object") return null;
+    const normalized = normalizeEnquiryRecord({ ...listFallback, ...raw });
+    setSelectedEnquiryDetails((prev) =>
+      prev && String(prev.id) !== String(enquiryId) ? prev : normalized
+    );
+    setEnquiries((prev) =>
+      prev.map((item) => (String(item.id) === String(enquiryId) ? normalized : item))
+    );
+    return normalized;
+  }, []);
 
   const fetchEnquiries = useCallback(async ({ force = false } = {}) => {
-    if (companyId == null || companyId === "") return;
+    if (currentUserId == null || currentUserId === "") return;
     setLoading(true);
     try {
-      const res = await getEnquiriesWithDedupe(companyId, { force });
+      const res = await getEnquiriesWithDedupe(currentUserId, { force });
       const list = Array.isArray(res?.data) ? res.data : [];
       setEnquiries(list.map(normalizeEnquiryRecord));
     } catch (err) {
@@ -177,39 +144,71 @@ const EnquiryListing = ({ permissions = {} }) => {
     } finally {
       setLoading(false);
     }
-  }, [companyId]);
+  }, [currentUserId]);
 
   useEffect(() => {
     fetchEnquiries();
   }, [fetchEnquiries]);
 
-  const closeModals = useCallback(() => {
-    setIsViewModalOpen(false);
-    setIsRespondModalOpen(false);
-    setResponseText("");
+  const closeThreadModal = useCallback(() => {
+    setThreadModalOpen(false);
+    setThreadLoading(false);
+    setThreadRefreshing(false);
+    setReplyText("");
     setSelectedEnquiryId(null);
     setSelectedEnquiryDetails(null);
   }, []);
 
-  const handleView = useCallback(
-    (record) => {
-      if (!record?.id) return;
-      setSelectedEnquiryId(record.id);
-      setSelectedEnquiryDetails(record);
-      setIsViewModalOpen(true);
+  /**
+   * GET /api/enquiries/:id — same fetch used by View / Reply.
+   * refreshOnly: keep modal open and show inline refresh (after send reply).
+   */
+  const loadThreadForEnquiry = useCallback(
+    async (record, { force = false, refreshOnly = false } = {}) => {
+      if (!record?.id) return null;
+      const enquiryId = record.id;
+
+      if (refreshOnly) {
+        setThreadRefreshing(true);
+      } else {
+        setSelectedEnquiryId(enquiryId);
+        setSelectedEnquiryDetails(normalizeEnquiryRecord(record));
+        setThreadModalOpen(true);
+        setThreadLoading(true);
+      }
+
+      try {
+        const res = await fetchEnquiryDetail(enquiryId, {
+          force: force || refreshOnly,
+          companyId: currentUserId,
+        });
+        const raw = extractEnquiryFromResponse(res);
+        if (raw && typeof raw === "object") {
+          return applyEnquiryToState(enquiryId, raw, record);
+        }
+        return null;
+      } catch (err) {
+        message.error(
+          err?.message ||
+            (refreshOnly ? "Failed to load latest messages" : "Failed to load conversation")
+        );
+        return null;
+      } finally {
+        setThreadLoading(false);
+        setThreadRefreshing(false);
+      }
     },
-    []
+    [applyEnquiryToState, currentUserId]
   );
 
-  const handleRespond = useCallback(
-    (record) => {
-      if (!record?.id) return;
-      setSelectedEnquiryId(record.id);
-      setSelectedEnquiryDetails(record);
-      setResponseText("");
-      setIsRespondModalOpen(true);
-    },
-    []
+  const handleView = useCallback(
+    (record) => loadThreadForEnquiry(record, { force: true }),
+    [loadThreadForEnquiry]
+  );
+
+  const handleReply = useCallback(
+    (record) => loadThreadForEnquiry(record, { force: true }),
+    [loadThreadForEnquiry]
   );
 
   const handleDelete = useCallback(
@@ -228,6 +227,8 @@ const EnquiryListing = ({ permissions = {} }) => {
           try {
             await enquiryService.deleteEnquiry(id);
             setEnquiries((prev) => prev.filter((item) => item.id !== id));
+            invalidateEnquiryDetailCache(id);
+            invalidateEnquiriesListCache(currentUserId);
             message.success("Enquiry deleted successfully");
           } catch (err) {
             message.error(err?.message || "Failed to delete enquiry");
@@ -237,57 +238,60 @@ const EnquiryListing = ({ permissions = {} }) => {
         },
       });
     },
-    []
+    [currentUserId]
   );
 
-  const actionMenuItems = useMemo(() => {
-    const items = [];
-    if (canView) {
-      items.push({
-        key: "view",
-        label: (
-          <Space align="center">
-            <Icon name="visibility" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">View</span>
-          </Space>
-        ),
-      });
-    }
-    // Users only see/send their own enquiries; the Respond action is reserved
-    // for admin/company who reply to them.
-    if (canRespond && !isUserRole) {
-      items.push({
-        key: "respond",
-        label: (
-          <Space align="center">
-            <Icon name="reply" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">Respond</span>
-          </Space>
-        ),
-      });
-    }
-    if (canDelete) {
-      items.push({
-        key: "delete",
-        label: (
-          <Space align="center">
-            <Icon name="delete" size="small" />
-            <span className="C-heading size-xs mb-0 semiBold">Delete</span>
-          </Space>
-        ),
-      });
-    }
-    return items;
-  }, [canView, canRespond, canDelete, isUserRole]);
+  const getActionMenuItems = useCallback(
+    (record) => {
+      const items = [];
+      if (canView) {
+        items.push({
+          key: "view",
+          label: (
+            <Space align="center">
+              <Icon name="visibility" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">View</span>
+            </Space>
+          ),
+        });
+      }
+      const mayReply =
+        canRespond && canReplyToEnquiry(record, { isUser: isUserRole, myId });
+      if (mayReply) {
+        items.push({
+          key: "reply",
+          label: (
+            <Space align="center">
+              <Icon name="reply" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">Reply</span>
+            </Space>
+          ),
+        });
+      }
+      if (canDelete) {
+        items.push({
+          key: "delete",
+          label: (
+            <Space align="center">
+              <Icon name="delete" size="small" />
+              <span className="C-heading size-xs mb-0 semiBold">Delete</span>
+            </Space>
+          ),
+        });
+      }
+      return items;
+    },
+    [canView, canRespond, canDelete, isUserRole, myId]
+  );
 
   const handleMenuClick = useCallback(
-    async (menuInfo, record) => {
+    (menuInfo, record) => {
       const key = menuInfo?.key;
       if (key === "view") return handleView(record);
-      if (key === "respond") return handleRespond(record);
+      if (key === "reply") return handleReply(record);
       if (key === "delete") return handleDelete(record);
     },
-    [handleDelete, handleRespond, handleView]
+    [handleDelete, handleReply, handleView]
   );
 
   const columns = useMemo(
@@ -296,7 +300,7 @@ const EnquiryListing = ({ permissions = {} }) => {
         title: "Title",
         dataIndex: "title",
         key: "title",
-        width: isUserRole ? "25%" : "25%",
+        width: "25%",
         render: (v) => <span className="C-heading size-xs">{v || "—"}</span>,
       };
       const descriptionCol = {
@@ -330,11 +334,12 @@ const EnquiryListing = ({ permissions = {} }) => {
         key: "action",
         width: isUserRole ? "15%" : "10%",
         render: (_, record) => {
-          if (actionMenuItems.length === 0) return null;
+          const rowMenuItems = getActionMenuItems(record);
+          if (rowMenuItems.length === 0) return null;
           return (
             <Dropdown
               menu={{
-                items: actionMenuItems,
+                items: rowMenuItems,
                 onClick: (menuInfo) => handleMenuClick(menuInfo, record),
               }}
               trigger={["hover", "click"]}
@@ -347,81 +352,121 @@ const EnquiryListing = ({ permissions = {} }) => {
         },
       };
 
-      // User view: drop "By" (always themselves) and add a reply count instead.
       if (isUserRole) {
         return [titleCol, descriptionCol, repliesCol, actionCol];
       }
       return [titleCol, descriptionCol, byCol, actionCol];
     },
-    [actionMenuItems, handleMenuClick, isUserRole]
+    [getActionMenuItems, handleMenuClick, isUserRole]
   );
 
-  // For the user role the listing must only contain enquiries this user sent.
-  // Backend may return both sent + received for the same id, so we filter
-  // client-side by the normalized `enquiryFrom` identifier.
   const visibleEnquiries = useMemo(() => {
-    if (!isUserRole) return enquiries;
-    const myId = String(companyId ?? "");
-    if (!myId) return enquiries;
-    return enquiries.filter((record) => getEnquiryFromId(record) === myId);
-  }, [enquiries, isUserRole, companyId]);
+    if (!isUserRole || !myId) return enquiries;
+    return enquiries.filter((record) => {
+      const { userId } = resolveEnquiryParties(record, viewerCtx);
+      return idsMatch(userId, myId);
+    });
+  }, [enquiries, isUserRole, myId, viewerCtx]);
 
-  const threadItems = useMemo(() => {
-    return getThreadItems(selectedEnquiryDetails);
-  }, [selectedEnquiryDetails]);
+  const canReplyInThread = useMemo(() => {
+    if (!canRespond || !selectedEnquiryDetails) return false;
+    return canReplyToEnquiry(selectedEnquiryDetails, { isUser: isUserRole, myId });
+  }, [canRespond, isUserRole, myId, selectedEnquiryDetails]);
 
-  const enquirySenderName = useMemo(() => {
-    const e = selectedEnquiryDetails && typeof selectedEnquiryDetails === "object"
-      ? selectedEnquiryDetails
-      : null;
-    if (!e) return "";
-    return (
-      normalizeName(e.by) ||
-      normalizeName(e.user) ||
-      normalizeName(e.sender) ||
-      normalizeName(e.createdBy) ||
-      ""
-    );
-  }, [selectedEnquiryDetails]);
+  const replyBlockedHint = useMemo(() => {
+    if (!selectedEnquiryDetails || canReplyInThread) return "";
+    return getReplyBlockedHint(isUserRole);
+  }, [canReplyInThread, isUserRole, selectedEnquiryDetails]);
 
-  const submitRespond = useCallback(async () => {
-    if (!selectedEnquiryId) return;
-    if (!responseText.trim()) {
-      message.error("Please enter a response");
+  const threadMessages = useMemo(() => {
+    if (!selectedEnquiryDetails) return [];
+
+    const parties = resolveEnquiryParties(selectedEnquiryDetails, viewerCtx);
+    const thread = buildConversationThread(selectedEnquiryDetails, viewerCtx);
+
+    return thread.map((msg) => {
+      const isOwn = idsMatch(msg.senderId, parties.viewerPartyId);
+      const displayName = isOwn
+        ? "Me"
+        : idsMatch(msg.senderId, parties.userId)
+          ? parties.userName
+          : idsMatch(msg.senderId, parties.companyId)
+            ? parties.companyName
+            : msg.senderName;
+
+      return { ...msg, isOwn, displayName };
+    });
+  }, [selectedEnquiryDetails, viewerCtx]);
+
+  const submitReply = useCallback(async () => {
+    if (!selectedEnquiryId || !replyText.trim()) {
+      message.error("Please enter a message");
       return;
     }
-    if (companyId == null || companyId === "") {
-      message.error("Invalid company id");
+    if (!myId) {
+      message.error("Could not resolve your account. Please log in again.");
       return;
     }
 
-    const responseMessage = responseText.trim();
-    const targetEnquiry = enquiries.find((item) => item.id === selectedEnquiryId);
+    const targetEnquiry =
+      selectedEnquiryDetails ||
+      enquiries.find((item) => String(item.id) === String(selectedEnquiryId));
     if (!targetEnquiry) return;
+
+    if (!canReplyToEnquiry(targetEnquiry, { isUser: isUserRole, myId })) {
+      message.warning(getReplyBlockedHint(isUserRole));
+      return;
+    }
+
+    const responseMessage = replyText.trim();
+    const { enquiry_from, enquiry_to } = buildEnquiryPartiesPayload(targetEnquiry, {
+      myId,
+      isUser: isUserRole,
+    });
+
+    if (!enquiry_from || !enquiry_to) {
+      message.error("Could not resolve sender or recipient for this enquiry.");
+      return;
+    }
+
+    if (idsMatch(enquiry_from, enquiry_to)) {
+      message.error("Sender and recipient cannot be the same.");
+      return;
+    }
 
     setActionLoading(true);
     try {
       await enquiryService.respondToEnquiry(selectedEnquiryId, {
-        enquiry_from: companyId,
-        enquiry_to: targetEnquiry.enquiryFrom,
-        enquiry_for: targetEnquiry.enquiryFor,
+        enquiry_from,
+        enquiry_to,
+        enquiry_for: targetEnquiry.enquiryFor ?? targetEnquiry.enquiry_for,
         title: targetEnquiry.title,
         description: responseMessage,
       });
-      message.success("Response sent successfully");
-      closeModals();
-      fetchEnquiries({ force: true });
+
+      setReplyText("");
+      message.success("Reply sent successfully");
+
+      invalidateEnquiriesListCache(currentUserId);
+      await fetchEnquiries({ force: true });
+      await loadThreadForEnquiry(
+        { ...targetEnquiry, id: selectedEnquiryId },
+        { force: true, refreshOnly: true }
+      );
     } catch (err) {
-      message.error(err?.message || "Failed to send response");
+      message.error(err?.message || "Failed to send reply");
     } finally {
       setActionLoading(false);
     }
   }, [
-    closeModals,
-    companyId,
+    currentUserId,
     enquiries,
     fetchEnquiries,
-    responseText,
+    isUserRole,
+    myId,
+    loadThreadForEnquiry,
+    replyText,
+    selectedEnquiryDetails,
     selectedEnquiryId,
   ]);
 
@@ -436,116 +481,22 @@ const EnquiryListing = ({ permissions = {} }) => {
         scroll={{ x: 900 }}
       />
 
-      {/* View thread modal */}
-      <Modal
-        title={<span className="C-heading size-5 mb-0 bold">Enquiry Thread</span>}
-        open={isViewModalOpen}
-        onCancel={closeModals}
-        footer={null}
-        width={900}
-        centered
-        destroyOnClose
-      >
-        <div>
-            <div className="mb-3">
-              <div className="C-heading size-6 semiBold mb-1">
-                {selectedEnquiryDetails?.title ||
-                  selectedEnquiryDetails?.subject ||
-                  "—"}
-              </div>
-              <div className="color-light text-muted" style={{ whiteSpace: "pre-wrap" }}>
-                {selectedEnquiryDetails?.description ||
-                  selectedEnquiryDetails?.body ||
-                  "—"}
-              </div>
-            </div>
-
-            <div className="border rounded p-3" style={{ maxHeight: 420, overflow: "auto" }}>
-              {threadItems.length === 0 ? (
-                <div className="text-muted">No thread messages found.</div>
-              ) : (
-                <div className="d-flex flex-column gap-2">
-                  {threadItems.map((t, idx) => {
-                    const sender = normalizeThreadSender(t);
-                    const text = normalizeThreadText(t);
-                    return (
-                      <div key={idx} className="border rounded p-2">
-                        <div className="C-heading size-xs semiBold">{sender}</div>
-                        <div style={{ whiteSpace: "pre-wrap" }} className="color-light">
-                          {text || "—"}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-          </div>
-      </Modal>
-
-      {/* Respond modal */}
-      <Modal
-        title={<span className="C-heading size-5 mb-0 bold">Respond to Enquiry</span>}
-        open={isRespondModalOpen}
-        onCancel={closeModals}
-        footer={
-          <div className="d-flex justify-content-end gap-2">
-            <Button className="C-button is-bordered small" onClick={closeModals}>
-              Cancel
-            </Button>
-            <Button
-              type="primary"
-              className="C-button is-filled small"
-              onClick={submitRespond}
-              disabled={!canRespond || actionLoading}
-              loading={actionLoading}
-            >
-              Send Response
-            </Button>
-          </div>
-        }
-        width={900}
-        centered
-        destroyOnClose
-      >
-        <div>
-            <div className="border rounded p-3" style={{ maxHeight: 260, overflow: "auto" }}>
-              {threadItems.length === 0 ? (
-                <div className="text-muted">No thread messages found.</div>
-              ) : (
-                <div className="d-flex flex-column gap-2">
-                  {threadItems.map((t, idx) => {
-                    const sender = normalizeThreadSender(t);
-                    const text = normalizeThreadText(t);
-                    return (
-                      <div key={idx} className="border rounded p-2">
-                        <div className="C-heading size-xs bold">{sender}</div>
-                        <div style={{ whiteSpace: "pre-wrap" }} className="color-light">
-                          {text || "—"}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <div className="mt-3">
-              <div className="C-heading size-xs semiBold mb-2">
-                Response to {enquirySenderName || "User"}
-              </div>
-              <TextArea
-                rows={4}
-                value={responseText}
-                onChange={(e) => setResponseText(e.target.value ?? "")}
-                placeholder="Write your response..."
-              />
-            </div>
-          </div>
-      </Modal>
+      <EnquiryThreadModal
+        open={threadModalOpen}
+        enquiry={selectedEnquiryDetails}
+        messages={threadMessages}
+        loading={threadLoading}
+        refreshing={threadRefreshing}
+        canReply={canReplyInThread}
+        replyHint={replyBlockedHint}
+        replyText={replyText}
+        sending={actionLoading}
+        onReplyTextChange={setReplyText}
+        onSendReply={submitReply}
+        onClose={closeThreadModal}
+      />
     </>
   );
 };
 
 export default EnquiryListing;
-

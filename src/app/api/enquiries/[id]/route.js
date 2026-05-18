@@ -1,6 +1,25 @@
 import { NextResponse } from "next/server";
 import { API_BASE_URL } from "@/constants/api";
 
+export const dynamic = "force-dynamic";
+
+const TOKEN_COOKIE_KEYS = [
+  "access_token",
+  "token",
+  "auth_token",
+  "authToken",
+  "jwt",
+  "id_token",
+];
+
+function getUpstreamApiBaseUrl() {
+  const env = process.env.API_BASE_URL;
+  if (typeof env === "string" && env.trim()) {
+    return env.trim().replace(/\/$/, "");
+  }
+  return API_BASE_URL.replace(/\/$/, "");
+}
+
 function getBearerTokenFromAuthorizationHeader(request) {
   const auth = request.headers.get("authorization");
   if (!auth || typeof auth !== "string") return null;
@@ -27,7 +46,17 @@ function getBearerTokenFromCookieHeader(cookieHeader) {
     return acc;
   }, {});
 
-  return cookies["access_token"] || cookies.access_token || null;
+  for (const key of TOKEN_COOKIE_KEYS) {
+    if (cookies[key]) return cookies[key];
+  }
+  return null;
+}
+
+function isUsableToken(token) {
+  if (!token || typeof token !== "string") return false;
+  const normalized = token.trim().toLowerCase();
+  if (!normalized) return false;
+  return !["undefined", "null", "nan"].includes(normalized);
 }
 
 function resolveBearerToken(request) {
@@ -37,35 +66,47 @@ function resolveBearerToken(request) {
   );
 }
 
+async function readUpstreamBody(response) {
+  const raw = await response.text();
+  if (!raw) return { message: response.statusText || "Empty response" };
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return { message: raw };
+  }
+}
+
 /**
  * GET /api/enquiries/:id
  * Proxy to ${API_BASE_URL}/enquiries/:id
- *
- * Query params are forwarded to upstream so this handler stays correct even
- * when Next.js routing falls through to it for sibling paths like
- * `/api/enquiries/threads?companyId=…` (the static `threads/route.js` is
- * authoritative, but in dev/turbopack a stale routing table can briefly
- * direct that request here, and dropping the query string would cause a 500).
+ * Falls back to threads list when upstream detail fails and companyId is provided.
  */
 export async function GET(request, { params }) {
-  const { id } = params || {};
+  const base = getUpstreamApiBaseUrl();
   try {
+    const { id } = (await params) || {};
     if (!id) {
       return NextResponse.json({ message: "Enquiry id is required." }, { status: 400 });
     }
 
     const token = resolveBearerToken(request);
-    if (!token) {
+    if (!isUsableToken(token)) {
       return NextResponse.json(
         { error: "Unauthorized", message: "Authentication token is required" },
         { status: 401 }
       );
     }
 
-    let url = `${API_BASE_URL}/enquiries/${id}`;
     const { searchParams } = new URL(request.url);
+    const companyId = searchParams.get("companyId")?.trim() || "";
+
+    let url = `${base}/enquiries/${id}`;
     const forwarded = Array.from(searchParams.entries()).filter(
-      ([_, value]) => value !== null && value !== undefined && value !== ""
+      ([key, value]) =>
+        key !== "companyId" &&
+        value !== null &&
+        value !== undefined &&
+        value !== ""
     );
     if (forwarded.length > 0) {
       const qs = new URLSearchParams(forwarded).toString();
@@ -81,24 +122,48 @@ export async function GET(request, { params }) {
       cache: "no-store",
     });
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
+    const data = await readUpstreamBody(response);
+
+    if (response.ok) {
       return NextResponse.json(data, {
         status: response.status,
         statusText: response.statusText,
       });
     }
 
-    const text = await response.text();
-    return NextResponse.json(
-      { message: text || response.statusText },
-      { status: response.status, statusText: response.statusText }
-    );
+    if (companyId) {
+      const threadsUrl = `${base}/enquiries/threads?companyId=${encodeURIComponent(companyId)}`;
+      const threadsResponse = await fetch(threadsUrl, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        cache: "no-store",
+      });
+      const threadsData = await readUpstreamBody(threadsResponse);
+      if (threadsResponse.ok) {
+        const list = Array.isArray(threadsData?.data) ? threadsData.data : [];
+        const found = list.find((item) => String(item?.id) === String(id));
+        if (found) {
+          return NextResponse.json({ data: found }, { status: 200 });
+        }
+      }
+    }
+
+    console.error("GET /api/enquiries/:id upstream non-OK:", response.status, url, data);
+
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
   } catch (error) {
     console.error("GET /api/enquiries/:id proxy error:", error);
     return NextResponse.json(
-      { error: "Internal server error", message: error.message || "Failed to fetch enquiry" },
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to fetch enquiry",
+      },
       { status: 500 }
     );
   }
@@ -106,25 +171,24 @@ export async function GET(request, { params }) {
 
 /**
  * DELETE /api/enquiries/:id
- * Proxy to ${API_BASE_URL}/enquiries/:id
  */
 export async function DELETE(request, { params }) {
-  const { id } = params || {};
+  const base = getUpstreamApiBaseUrl();
   try {
+    const { id } = (await params) || {};
     if (!id) {
       return NextResponse.json({ message: "Enquiry id is required." }, { status: 400 });
     }
 
     const token = resolveBearerToken(request);
-    if (!token) {
+    if (!isUsableToken(token)) {
       return NextResponse.json(
         { error: "Unauthorized", message: "Authentication token is required" },
         { status: 401 }
       );
     }
 
-    const url = `${API_BASE_URL}/enquiries/${id}`;
-    const response = await fetch(url, {
+    const response = await fetch(`${base}/enquiries/${id}`, {
       method: "DELETE",
       headers: {
         Accept: "application/json",
@@ -132,26 +196,20 @@ export async function DELETE(request, { params }) {
       },
     });
 
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      const data = await response.json();
-      return NextResponse.json(data, {
-        status: response.status,
-        statusText: response.statusText,
-      });
-    }
+    const data = await readUpstreamBody(response);
 
-    const text = await response.text();
-    return NextResponse.json(
-      { message: text || response.statusText },
-      { status: response.status, statusText: response.statusText }
-    );
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
   } catch (error) {
     console.error("DELETE /api/enquiries/:id proxy error:", error);
     return NextResponse.json(
-      { error: "Internal server error", message: error.message || "Failed to delete enquiry" },
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to delete enquiry",
+      },
       { status: 500 }
     );
   }
 }
-

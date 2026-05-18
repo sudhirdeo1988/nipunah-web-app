@@ -42,8 +42,8 @@ function resolveBearerToken(request) {
  * Proxy to ${API_BASE_URL}/enquiries/reply/:id
  */
 export async function POST(request, { params }) {
-  const { id } = params || {};
   try {
+    const { id } = (await params) || {};
     if (!id) {
       return NextResponse.json({ message: "Enquiry id is required." }, { status: 400 });
     }

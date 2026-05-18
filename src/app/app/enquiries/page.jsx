@@ -14,7 +14,7 @@ const EnquiriesPage = () => {
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
       <AppPageHeader
         title="Enquiries"
-        subtitle="View and respond to user enquiries"
+        subtitle="View enquiry threads and reply in conversation"
       />
       <div className="p-3">
         <EnquiryListing permissions={permissions} />
