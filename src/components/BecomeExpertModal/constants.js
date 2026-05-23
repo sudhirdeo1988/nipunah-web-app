@@ -12,10 +12,12 @@ export const EMPLOYMENT_TYPES = [
 
 /** Default form initial values */
 export const INITIAL_VALUES = {
+  about: "",
   workExperience: [
     {
       jobTitle: "",
       employmentType: undefined,
+      jobDescription: "",
       company: "",
       isCurrentJob: false,
       // Internal-only: month pickers; submitted as `fromDate` / `toDate` strings ("MMM YYYY").
@@ -28,7 +30,6 @@ export const INITIAL_VALUES = {
     {
       title: "",
       schoolCollege: "",
-      isCurrentlyServing: false,
       // Internal-only pickers → API `fromDate` / `toDate` on submit.
       timePeriodFrom: undefined,
       timePeriodTo: undefined,

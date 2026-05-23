@@ -31,7 +31,6 @@ import {
   Table,
   Modal,
   Dropdown,
-  Switch,
 } from "antd";
 import { ACTION_MENU_ITEMS } from "../../constants/expertConstants";
 
@@ -71,13 +70,11 @@ const ExpertUserListing = ({
   onEditExpert,
   onDeleteExpert,
   onFetchExperts,
-  onUpdateApprovalStatus,
   permissions = {},
 }) => {
   const canView = Boolean(permissions.view);
   const canEdit = Boolean(permissions.edit);
   const canDelete = Boolean(permissions.delete);
-  const canApprove = Boolean(permissions.approve);
 
   const getActionMenuItems = useCallback(() => {
     const permMap = { view: canView, edit: canEdit, delete: canDelete };
@@ -121,15 +118,6 @@ const ExpertUserListing = ({
 
   /** @type {[Object|null, Function]} Expert object for applied jobs view */
   const [expertForAppliedJobs, setExpertForAppliedJobs] = useState(null);
-
-  /** @type {[boolean, Function]} Controls approval confirmation modal visibility */
-  const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-
-  /** @type {[Object|null, Function]} Expert object for approval status change */
-  const [expertForApproval, setExpertForApproval] = useState(null);
-
-  /** @type {[boolean, Function]} New approval status to be set */
-  const [newApprovalStatus, setNewApprovalStatus] = useState(false);
 
   // ==================== DEBOUNCE REF ====================
   const searchDebounceTimerRef = useRef(null);
@@ -378,75 +366,6 @@ const ExpertUserListing = ({
   );
 
   /**
-   * Handle approval status switch change
-   * Opens confirmation modal before changing status
-   * @param {boolean} checked - New approval status
-   * @param {Object} record - Expert record
-   */
-  const handleApprovalStatusChange = useCallback((checked, record) => {
-    setExpertForApproval(record);
-    setNewApprovalStatus(checked);
-    setIsApprovalModalOpen(true);
-  }, []);
-
-  /**
-   * Handle confirm approval status change
-   * Calls the API to update approval status
-   */
-  const handleConfirmApproval = useCallback(async () => {
-    if (expertForApproval && onUpdateApprovalStatus) {
-      try {
-        await onUpdateApprovalStatus(expertForApproval.id, newApprovalStatus);
-        setIsApprovalModalOpen(false);
-        setExpertForApproval(null);
-      } catch (error) {
-        // Error is handled in the hook
-        console.error("Error updating approval status:", error);
-      }
-    }
-  }, [expertForApproval, newApprovalStatus, onUpdateApprovalStatus]);
-
-  /**
-   * Handle cancel approval status change
-   * Closes modal without making changes
-   */
-  const handleCancelApproval = useCallback(() => {
-    setIsApprovalModalOpen(false);
-    setExpertForApproval(null);
-  }, []);
-
-  /**
-   * Memoized render function for approval status column
-   * Renders status text and icon first, then switch component
-   */
-  const renderApprovalStatus = useCallback(
-    (isApproved, record) => (
-      <Space size={8} align="center">
-        {isApproved ? (
-          <Space size={4} align="center">
-            <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
-            <span style={{ color: "#52c41a", fontSize: "12px" }}>Approved</span>
-          </Space>
-        ) : (
-          <Space size={4} align="center">
-            <Icon name="warning" size="small" style={{ color: "#ff4d4f" }} />
-            <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Pending</span>
-          </Space>
-        )}
-        {canApprove && (
-          <Switch
-            checked={isApproved}
-            onChange={(checked) => handleApprovalStatusChange(checked, record)}
-            size="small"
-            disabled={loading}
-          />
-        )}
-      </Space>
-    ),
-    [handleApprovalStatusChange, loading, canApprove]
-  );
-
-  /**
    * Memoized render function for applied jobs column
    * Creates clickable number that opens applied jobs modal
    */
@@ -539,14 +458,6 @@ const ExpertUserListing = ({
         sorter: true,
       },
       {
-        title: "Status",
-        dataIndex: "isExpertApproved",
-        key: "isExpertApproved",
-        width: "12%",
-        render: renderApprovalStatus,
-        sorter: true,
-      },
-      {
         title: "Applied Jobs",
         dataIndex: "appliedJobsCount",
         key: "appliedJobsCount",
@@ -581,7 +492,6 @@ const ExpertUserListing = ({
       renderEmail,
       renderExpertise,
       renderSubscriptionPlan,
-      renderApprovalStatus,
       renderAppliedJobs,
       renderCreateDate,
       renderAction,
@@ -854,43 +764,6 @@ const ExpertUserListing = ({
         )}
       </Modal>
 
-      {/* Approval Status Confirmation Modal */}
-      <Modal
-        title={
-          <span className="C-heading size-5 mb-0 bold">
-            {newApprovalStatus ? "Approve Expert" : "Set Expert to Pending"}
-          </span>
-        }
-        open={isApprovalModalOpen}
-        onOk={handleConfirmApproval}
-        onCancel={handleCancelApproval}
-        okText={newApprovalStatus ? "Approve" : "Set to Pending"}
-        cancelText="Cancel"
-        okButtonProps={{
-          className: "C-button is-filled",
-          loading: loading,
-        }}
-        cancelButtonProps={{
-          className: "C-button is-bordered",
-          disabled: loading,
-        }}
-        centered
-        confirmLoading={loading}
-      >
-        <div className="py-3">
-          <p className="C-heading size-6 mb-0">
-            Are you sure you want to{" "}
-            {newApprovalStatus ? "approve" : "set to pending"}{" "}
-            {expertForApproval && (
-              <span className="bold">
-                {expertForApproval.name || expertForApproval.userName || "this expert"}
-              </span>
-            )}
-            ?
-          </p>
-        </div>
-      </Modal>
-
       {/* Applied Jobs Modal */}
       <Modal
         title={
@@ -983,7 +856,6 @@ ExpertUserListing.propTypes = {
   onEditExpert: PropTypes.func,
   onDeleteExpert: PropTypes.func,
   onFetchExperts: PropTypes.func,
-  onUpdateApprovalStatus: PropTypes.func,
 };
 
 // ==================== COMPONENT EXPORT ====================

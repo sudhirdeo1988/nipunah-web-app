@@ -18,16 +18,15 @@ const Dashboard = () => {
   const { user, role, isExpert: isExpertRole } = useNormalizedProfileUser();
   const isUserRole = role === "user";
   const showProfileCard = isUserRole || isExpertRole;
+  const showDashboardWidgets = !isUserRole && !isExpertRole;
   const showAnalyticsOverview =
-    !isUserRole &&
-    !isExpertRole &&
-    user?.dashboard_analytics_overview !== false;
+    showDashboardWidgets && user?.dashboard_analytics_overview !== false;
 
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
       <AppPageHeader
         title="Dashboard"
-        subtitle="Overview of platform activity, stats and analytics"
+        subtitle="Overview of your account and activity"
       />
 
       <div className="p-4">
@@ -49,7 +48,9 @@ const Dashboard = () => {
             )}
           </div>
         )}
-        <DashboardWidgets stats={stats} loading={loading} />
+        {showDashboardWidgets && (
+          <DashboardWidgets stats={stats} loading={loading} />
+        )}
         {showAnalyticsOverview && <AnalyticsOverview />}
       </div>
     </div>

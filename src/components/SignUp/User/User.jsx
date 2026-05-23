@@ -9,9 +9,10 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import {
   RECAPTCHA_SITE_KEY,
-  RECAPTCHA_DUMMY_SITE_KEY,
+  isRecaptchaSiteKeyConfigured,
 } from "@/constants/recaptcha";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import ThankYouModal from "@/components/ThankYouModal";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
@@ -38,7 +39,7 @@ const ReCAPTCHA = dynamic(() => import("react-google-recaptcha"), {
 const UserRegistration = () => {
   const router = useRouter();
   const recaptchaRef = useRef(null);
-  const needsClientCaptcha = RECAPTCHA_SITE_KEY !== RECAPTCHA_DUMMY_SITE_KEY;
+  const needsClientCaptcha = isRecaptchaSiteKeyConfigured();
   const [captchaDone, setCaptchaDone] = useState(false);
   const [form] = Form.useForm();
   const [showThankYouModal, setShowThankYouModal] = useState(false);
@@ -280,6 +281,7 @@ const UserRegistration = () => {
       const captchaErrorCodes = new Set([
         "CaptchaRequired",
         "CaptchaVerificationFailed",
+        "CaptchaMisconfigured",
       ]);
       const isCaptchaFailure =
         status === 400 &&
@@ -437,12 +439,7 @@ const UserRegistration = () => {
                           size="large"
                           style={{ width: "30%" }}
                           options={countryOptions}
-                          filterOption={(input, option) =>
-                            (option?.searchLabel ?? "")
-                              .toString()
-                              .toLowerCase()
-                              .startsWith(input.toLowerCase())
-                          }
+                          filterOption={startsWithSelectFilter}
                           optionFilterProp="label"
                         />
                       </Form.Item>
@@ -498,11 +495,7 @@ const UserRegistration = () => {
                       size="large"
                       showSearch
                       optionFilterProp="label"
-                      filterOption={(input, option) =>
-                        (option?.label || "")
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
+                      filterOption={startsWithSelectFilter}
                       options={countrySelectOptions}
                       prefix={<Icon name="public" isFilled color="#ccc" />}
                     />
@@ -708,27 +701,36 @@ const UserRegistration = () => {
                   </Form.Item>
                 </div>
 
-                <div className="col-12">
-                  <div className="d-flex flex-column align-items-center mt-2 mb-1">
-                    <ReCAPTCHA
-                      ref={recaptchaRef}
-                      sitekey={RECAPTCHA_SITE_KEY}
-                      onChange={(token) => setCaptchaDone(!!token)}
-                      onExpired={() => {
-                        setCaptchaDone(false);
-                        recaptchaRef.current?.reset();
-                      }}
-                    />
-                    {RECAPTCHA_SITE_KEY === RECAPTCHA_DUMMY_SITE_KEY && (
-                      <span className="C-heading size-xs color-light mt-2 text-center px-2">
-                        Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY
-                        in <code className="small">.env</code> (see{" "}
-                        <code className="small">.env.example</code>) to load
-                        reCAPTCHA and require it before register.
-                      </span>
-                    )}
+                {needsClientCaptcha ? (
+                  <div className="col-12">
+                    <div className="d-flex flex-column align-items-center mt-2 mb-1">
+                      <ReCAPTCHA
+                        ref={recaptchaRef}
+                        sitekey={RECAPTCHA_SITE_KEY}
+                        onChange={(token) => setCaptchaDone(!!token)}
+                        onExpired={() => {
+                          setCaptchaDone(false);
+                          recaptchaRef.current?.reset();
+                        }}
+                        onErrored={() => {
+                          setCaptchaDone(false);
+                          message.error(
+                            "reCAPTCHA failed to load. Check your site key and allowed domains in Google reCAPTCHA admin."
+                          );
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="col-12">
+                    <span className="C-heading size-xs color-light mt-2 text-center px-2 d-block">
+                      Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY
+                      in <code className="small">.env</code> (see{" "}
+                      <code className="small">.env.example</code>) to enable
+                      reCAPTCHA before registration.
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

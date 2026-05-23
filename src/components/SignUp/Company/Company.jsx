@@ -24,6 +24,7 @@ import {
 import { map as _map } from "lodash-es";
 import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import ThankYouModal from "@/components/ThankYouModal";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
@@ -31,7 +32,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import {
   RECAPTCHA_SITE_KEY,
-  RECAPTCHA_DUMMY_SITE_KEY,
+  isRecaptchaSiteKeyConfigured,
 } from "@/constants/recaptcha";
 import axiosPublicInstance from "@/utilities/axiosPublicInstance";
 import { useEffect } from "react";
@@ -57,7 +58,7 @@ const Company = () => {
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
   const recaptchaRef = useRef(null);
-  const needsClientCaptcha = RECAPTCHA_SITE_KEY !== RECAPTCHA_DUMMY_SITE_KEY;
+  const needsClientCaptcha = isRecaptchaSiteKeyConfigured();
   const [captchaDone, setCaptchaDone] = useState(false);
   const [logoPreview, setLogoPreview] = useState(null); // Preview image URL
   const [logoUploading, setLogoUploading] = useState(false); // Upload loading state
@@ -261,6 +262,7 @@ const Company = () => {
       const captchaErrorCodes = new Set([
         "CaptchaRequired",
         "CaptchaVerificationFailed",
+        "CaptchaMisconfigured",
       ]);
       const isCaptchaFailure =
         status === 400 &&
@@ -726,12 +728,7 @@ const Company = () => {
                     size="large"
                     style={{ width: "30%" }}
                     options={countryOptions}
-                    filterOption={(input, option) =>
-                      (option?.searchLabel ?? "")
-                        .toString()
-                        .toLowerCase()
-                        .startsWith(input.toLowerCase())
-                    }
+                    filterOption={startsWithSelectFilter}
                     optionFilterProp="label"
                   />
                 </Form.Item>
@@ -837,15 +834,7 @@ const Company = () => {
                               size="large"
                               showSearch
                               optionFilterProp="label"
-                              filterOption={(input, option) => {
-                                const labelText =
-                                  typeof option?.label === "string"
-                                    ? option.label
-                                    : option?.label?.props?.children || "";
-                                return String(labelText)
-                                  .toLowerCase()
-                                  .includes(input.toLowerCase());
-                              }}
+                              filterOption={startsWithSelectFilter}
                               options={_map(countries, (country) => ({
                                 label: (
                                   <span className="C-heading size-6 semiBold mb-0">
@@ -1626,31 +1615,40 @@ const Company = () => {
           </div>
         </div>
 
-        {currentStep === COMPANY_REGISTRATION_LAST_STEP_INDEX && (
-          <div className="row justify-content-center">
-            <div className="col-md-10 col-sm-12">
-              <div className="d-flex flex-column align-items-center mt-2 mb-2">
-                <ReCAPTCHA
-                  ref={recaptchaRef}
-                  sitekey={RECAPTCHA_SITE_KEY}
-                  onChange={(token) => setCaptchaDone(!!token)}
-                  onExpired={() => {
-                    setCaptchaDone(false);
-                    recaptchaRef.current?.reset();
-                  }}
-                />
-                {RECAPTCHA_SITE_KEY === RECAPTCHA_DUMMY_SITE_KEY && (
-                  <span className="C-heading size-xs color-light mt-2 text-center px-2">
-                    Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY
-                    in <code className="small">.env</code> (see{" "}
-                    <code className="small">.env.example</code>) to load
-                    reCAPTCHA and require it before registration.
-                  </span>
-                )}
+        {currentStep === COMPANY_REGISTRATION_LAST_STEP_INDEX &&
+          (needsClientCaptcha ? (
+            <div className="row justify-content-center">
+              <div className="col-md-10 col-sm-12">
+                <div className="d-flex flex-column align-items-center mt-2 mb-2">
+                  <ReCAPTCHA
+                    ref={recaptchaRef}
+                    sitekey={RECAPTCHA_SITE_KEY}
+                    onChange={(token) => setCaptchaDone(!!token)}
+                    onExpired={() => {
+                      setCaptchaDone(false);
+                      recaptchaRef.current?.reset();
+                    }}
+                    onErrored={() => {
+                      setCaptchaDone(false);
+                      message.error(
+                        "reCAPTCHA failed to load. Check your site key and allowed domains in Google reCAPTCHA admin."
+                      );
+                    }}
+                  />
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="row justify-content-center">
+              <div className="col-md-10 col-sm-12">
+                <span className="C-heading size-xs color-light mt-2 text-center px-2 d-block">
+                  Set NEXT_PUBLIC_RECAPTCHA_SITE_KEY and RECAPTCHA_SECRET_KEY in{" "}
+                  <code className="small">.env</code> to enable reCAPTCHA before
+                  registration.
+                </span>
+              </div>
+            </div>
+          ))}
 
         {/* Navigation */}
         <div className="text-center mt-3">

@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server";
-import {
-  RECAPTCHA_DUMMY_SECRET_KEY,
-  RECAPTCHA_DUMMY_SITE_KEY,
-} from "@/constants/recaptcha";
+import { getRecaptchaServerConfig } from "@/lib/recaptchaConfig";
 import { verifyRecaptchaResponse } from "@/lib/verifyRecaptcha";
 
 /**
- * Verifies reCAPTCHA (when not using placeholder keys) and returns the JSON body
+ * Verifies reCAPTCHA (when configured) and returns the JSON body
  * without captcha fields for upstream registration APIs.
  *
  * @param {Record<string, unknown>} body
@@ -39,15 +36,22 @@ export async function verifyAndStripRegisterCaptcha(body) {
         ? recaptchaTokenLegacy.trim()
         : undefined;
 
-  const siteKey =
-    process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ?? RECAPTCHA_DUMMY_SITE_KEY;
-  const secretKey =
-    process.env.RECAPTCHA_SECRET_KEY ?? RECAPTCHA_DUMMY_SECRET_KEY;
-  const skipRecaptchaVerification =
-    siteKey === RECAPTCHA_DUMMY_SITE_KEY &&
-    secretKey === RECAPTCHA_DUMMY_SECRET_KEY;
+  const config = getRecaptchaServerConfig();
 
-  if (!skipRecaptchaVerification) {
+  if (config.misconfigured) {
+    return {
+      ok: false,
+      response: NextResponse.json(
+        {
+          error: "CaptchaMisconfigured",
+          message: config.misconfiguredMessage,
+        },
+        { status: 503 }
+      ),
+    };
+  }
+
+  if (!config.skipVerification) {
     if (!resolvedCaptchaToken) {
       return {
         ok: false,
@@ -63,7 +67,7 @@ export async function verifyAndStripRegisterCaptcha(body) {
     }
 
     const captchaResult = await verifyRecaptchaResponse(resolvedCaptchaToken, {
-      secretKey,
+      secretKey: config.secretKey,
       skipVerification: false,
     });
 

@@ -175,13 +175,6 @@ const ProfilePage = () => {
     [syncExpertAfterSave, router]
   );
 
-  const handleExpertCareerSave = useCallback(
-    async (careerPayload) => {
-      await syncExpertAfterSave(careerPayload);
-    },
-    [syncExpertAfterSave]
-  );
-
   const goToDashboard = useCallback(() => {
     router.push("/app/dashboard");
   }, [router]);
@@ -227,9 +220,7 @@ const ProfilePage = () => {
                 ) : null
               }
             />
-            {isExpert && (
-              <ExpertCareerSection data={user} onSave={handleExpertCareerSave} />
-            )}
+            {isExpert && <ExpertCareerSection data={user} canEdit />}
           </>
         )}
       </div>

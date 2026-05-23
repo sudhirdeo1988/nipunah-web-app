@@ -6,6 +6,7 @@ import PropTypes from "prop-types";
 import { map as _map, groupBy as _groupBy } from "lodash-es";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import { EXPERTS_DATA } from "../../constants/expertsConfig";
@@ -69,6 +70,7 @@ const CreateExpert = memo(
             </span>
           ),
           value: c.dailCode,
+          searchLabel: `${c.countryName} ${c.dailCode}`,
         })),
       []
     );
@@ -263,10 +265,13 @@ const CreateExpert = memo(
                           rules={[{ required: true, message: "Select code" }]}
                         >
                           <Select
+                            showSearch
                             placeholder="Code"
                             size="large"
                             style={{ width: "30%" }}
                             options={countryOptions}
+                            optionFilterProp="label"
+                            filterOption={startsWithSelectFilter}
                           />
                         </Form.Item>
                         <Form.Item
@@ -322,11 +327,7 @@ const CreateExpert = memo(
                         size="large"
                         showSearch
                         optionFilterProp="label"
-                        filterOption={(input, option) =>
-                          (option?.label || "")
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                        }
+                        filterOption={startsWithSelectFilter}
                         options={countrySelectOptions}
                         prefix={<Icon name="public" isFilled color="#ccc" />}
                       />

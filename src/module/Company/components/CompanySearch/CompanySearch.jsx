@@ -7,6 +7,7 @@ import Icon from "@/components/Icon";
 import { useAppSelector } from "@/store/hooks";
 import { map as _map } from "lodash-es";
 import countryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 
 const MIN_SEARCH_LENGTH = 4;
 const COMPANY_TYPE_ALL_VALUE = "all";
@@ -131,12 +132,7 @@ const CompanySearch = ({
               showSearch
               optionFilterProp="label"
               allowClear
-              filterOption={(input, option) =>
-                (option?.label ?? "")
-                  .toString()
-                  .toLowerCase()
-                  .startsWith(input.toLowerCase())
-              }
+              filterOption={startsWithSelectFilter}
               suffixIcon={<Icon name="keyboard_arrow_down" />}
             />
           </Form.Item>

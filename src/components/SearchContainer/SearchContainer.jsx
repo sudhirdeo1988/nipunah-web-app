@@ -8,6 +8,7 @@ import React, {
 import { Input, Select, Form } from "antd";
 import { map as _map } from "lodash-es";
 import Icon from "../Icon";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import "./SearchContainer.scss";
 
 /**
@@ -242,12 +243,7 @@ const SearchContainer = (props) => {
                   id={`search-field-${formFieldValue}`}
                   showSearch
                   optionFilterProp="label"
-                  filterOption={(input, option) =>
-                    (option?.label ?? "")
-                      .toString()
-                      .toLowerCase()
-                      .startsWith(input.toLowerCase())
-                  }
+                  filterOption={startsWithSelectFilter}
                   placeholder={placeholder}
                   variant="borderless"
                   options={options}

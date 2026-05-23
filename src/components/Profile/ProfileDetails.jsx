@@ -20,6 +20,7 @@ import { buildProfileFieldRules } from "@/utilities/profileFormRules";
 import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import "./ProfileDetails.scss";
 
 const { Text } = Typography;
@@ -45,12 +46,6 @@ const setByPath = (obj, path, value) => {
 };
 
 const fieldName = (path) => path.join("__");
-
-/** Lower-cased startsWith filter (used for country dropdowns). */
-const startsWithFilter = (input, option) =>
-  String(option?.label || "")
-    .toLowerCase()
-    .startsWith(String(input || "").toLowerCase());
 
 const ProfileDetails = memo(function ProfileDetails({
   data = {},
@@ -177,11 +172,7 @@ const ProfileDetails = memo(function ProfileDetails({
           placeholder="Select country code"
           options={countryCodeOptions}
           optionFilterProp="label"
-          filterOption={(input, option) =>
-            String(option?.searchLabel || "")
-              .toLowerCase()
-              .startsWith(String(input || "").toLowerCase())
-          }
+          filterOption={startsWithSelectFilter}
           disabled={!!f.readOnly}
         />
       );
@@ -194,7 +185,7 @@ const ProfileDetails = memo(function ProfileDetails({
           placeholder="Select country"
           options={countryOptions}
           optionFilterProp="label"
-          filterOption={startsWithFilter}
+          filterOption={startsWithSelectFilter}
           disabled={!!f.readOnly}
           allowClear
         />

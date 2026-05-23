@@ -6,7 +6,7 @@ import Icon from "@/components/Icon";
 
 const DEFAULT_TITLE = "Thank You!";
 const DEFAULT_MESSAGE =
-  "Thank you for submitting your profile. We're reviewing it now. High traffic is causing a slight delay, and the process may take longer than expected. Thank you for your patience.";
+  "Thank you! Your Profile has been upgraded to Expert Successfully. Please login again";
 
 /**
  * ThankYouModal Component

@@ -17,6 +17,7 @@ import {
 } from "antd";
 import Icon from "@/components/Icon";
 import countryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
@@ -372,16 +373,19 @@ const CreateCompanyModal = memo(({ isOpen, onCancel, onSubmit }) => {
                       { required: true, message: "Please select country" },
                     ]}
                   >
-                    <Select placeholder="Select country" showSearch>
-                      {countryDetails.map((country) => (
-                        <Select.Option
-                          key={country.countryName}
-                          value={country.countryName}
-                        >
-                          {country.countryName}
-                        </Select.Option>
-                      ))}
-                    </Select>
+                    <Select
+                      placeholder="Select country"
+                      showSearch
+                      optionFilterProp="label"
+                      filterOption={startsWithSelectFilter}
+                      options={(Array.isArray(countryDetails)
+                        ? countryDetails
+                        : []
+                      ).map((country) => ({
+                        label: country.countryName,
+                        value: country.countryName,
+                      }))}
+                    />
                   </Form.Item>
                 </Col>
                 <Col span={8}>

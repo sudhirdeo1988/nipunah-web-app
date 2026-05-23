@@ -1,8 +1,9 @@
 "use client";
 
-import React, { memo, useCallback, useMemo, useState } from "react";
-import { Button, Card, Col, Divider, Row, Space, Tag, Typography, message } from "antd";
-import BecomeExpertModal from "@/components/BecomeExpertModal";
+import React, { memo, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Button, Card, Col, Divider, Row, Space, Tag, Typography } from "antd";
+import { ROUTES } from "@/constants/routes";
 import { EMPLOYMENT_TYPES } from "@/components/BecomeExpertModal/constants";
 import {
   isExpertProfileNormalized,
@@ -26,14 +27,13 @@ function formatDurationLine(entry, legacyKey) {
 }
 
 /**
- * Expert-only: read-only career summary + modal editor (same fields as become-expert).
+ * Expert-only: read-only career summary; edit opens dedicated profile sub-page.
  */
 const ExpertCareerSection = memo(function ExpertCareerSection({
   data = {},
-  onSave,
+  canEdit = true,
 }) {
-  const [modalOpen, setModalOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const router = useRouter();
 
   const normalized = useMemo(() => {
     if (!data || typeof data !== "object") return {};
@@ -42,34 +42,6 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
   const workExperience = normalized.workExperience ?? [];
   const education = normalized.education ?? [];
   const skills = normalized.skills ?? [];
-
-  const modalInitialValues = useMemo(
-    () => ({
-      workExperience,
-      education,
-      skills: skills.length ? skills : [""],
-    }),
-    [workExperience, education, skills]
-  );
-
-  const handleSubmit = useCallback(
-    async (payload) => {
-      if (typeof onSave !== "function") return;
-      setSaving(true);
-      try {
-        await onSave(payload);
-        message.success("Experience and education saved.");
-        setModalOpen(false);
-      } catch (e) {
-        throw e;
-      } finally {
-        setSaving(false);
-      }
-    },
-    [onSave]
-  );
-
-  const canEdit = typeof onSave === "function";
 
   return (
     <>
@@ -80,7 +52,12 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
               Experience &amp; education
             </Typography.Title>
             {canEdit ? (
-              <Button type="primary" onClick={() => setModalOpen(true)}>
+              <Button
+                type="primary"
+                onClick={() =>
+                  router.push(ROUTES.PRIVATE.PROFILE_EXPERIENCE_EDUCATION)
+                }
+              >
                 Edit experience &amp; education
               </Button>
             ) : null}
@@ -102,15 +79,23 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
             )}
           </Card>
 
+          {normalized.about ? (
+            <Card size="small" className="profileDetails__sectionCard">
+              <h4 className="profileDetails__sectionTitle">About</h4>
+              <Divider className="profileDetails__sectionDivider" />
+              <pre className="profileDetails__viewValue">{normalized.about}</pre>
+            </Card>
+          ) : null}
+
           <Card size="small" className="profileDetails__sectionCard">
-            <h4 className="profileDetails__sectionTitle">Work experience</h4>
+            <h4 className="profileDetails__sectionTitle">Work Experience</h4>
             <Divider className="profileDetails__sectionDivider" />
             {workExperience.length ? (
               <Space orientation="vertical" size={16} style={{ width: "100%" }}>
                 {workExperience.map((w, i) => (
                   <Row gutter={[16, 8]} key={`we-${i}`}>
                     <Col xs={24} md={12}>
-                      <Text className="profileDetails__viewLabel">Job title</Text>
+                      <Text className="profileDetails__viewLabel">Job Title</Text>
                       <pre className="profileDetails__viewValue">
                         {w?.jobTitle || "—"}
                       </pre>
@@ -123,7 +108,7 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
                     </Col>
                     <Col xs={24} md={12}>
                       <Text className="profileDetails__viewLabel">
-                        Employment type
+                        Employment Type
                       </Text>
                       <pre className="profileDetails__viewValue">
                         {employmentLabel(w?.employmentType)}
@@ -135,6 +120,16 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
                         {formatDurationLine(w, "companyWorkDuration")}
                       </pre>
                     </Col>
+                    {w?.jobDescription || w?.job_description ? (
+                      <Col xs={24}>
+                        <Text className="profileDetails__viewLabel">
+                          Job Description
+                        </Text>
+                        <pre className="profileDetails__viewValue">
+                          {w.jobDescription || w.job_description}
+                        </pre>
+                      </Col>
+                    ) : null}
                     {w?.isCurrentJob ? (
                       <Col xs={24}>
                         <Tag color="blue">Current job</Tag>
@@ -172,16 +167,11 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
                       </pre>
                     </Col>
                     <Col xs={24} md={12}>
-                      <Text className="profileDetails__viewLabel">Time period</Text>
+                      <Text className="profileDetails__viewLabel">Time Period</Text>
                       <pre className="profileDetails__viewValue">
                         {formatDurationLine(ed, "timePeriod")}
                       </pre>
                     </Col>
-                    {ed?.isCurrentlyServing ? (
-                      <Col xs={24}>
-                        <Tag color="geekblue">Currently studying here</Tag>
-                      </Col>
-                    ) : null}
                     {ed?.description ? (
                       <Col xs={24}>
                         <Text className="profileDetails__viewLabel">
@@ -203,19 +193,6 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
           </Card>
         </div>
       </div>
-
-      {modalOpen ? (
-        <BecomeExpertModal
-          open
-          title="Edit experience & education"
-          okText="Save"
-          onCancel={() => !saving && setModalOpen(false)}
-          initialValues={modalInitialValues}
-          onSubmit={handleSubmit}
-          closeAfterSubmit={false}
-          successMessage={null}
-        />
-      ) : null}
     </>
   );
 });

@@ -6,7 +6,7 @@ export const DASHBOARD_ROUTES = {
     {
       route: ROUTES?.PRIVATE?.DASHBOARD,
       label: "Dashboard",
-      subHeading: "Overview of your application and key metrics",
+      subHeading: "Overview of your account and activity",
       id: "dashboard-1",
       icon: "dashboard",
       moduleKey: "dashboard",

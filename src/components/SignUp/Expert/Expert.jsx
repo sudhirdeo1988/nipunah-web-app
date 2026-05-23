@@ -7,6 +7,7 @@ import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import ThankYouModal from "@/components/ThankYouModal";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
@@ -73,6 +74,7 @@ const ExpertRegistration = () => {
           </span>
         ),
         value: c.dailCode,
+        searchLabel: `${c.countryName} ${c.dailCode}`,
       })),
     []
   );
@@ -337,10 +339,13 @@ const ExpertRegistration = () => {
                         rules={[{ required: true, message: "Select code" }]}
                       >
                         <Select
+                          showSearch
                           placeholder="Code"
                           size="large"
                           style={{ width: "30%" }}
                           options={countryOptions}
+                          optionFilterProp="label"
+                          filterOption={startsWithSelectFilter}
                         />
                       </Form.Item>
                       <Form.Item
@@ -395,11 +400,7 @@ const ExpertRegistration = () => {
                       size="large"
                       showSearch
                       optionFilterProp="label"
-                      filterOption={(input, option) =>
-                        (option?.label || "")
-                          .toLowerCase()
-                          .includes(input.toLowerCase())
-                      }
+                      filterOption={startsWithSelectFilter}
                       options={countrySelectOptions}
                       prefix={<Icon name="public" isFilled color="#ccc" />}
                     />

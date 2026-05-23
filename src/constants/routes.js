@@ -28,6 +28,7 @@ export const ROUTES = {
     ENQUIRIES: "/app/enquiries",
     SETTINGS: "/app/settings",
     PROFILE: "/app/profile",
+    PROFILE_EXPERIENCE_EDUCATION: "/app/profile/experience-education",
     CHANGE_PASSWORD: "/app/changepassword",
     SUBSCRIPTION_DETAILS: "/app/subscription-details",
     SEC_COMPANY: {

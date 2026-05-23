@@ -116,13 +116,13 @@ const SETTINGS_SUBMENU_ITEMS = [
  * User settings dropdown component.
  * Displays user profile and actions: Profile, Settings (hover submenu: Change password, Subscription details), Logout.
  *
- * Note: the "Subscription details" entry is hidden for the regular `user`
- * role — subscriptions are a company/expert/admin concept only.
+ * Note: the "Subscription details" entry is hidden for `user` and `expert`
+ * roles — company/admin only.
  */
 const UserSettingsDropdown = memo(({ onClose }) => {
   const router = useRouter();
   const { logout } = useLogout();
-  const { isUser } = useRole();
+  const { isUser, isExpert } = useRole();
   const user = useAppSelector((state) => state.user.user);
   const { line1, roleLabel, email, initials, avatarUrl } = useMemo(
     () => getHeaderUserDisplay(user),
@@ -130,11 +130,13 @@ const UserSettingsDropdown = memo(({ onClose }) => {
   );
 
   const visibleSettingsItems = useMemo(() => {
-    const hiddenForUser = new Set(isUser() ? ["SUBSCRIPTION_DETAILS"] : []);
-    return SETTINGS_SUBMENU_ITEMS.filter(
-      (item) => !hiddenForUser.has(item.routeKey)
+    const hiddenForUserOrExpert = new Set(
+      isUser() || isExpert() ? ["SUBSCRIPTION_DETAILS"] : []
     );
-  }, [isUser]);
+    return SETTINGS_SUBMENU_ITEMS.filter(
+      (item) => !hiddenForUserOrExpert.has(item.routeKey)
+    );
+  }, [isUser, isExpert]);
 
   const handleAction = useCallback(
     (route) => {

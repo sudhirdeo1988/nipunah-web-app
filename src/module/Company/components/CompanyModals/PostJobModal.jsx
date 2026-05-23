@@ -60,6 +60,7 @@ import {
 } from "antd";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import { map as _map, find as _find } from "lodash-es";
 import { jobService } from "@/utilities/apiServices";
 import dayjs from "dayjs";
@@ -799,11 +800,7 @@ const PostJobModal = memo(
                     size="large"
                     showSearch
                     optionFilterProp="label"
-                    filterOption={(input, option) =>
-                      (option?.label || "")
-                        .toLowerCase()
-                        .includes(input.toLowerCase())
-                    }
+                    filterOption={startsWithSelectFilter}
                     options={countrySelectOptions}
                   />
                 </Form.Item>

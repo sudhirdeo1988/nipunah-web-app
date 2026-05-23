@@ -105,6 +105,17 @@ export function expertProfileToApiPayload(profile) {
   return result;
 }
 
+/** Career-only form initial values (about, work, education, skills). */
+export function expertCareerFormValues(user) {
+  const u = normalizeExpertUser(user && typeof user === "object" ? user : {});
+  return {
+    about: u.about ?? "",
+    workExperience: u.workExperience?.length ? u.workExperience : undefined,
+    education: u.education?.length ? u.education : undefined,
+    skills: u.skills?.length ? u.skills : undefined,
+  };
+}
+
 /** Basic-info form initial values from stored expert user. */
 export function expertBasicInfoFormValues(user) {
   const u = user && typeof user === "object" ? user : {};

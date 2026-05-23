@@ -32,6 +32,7 @@ import {
 import { EXPERTS_DATA } from "@/module/Experts/constants/expertsConfig";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import { groupBy as _groupBy, map as _map } from "lodash-es";
 import "./BecomeExpertModal.scss";
 
@@ -95,16 +96,19 @@ const normalizeInitialValues = (incoming) => {
         return {
           jobTitle: entry?.jobTitle ?? "",
           employmentType: entry?.employmentType,
+          jobDescription:
+            entry?.jobDescription ?? entry?.job_description ?? "",
           company: entry?.company ?? "",
           isCurrentJob: Boolean(entry?.isCurrentJob),
           companyWorkDurationFrom:
             toDayjs(entry?.companyWorkDurationFrom) ??
             (fromApi && fromApi.isValid() ? fromApi : undefined) ??
             parsed.from,
-          companyWorkDurationTo:
-            toDayjs(entry?.companyWorkDurationTo) ??
-            (toApi && toApi.isValid() ? toApi : undefined) ??
-            parsed.to,
+          companyWorkDurationTo: entry?.isCurrentJob
+            ? undefined
+            : toDayjs(entry?.companyWorkDurationTo) ??
+              (toApi && toApi.isValid() ? toApi : undefined) ??
+              parsed.to,
         };
       })
     : INITIAL_VALUES.workExperience;
@@ -130,7 +134,6 @@ const normalizeInitialValues = (incoming) => {
         return {
           title: entry?.title ?? "",
           schoolCollege: entry?.schoolCollege ?? "",
-          isCurrentlyServing: Boolean(entry?.isCurrentlyServing),
           timePeriodFrom:
             toDayjs(entry?.timePeriodFrom) ??
             (fromApi && fromApi.isValid() ? fromApi : undefined) ??
@@ -153,6 +156,7 @@ const normalizeInitialValues = (incoming) => {
     : [];
 
   return {
+    about: base.about ?? "",
     workExperience,
     skills: rawSkills.length ? rawSkills : INITIAL_VALUES.skills,
     education,
@@ -164,11 +168,6 @@ const normalizeInitialValues = (incoming) => {
  * Handles: Work Experience, Roles & Responsibilities, Skills, Education.
  * Loading and error states included. Pass onSubmit and API base URL or use default.
  */
-const startsWithFilter = (input, option) =>
-  String(option?.label || "")
-    .toLowerCase()
-    .startsWith(String(input || "").toLowerCase());
-
 const BecomeExpertModal = ({
   open,
   onCancel,
@@ -257,15 +256,20 @@ const BecomeExpertModal = ({
 
         const workExperience = Array.isArray(workRows)
           ? workRows.map((entry) => {
+              const isCurrentJob = Boolean(entry?.isCurrentJob);
               const fromD = toDayjs(entry?.companyWorkDurationFrom);
-              const toD = toDayjs(entry?.companyWorkDurationTo);
+              const toD = isCurrentJob
+                ? null
+                : toDayjs(entry?.companyWorkDurationTo);
               return {
                 jobTitle: entry?.jobTitle ?? "",
                 employmentType: entry?.employmentType,
+                job_description:
+                  entry?.jobDescription ?? entry?.job_description ?? "",
                 company: entry?.company ?? "",
                 fromDate: formatMonthYearToken(fromD) || "",
-                toDate: formatMonthYearToken(toD) || "",
-                isCurrentJob: Boolean(entry?.isCurrentJob),
+                toDate: isCurrentJob ? "" : formatMonthYearToken(toD) || "",
+                isCurrentJob,
               };
             })
           : [];
@@ -279,11 +283,11 @@ const BecomeExpertModal = ({
             fromDate: formatMonthYearToken(fromD) || "",
             toDate: formatMonthYearToken(toD) || "",
             description: e?.description ?? "",
-            isCurrentlyServing: Boolean(e?.isCurrentlyServing),
           };
         });
 
         const payload = {
+          about: merged.about ?? values.about ?? "",
           workExperience,
           skills: (values.skills ?? []).filter(Boolean),
           education,
@@ -367,11 +371,11 @@ const BecomeExpertModal = ({
         {includeBasicInfo ? (
           <>
             <div className="becomeExpertModal__section">
-              <h4 className="becomeExpertModal__sectionTitle">Basic information</h4>
+              <h4 className="becomeExpertModal__sectionTitle">Basic Information</h4>
               <div className="becomeExpertModal__twoColRow">
                 <Form.Item
                   name="first_name"
-                  label="First name"
+                  label="First Name"
                   rules={EXPERT_BASIC_FORM_RULES.first_name}
                   required
                 >
@@ -379,7 +383,7 @@ const BecomeExpertModal = ({
                 </Form.Item>
                 <Form.Item
                   name="last_name"
-                  label="Last name"
+                  label="Last Name"
                   rules={EXPERT_BASIC_FORM_RULES.last_name}
                   required
                 >
@@ -407,7 +411,7 @@ const BecomeExpertModal = ({
               <Form.Item name="username" label="Username" hidden>
                 <Input disabled />
               </Form.Item>
-              <Form.Item label="Contact number" required>
+              <Form.Item label="Contact Number" required>
                 <Space.Compact block>
                   <Form.Item
                     name="contact_country_code"
@@ -420,11 +424,7 @@ const BecomeExpertModal = ({
                       style={{ width: "38%" }}
                       options={countryCodeOptions}
                       optionFilterProp="label"
-                      filterOption={(input, option) =>
-                        String(option?.searchLabel || "")
-                          .toLowerCase()
-                          .startsWith(String(input || "").toLowerCase())
-                      }
+                      filterOption={startsWithSelectFilter}
                     />
                   </Form.Item>
                   <Form.Item
@@ -457,7 +457,7 @@ const BecomeExpertModal = ({
                     placeholder="Select country"
                     options={countryOptions}
                     optionFilterProp="label"
-                    filterOption={startsWithFilter}
+                    filterOption={startsWithSelectFilter}
                   />
                 </Form.Item>
                 <Form.Item
@@ -480,7 +480,7 @@ const BecomeExpertModal = ({
                 </Form.Item>
                 <Form.Item
                   name={["address", "postal_code"]}
-                  label="Postal code"
+                  label="Postal Code"
                   normalize={digitsOnlyNormalize(10)}
                   rules={EXPERT_ADDRESS_FORM_RULES.postal_code}
                   required
@@ -502,6 +502,15 @@ const BecomeExpertModal = ({
           </>
         ) : null}
 
+        <div className="becomeExpertModal__section">
+          <h4 className="becomeExpertModal__sectionTitle">About</h4>
+          <Form.Item name="about" label="About">
+            <TextArea rows={4} placeholder="Tell us about yourself" />
+          </Form.Item>
+        </div>
+
+        <Divider />
+
         {/* Work Experience (multiple, with delete; at least one block) */}
         <div className="becomeExpertModal__section">
           <h4 className="becomeExpertModal__sectionTitle">Work Experience</h4>
@@ -517,13 +526,13 @@ const BecomeExpertModal = ({
                       <Form.Item
                         {...rest}
                         name={[name, "jobTitle"]}
-                        label="Job title"
+                        label="Job Title"
                       >
                         <Input placeholder="e.g. Senior Engineer" />
                       </Form.Item>
                       <Form.Item
                         name={[name, "employmentType"]}
-                        label="Employment type"
+                        label="Employment Type"
                       >
                         <Select
                           placeholder="Select type"
@@ -533,6 +542,12 @@ const BecomeExpertModal = ({
                       </Form.Item>
                     </div>
                     <Form.Item
+                      name={[name, "jobDescription"]}
+                      label="Job Description"
+                    >
+                      <TextArea rows={3} placeholder="Describe your role and responsibilities" />
+                    </Form.Item>
+                    <Form.Item
                       name={[name, "company"]}
                       label="Company"
                     >
@@ -540,7 +555,7 @@ const BecomeExpertModal = ({
                     </Form.Item>
                     <div className="becomeExpertModal__fieldGroup">
                       <div className="becomeExpertModal__fieldGroupTitle">
-                        Company work duration (month &amp; year)
+                        Company Work Duration (Month &amp; Year)
                       </div>
                       <div className="becomeExpertModal__twoColRow">
                         <Form.Item
@@ -557,60 +572,97 @@ const BecomeExpertModal = ({
                           />
                         </Form.Item>
                         <Form.Item
-                          name={[name, "companyWorkDurationTo"]}
-                          label="To"
-                          dependencies={[
-                            ["workExperience", name, "companyWorkDurationFrom"],
-                          ]}
-                          rules={[
-                            ({ getFieldValue }) => ({
-                              validator(_, value) {
-                                const to = toDayjs(value);
-                                if (!to) return Promise.resolve();
-                                const from = toDayjs(
-                                  getFieldValue([
+                          noStyle
+                          shouldUpdate={(prev, cur) =>
+                            prev?.workExperience?.[name]?.isCurrentJob !==
+                            cur?.workExperience?.[name]?.isCurrentJob
+                          }
+                        >
+                          {() => {
+                            const isCurrentJob = Boolean(
+                              form.getFieldValue([
+                                "workExperience",
+                                name,
+                                "isCurrentJob",
+                              ])
+                            );
+                            return (
+                              <Form.Item
+                                name={[name, "companyWorkDurationTo"]}
+                                label="To"
+                                dependencies={[
+                                  [
                                     "workExperience",
                                     name,
                                     "companyWorkDurationFrom",
-                                  ])
-                                );
-                                if (
-                                  from &&
-                                  to.startOf("month").isBefore(from.startOf("month"))
-                                ) {
-                                  return Promise.reject(
-                                    new Error(
-                                      "To must be greater than or equal to From"
-                                    )
-                                  );
+                                  ],
+                                  ["workExperience", name, "isCurrentJob"],
+                                ]}
+                                rules={
+                                  isCurrentJob
+                                    ? []
+                                    : [
+                                        ({ getFieldValue }) => ({
+                                          validator(_, value) {
+                                            const to = toDayjs(value);
+                                            if (!to) return Promise.resolve();
+                                            const from = toDayjs(
+                                              getFieldValue([
+                                                "workExperience",
+                                                name,
+                                                "companyWorkDurationFrom",
+                                              ])
+                                            );
+                                            if (
+                                              from &&
+                                              to
+                                                .startOf("month")
+                                                .isBefore(from.startOf("month"))
+                                            ) {
+                                              return Promise.reject(
+                                                new Error(
+                                                  "To must be greater than or equal to From"
+                                                )
+                                              );
+                                            }
+                                            return Promise.resolve();
+                                          },
+                                        }),
+                                      ]
                                 }
-                                return Promise.resolve();
-                              },
-                            }),
-                          ]}
-                        >
-                          <DatePicker
-                            picker="month"
-                            format="MMM YYYY"
-                            placeholder="To month / year"
-                            allowClear
-                            style={{ width: "100%" }}
-                            disabledDate={disableFutureMonths}
-                          />
+                              >
+                                <DatePicker
+                                  picker="month"
+                                  format="MMM YYYY"
+                                  placeholder="To month / year"
+                                  allowClear
+                                  style={{ width: "100%" }}
+                                  disabled={isCurrentJob}
+                                  disabledDate={disableFutureMonths}
+                                />
+                              </Form.Item>
+                            );
+                          }}
                         </Form.Item>
                       </div>
                     </div>
-                    <Form.Item label="Current job">
+                    <Form.Item label="Current Job">
                       <Radio
                         checked={Boolean(
                           form.getFieldValue(["workExperience", name, "isCurrentJob"])
                         )}
                         onChange={() => {
                           const list = form.getFieldValue("workExperience") || [];
-                          const next = list.map((row, idx) => ({
-                            ...row,
-                            isCurrentJob: idx === name,
-                          }));
+                          const next = list.map((row, idx) => {
+                            if (idx === name) {
+                              return {
+                                ...row,
+                                isCurrentJob: true,
+                                companyWorkDurationTo: undefined,
+                              };
+                            }
+                            return { ...row, isCurrentJob: false };
+                          });
                           form.setFieldsValue({ workExperience: next });
                         }}
                       >
@@ -637,6 +689,7 @@ const BecomeExpertModal = ({
                       add({
                         jobTitle: "",
                         employmentType: undefined,
+                        jobDescription: "",
                         company: "",
                         isCurrentJob: false,
                         companyWorkDurationFrom: undefined,
@@ -659,7 +712,7 @@ const BecomeExpertModal = ({
           {/* Skills */}
           <div className="becomeExpertModal__section">
             <h4 className="becomeExpertModal__sectionTitle">
-              Add Skills (text)
+              Add Skills (Text)
             </h4>
             <Form.List name="skills">
               {(fields, { add, remove }) => (
@@ -698,7 +751,7 @@ const BecomeExpertModal = ({
 
           {/* Education */}
           <div className="becomeExpertModal__section">
-            <h4 className="becomeExpertModal__sectionTitle">Education</h4>
+            <h4 className="becomeExpertModal__sectionTitle">Education & Training</h4>
             <Form.List name="education">
               {(fields, { add, remove }) => (
                 <>
@@ -722,7 +775,7 @@ const BecomeExpertModal = ({
                       </div>
                       <div className="becomeExpertModal__fieldGroup">
                         <div className="becomeExpertModal__fieldGroupTitle">
-                          Time period (month &amp; year)
+                          Time Period (Month &amp; Year)
                         </div>
                         <div className="becomeExpertModal__twoColRow">
                           <Form.Item
@@ -784,27 +837,6 @@ const BecomeExpertModal = ({
                           </Form.Item>
                         </div>
                       </div>
-                      <Form.Item label="Currently serving">
-                        <Radio
-                          checked={Boolean(
-                            form.getFieldValue([
-                              "education",
-                              name,
-                              "isCurrentlyServing",
-                            ])
-                          )}
-                          onChange={() => {
-                            const list = form.getFieldValue("education") || [];
-                            const next = list.map((row, idx) => ({
-                              ...row,
-                              isCurrentlyServing: idx === name,
-                            }));
-                            form.setFieldsValue({ education: next });
-                          }}
-                        >
-                          I am currently studying here
-                        </Radio>
-                      </Form.Item>
                       <Form.Item
                         name={[name, "description"]}
                         label="Description"
@@ -830,7 +862,6 @@ const BecomeExpertModal = ({
                         add({
                           title: "",
                           schoolCollege: "",
-                          isCurrentlyServing: false,
                           timePeriodFrom: undefined,
                           timePeriodTo: undefined,
                           description: "",

@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import Icon from "@/components/Icon";
 import { map as _map } from "lodash-es";
 import CountryDetails from "@/utilities/CountryDetails.json";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import {
   EQUIPMENT_TYPES,
   AVAILABLE_FOR_OPTIONS,
@@ -59,6 +60,7 @@ const CreateEquipment = memo(
             </span>
           ),
           value: c.dailCode,
+          searchLabel: `${c.countryName} ${c.dailCode}`,
         })),
       []
     );
@@ -457,11 +459,7 @@ const CreateEquipment = memo(
                   size="large"
                   showSearch
                   optionFilterProp="label"
-                  filterOption={(input, option) =>
-                    (option?.label || "")
-                      .toLowerCase()
-                      .includes(input.toLowerCase())
-                  }
+                  filterOption={startsWithSelectFilter}
                   options={countrySelectOptions}
                   prefix={<Icon name="public" isFilled color="#ccc" />}
                 />
@@ -608,10 +606,13 @@ const CreateEquipment = memo(
                     ]}
                   >
                     <Select
+                      showSearch
                       placeholder="Code"
                       size="large"
                       style={{ width: "30%" }}
                       options={countryOptions}
+                      optionFilterProp="label"
+                      filterOption={startsWithSelectFilter}
                     />
                   </Form.Item>
                   <Form.Item
