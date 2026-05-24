@@ -2,12 +2,10 @@
 
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useAppDispatch } from "@/store/hooks";
 import { setUser } from "@/store/slices/userSlice";
-import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import BecomeExpertModal from "@/components/BecomeExpertModal";
+import ExpertProfileFormLayout from "@/components/BecomeExpertModal/ExpertProfileFormLayout";
 import { expertCareerFormValues } from "@/utilities/expertProfileNormalize";
 import { useNormalizedProfileUser } from "@/hooks/useNormalizedProfileUser";
 import {
@@ -76,29 +74,23 @@ const ExperienceEducationPage = () => {
   }
 
   return (
-    <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
-      <AppPageHeader
-        title="Edit Experience & Education"
-        subtitle="Update your about section, work experience, skills, and education."
-        children={
-          <Button icon={<ArrowLeftOutlined />} onClick={goToProfile}>
-            Back to profile
-          </Button>
-        }
+    <ExpertProfileFormLayout
+      title="Edit Experience & Education"
+      subtitle="Update your about section, work experience, skills, and education & training."
+      onBack={goToProfile}
+      backLabel="Back to Profile"
+    >
+      <BecomeExpertModal
+        variant="page"
+        initialValues={careerInitialValues}
+        onCancel={goToProfile}
+        onSubmit={handleSave}
+        cancelText="Back to Profile"
+        okText="Submit"
+        closeAfterSubmit={false}
+        successMessage="Experience and education updated successfully."
       />
-      <div className="p-4">
-        <BecomeExpertModal
-          variant="page"
-          initialValues={careerInitialValues}
-          onCancel={goToProfile}
-          onSubmit={handleSave}
-          title="Edit Experience & Education"
-          okText="Save"
-          closeAfterSubmit={false}
-          successMessage="Experience and education updated successfully."
-        />
-      </div>
-    </div>
+    </ExpertProfileFormLayout>
   );
 };
 

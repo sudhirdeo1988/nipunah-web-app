@@ -14,22 +14,21 @@ import Icon from "@/components/Icon";
 import { expertService } from "@/utilities/apiServices";
 import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
 import { EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
+import { buildListingSearchTitle } from "@/utilities/listingSearchTitle";
 
 const MIN_SEARCH_LENGTH = 4;
-const DEFAULT_LOCATION = "India";
 const DEFAULT_FILTERS = {
   search: "",
   expertType: "",
-  countrySelect: DEFAULT_LOCATION,
+  countrySelect: "",
 };
 
-/** Parse URL query into filter state. Defaults: location "India". */
+/** Parse URL query into filter state (no preselected defaults). */
 function getFiltersFromSearchParams(searchParams) {
   return {
     search: searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "",
     expertType: searchParams.get(HOME_SEARCH_PARAMS.TYPE) || "",
-    countrySelect:
-      searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || DEFAULT_LOCATION,
+    countrySelect: searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || "",
   };
 }
 
@@ -60,24 +59,18 @@ const ExpertsPage = () => {
     return cat?.label || "";
   }, [filters.expertType]);
 
-  /** Title: "Expert in {search text} {expert type} in {location}" */
-  const searchSectionTitle = useMemo(() => {
-    const typePart = expertTypeLabel;
-    const locationPart = filters.countrySelect?.trim()
-      ? ` in ${filters.countrySelect.trim()}`
-      : "";
-    const hasSearch = filters.search?.trim().length >= MIN_SEARCH_LENGTH;
-    if (hasSearch && typePart) {
-      return `Expert in ${filters.search.trim()} ${typePart}${locationPart}`;
-    }
-    if (hasSearch) {
-      return `Expert in ${filters.search.trim()}${locationPart}`;
-    }
-    if (typePart) {
-      return `Expert in ${typePart}${locationPart}`;
-    }
-    return `Expert in${locationPart}`;
-  }, [filters.search, expertTypeLabel, filters.countrySelect]);
+  const searchSectionTitle = useMemo(
+    () =>
+      buildListingSearchTitle({
+        entityPlural: "Experts",
+        entitySingular: "Expert",
+        search: filters.search,
+        minSearchLength: MIN_SEARCH_LENGTH,
+        typeLabel: expertTypeLabel,
+        location: filters.countrySelect,
+      }),
+    [filters.search, expertTypeLabel, filters.countrySelect]
+  );
 
   /**
    * Fetch experts with search, availableFor, and location.
@@ -240,7 +233,7 @@ const ExpertsPage = () => {
       const next = {
         search: values.search || "",
         expertType: values.expertType || "",
-        countrySelect: values.countrySelect || DEFAULT_LOCATION,
+        countrySelect: values.countrySelect || "",
       };
       setFilters(next);
       fetchExperts(1, pagination.pageSize, next);
@@ -290,23 +283,19 @@ const ExpertsPage = () => {
               </div>
               <div className="col-md-8 col-sm-12 text-right">
                 <Space>
-                  {filters.availableFor &&
-                    filters.availableFor !== AVAILABLE_FOR_ALL && (
-                      <Tag
-                        closable
-                        onClose={() => {
-                          const newFilters = {
-                            ...filters,
-                            availableFor: AVAILABLE_FOR_ALL,
-                          };
-                          setFilters(newFilters);
-                          handleSearch(newFilters);
-                        }}
-                        className="C-tag is-low small"
-                      >
-                        Available for: {filters.availableFor}
-                      </Tag>
-                    )}
+                  {filters.expertType && expertTypeLabel && (
+                    <Tag
+                      closable
+                      onClose={() => {
+                        const newFilters = { ...filters, expertType: "" };
+                        setFilters(newFilters);
+                        handleSearch(newFilters);
+                      }}
+                      className="C-tag is-low small"
+                    >
+                      Expert type: {expertTypeLabel}
+                    </Tag>
+                  )}
                   {filters.countrySelect && (
                     <Tag
                       closable

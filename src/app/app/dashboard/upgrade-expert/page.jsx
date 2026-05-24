@@ -1,20 +1,33 @@
 "use client";
 
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Button, Modal } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
-import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import BecomeExpertModal from "@/components/BecomeExpertModal";
+import ExpertProfileFormLayout from "@/components/BecomeExpertModal/ExpertProfileFormLayout";
 import Icon from "@/components/Icon";
 import { useLogout } from "@/hooks/useLogout";
+import { useNormalizedProfileUser } from "@/hooks/useNormalizedProfileUser";
+import {
+  expertBasicInfoFormValues,
+  expertCareerFormValues,
+} from "@/utilities/expertProfileNormalize";
 
 const BECOME_EXPERT_API = "/api/experts/become-expert";
 
 const UpgradeExpertPage = () => {
   const router = useRouter();
   const { logout } = useLogout();
+  const { user } = useNormalizedProfileUser();
   const [successModalOpen, setSuccessModalOpen] = useState(false);
+
+  const formInitialValues = useMemo(
+    () => ({
+      ...expertBasicInfoFormValues(user),
+      ...expertCareerFormValues(user),
+    }),
+    [user]
+  );
 
   const goToDashboard = useCallback(() => {
     router.push("/app/dashboard");
@@ -47,28 +60,26 @@ const UpgradeExpertPage = () => {
   }, []);
 
   return (
-    <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
-      <AppPageHeader
+    <>
+      <ExpertProfileFormLayout
         title="Upgrade to expert profile"
         subtitle="Share your experience, skills and education to request expert access."
-        children={
-          <Button icon={<ArrowLeftOutlined />} onClick={goToDashboard}>
-            Back to dashboard
-          </Button>
-        }
-      />
-
-      <div className="p-4">
+        onBack={goToDashboard}
+        backLabel="Back to dashboard"
+      >
         <BecomeExpertModal
           variant="page"
+          includeBasicInfo
+          profileData={user}
+          initialValues={formInitialValues}
           onCancel={goToDashboard}
           onSubmit={handleBecomeExpertSubmit}
-          title="Upgrade to expert profile (Free)"
           closeAfterSubmit={false}
           successMessage={null}
+          okText="Submit"
           onSuccess={() => setSuccessModalOpen(true)}
         />
-      </div>
+      </ExpertProfileFormLayout>
 
       <Modal
         open={successModalOpen}
@@ -142,7 +153,7 @@ const UpgradeExpertPage = () => {
           </Button>
         </div>
       </Modal>
-    </div>
+    </>
   );
 };
 

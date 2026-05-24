@@ -200,6 +200,7 @@ const SearchContainer = (props) => {
                   placeholder={placeholder}
                   variant="borderless"
                   options={options}
+                  allowClear
                   className="selectInSearch"
                   suffixIcon={<Icon name="keyboard_arrow_down" />}
                   prefix={hasIcon ? <Icon name={icon} /> : <Icon name="apps" />}
@@ -242,6 +243,7 @@ const SearchContainer = (props) => {
                 <Select
                   id={`search-field-${formFieldValue}`}
                   showSearch
+                  allowClear
                   optionFilterProp="label"
                   filterOption={startsWithSelectFilter}
                   placeholder={placeholder}

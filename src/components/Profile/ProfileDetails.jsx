@@ -57,6 +57,9 @@ const ProfileDetails = memo(function ProfileDetails({
   onEditClick,
   startInEditMode = false,
   headerAction = null,
+  forceEditMode = false,
+  hideHeader = false,
+  onCancelEdit,
 }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -112,12 +115,16 @@ const ProfileDetails = memo(function ProfileDetails({
   };
 
   useEffect(() => {
-    if (!startInEditMode || !canEdit) return;
+    if ((!startInEditMode && !forceEditMode) || !canEdit) return;
     form.setFieldsValue(formInitialValues);
     setEditing(true);
-  }, [startInEditMode, canEdit, form, formInitialValues]);
+  }, [startInEditMode, forceEditMode, canEdit, form, formInitialValues]);
 
   const handleCancel = () => {
+    if (onCancelEdit) {
+      onCancelEdit();
+      return;
+    }
     setEditing(false);
     form.resetFields();
   };
@@ -142,7 +149,9 @@ const ProfileDetails = memo(function ProfileDetails({
         });
       });
       await onSave?.(next);
-      setEditing(false);
+      if (!forceEditMode) {
+        setEditing(false);
+      }
       message.success("Profile updated successfully.");
     } catch (e) {
       message.error(e?.message || "Failed to update profile.");
@@ -244,22 +253,24 @@ const ProfileDetails = memo(function ProfileDetails({
   return (
     <div className="profileDetails">
       <div className="profileDetails__pageCard">
-        <div className="d-flex align-items-center justify-content-between mb-3">
-          <Typography.Title level={4} style={{ margin: 0 }}>
-            {title}
-          </Typography.Title>
-          {headerAction
-            ? headerAction
-            : showEditButton && canEdit && !editing
-            ? (
-              <Button type="primary" onClick={handleEdit}>
-                Edit Profile
-              </Button>
-            )
-            : null}
-        </div>
+        {!hideHeader ? (
+          <div className="d-flex align-items-center justify-content-between mb-3">
+            <Typography.Title level={4} style={{ margin: 0 }}>
+              {title}
+            </Typography.Title>
+            {headerAction
+              ? headerAction
+              : showEditButton && canEdit && !editing
+              ? (
+                <Button type="primary" onClick={handleEdit}>
+                  Edit Profile
+                </Button>
+              )
+              : null}
+          </div>
+        ) : null}
 
-        {!editing ? (
+        {!editing && !forceEditMode ? (
           <div>
             {sections.map((section) => (
               <Card
@@ -324,10 +335,15 @@ const ProfileDetails = memo(function ProfileDetails({
             ))}
             <div className="profileDetails__footer">
               <Button onClick={handleCancel} disabled={saving}>
-                Cancel
+                {onCancelEdit ? "Back to Profile" : "Cancel"}
               </Button>
-              <Button type="primary" htmlType="submit" loading={saving}>
-                Save
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={saving}
+                className="C-button is-filled"
+              >
+                Submit
               </Button>
             </div>
           </Form>

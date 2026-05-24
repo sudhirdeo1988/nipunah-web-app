@@ -11,6 +11,7 @@ import ProfileDetails from "@/components/Profile/ProfileDetails";
 import ExpertCareerSection from "@/components/Profile/ExpertCareerSection";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
 import { useNormalizedProfileUser } from "@/hooks/useNormalizedProfileUser";
+import { ROUTES } from "@/constants/routes";
 
 const Dashboard = () => {
   const router = useRouter();
@@ -38,8 +39,12 @@ const Dashboard = () => {
               sections={isExpertRole ? PROFILE_SCHEMAS.expert : PROFILE_SCHEMAS.user}
               showEditButton={false}
               headerAction={
-                <Button onClick={() => router.push("/app/profile?edit=true")}>
-                  Edit profile
+                <Button
+                  type="primary"
+                  className="C-button is-filled"
+                  onClick={() => router.push(ROUTES.PRIVATE.PROFILE_EDIT)}
+                >
+                  Edit Profile
                 </Button>
               }
             />

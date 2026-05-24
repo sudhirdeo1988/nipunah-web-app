@@ -19,27 +19,26 @@ import {
   setCategoriesLoading,
   setCategoriesError,
 } from "@/store/slices/categoriesSlice";
+import { buildListingSearchTitle } from "@/utilities/listingSearchTitle";
 
 const MIN_SEARCH_LENGTH = 4;
 const COMPANY_TYPE_ALL_VALUE = "all";
-const DEFAULT_LOCATION = "India";
 const DEFAULT_FILTERS = {
   search: "",
-  companyType: COMPANY_TYPE_ALL_VALUE,
-  countrySelect: DEFAULT_LOCATION,
+  companyType: "",
+  countrySelect: "",
 };
 
 /**
  * Parses URL search params into filter state (search, type, location).
- * Default company type is "all".
+ * No preselected defaults — values come only from the URL when present.
  */
 function getFiltersFromSearchParams(searchParams) {
-  const search = searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "";
-  const type =
-    searchParams.get(HOME_SEARCH_PARAMS.TYPE) || COMPANY_TYPE_ALL_VALUE;
-  const location =
-    searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || DEFAULT_LOCATION;
-  return { search, companyType: type, countrySelect: location };
+  return {
+    search: searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "",
+    companyType: searchParams.get(HOME_SEARCH_PARAMS.TYPE) || "",
+    countrySelect: searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || "",
+  };
 }
 
 /** Parse categories from API response */
@@ -120,25 +119,26 @@ const CompanyListPage = () => {
 
   /** Resolve company type label for title */
   const companyTypeLabel = useMemo(() => {
+    if (!filters.companyType) return "";
     const opt = companyTypeOptions.find(
-      (o) => o.value === (filters.companyType || COMPANY_TYPE_ALL_VALUE)
+      (o) => o.value === filters.companyType
     );
-    return opt?.label ?? "All";
+    if (filters.companyType === COMPANY_TYPE_ALL_VALUE) return "";
+    return opt?.label ?? "";
   }, [companyTypeOptions, filters.companyType]);
 
-  /** Search section title: "{type} companies in {location}" (with optional "{search} - " prefix) */
-  const searchSectionTitle = useMemo(() => {
-    const typePart = companyTypeLabel;
-    const locationPart = filters.countrySelect?.trim()
-      ? ` in ${filters.countrySelect.trim()}`
-      : "";
-    const hasSearch =
-      filters.search?.trim().length >= MIN_SEARCH_LENGTH;
-    if (hasSearch) {
-      return `${filters.search.trim()} - ${typePart} companies${locationPart}`;
-    }
-    return `${typePart} companies${locationPart}`;
-  }, [filters.search, companyTypeLabel, filters.countrySelect]);
+  const searchSectionTitle = useMemo(
+    () =>
+      buildListingSearchTitle({
+        entityPlural: "Companies",
+        entitySingular: "Company",
+        search: filters.search,
+        minSearchLength: MIN_SEARCH_LENGTH,
+        typeLabel: companyTypeLabel,
+        location: filters.countrySelect,
+      }),
+    [filters.search, companyTypeLabel, filters.countrySelect]
+  );
 
   /** Fetch companies with current filters */
   const fetchCompanies = useCallback(
@@ -224,7 +224,7 @@ const CompanyListPage = () => {
         type: "select",
         label: "Category",
         formFieldValue: "companyType",
-        defaultValue: filters.companyType || COMPANY_TYPE_ALL_VALUE,
+        defaultValue: filters.companyType,
         placeholder: "Select category",
         options: companyTypeOptions,
         rules: [{ required: true, message: "Category is required" }],
@@ -255,7 +255,7 @@ const CompanyListPage = () => {
       search: values.search || "",
       companyType:
         values.companyType === undefined || values.companyType === null
-          ? COMPANY_TYPE_ALL_VALUE
+          ? ""
           : values.companyType,
       countrySelect: values.countrySelect || "",
     });
@@ -266,8 +266,8 @@ const CompanyListPage = () => {
     (values) => {
       const next = {
         search: values.search || "",
-        companyType: values.companyType || COMPANY_TYPE_ALL_VALUE,
-        countrySelect: values.countrySelect || DEFAULT_LOCATION,
+        companyType: values.companyType || "",
+        countrySelect: values.countrySelect || "",
       };
       setFilters(next);
       setPagination((prev) => ({ ...prev, current: 1 }));

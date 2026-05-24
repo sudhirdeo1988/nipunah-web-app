@@ -13,7 +13,7 @@ import {
   Divider,
   DatePicker,
   message,
-  Radio,
+  Checkbox,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
@@ -182,11 +182,14 @@ const BecomeExpertModal = ({
   initialValues,
   includeBasicInfo = false,
   profileData = null,
+  cancelText,
 }) => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const isPageVariant = variant === "page";
+  const resolvedCancelText =
+    cancelText ?? (isPageVariant ? "Back to dashboard" : "Cancel");
 
   // Normalize once per incoming initialValues so edit flows can pass API
   // `fromDate`/`toDate` strings or legacy `companyWorkDuration` / `timePeriod`.
@@ -504,7 +507,7 @@ const BecomeExpertModal = ({
 
         <div className="becomeExpertModal__section">
           <h4 className="becomeExpertModal__sectionTitle">About</h4>
-          <Form.Item name="about" label="About">
+          <Form.Item name="about">
             <TextArea rows={4} placeholder="Tell us about yourself" />
           </Form.Item>
         </div>
@@ -646,28 +649,33 @@ const BecomeExpertModal = ({
                         </Form.Item>
                       </div>
                     </div>
-                    <Form.Item label="Current Job">
-                      <Radio
-                        checked={Boolean(
-                          form.getFieldValue(["workExperience", name, "isCurrentJob"])
-                        )}
-                        onChange={() => {
+                    <Form.Item
+                      name={[name, "isCurrentJob"]}
+                      valuePropName="checked"
+                      className="mb-0"
+                    >
+                      <Checkbox
+                        onChange={(e) => {
+                          const checked = e.target.checked;
                           const list = form.getFieldValue("workExperience") || [];
                           const next = list.map((row, idx) => {
-                            if (idx === name) {
-                              return {
-                                ...row,
-                                isCurrentJob: true,
-                                companyWorkDurationTo: undefined,
-                              };
+                            if (idx !== name) {
+                              return { ...row, isCurrentJob: false };
                             }
-                            return { ...row, isCurrentJob: false };
+                            const updated = {
+                              ...row,
+                              isCurrentJob: checked,
+                            };
+                            if (checked) {
+                              updated.companyWorkDurationTo = undefined;
+                            }
+                            return updated;
                           });
                           form.setFieldsValue({ workExperience: next });
                         }}
                       >
                         This is my current job
-                      </Radio>
+                      </Checkbox>
                     </Form.Item>
                     <div className="becomeExpertModal__educationActions">
                       <Button
@@ -677,7 +685,7 @@ const BecomeExpertModal = ({
                         onClick={() => remove(name)}
                         disabled={fields.length === 1}
                       >
-                        Delete experience
+                        Delete Experience
                       </Button>
                     </div>
                   </div>
@@ -711,9 +719,7 @@ const BecomeExpertModal = ({
 
           {/* Skills */}
           <div className="becomeExpertModal__section">
-            <h4 className="becomeExpertModal__sectionTitle">
-              Add Skills (Text)
-            </h4>
+            <h4 className="becomeExpertModal__sectionTitle">Skills</h4>
             <Form.List name="skills">
               {(fields, { add, remove }) => (
                 <>
@@ -739,7 +745,7 @@ const BecomeExpertModal = ({
                       block
                       icon={<PlusOutlined />}
                     >
-                      Add Skill
+                      Add Skills
                     </Button>
                   </Form.Item>
                 </>
@@ -850,7 +856,7 @@ const BecomeExpertModal = ({
                           icon={<DeleteOutlined />}
                           onClick={() => remove(name)}
                         >
-                          Delete
+                          Delete Education
                         </Button>
                       </div>
                     </div>
@@ -881,9 +887,14 @@ const BecomeExpertModal = ({
         <div className="becomeExpertModal__footer">
           <Space>
             <Button onClick={handleClose} disabled={loading}>
-              {isPageVariant ? "Back to dashboard" : "Cancel"}
+              {resolvedCancelText}
             </Button>
-            <Button type="primary" htmlType="submit" loading={loading}>
+            <Button
+              type="primary"
+              htmlType="submit"
+              loading={loading}
+              className="C-button is-filled"
+            >
               {okText}
             </Button>
           </Space>

@@ -13,14 +13,14 @@ import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
 import { useEquipment } from "@/module/Equipment/hooks/useEquipment";
 import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
+import { buildListingSearchTitle } from "@/utilities/listingSearchTitle";
 
 const MIN_SEARCH_LENGTH = 4;
 const AVAILABLE_FOR_ALL = "all";
-const DEFAULT_LOCATION = "India";
 const DEFAULT_FILTERS = {
   search: "",
-  availableFor: AVAILABLE_FOR_ALL,
-  countrySelect: DEFAULT_LOCATION,
+  availableFor: "",
+  countrySelect: "",
 };
 
 /** Available for options: Sale, Rent, Lease. All is default. */
@@ -33,15 +33,13 @@ const AVAILABLE_FOR_OPTIONS = [
 
 /**
  * Parse URL query into filter state (search, availableFor, location).
- * Defaults: availableFor "all", location "India".
+ * No preselected defaults — values come only from the URL when present.
  */
 function getFiltersFromSearchParams(searchParams) {
   return {
     search: searchParams.get(HOME_SEARCH_PARAMS.SEARCH) || "",
-    availableFor:
-      searchParams.get(HOME_SEARCH_PARAMS.TYPE) || AVAILABLE_FOR_ALL,
-    countrySelect:
-      searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || DEFAULT_LOCATION,
+    availableFor: searchParams.get(HOME_SEARCH_PARAMS.TYPE) || "",
+    countrySelect: searchParams.get(HOME_SEARCH_PARAMS.LOCATION) || "",
   };
 }
 
@@ -50,8 +48,12 @@ function getFiltersFromSearchParams(searchParams) {
  */
 function buildEquipmentParams(filters, page = 1, limit = 10) {
   const params = { page, limit, search: filters.search || "" };
-  params.availableFor = filters.availableFor || AVAILABLE_FOR_ALL;
-  if (filters.countrySelect) params.location = filters.countrySelect;
+  if (filters.availableFor) {
+    params.availableFor = filters.availableFor;
+  }
+  if (filters.countrySelect?.trim()) {
+    params.location = filters.countrySelect.trim();
+  }
   return params;
 }
 
@@ -71,25 +73,25 @@ const EquipmentListPage = () => {
 
   /** Resolve "Available for" label for title */
   const availableForLabel = useMemo(() => {
+    if (!filters.availableFor) return "";
     const opt = AVAILABLE_FOR_OPTIONS.find(
-      (o) => o.value === (filters.availableFor || AVAILABLE_FOR_ALL)
+      (o) => o.value === filters.availableFor
     );
-    return opt?.label ?? "All";
+    return opt?.label ?? "";
   }, [filters.availableFor]);
 
-  /** Section title: "Equipment {search} - Available for {availableFor} in {location}" */
   const searchSectionTitle = useMemo(() => {
-    const availablePart = availableForLabel;
-    const locationPart = filters.countrySelect?.trim()
-      ? ` in ${filters.countrySelect.trim()}`
-      : "";
-    const hasSearch =
-      filters.search?.trim().length >= MIN_SEARCH_LENGTH;
-    if (hasSearch) {
-      return `Equipment ${filters.search.trim()} - Available for ${availablePart}${locationPart}`;
-    }
-    return `Equipment - Available for ${availablePart}${locationPart}`;
-  }, [filters.search, availableForLabel, filters.countrySelect]);
+    const typeLabel =
+      filters.availableFor === AVAILABLE_FOR_ALL ? "" : availableForLabel;
+    return buildListingSearchTitle({
+      entityPlural: "Equipment",
+      entitySingular: "Equipment",
+      search: filters.search,
+      minSearchLength: MIN_SEARCH_LENGTH,
+      typeLabel,
+      location: filters.countrySelect,
+    });
+  }, [filters.search, availableForLabel, filters.availableFor, filters.countrySelect]);
 
   /* Run search on mount and when filters change */
   useEffect(() => {
@@ -123,7 +125,7 @@ const EquipmentListPage = () => {
         type: "select",
         label: "",
         formFieldValue: "availableFor",
-        defaultValue: filters.availableFor || AVAILABLE_FOR_ALL,
+        defaultValue: filters.availableFor,
         placeholder: "Available for",
         options: AVAILABLE_FOR_OPTIONS,
         rules: [{ required: true, message: "Available for is required" }],
@@ -150,7 +152,7 @@ const EquipmentListPage = () => {
         search: values.search || "",
         availableFor:
           values.availableFor === undefined || values.availableFor === null
-            ? AVAILABLE_FOR_ALL
+            ? ""
             : values.availableFor,
         countrySelect: values.countrySelect || "",
       };
@@ -171,8 +173,8 @@ const EquipmentListPage = () => {
     (values) => {
       const next = {
         search: values.search || "",
-        availableFor: values.availableFor || AVAILABLE_FOR_ALL,
-        countrySelect: values.countrySelect || DEFAULT_LOCATION,
+        availableFor: values.availableFor || "",
+        countrySelect: values.countrySelect || "",
       };
       setFilters(next);
       fetchEquipment(buildEquipmentParams(next, 1, pagination.pageSize));
@@ -221,20 +223,17 @@ const EquipmentListPage = () => {
             </div>
             <div className="col-md-8 col-sm-12 text-right">
               <Space>
-                {filters.availableFor && filters.availableFor !== AVAILABLE_FOR_ALL && (
+                {filters.availableFor && (
                   <Tag
                     closable
                     onClose={() => {
-                      const newFilters = {
-                        ...filters,
-                        availableFor: AVAILABLE_FOR_ALL,
-                      };
+                      const newFilters = { ...filters, availableFor: "" };
                       setFilters(newFilters);
                       handleSearch(newFilters);
                     }}
                     className="C-tag is-low small"
                   >
-                    Available for: {filters.availableFor}
+                    Available for: {availableForLabel || filters.availableFor}
                   </Tag>
                 )}
                 {filters.countrySelect && (
