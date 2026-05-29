@@ -103,6 +103,22 @@ const navItems = [
   { label: "Pricing", href: ROUTES.PUBLIC.SUBSCRIPTION },
 ];
 
+/** Match listing routes and their detail pages (e.g. /experts/16 → Experts active). */
+function isPublicNavLinkActive(href, pathname) {
+  if (!href || !pathname) return false;
+  if (pathname === href) return true;
+  if (href === ROUTES.PUBLIC.EXPERTS && pathname.startsWith("/experts/")) {
+    return true;
+  }
+  if (href === ROUTES.PUBLIC.COMPANIES && pathname.startsWith("/company/")) {
+    return true;
+  }
+  if (href === ROUTES.PUBLIC.EQUIPMENT && pathname.startsWith("/equipment/")) {
+    return true;
+  }
+  return false;
+}
+
 /**
  * Settings submenu items (shown on hover of Settings in profile dropdown).
  * Change password → /app/changepassword; Subscription details → /app/subscription-details.
@@ -281,7 +297,9 @@ const HeaderBeta = memo(() => {
         <li className="d-block" key={label}>
           <Link
             href={href}
-            className={`navLink ${pathname === href ? "active" : ""}`}
+            className={`navLink ${
+              isPublicNavLinkActive(href, pathname) ? "active" : ""
+            }`}
           >
             {label}
           </Link>

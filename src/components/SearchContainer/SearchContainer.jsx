@@ -163,8 +163,15 @@ const SearchContainer = (props) => {
    */
   const renderField = useCallback(
     (fieldConfig, index) => {
-      const { type, formFieldValue, placeholder, options, icon, rules } =
-        fieldConfig;
+      const {
+        type,
+        formFieldValue,
+        placeholder,
+        options,
+        icon,
+        rules,
+        selectProps,
+      } = fieldConfig;
 
       const colClasses = getColumnClasses(index);
       const hasIcon = icon && icon.trim() !== "";
@@ -204,6 +211,9 @@ const SearchContainer = (props) => {
                   className="selectInSearch"
                   suffixIcon={<Icon name="keyboard_arrow_down" />}
                   prefix={hasIcon ? <Icon name={icon} /> : <Icon name="apps" />}
+                  {...(selectProps && typeof selectProps === "object"
+                    ? selectProps
+                    : {})}
                 />
               </Form.Item>
             </div>

@@ -9,6 +9,7 @@ import {
   isExpertProfileNormalized,
   normalizeExpertUser,
 } from "@/utilities/expertProfileNormalize";
+import { sortWorkExperienceByFromDateDesc } from "@/utilities/expertPublicProfile";
 import "./ProfileDetails.scss";
 
 const { Text } = Typography;
@@ -45,7 +46,10 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
     if (!data || typeof data !== "object") return {};
     return isExpertProfileNormalized(data) ? data : normalizeExpertUser(data);
   }, [data]);
-  const workExperience = normalized.workExperience ?? [];
+  const workExperience = useMemo(
+    () => sortWorkExperienceByFromDateDesc(normalized.workExperience ?? []),
+    [normalized.workExperience],
+  );
   const education = normalized.education ?? [];
   const skills = normalized.skills ?? [];
   const aboutText =
@@ -83,51 +87,58 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
           <h4 className="profileDetails__sectionTitle">Work Experience</h4>
           <Divider className="profileDetails__sectionDivider" />
           {workExperience.length ? (
-            <Space orientation="vertical" size={16} style={{ width: "100%" }}>
+            <div className="profileDetails__entryList">
               {workExperience.map((w, i) => (
-                <Row gutter={[16, 8]} key={`we-${i}`}>
-                  <Col xs={24} md={12}>
-                    <Text className="profileDetails__viewLabel">Job Title</Text>
-                    <pre className="profileDetails__viewValue">
-                      {valueOrDash(w?.jobTitle)}
-                    </pre>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Text className="profileDetails__viewLabel">
-                      Employment Type
-                    </Text>
-                    <pre className="profileDetails__viewValue">
-                      {employmentLabel(w?.employmentType)}
-                    </pre>
-                  </Col>
-                  <Col xs={24}>
-                    <Text className="profileDetails__viewLabel">
-                      Job Description
-                    </Text>
-                    <pre className="profileDetails__viewValue">
-                      {valueOrDash(w?.jobDescription || w?.job_description)}
-                    </pre>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Text className="profileDetails__viewLabel">Company</Text>
-                    <pre className="profileDetails__viewValue">
-                      {valueOrDash(w?.company)}
-                    </pre>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Text className="profileDetails__viewLabel">Duration</Text>
-                    <pre className="profileDetails__viewValue">
-                      {formatDurationLine(w, "companyWorkDuration")}
-                    </pre>
-                  </Col>
-                  {w?.isCurrentJob ? (
-                    <Col xs={24}>
-                      <Tag color="blue">Current Job</Tag>
-                    </Col>
+                <React.Fragment key={`we-${i}`}>
+                  {i > 0 ? (
+                    <Divider className="profileDetails__entrySeparator" />
                   ) : null}
-                </Row>
+                  <div className="profileDetails__entryItem">
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Job Title</Text>
+                      <pre className="profileDetails__viewValue">
+                        {valueOrDash(w?.jobTitle)}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">
+                        Employment Type
+                      </Text>
+                      <pre className="profileDetails__viewValue">
+                        {employmentLabel(w?.employmentType)}
+                      </pre>
+                    </Col>
+                    <Col xs={24}>
+                      <Text className="profileDetails__viewLabel">
+                        Job Description
+                      </Text>
+                      <pre className="profileDetails__viewValue">
+                        {valueOrDash(w?.jobDescription || w?.job_description)}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Company</Text>
+                      <pre className="profileDetails__viewValue">
+                        {valueOrDash(w?.company)}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Duration</Text>
+                      <pre className="profileDetails__viewValue">
+                        {formatDurationLine(w, "companyWorkDuration")}
+                      </pre>
+                    </Col>
+                    {w?.isCurrentJob ? (
+                      <Col xs={24}>
+                        <Tag color="blue">Current Job</Tag>
+                      </Col>
+                    ) : null}
+                  </Row>
+                  </div>
+                </React.Fragment>
               ))}
-            </Space>
+            </div>
           ) : (
             <Text className="profileDetails__viewValue" type="secondary">
               —
@@ -155,38 +166,45 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
           <h4 className="profileDetails__sectionTitle">Education &amp; Training</h4>
           <Divider className="profileDetails__sectionDivider" />
           {education.length ? (
-            <Space orientation="vertical" size={16} style={{ width: "100%" }}>
+            <div className="profileDetails__entryList">
               {education.map((ed, i) => (
-                <Row gutter={[16, 8]} key={`ed-${i}`}>
-                  <Col xs={24} md={12}>
-                    <Text className="profileDetails__viewLabel">Title</Text>
-                    <pre className="profileDetails__viewValue">
-                      {valueOrDash(ed?.title)}
-                    </pre>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Text className="profileDetails__viewLabel">
-                      School/College
-                    </Text>
-                    <pre className="profileDetails__viewValue">
-                      {valueOrDash(ed?.schoolCollege)}
-                    </pre>
-                  </Col>
-                  <Col xs={24} md={12}>
-                    <Text className="profileDetails__viewLabel">Time Period</Text>
-                    <pre className="profileDetails__viewValue">
-                      {formatDurationLine(ed, "timePeriod")}
-                    </pre>
-                  </Col>
-                  <Col xs={24}>
-                    <Text className="profileDetails__viewLabel">Description</Text>
-                    <pre className="profileDetails__viewValue">
-                      {valueOrDash(ed?.description)}
-                    </pre>
-                  </Col>
-                </Row>
+                <React.Fragment key={`ed-${i}`}>
+                  {i > 0 ? (
+                    <Divider className="profileDetails__entrySeparator" />
+                  ) : null}
+                  <div className="profileDetails__entryItem">
+                  <Row gutter={[16, 8]}>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Title</Text>
+                      <pre className="profileDetails__viewValue">
+                        {valueOrDash(ed?.title)}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">
+                        School/College
+                      </Text>
+                      <pre className="profileDetails__viewValue">
+                        {valueOrDash(ed?.schoolCollege)}
+                      </pre>
+                    </Col>
+                    <Col xs={24} md={12}>
+                      <Text className="profileDetails__viewLabel">Time Period</Text>
+                      <pre className="profileDetails__viewValue">
+                        {formatDurationLine(ed, "timePeriod")}
+                      </pre>
+                    </Col>
+                    <Col xs={24}>
+                      <Text className="profileDetails__viewLabel">Description</Text>
+                      <pre className="profileDetails__viewValue">
+                        {valueOrDash(ed?.description)}
+                      </pre>
+                    </Col>
+                  </Row>
+                  </div>
+                </React.Fragment>
               ))}
-            </Space>
+            </div>
           ) : (
             <Text className="profileDetails__viewValue" type="secondary">
               —

@@ -17,6 +17,39 @@
     height: 100%;
     width: 100%;
   }
+
+  .page-heading {
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-heading__back {
+    margin-bottom: 10px;
+  }
+
+  .page-heading__backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #fff;
+      text-decoration: none;
+    }
+
+    .anticon {
+      font-size: 13px;
+    }
+  }
 }
 
 @media (max-width: 920px) {

@@ -6,8 +6,25 @@
  * Also re-exports expert data and categories for backward compatibility.
  */
 
-// Import experts data from separate config file
+import { groupBy as _groupBy, map as _map } from "lodash-es";
+import { EXPERTS_DATA } from "./expertsConfig";
+
 export { EXPERTS_DATA } from "./expertsConfig";
+
+/**
+ * Grouped select options for expertise filter (matches become-expert / profile expertise).
+ * Values are expertise names as stored on expert records.
+ */
+export function getExpertiseFilterOptions() {
+  const groupedByCategory = _groupBy(EXPERTS_DATA, "category");
+  return _map(groupedByCategory, (experts, categoryName) => ({
+    label: categoryName,
+    options: _map(experts, (item) => ({
+      label: item.name,
+      value: item.name,
+    })),
+  }));
+}
 
 /**
  * Expert categories/segments

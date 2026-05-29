@@ -1,13 +1,38 @@
+/** Title-case each word (e.g. "tax advisory" → "Tax Advisory"). */
+export function toTitleCaseWords(value) {
+  if (!value || typeof value !== "string") return "";
+  return value
+    .trim()
+    .split(/\s+/)
+    .map((word) =>
+      word ? word.charAt(0).toUpperCase() + word.slice(1).toLowerCase() : ""
+    )
+    .join(" ");
+}
+
+/**
+ * Experts listing heading from expertise + location filters only.
+ * - No filters → "Experts"
+ * - Type only → "{Type}"
+ * - Location only → "From {Location}"
+ * - Both → "{Type} from {Location}"
+ */
+export function buildExpertsListingTitle({ typeLabel = "", location = "" } = {}) {
+  const type = toTitleCaseWords(typeLabel);
+  const loc = toTitleCaseWords(location);
+  const hasType = Boolean(type);
+  const hasLocation = Boolean(loc);
+
+  if (!hasType && !hasLocation) return "Experts";
+  if (hasType && hasLocation) return `${type} from ${loc}`;
+  if (hasType) return type;
+  return `From ${loc}`;
+}
+
 /**
  * Build listing page section titles from active search filters.
  *
- * Patterns (experts example):
- * - No filters → "Experts"
- * - Type only → "Experts of {type}"
- * - Type + location → "Experts of {type} from {location}"
- * - Location only → "Experts from {location}"
- * - Search only → "Expert in {search}"
- * - Search + type / location / both → "Expert in {search} …" variants
+ * Used by company / equipment listings (search + type + location variants).
  */
 
 /**

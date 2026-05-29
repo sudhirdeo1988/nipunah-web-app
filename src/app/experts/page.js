@@ -13,10 +13,12 @@ import CountryDetails from "@/utilities/CountryDetails.json";
 import Icon from "@/components/Icon";
 import { expertService } from "@/utilities/apiServices";
 import { HOME_SEARCH_PARAMS } from "@/constants/homeSearch";
-import { EXPERT_CATEGORIES } from "@/module/Experts/constants/expertConstants";
-import { buildListingSearchTitle } from "@/utilities/listingSearchTitle";
+import { getExpertiseFilterOptions } from "@/module/Experts/constants/expertConstants";
+import { startsWithSelectFilter } from "@/utilities/selectFilters";
+import { buildExpertsListingTitle } from "@/utilities/listingSearchTitle";
 
 const MIN_SEARCH_LENGTH = 4;
+const DEFAULT_PAGE_SIZE = 20;
 const DEFAULT_FILTERS = {
   search: "",
   expertType: "",
@@ -42,7 +44,7 @@ const ExpertsPage = () => {
   const [error, setError] = useState(null);
   const [pagination, setPagination] = useState({
     current: 1,
-    pageSize: 10,
+    pageSize: DEFAULT_PAGE_SIZE,
     total: 0,
   });
   const [filters, setFilters] = useState(() =>
@@ -52,24 +54,21 @@ const ExpertsPage = () => {
   const showDrawer = () => setOpen(true);
   const onClose = () => setOpen(false);
 
-  /** Resolve expert type label for title (from EXPERT_CATEGORIES) */
-  const expertTypeLabel = useMemo(() => {
-    if (!filters.expertType) return "";
-    const cat = EXPERT_CATEGORIES.find((c) => c.value === filters.expertType);
-    return cat?.label || "";
-  }, [filters.expertType]);
+  /** Selected expertise label (option value is the expertise name). */
+  const expertiseFilterLabel = useMemo(
+    () => filters.expertType?.trim() || "",
+    [filters.expertType]
+  );
+
+  const expertiseFilterOptions = useMemo(() => getExpertiseFilterOptions(), []);
 
   const searchSectionTitle = useMemo(
     () =>
-      buildListingSearchTitle({
-        entityPlural: "Experts",
-        entitySingular: "Expert",
-        search: filters.search,
-        minSearchLength: MIN_SEARCH_LENGTH,
-        typeLabel: expertTypeLabel,
+      buildExpertsListingTitle({
+        typeLabel: expertiseFilterLabel,
         location: filters.countrySelect,
       }),
-    [filters.search, expertTypeLabel, filters.countrySelect]
+    [expertiseFilterLabel, filters.countrySelect]
   );
 
   /**
@@ -77,7 +76,7 @@ const ExpertsPage = () => {
    * Uses location (not country) in API params, same as company/equipment.
    */
   const fetchExperts = useCallback(
-    async (page = 1, limit = 10, filterOverrides = null) => {
+    async (page = 1, limit = DEFAULT_PAGE_SIZE, filterOverrides = null) => {
       const f = filterOverrides ?? filters;
       try {
         setLoading(true);
@@ -86,7 +85,10 @@ const ExpertsPage = () => {
         const params = { page, limit };
         if (f.search?.trim().length >= MIN_SEARCH_LENGTH)
           params.search = f.search.trim();
-        if (f.expertType) params.expertType = f.expertType;
+        if (f.expertType) {
+          params.expertise = f.expertType;
+          params.expertType = f.expertType;
+        }
         if (f.countrySelect?.trim()) params.location = f.countrySelect.trim();
 
         const response = await expertService.getExperts(params);
@@ -159,7 +161,7 @@ const ExpertsPage = () => {
   useEffect(() => {
     const fromUrl = getFiltersFromSearchParams(searchParams);
     setFilters(fromUrl);
-    fetchExperts(1, 10, fromUrl);
+    fetchExperts(1, DEFAULT_PAGE_SIZE, fromUrl);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -190,14 +192,16 @@ const ExpertsPage = () => {
       },
       {
         type: "select",
-        label: "",
+        label: "Expertise",
         formFieldValue: "expertType",
         defaultValue: filters.expertType,
-        placeholder: "Select expert type",
-        options: _map(EXPERT_CATEGORIES, (cat) => ({
-          value: cat.value,
-          label: cat.label,
-        })),
+        placeholder: "Select expertise",
+        options: expertiseFilterOptions,
+        selectProps: {
+          showSearch: true,
+          optionFilterProp: "label",
+          filterOption: startsWithSelectFilter,
+        },
       },
       {
         type: "countrySelect",
@@ -212,7 +216,7 @@ const ExpertsPage = () => {
         })),
       },
     ],
-    [filters.search, filters.expertType, filters.countrySelect]
+    [filters.search, filters.expertType, filters.countrySelect, expertiseFilterOptions]
   );
 
   const handleSearch = useCallback(
@@ -283,7 +287,7 @@ const ExpertsPage = () => {
               </div>
               <div className="col-md-8 col-sm-12 text-right">
                 <Space>
-                  {filters.expertType && expertTypeLabel && (
+                  {filters.expertType && expertiseFilterLabel && (
                     <Tag
                       closable
                       onClose={() => {
@@ -293,7 +297,7 @@ const ExpertsPage = () => {
                       }}
                       className="C-tag is-low small"
                     >
-                      Expert type: {expertTypeLabel}
+                      Expertise: {expertiseFilterLabel}
                     </Tag>
                   )}
                   {filters.countrySelect && (

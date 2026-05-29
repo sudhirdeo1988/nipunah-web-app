@@ -1,5 +1,5 @@
 .profileDetails {
-  max-width: 720px;
+  max-width: 1680px;
   margin: 0 auto;
 
   .ant-form-item {
@@ -64,6 +64,21 @@
     font-size: 14px;
     line-height: 1.5;
     color: #1f2937;
+  }
+
+  &__entryList {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
+
+  &__entryItem {
+    padding: 4px 0 8px;
+  }
+
+  &__entrySeparator {
+    margin: 4px 0 12px;
+    border-color: #ebebeb;
   }
 
   &__footer {
