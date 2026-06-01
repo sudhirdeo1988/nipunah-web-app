@@ -11,6 +11,23 @@ import Icon from "../Icon";
 import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import "./SearchContainer.scss";
 
+/** Ant Design shows placeholders only when the field value is unset, not `""`. */
+function toEmptyFormValues(values) {
+  if (!values || typeof values !== "object") return {};
+  return Object.fromEntries(
+    Object.entries(values).map(([key, value]) => [
+      key,
+      value === "" || value === null ? undefined : value,
+    ])
+  );
+}
+
+function isSearchFieldFilled(value) {
+  if (value === undefined || value === null) return false;
+  if (typeof value === "string") return value.trim() !== "";
+  return true;
+}
+
 /**
  * SearchContainer Component
  *
@@ -72,33 +89,34 @@ const SearchContainer = (props) => {
   );
 
   const handleClear = useCallback(() => {
-    const resetValues =
+    const rawReset =
       clearValues && typeof clearValues === "object"
         ? clearValues
         : searchFieldOptions.reduce((acc, field) => {
             acc[field.formFieldValue] =
-              field.defaultValue !== undefined ? field.defaultValue : "";
+              field.defaultValue !== undefined ? field.defaultValue : undefined;
             return acc;
           }, {});
 
+    const resetValues = toEmptyFormValues(rawReset);
+    form.resetFields();
     form.setFieldsValue(resetValues);
     if (onClear && typeof onClear === "function") {
       onClear(resetValues);
     }
-  }, [form, onClear, searchFieldOptions]);
+  }, [form, onClear, clearValues, searchFieldOptions]);
 
   /**
    * Memoized column classes based on field index
    * Optimizes column width distribution for responsive layout
    */
-  const getColumnClasses = useCallback((index) => {
-    if (index === 0) {
-      return "col-lg-4 col-md-4 col-sm-6 col-xs-12 p-3";
-    } else if (index === 1) {
-      return "col-lg-3 col-md-3 col-sm-6 col-xs-12 p-3";
-    }
-    return "col-lg-3 col-md-3 col-sm-6 col-xs-12 p-3";
-  }, []);
+  const getFieldColumnClasses = useCallback(
+    () => "col-12 col-md-6 col-lg-3 searchContainer__fieldCol p-2 p-md-3",
+    []
+  );
+
+  const actionsColumnClasses =
+    "col-12 col-md-6 col-lg-3 searchContainer__actionsCol p-2 p-md-3";
 
   /**
    * Memoized form initial values from field configurations
@@ -107,12 +125,32 @@ const SearchContainer = (props) => {
   const formInitialValues = useMemo(() => {
     const initialValues = {};
     searchFieldOptions.forEach((field) => {
-      if (field.defaultValue !== undefined && field.defaultValue !== "") {
-        initialValues[field.formFieldValue] = field.defaultValue;
-      }
+      const value = field.defaultValue;
+      initialValues[field.formFieldValue] =
+        value !== undefined && value !== "" ? value : undefined;
     });
-    return initialValues;
+    return toEmptyFormValues(initialValues);
   }, [searchFieldOptions]);
+
+  /** Keep form in sync with listing filters so empty fields show placeholders. */
+  useEffect(() => {
+    form.setFieldsValue(formInitialValues);
+  }, [form, formInitialValues]);
+
+  const watchedValues = Form.useWatch([], form);
+
+  const showClearButton = useMemo(() => {
+    if (!forListingPage) return false;
+    const values =
+      watchedValues && typeof watchedValues === "object"
+        ? watchedValues
+        : form.getFieldsValue();
+    return searchFieldOptions.some((field) => {
+      const key = field.formFieldValue;
+      const value = values?.[key] ?? formInitialValues[key];
+      return isSearchFieldFilled(value);
+    });
+  }, [forListingPage, watchedValues, searchFieldOptions, form, formInitialValues]);
 
   /**
    * Resolve a tiny field label to render above each input.
@@ -171,9 +209,10 @@ const SearchContainer = (props) => {
         icon,
         rules,
         selectProps,
+        hideLabel,
       } = fieldConfig;
 
-      const colClasses = getColumnClasses(index);
+      const colClasses = getFieldColumnClasses();
       const hasIcon = icon && icon.trim() !== "";
 
       /* Form.Item rules: optional Ant Design validation rules per field */
@@ -182,7 +221,7 @@ const SearchContainer = (props) => {
       // Small caption-style label above each field on inner listing pages.
       // The Form.Item's own `label` prop is intentionally not used so we can
       // fully control typography (tiny, light) without fighting antd defaults.
-      const fieldLabel = resolveFieldLabel(fieldConfig);
+      const fieldLabel = hideLabel ? "" : resolveFieldLabel(fieldConfig);
       const labelNode = fieldLabel ? (
         <label
           className="searchFieldLabel"
@@ -204,6 +243,7 @@ const SearchContainer = (props) => {
               >
                 <Select
                   id={`search-field-${formFieldValue}`}
+                  size="large"
                   placeholder={placeholder}
                   variant="borderless"
                   options={options}
@@ -252,6 +292,7 @@ const SearchContainer = (props) => {
               >
                 <Select
                   id={`search-field-${formFieldValue}`}
+                  size="large"
                   showSearch
                   allowClear
                   optionFilterProp="label"
@@ -264,6 +305,9 @@ const SearchContainer = (props) => {
                     hasIcon ? <Icon name={icon} /> : <Icon name="location_on" />
                   }
                   className="selectInSearch"
+                  {...(selectProps && typeof selectProps === "object"
+                    ? selectProps
+                    : {})}
                 />
               </Form.Item>
             </div>
@@ -273,7 +317,7 @@ const SearchContainer = (props) => {
           return null;
       }
     },
-    [getColumnClasses, resolveFieldLabel]
+    [getFieldColumnClasses, resolveFieldLabel]
   );
 
   /**
@@ -290,8 +334,10 @@ const SearchContainer = (props) => {
    * Effect hook for handling floating/fixed positioning on scroll
    * Uses requestAnimationFrame for smooth scroll performance
    */
+  const enableFloating = floatingEnable && !inSidebar;
+
   useEffect(() => {
-    if (!floatingEnable) return;
+    if (!enableFloating) return;
 
     let rect = {};
     let style = {};
@@ -342,19 +388,19 @@ const SearchContainer = (props) => {
         cancelAnimationFrame(rafId);
       }
     };
-  }, [floatingEnable]);
+  }, [enableFloating]);
 
   /**
    * Memoized container className
    * Prevents unnecessary string concatenation on every render
    */
   const containerClassName = useMemo(() => {
-    return `searchContainer row align-items-center ${
-      !inSidebar ? "shadow" : "p-0"
+    return `searchContainer row align-items-stretch ${
+      !inSidebar ? "shadow" : "p-0 isSidebar"
     } ${forListingPage ? "inListingPage" : ""} ${
       isFixed ? "fixed" : ""
     }`.trim();
-  }, [forListingPage, isFixed]);
+  }, [forListingPage, inSidebar, isFixed]);
 
   return (
     <div className={containerClassName} ref={containerRef} style={fixedStyles}>
@@ -362,23 +408,23 @@ const SearchContainer = (props) => {
         form={form}
         onFinish={handleSubmit}
         initialValues={formInitialValues}
-        className="w-100"
+        className="w-100 searchContainer__form"
         style={
           inSidebar
-            ? {}
+            ? { width: "100%" }
             : {
                 display: "flex",
-                alignItems: "center",
+                alignItems: "stretch",
                 width: "100%",
                 flexWrap: "wrap",
               }
         }
       >
         {renderedFields}
-        <div className="col-lg-2 col-md-2 col-sm-6 col-xs-12 text-center">
-          <Form.Item style={{ marginBottom: 0 }}>
-            <div className="d-flex gap-2">
-              {forListingPage && (
+        <div className={`${actionsColumnClasses} text-center text-md-end`}>
+          <Form.Item style={{ marginBottom: 0 }} className="searchContainer__actionsItem">
+            <div className="d-flex gap-2 searchContainer__actions">
+              {showClearButton ? (
                 <button
                   type="button"
                   className="C-button is-outlined p-3"
@@ -389,7 +435,7 @@ const SearchContainer = (props) => {
                 >
                   <Icon name="close" />
                 </button>
-              )}
+              ) : null}
               <button
                 type="submit"
                 className="C-button is-filled w-100 p-3"

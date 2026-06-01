@@ -172,7 +172,7 @@ const ExpertsPage = () => {
     [fetchExperts, filters]
   );
 
-  /** Search field options: search (min 4), expert type (from EXPERT_CATEGORIES), location optional */
+  /** Search field options: all fields required; placeholders shown when empty. */
   const searchFieldOptions = useMemo(
     () => [
       {
@@ -197,8 +197,10 @@ const ExpertsPage = () => {
         defaultValue: filters.expertType,
         placeholder: "Select expertise",
         options: expertiseFilterOptions,
+        rules: [{ required: true, message: "Please select expertise" }],
         selectProps: {
           showSearch: true,
+          allowClear: false,
           optionFilterProp: "label",
           filterOption: startsWithSelectFilter,
         },
@@ -209,7 +211,11 @@ const ExpertsPage = () => {
         icon: "",
         formFieldValue: "countrySelect",
         defaultValue: filters.countrySelect,
-        placeholder: "Select Location (optional)",
+        placeholder: "Select location",
+        rules: [{ required: true, message: "Please select location" }],
+        selectProps: {
+          allowClear: false,
+        },
         options: _map(CountryDetails, (c) => ({
           value: c?.countryName,
           label: c?.countryName,

@@ -1,21 +1,93 @@
-// Search container
+// Search container — shared control height (antd `large` size)
+$search-field-control-height: 40px;
+$search-field-control-height-mobile: 44px;
+$search-container-breakpoint: 991.98px;
+
+@mixin searchContainerFieldShell {
+  background-color: $white;
+  border: 1px solid $border-color;
+  min-height: $search-field-control-height;
+  width: 100%;
+  @include rounded-corners(8px);
+}
+
 .searchContainer {
   background-color: $white;
   border: 1px solid #ecedf2;
   margin: 24px auto;
   padding: 8px 0;
   width: 100%;
+  max-width: 100%;
   @include rounded-corners(10px);
 
   &.fixed {
     position: fixed !important;
     top: 110px !important;
     z-index: 1000 !important;
+    max-width: calc(100vw - 24px);
   }
 
   &.inListingPage {
     position: relative;
     margin-top: -30px;
+  }
+
+  &.isSidebar {
+    margin: 0;
+    border: 0;
+    padding: 0;
+    box-shadow: none !important;
+
+    & > div::after {
+      display: none !important;
+    }
+
+    .searchInput {
+      @include searchContainerFieldShell;
+    }
+
+    .selectInSearch.ant-select {
+      @include searchContainerFieldShell;
+
+      .ant-select-selector {
+        min-height: $search-field-control-height !important;
+        padding: 8px !important;
+      }
+    }
+
+    .searchContainer__actions {
+      flex-direction: column;
+
+      .C-button {
+        width: 100%;
+        min-height: $search-field-control-height-mobile;
+      }
+    }
+  }
+
+  &__form {
+    margin: 0;
+  }
+
+  &__fieldCol,
+  &__actionsCol {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  &__actions {
+    width: 100%;
+    align-items: stretch;
+
+    .C-button {
+      min-height: $search-field-control-height;
+    }
+  }
+
+  &__actionsItem {
+    width: 100%;
   }
 
   & > div:not(:last-child) {
@@ -51,8 +123,12 @@
 
     &.ant-select {
       width: 100%;
+      min-height: $search-field-control-height;
+
       .ant-select-selector {
-        padding: 0;
+        min-height: $search-field-control-height !important;
+        padding: 0 8px 0 0;
+        align-items: center;
       }
       .ant-select-prefix {
         .g-icon {
@@ -74,6 +150,9 @@
     background-color: transparent;
     border: 0;
     padding: 0;
+    min-height: $search-field-control-height;
+    display: inline-flex;
+    align-items: center;
     @include box-shadow(none);
 
     .ant-input {
@@ -86,28 +165,96 @@
     .ant-input-prefix {
       .g-icon {
         color: $font-color-light;
-        font-size: 1.8rem;
+        font-size: 2rem;
       }
     }
+
+    &.ant-input-affix-wrapper-status-error {
+      border: 1px solid $alert !important;
+      @include rounded-corners(8px);
+      @include box-shadow(none);
+    }
+  }
+
+  .selectInSearch.ant-select-status-error {
+    @include rounded-corners(8px);
+    box-shadow: 0 0 0 1px $alert;
+
+    .ant-select-selector {
+      border-color: $alert !important;
+    }
+  }
+
+  .ant-form-item-has-error {
+    .searchFieldLabel {
+      color: $alert;
+    }
+  }
+
+  // Compact validation message under each field (listing search)
+  .ant-form-item-explain-error {
+    font-size: 0.7rem;
+    line-height: 1.2;
+    margin-top: 4px;
+    color: $alert;
   }
 }
-@media (max-width: 920px) {
+
+// Tablet + mobile (below Bootstrap `md`)
+@media (max-width: $search-container-breakpoint) {
   .c-topBanner {
     min-height: auto;
     .hero-content {
       padding: 20px 0;
     }
   }
+
   .searchContainer {
+    margin-top: 0;
+    padding: 12px 8px;
+
+    &.inListingPage {
+      margin-top: 0;
+    }
+
+    &.fixed {
+      top: 72px !important;
+      left: 12px !important;
+      right: 12px !important;
+      width: calc(100% - 24px) !important;
+    }
+
+    & > div:not(:last-child)::after {
+      display: none;
+    }
+
+    &__fieldCol + &__fieldCol,
+    &__actionsCol {
+      margin-top: 0;
+    }
+
+    .searchFieldLabel {
+      font-size: 0.7rem;
+      margin-bottom: 6px;
+    }
+
     .searchInput {
-      background-color: $white;
-      border: 1px solid $border-color;
-      .ant-input {
-        font-size: 1.1rem;
-        line-height: 1.4rem;
+      @include searchContainerFieldShell;
+      min-height: $search-field-control-height-mobile;
+      display: flex;
+      align-items: center;
+
+      &.ant-input-affix-wrapper-status-error {
+        border-color: $alert !important;
       }
+
+      .ant-input {
+        font-size: 1rem;
+        line-height: 1.35rem;
+      }
+
       .ant-input-prefix {
-        padding: 12px;
+        padding: 8px 10px;
         .g-icon {
           font-size: 1.4rem;
         }
@@ -116,19 +263,51 @@
 
     .selectInSearch {
       &.ant-select {
-        background-color: $white;
-        border: 1px solid $border-color;
-        height: auto;
-        @include rounded-corners(8px);
+        @include searchContainerFieldShell;
+        min-height: $search-field-control-height-mobile;
+
         .ant-select-selector {
-          padding: 8px;
+          min-height: $search-field-control-height-mobile !important;
+          padding: 8px 10px !important;
         }
-        .ant-select-selection-item {
-          text-align: left;
+
+        .ant-select-prefix .g-icon {
+          font-size: 1.4rem;
         }
+
+        .ant-select-selection-item,
         .ant-select-selection-placeholder {
           text-align: left;
         }
+      }
+
+      &.ant-select-status-error {
+        border-color: $alert !important;
+        box-shadow: none;
+      }
+    }
+
+    &__actions {
+      flex-direction: row;
+      padding-top: 4px;
+
+      .C-button {
+        min-height: $search-field-control-height-mobile;
+      }
+    }
+  }
+}
+
+// Small phones — full-width stack, larger touch targets
+@media (max-width: 575.98px) {
+  .searchContainer {
+    padding: 10px 6px;
+
+    &__actions {
+      flex-direction: column;
+
+      .C-button {
+        width: 100%;
       }
     }
   }
