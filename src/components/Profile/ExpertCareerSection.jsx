@@ -125,15 +125,17 @@ const ExpertCareerSection = memo(function ExpertCareerSection({
                     </Col>
                     <Col xs={24} md={12}>
                       <Text className="profileDetails__viewLabel">Duration</Text>
-                      <pre className="profileDetails__viewValue">
-                        {formatDurationLine(w, "companyWorkDuration")}
-                      </pre>
+                      <div className="profileDetails__durationRow">
+                        <pre className="profileDetails__viewValue">
+                          {formatDurationLine(w, "companyWorkDuration")}
+                        </pre>
+                        {w?.isCurrentJob ? (
+                          <Tag color="blue" className="profileDetails__currentJobTag">
+                            Current Job
+                          </Tag>
+                        ) : null}
+                      </div>
                     </Col>
-                    {w?.isCurrentJob ? (
-                      <Col xs={24}>
-                        <Tag color="blue">Current Job</Tag>
-                      </Col>
-                    ) : null}
                   </Row>
                   </div>
                 </React.Fragment>

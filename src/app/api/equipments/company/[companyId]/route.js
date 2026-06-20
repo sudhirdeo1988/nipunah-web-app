@@ -64,7 +64,8 @@ async function readResponseBody(response) {
 
 export async function GET(request, { params }) {
   try {
-    const companyId = params?.companyId;
+    const resolvedParams = await params;
+    const companyId = resolvedParams?.companyId;
     if (!companyId) {
       return NextResponse.json(
         { error: "Bad request", message: "companyId is required" },
@@ -83,7 +84,23 @@ export async function GET(request, { params }) {
       );
     }
 
-    const response = await fetch(`${API_BASE_URL}/equipments/company/${companyId}`, {
+    const { searchParams } = new URL(request.url);
+    const rawParams = Object.fromEntries(searchParams.entries());
+    const cleanedParams = Object.entries(rawParams).filter(([, value]) => {
+      if (value === null || value === undefined || value === "") return false;
+      if (typeof value === "string" && value.toLowerCase() === "all") return false;
+      return true;
+    });
+
+    let url = `${API_BASE_URL}/equipments/company/${companyId}`;
+    if (cleanedParams.length > 0) {
+      const queryString = new URLSearchParams(cleanedParams).toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
+    const response = await fetch(url, {
       method: "GET",
       headers: {
         Accept: "application/json",

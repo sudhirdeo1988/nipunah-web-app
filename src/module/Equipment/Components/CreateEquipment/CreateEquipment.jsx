@@ -16,6 +16,7 @@ import { useAppSelector } from "@/store/hooks";
 import dayjs from "dayjs";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
+import { ImageGalleryUpload } from "@/components/ImageGallery";
 
 const { TextArea } = Input;
 
@@ -108,6 +109,14 @@ const CreateEquipment = memo(
       [user?.company_name, user?.companyName, user?.name, user?.shortName]
     );
 
+    const imageStorageKey = useMemo(
+      () =>
+        selectedEquipment?.id != null && selectedEquipment.id !== ""
+          ? `equipment-${selectedEquipment.id}`
+          : "equipment-new",
+      [selectedEquipment?.id]
+    );
+
     // Fetch companies on component mount
     useEffect(() => {
       const fetchCompanies = async () => {
@@ -149,7 +158,10 @@ const CreateEquipment = memo(
           available_for: selectedEquipment.availableFor,
           rent_type: selectedEquipment.rentType,
           contact_email: selectedEquipment.contactEmail,
-          contact_country_code: selectedEquipment.contact_country_code,
+          contact_country_code:
+            selectedEquipment.contact_country_code ||
+            selectedEquipment.contactCountryCode ||
+            "",
           contact_number: selectedEquipment.contactNumber,
           address: {
             country: selectedEquipment.address?.country,
@@ -218,6 +230,7 @@ const CreateEquipment = memo(
             postal_code: values.address?.postal_code || "",
           },
           contact_email: values.contact_email,
+          contact_country_code: values.contact_country_code,
           contact_number: values.contact_number,
           companyId: Number(resolvedCompanyId || 0),
         };
@@ -637,6 +650,17 @@ const CreateEquipment = memo(
                   </Form.Item>
                 </Space.Compact>
               </Form.Item>
+            </div>
+
+            {/* Images */}
+            <div className="col-12">
+              <div className="border-top pt-3 mt-2">
+                <ImageGalleryUpload
+                  key={imageStorageKey}
+                  persistKey={imageStorageKey}
+                  disabled={loading}
+                />
+              </div>
             </div>
           </div>
 

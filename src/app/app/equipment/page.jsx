@@ -18,33 +18,28 @@
  * - DELETE /equipment/{id} - Delete equipment
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useState } from "react";
 import Icon from "@/components/Icon";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
-import { Space, Modal, Breadcrumb, Button } from "antd";
+import { Space, Modal, Button, message } from "antd";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import EquipmentListing from "module/Equipment/Components/EquipmentListing";
-import CreateEquipment from "module/Equipment/Components/CreateEquipment";
-import {
-  MODAL_MODES,
-  MODAL_TITLES,
-} from "module/Equipment/constants/equipmentConstants";
-import { useEquipmentModal } from "module/Equipment/hooks/useEquipmentModal";
 import { useEquipment } from "module/Equipment/hooks/useEquipment";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useAppSelector } from "@/store/hooks";
+import { canUserManageEquipment } from "@/module/Equipment/utilities/equipmentMapper";
 
 const EquipmentPage = () => {
   const router = useRouter();
   const { allowed, permissions } = useModuleAccess("equipments");
-  const {
-    isModalOpen,
-    selectedEquipment,
-    modalMode,
-    isEditMode,
-    openModal,
-    closeModal,
-  } = useEquipmentModal();
+  const user = useAppSelector((state) => state.user?.user);
+  const role = useAppSelector((state) => state.user?.role);
+
+  const canManageEquipment = useCallback(
+    (record) => canUserManageEquipment(record, user, role),
+    [user, role]
+  );
 
   // Equipment operations hook (pure data hook; this page drives its own search/auto-fetch)
   const {
@@ -56,55 +51,24 @@ const EquipmentPage = () => {
     order,
     searchQuery,
     setSearchQuery,
-    createEquipment,
-    updateEquipment,
     deleteEquipment,
     fetchEquipment,
     handleSort,
-  } = useEquipment();
+  } = useEquipment({ autoFetch: true });
 
   // Confirmation modal state
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [equipmentToDelete, setEquipmentToDelete] = useState(null);
 
   /**
-   * Search + auto-fetch wiring (mirrors useCompanyListing).
-   *
-   * Pattern:
-   * - debouncedSearch lags searchQuery by 400 ms.
-   * - A ref holds the latest fetchEquipment so the auto-fetch effect can call it without
-   *   re-firing every time fetchEquipment's useCallback reference churns (which it does
-   *   on every keystroke because searchQuery is in its deps).
-   * - The effect depends only on `debouncedSearch`, so it fires exactly once on mount and
-   *   once per real (debounced) search change.
+   * Handle view equipment action
    */
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const fetchEquipmentRef = useRef(fetchEquipment);
-  fetchEquipmentRef.current = fetchEquipment;
-
-  useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    console.log("🔎 [EquipmentPage] auto-fetch:", { debouncedSearch });
-    fetchEquipmentRef.current({ page: 1, search: debouncedSearch });
-  }, [debouncedSearch]);
-
-  /**
-   * Handle create equipment action
-   */
-  const handleCreateEquipment = useCallback(
-    async (formData) => {
-      try {
-        await createEquipment(formData);
-        closeModal();
-      } catch (error) {
-        console.error("Error creating equipment:", error);
-      }
+  const handleViewEquipment = useCallback(
+    (record) => {
+      if (record?.id == null || record.id === "") return;
+      router.push(`${ROUTES.PRIVATE.EQUIPMENT}/${record.id}`);
     },
-    [createEquipment, closeModal]
+    [router]
   );
 
   /**
@@ -112,38 +76,30 @@ const EquipmentPage = () => {
    */
   const handleEditEquipment = useCallback(
     async (record) => {
-      openModal(MODAL_MODES.EQUIPMENT, record);
-    },
-    [openModal]
-  );
-
-  /**
-   * Handle update equipment action
-   */
-  const handleUpdateEquipment = useCallback(
-    async (formData) => {
-      try {
-        if (!selectedEquipment) {
-          console.error("No equipment selected for update");
-          return;
-        }
-
-        await updateEquipment(selectedEquipment.id, formData);
-        closeModal();
-      } catch (error) {
-        console.error("Error updating equipment:", error);
+      if (record?.id == null || record.id === "") return;
+      if (!canManageEquipment(record)) {
+        message.warning("You can only edit equipment created by your company.");
+        return;
       }
+      router.push(`${ROUTES.PRIVATE.EQUIPMENT}/${record.id}/edit`);
     },
-    [selectedEquipment, updateEquipment, closeModal]
+    [router, canManageEquipment]
   );
 
   /**
    * Handle delete equipment click from listing
    */
-  const handleDeleteClick = useCallback((record) => {
-    setEquipmentToDelete(record);
-    setIsDeleteModalOpen(true);
-  }, []);
+  const handleDeleteClick = useCallback(
+    (record) => {
+      if (!canManageEquipment(record)) {
+        message.warning("You can only delete equipment created by your company.");
+        return;
+      }
+      setEquipmentToDelete(record);
+      setIsDeleteModalOpen(true);
+    },
+    [canManageEquipment]
+  );
 
   /**
    * Handle confirm delete action
@@ -164,33 +120,6 @@ const EquipmentPage = () => {
     setEquipmentToDelete(null);
   }, []);
 
-  /**
-   * Handle modal form submission
-   */
-  const handleModalSubmit = useCallback(
-    async (formData) => {
-      try {
-        if (isEditMode) {
-          await handleUpdateEquipment(formData);
-        } else {
-          await handleCreateEquipment(formData);
-        }
-      } catch (error) {
-        console.error("Error in modal submit:", error);
-      }
-    },
-    [isEditMode, handleCreateEquipment, handleUpdateEquipment]
-  );
-
-  /**
-   * Get modal title based on mode and edit state
-   */
-  const getModalTitle = () => {
-    return isEditMode
-      ? MODAL_TITLES.EDIT_EQUIPMENT
-      : MODAL_TITLES.ADD_EQUIPMENT;
-  };
-
   if (!allowed) return null;
 
   const canAdd = Boolean(permissions.add);
@@ -201,44 +130,11 @@ const EquipmentPage = () => {
         <AppPageHeader
           title="Equipment List"
           subtitle="Manage equipment and assets linked to your company"
-          breadcrumb={
-            <Breadcrumb
-              items={[
-                {
-                  title: (
-                    <span
-                      className="C-heading size-xs color-light mb-0"
-                      style={{ cursor: "pointer" }}
-                      onClick={() => router.push(ROUTES.PRIVATE.COMPANY)}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = "#1890ff";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = "";
-                      }}
-                    >
-                      Companies
-                    </span>
-                  ),
-                },
-                {
-                  title: (
-                    <span className="C-heading size-xs color-dark mb-0 bold">
-                      Equipment
-                    </span>
-                  ),
-                },
-              ]}
-              separator={
-                <Icon name="chevron_right" style={{ fontSize: "12px", color: "#8c8c8c" }} />
-              }
-            />
-          }
           children={
             canAdd ? (
               <button
                 className="C-button is-filled small"
-                onClick={() => openModal(MODAL_MODES.EQUIPMENT, null)}
+                onClick={() => router.push(`${ROUTES.PRIVATE.EQUIPMENT}/add`)}
               >
                 <Space>
                   <Icon name="add" />
@@ -257,33 +153,15 @@ const EquipmentPage = () => {
             order={order}
             searchQuery={searchQuery}
             onSearchChange={setSearchQuery}
+            onViewEquipment={handleViewEquipment}
             onEditEquipment={handleEditEquipment}
             onDeleteEquipment={handleDeleteClick}
             onFetchEquipment={fetchEquipment}
             permissions={permissions}
+            canManageEquipment={canManageEquipment}
           />
         </div>
       </div>
-
-      <Modal
-        title={
-          <span className="C-heading size-5 mb-0 bold">{getModalTitle()}</span>
-        }
-        closable={{ "aria-label": "Custom Close Button" }}
-        open={isModalOpen}
-        width={900}
-        centered
-        footer={null}
-        onCancel={closeModal}
-      >
-        <CreateEquipment
-          selectedEquipment={selectedEquipment}
-          modalMode={modalMode}
-          onCancel={closeModal}
-          onSubmit={handleModalSubmit}
-          loading={loading}
-        />
-      </Modal>
 
       {/* Delete Confirmation Modal */}
       <Modal

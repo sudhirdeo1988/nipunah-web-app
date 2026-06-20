@@ -7,6 +7,31 @@
     margin-bottom: 0.75rem;
   }
 
+  &__back {
+    margin-bottom: 0.75rem;
+  }
+
+  &__backLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 0.84rem;
+    line-height: 1.1rem;
+    font-weight: 500;
+    color: #1890ff;
+    text-decoration: none;
+    transition: color 0.2s;
+
+    &:hover {
+      color: #40a9ff;
+      text-decoration: none;
+    }
+  }
+
   &__title {
     margin: 0 0 0.25rem 0;
     font-size: 1.3rem;

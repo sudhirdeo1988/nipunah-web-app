@@ -4,12 +4,12 @@ import React, { useMemo } from "react";
 import { Empty, Image, Tag, Timeline, Typography } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
 import Icon from "@/components/Icon";
+import { useAuth } from "@/utilities/AuthContext";
 import ExpertInfoSidebar from "./ExpertInfoSidebar";
 import {
   buildAboutFallback,
   employmentTypeLabel,
   formatExpertDuration,
-  formatExpertContact,
   formatExpertLocation,
   sortEntriesByFromDateDesc,
   sortWorkExperienceByFromDateDesc,
@@ -140,11 +140,11 @@ const timelineDot = <span className="expertPublicProfile__timelineDot" />;
  * Public expert profile — banner header + About, Skills, timelines, sidebar.
  */
 export default function ExpertPublicProfile({ expert, backLink }) {
+  const { isLoggedIn } = useAuth();
   const location = useMemo(
     () => formatExpertLocation(expert?.address),
     [expert?.address],
   );
-  const contact = useMemo(() => formatExpertContact(expert), [expert]);
 
   const firstName = useMemo(() => {
     const n = expert?.firstName?.trim();
@@ -286,9 +286,11 @@ export default function ExpertPublicProfile({ expert, backLink }) {
               </ContentSection>
             </div>
 
-            <div className="col-lg-4 col-12">
-              <ExpertInfoSidebar expert={expert} />
-            </div>
+            {isLoggedIn ? (
+              <div className="col-lg-4 col-12">
+                <ExpertInfoSidebar expert={expert} />
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

@@ -7,7 +7,6 @@ import {
   Input,
   Space,
   Table,
-  Modal,
   Dropdown,
 } from "antd";
 import { ACTION_MENU_ITEMS } from "../../constants/equipmentConstants";
@@ -28,18 +27,26 @@ const EquipmentListing = ({
   order = "asc",
   searchQuery = "",
   onSearchChange,
+  onViewEquipment,
   onEditEquipment,
   onDeleteEquipment,
   onFetchEquipment,
   permissions = {},
+  canManageEquipment,
 }) => {
   const canView = Boolean(permissions.view);
   const canEdit = Boolean(permissions.edit);
   const canDelete = Boolean(permissions.delete);
+  const canManageRecord = canManageEquipment ?? (() => true);
 
   const getActionMenuItems = useCallback(
-    () => {
-      const permMap = { view: canView, edit: canEdit, delete: canDelete };
+    (record) => {
+      const ownsEquipment = canManageRecord(record);
+      const permMap = {
+        view: canView,
+        edit: canEdit && ownsEquipment,
+        delete: canDelete && ownsEquipment,
+      };
       return ACTION_MENU_ITEMS.filter((item) => permMap[item.key]).map((item) => ({
         ...item,
         label: (
@@ -50,14 +57,10 @@ const EquipmentListing = ({
         ),
       }));
     },
-    [canView, canEdit, canDelete]
+    [canView, canEdit, canDelete, canManageRecord]
   );
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedEquipment, setSelectedEquipment] = useState([]);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [equipmentToDelete, setEquipmentToDelete] = useState(null);
-  const [isViewDetailsModalOpen, setIsViewDetailsModalOpen] = useState(false);
-  const [equipmentForDetails, setEquipmentForDetails] = useState(null);
 
   /**
    * Handle search input change - delegates to parent; debouncing + API call live in useEquipment
@@ -79,8 +82,9 @@ const EquipmentListing = ({
   const handleMenuClick = useCallback(
     ({ key }, record) => {
       if (key === "view") {
-        setEquipmentForDetails(record);
-        setIsViewDetailsModalOpen(true);
+        if (onViewEquipment) {
+          onViewEquipment(record);
+        }
       } else if (key === "edit") {
         if (onEditEquipment) {
           onEditEquipment(record);
@@ -91,16 +95,8 @@ const EquipmentListing = ({
         }
       }
     },
-    [onEditEquipment, onDeleteEquipment]
+    [onViewEquipment, onEditEquipment, onDeleteEquipment]
   );
-
-  /**
-   * Handle cancel view details modal
-   */
-  const handleCancelViewDetails = useCallback(() => {
-    setIsViewDetailsModalOpen(false);
-    setEquipmentForDetails(null);
-  }, []);
 
   /**
    * Handle table changes (pagination, sorting)
@@ -187,7 +183,7 @@ const EquipmentListing = ({
 
   const renderAction = useCallback(
     (_, record) => {
-      const items = getActionMenuItems();
+      const items = getActionMenuItems(record);
       if (items.length === 0) return null;
       return (
         <Dropdown
@@ -314,6 +310,7 @@ const EquipmentListing = ({
           rowKey="id"
           rowSelection={rowSelection}
           loading={loading}
+          locale={{ emptyText: "No equipment found" }}
           pagination={{
             current: pagination.current,
             pageSize: pagination.pageSize,
@@ -328,154 +325,6 @@ const EquipmentListing = ({
           scroll={{ x: 800 }}
         />
       </div>
-
-      {/* Equipment Details Modal */}
-      <Modal
-        title={
-          <span className="C-heading size-5 mb-0 bold">Equipment Details</span>
-        }
-        open={isViewDetailsModalOpen}
-        onCancel={handleCancelViewDetails}
-        footer={null}
-        width={900}
-        centered
-      >
-        {equipmentForDetails && (
-          <div className="py-3">
-            {/* Basic Information Section */}
-            <div className="mb-4">
-              <h6 className="C-heading size-xs bold mb-3 color-dark">Basic Information</h6>
-              <div className="row">
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Equipment Name</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.name || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Category</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.category || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Type</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.type || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Manufacture Year</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.manufactureYear || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Manufacture Company</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.manufactureCompany || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3 pb-3 border-bottom">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Available For</p>
-                  <p className="C-heading size-6 mb-0 text-capitalize">
-                    {equipmentForDetails.availableFor || "N/A"}
-                  </p>
-                </div>
-                {equipmentForDetails.rentType && (
-                  <div className="col-6 mb-3 pb-3 border-bottom">
-                    <p className="C-heading size-xs mb-2 bold color-dark">Rent Type</p>
-                    <p className="C-heading size-6 mb-0 text-capitalize">
-                      {equipmentForDetails.rentType}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* About Section */}
-            <div className="mb-4">
-              <h6 className="C-heading size-xs bold mb-3 color-dark">About</h6>
-              <div className="pb-3 border-bottom">
-                <p className="C-heading size-6 mb-0">
-                  {equipmentForDetails.about || "N/A"}
-                </p>
-              </div>
-            </div>
-
-            {/* Address Section */}
-            <div className="mb-4">
-              <h6 className="C-heading size-xs bold mb-3 color-dark">Equipment Address</h6>
-              <div className="row pb-3 border-bottom">
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Country</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.address?.country || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">State/Province</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.address?.state || "N/A"}
-                  </p>
-                </div>
-                <div className="col-12 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Detail Address</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.address?.location || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">City</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.address?.city || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Postal Code</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.address?.postal_code || "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Information Section */}
-            <div className="mb-4">
-              <h6 className="C-heading size-xs bold mb-3 color-dark">Contact Information</h6>
-              <div className="row pb-3 border-bottom">
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Contact Email</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.contactEmail || "N/A"}
-                  </p>
-                </div>
-                <div className="col-6 mb-3">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Contact Number</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.contact_country_code && equipmentForDetails.contactNumber
-                      ? `${equipmentForDetails.contact_country_code} ${equipmentForDetails.contactNumber}`
-                      : equipmentForDetails.contactNumber || "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Additional Information */}
-            <div>
-              <h6 className="C-heading size-xs bold mb-3 color-dark">Additional Information</h6>
-              <div className="row">
-                <div className="col-6">
-                  <p className="C-heading size-xs mb-2 bold color-dark">Created On</p>
-                  <p className="C-heading size-6 mb-0">
-                    {equipmentForDetails.createDate || "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
     </>
   );
 };
@@ -488,9 +337,11 @@ EquipmentListing.propTypes = {
   order: PropTypes.string,
   searchQuery: PropTypes.string,
   onSearchChange: PropTypes.func,
+  onViewEquipment: PropTypes.func,
   onEditEquipment: PropTypes.func,
   onDeleteEquipment: PropTypes.func,
   onFetchEquipment: PropTypes.func,
+  canManageEquipment: PropTypes.func,
 };
 
 export default memo(EquipmentListing);

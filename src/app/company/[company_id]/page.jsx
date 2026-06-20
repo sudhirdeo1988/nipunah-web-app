@@ -461,6 +461,13 @@ const CompanyDetails = () => {
     companyData?.industry || companyData?.category?.name || "N/A";
   const companyEmail =
     companyData?.contact_email || companyData?.email || "N/A";
+  const companyPhone =
+    companyData?.contact_number ||
+    companyData?.contactNumber ||
+    companyData?.phone_number ||
+    companyData?.phoneNumber ||
+    companyData?.phone ||
+    "N/A";
   const companySize =
     companyData?.employee_count || companyData?.employeeCount || "N/A";
   const companyFounded =
@@ -636,22 +643,42 @@ const CompanyDetails = () => {
                           </span>
                         </Space>
                       </div>
-                      <Divider
-                        type="vertical"
-                        style={{
-                          backgroundColor: "#b1b1b1",
-                          width: "2px",
-                          margin: "0 8px",
-                        }}
-                      />
-                      <div>
-                        <Space>
-                          <Icon name="mail" color="#b1b1b1" />
-                          <span className="C-heading size-6 color-light mb-0">
-                            {companyEmail}
-                          </span>
-                        </Space>
-                      </div>
+                      {isLoggedIn ? (
+                        <>
+                          <Divider
+                            type="vertical"
+                            style={{
+                              backgroundColor: "#b1b1b1",
+                              width: "2px",
+                              margin: "0 8px",
+                            }}
+                          />
+                          <div>
+                            <Space>
+                              <Icon name="mail" color="#b1b1b1" />
+                              <span className="C-heading size-6 color-light mb-0">
+                                {companyEmail}
+                              </span>
+                            </Space>
+                          </div>
+                          <Divider
+                            type="vertical"
+                            style={{
+                              backgroundColor: "#b1b1b1",
+                              width: "2px",
+                              margin: "0 8px",
+                            }}
+                          />
+                          <div>
+                            <Space>
+                              <Icon name="call" color="#b1b1b1" />
+                              <span className="C-heading size-6 color-light mb-0">
+                                {companyPhone}
+                              </span>
+                            </Space>
+                          </div>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                 </div>
@@ -727,6 +754,34 @@ const CompanyDetails = () => {
                       </span>
                     </div>
                   </div>
+                  {isLoggedIn ? (
+                    <>
+                      <div className="row mb-3">
+                        <div className="col">
+                          <span className="C-heading size-6 color-light mb-0">
+                            Email Address:
+                          </span>
+                        </div>
+                        <div className="col">
+                          <span className="C-heading size-6 semiBold color-dark mb-0 text-right">
+                            {companyEmail}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="row mb-3">
+                        <div className="col">
+                          <span className="C-heading size-6 color-light mb-0">
+                            Phone Number:
+                          </span>
+                        </div>
+                        <div className="col">
+                          <span className="C-heading size-6 semiBold color-dark mb-0 text-right">
+                            {companyPhone}
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  ) : null}
                   <div className="row mb-3">
                     <div className="col">
                       <span className="C-heading size-6 color-light mb-0">

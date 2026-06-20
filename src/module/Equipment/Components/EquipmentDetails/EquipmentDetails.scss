@@ -1,0 +1,10 @@
+/* Center the details card on view/add/edit sub-pages; content stays left-aligned. */
+.equipmentDetailsView {
+  margin-top: 0;
+
+  .profileDetails__pageCard {
+    max-width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

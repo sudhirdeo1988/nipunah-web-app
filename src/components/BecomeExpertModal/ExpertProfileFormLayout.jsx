@@ -1,8 +1,6 @@
 "use client";
 
 import React from "react";
-import { Button } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 
 /**
@@ -14,15 +12,20 @@ export default function ExpertProfileFormLayout({
   subtitle,
   onBack,
   backLabel = "Back to dashboard",
+  backHref,
   children,
 }) {
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
-      <AppPageHeader title={title} subtitle={subtitle}>
-        <Button icon={<ArrowLeftOutlined />} onClick={onBack}>
-          {backLabel}
-        </Button>
-      </AppPageHeader>
+      <AppPageHeader
+        title={title}
+        subtitle={subtitle}
+        backLink={
+          backHref
+            ? { label: backLabel, href: backHref }
+            : { label: backLabel, onClick: onBack }
+        }
+      />
       <div className="p-4">{children}</div>
     </div>
   );

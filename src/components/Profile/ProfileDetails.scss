@@ -66,6 +66,23 @@
     color: #1f2937;
   }
 
+  &__durationRow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+
+    .profileDetails__viewValue {
+      margin: 0;
+    }
+  }
+
+  &__currentJobTag {
+    margin: 0;
+    flex-shrink: 0;
+  }
+
   &__entryList {
     display: flex;
     flex-direction: column;
