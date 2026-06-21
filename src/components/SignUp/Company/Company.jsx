@@ -60,8 +60,7 @@ const Company = () => {
   const recaptchaRef = useRef(null);
   const needsClientCaptcha = isRecaptchaSiteKeyConfigured();
   const [captchaDone, setCaptchaDone] = useState(false);
-  const [logoPreview, setLogoPreview] = useState(null); // Preview image URL
-  const [logoUploading, setLogoUploading] = useState(false); // Upload loading state
+  const [logoPreview, setLogoPreview] = useState(null); // Local preview until upload API is ready
   const [categoriesList, setCategoriesList] = useState([]); // Categories from API
   const [categoriesLoading, setCategoriesLoading] = useState(false); // Loading state for categories
   const [subcategoriesMap, setSubcategoriesMap] = useState({}); // Map of categoryId -> subcategories
@@ -411,98 +410,110 @@ const Company = () => {
     setCurrentStep(currentStep - 1);
   }, [currentStep, needsClientCaptcha]);
 
-  // --- Logo Upload Handler ---
-  /**
-   * Handle logo file upload to S3
-   * - Validates file type (png, jpg, webp)
-   * - Uploads to S3 bucket via API
-   * - Stores S3 path in form field
-   * - Shows preview
-   */
+  // --- Logo upload (static/local preview until upload API is ready) ---
   const handleLogoUpload = useCallback(
-    async (file) => {
-      try {
-        // Validate file type
-        const isValidType =
-          file.type === "image/png" ||
-          file.type === "image/jpeg" ||
-          file.type === "image/jpg" ||
-          file.type === "image/webp";
+    (file) => {
+      const isValidType =
+        file.type === "image/png" ||
+        file.type === "image/jpeg" ||
+        file.type === "image/jpg" ||
+        file.type === "image/webp";
 
-        if (!isValidType) {
-          message.error("You can only upload PNG, JPG, or WEBP files!");
-          return false;
-        }
-
-        // Validate file size (max 5MB)
-        const isLt5M = file.size / 1024 / 1024 < 5;
-        if (!isLt5M) {
-          message.error("Image must be smaller than 5MB!");
-          return false;
-        }
-
-        // Show preview
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setLogoPreview(reader.result);
-        };
-        reader.readAsDataURL(file);
-
-        // Upload to S3
-        setLogoUploading(true);
-        const formData = new FormData();
-        formData.append("file", file);
-        formData.append("type", "company-logo");
-
-        // Upload to S3 via API endpoint
-        // Assuming endpoint: /api/upload or /api/companies/upload-logo
-        const response = await axiosPublicInstance.post("/upload", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
-
-        // Extract S3 path/URL from response
-        // Adjust based on your API response structure
-        const s3Path =
-          response?.data?.url ||
-          response?.data?.path ||
-          response?.data?.location ||
-          response?.data?.s3Path ||
-          response?.data?.data?.url;
-
-        if (s3Path) {
-          // Set form field value with S3 path
-          form.setFieldValue("logo_url", s3Path);
-          message.success("Logo uploaded successfully!");
-        } else {
-          throw new Error("Upload response missing file path");
-        }
-
-        setLogoUploading(false);
-        return false; // Prevent default upload behavior
-      } catch (error) {
-        console.error("Logo upload error:", error);
-        setLogoUploading(false);
-        setLogoPreview(null);
-        const errorMessage =
-          error?.response?.data?.message ||
-          error?.message ||
-          "Failed to upload logo. Please try again.";
-        message.error(errorMessage);
+      if (!isValidType) {
+        message.error("You can only upload PNG, JPG, or WEBP files!");
         return false;
       }
+
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        message.error("Image must be smaller than 5MB!");
+        return false;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const preview = reader.result;
+        setLogoPreview(preview);
+        form.setFieldValue("logo_url", preview);
+      };
+      reader.readAsDataURL(file);
+
+      return false;
     },
     [form]
   );
 
-  /**
-   * Handle logo removal
-   */
   const handleLogoRemove = useCallback(() => {
     setLogoPreview(null);
     form.setFieldValue("logo_url", undefined);
   }, [form]);
+
+  const renderLogoUploadField = () => (
+    <Form.Item
+      label={
+        <span className="C-heading size-6 semiBold color-light mb-0">
+          Company Logo
+          <span className="text-muted ms-1" style={{ fontSize: "12px" }}>
+            (Optional)
+          </span>
+        </span>
+      }
+      name="logo_url"
+      className="mb-2"
+    >
+      <div>
+        {logoPreview ? (
+          <div
+            style={{
+              marginBottom: 16,
+              position: "relative",
+              display: "inline-block",
+            }}
+          >
+            <img
+              src={logoPreview}
+              alt="Logo preview"
+              style={{
+                maxWidth: "200px",
+                maxHeight: "200px",
+                borderRadius: "8px",
+                border: "1px solid #d9d9d9",
+                padding: "8px",
+                backgroundColor: "#fff",
+              }}
+            />
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleLogoRemove}
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+              }}
+            >
+              Remove
+            </Button>
+          </div>
+        ) : null}
+        <Upload
+          name="logo"
+          beforeUpload={handleLogoUpload}
+          showUploadList={false}
+          accept="image/png,image/jpeg,image/jpg,image/webp"
+        >
+          <Button icon={<UploadOutlined />} size="large" block>
+            {logoPreview ? "Change Logo" : "Upload Company Logo"}
+          </Button>
+        </Upload>
+        <div className="mt-2" style={{ fontSize: "12px", color: "#8c8c8c" }}>
+          Supported formats: PNG, JPG, WEBP (Max 5MB)
+        </div>
+      </div>
+    </Form.Item>
+  );
 
   // --- Fetch Categories from API ---
   /**
@@ -755,6 +766,8 @@ const Company = () => {
               </Space.Compact>
             </Form.Item>
           </div>
+
+          <div className="col-12">{renderLogoUploadField()}</div>
 
           <div className="col-12">
             <Divider titlePlacement="left" styles={{ content: { margin: 0 } }}>
@@ -1343,88 +1356,6 @@ const Company = () => {
               className="mb-2"
             >
               <TextArea rows={3} placeholder="Enter key clients" size="large" />
-            </Form.Item>
-          </div>
-          <div className="col-12">
-            <Form.Item
-              label={
-                <span className="C-heading size-6 semiBold color-light mb-0">
-                  Company Logo
-                  <span
-                    className="text-muted ms-1"
-                    style={{ fontSize: "12px" }}
-                  >
-                    (Optional)
-                  </span>
-                </span>
-              }
-              name="logo_url"
-              className="mb-2"
-            >
-              <div>
-                {logoPreview && (
-                  <div
-                    style={{
-                      marginBottom: 16,
-                      position: "relative",
-                      display: "inline-block",
-                    }}
-                  >
-                    <img
-                      src={logoPreview}
-                      alt="Logo preview"
-                      style={{
-                        maxWidth: "200px",
-                        maxHeight: "200px",
-                        borderRadius: "8px",
-                        border: "1px solid #d9d9d9",
-                        padding: "8px",
-                        backgroundColor: "#fff",
-                      }}
-                    />
-                    <Button
-                      type="text"
-                      danger
-                      icon={<DeleteOutlined />}
-                      onClick={handleLogoRemove}
-                      style={{
-                        position: "absolute",
-                        top: 0,
-                        right: 0,
-                        backgroundColor: "rgba(255, 255, 255, 0.9)",
-                      }}
-                    >
-                      Remove
-                    </Button>
-                  </div>
-                )}
-                <Upload
-                  name="logo"
-                  beforeUpload={handleLogoUpload}
-                  showUploadList={false}
-                  accept="image/png,image/jpeg,image/jpg,image/webp"
-                  disabled={logoUploading}
-                >
-                  <Button
-                    icon={<UploadOutlined />}
-                    loading={logoUploading}
-                    size="large"
-                    block
-                  >
-                    {logoUploading
-                      ? "Uploading..."
-                      : logoPreview
-                      ? "Change Logo"
-                      : "Upload Company Logo"}
-                  </Button>
-                </Upload>
-                <div
-                  className="mt-2"
-                  style={{ fontSize: "12px", color: "#8c8c8c" }}
-                >
-                  Supported formats: PNG, JPG, WEBP (Max 5MB)
-                </div>
-              </div>
             </Form.Item>
           </div>
 

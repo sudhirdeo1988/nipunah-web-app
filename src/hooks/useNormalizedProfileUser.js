@@ -3,10 +3,11 @@
 import { useMemo } from "react";
 import { useAppSelector } from "@/store/hooks";
 import { normalizeExpertUser } from "@/utilities/expertProfileNormalize";
+import { normalizeCompanyUser } from "@/utilities/companyProfileNormalize";
 
 /**
  * Redux user for profile/dashboard UIs.
- * Experts are normalized once per Redux update (idempotent; stable reference when unchanged).
+ * Experts and companies are normalized once per Redux update.
  */
 export function useNormalizedProfileUser() {
   const reduxUser = useAppSelector((state) => state.user.user);
@@ -17,12 +18,14 @@ export function useNormalizedProfileUser() {
   ).toLowerCase();
 
   const isExpert = role === "expert";
+  const isCompany = role === "company";
 
   const user = useMemo(() => {
     if (!reduxUser) return {};
-    if (!isExpert) return reduxUser;
-    return normalizeExpertUser(reduxUser);
-  }, [reduxUser, isExpert]);
+    if (isExpert) return normalizeExpertUser(reduxUser);
+    if (isCompany) return normalizeCompanyUser(reduxUser);
+    return reduxUser;
+  }, [reduxUser, isExpert, isCompany]);
 
-  return { user, role, isExpert, reduxUser };
+  return { user, role, isExpert, isCompany, reduxUser };
 }

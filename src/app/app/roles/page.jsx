@@ -45,14 +45,6 @@ const NAV_KEYS = [
   "nav_role_management",
 ];
 
-const DASHBOARD_KEYS = [
-  "dashboard_registered_companies",
-  "dashboard_total_users",
-  "dashboard_total_experts",
-  "dashboard_active_jobs",
-  "dashboard_analytics_overview",
-];
-
 const MODULE_PERMISSION_KEYS = [
   "dashboard_view",
   "users_view",
@@ -105,7 +97,6 @@ const MODULE_PERMISSION_KEYS = [
 
 const KEY_GROUPS = [
   { label: "Navigation", keys: NAV_KEYS },
-  { label: "Dashboard Widgets", keys: DASHBOARD_KEYS },
   { label: "Module Permissions", keys: MODULE_PERMISSION_KEYS },
 ];
 

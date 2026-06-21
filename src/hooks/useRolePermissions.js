@@ -46,13 +46,6 @@ const MODULE_PERMISSION_NAMES = {
   pricing: ["view", "edit"],
 };
 
-const DASHBOARD_COMPONENT_KEY_MAP = {
-  registered_companies: "dashboard_registered_companies",
-  total_users: "dashboard_total_users",
-  total_experts: "dashboard_total_experts",
-  active_jobs: "dashboard_active_jobs",
-};
-
 function normalizeRoleKey(roleKey) {
   const role = String(roleKey || "").toLowerCase();
   return role || DEFAULT_ROLE;
@@ -141,15 +134,6 @@ export function useRolePermissions() {
       return Boolean(flat[`${moduleKey}_${permissionKey}`]);
     };
 
-    const visibleDashboardComponentKeys = new Set(
-      Object.keys(DASHBOARD_COMPONENT_KEY_MAP).filter((componentKey) =>
-        Boolean(flat[DASHBOARD_COMPONENT_KEY_MAP[componentKey]])
-      )
-    );
-
-    const getDashboardVisibleComponentKeys = () =>
-      Array.from(visibleDashboardComponentKeys);
-
     const getModuleConfig = (moduleKey) => {
       const permissionNames = MODULE_PERMISSION_NAMES[moduleKey] ?? [];
       const permissions = permissionNames.reduce((acc, permissionName) => {
@@ -167,10 +151,8 @@ export function useRolePermissions() {
       permissionsReady,
       flatPermissions: flat,
       visibleModuleKeys,
-      visibleDashboardComponentKeys,
       isModuleVisible,
       can,
-      getDashboardVisibleComponentKeys,
       getModuleConfig,
     };
   }, [roleFromRedux, roleFromUser, typeFromUser, userFromRedux, permissionsByRole, permissionsReady]);

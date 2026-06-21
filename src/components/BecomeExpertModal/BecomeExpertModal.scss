@@ -117,6 +117,12 @@
     }
   }
 
+  &--pageFull {
+    max-width: none;
+    margin: 0;
+    width: 100%;
+  }
+
   &__pageCard {
     background: #fff;
     border: 1px solid #f0f0f0;
@@ -126,6 +132,10 @@
 
     @media (max-width: 576px) {
       padding: 1rem;
+    }
+
+    &--full {
+      width: 100%;
     }
   }
 }

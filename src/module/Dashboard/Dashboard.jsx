@@ -4,9 +4,6 @@ import React from "react";
 import { Button } from "antd";
 import { useRouter } from "next/navigation";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
-import DashboardWidgets from "./components/DashboardWidgets";
-import AnalyticsOverview from "./components/AnalyticsOverview";
-import { useDashboard } from "./hooks/useDashboard";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
 import ExpertCareerSection from "@/components/Profile/ExpertCareerSection";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
@@ -15,13 +12,10 @@ import { ROUTES } from "@/constants/routes";
 
 const Dashboard = () => {
   const router = useRouter();
-  const { loading, stats } = useDashboard();
   const { user, role, isExpert: isExpertRole } = useNormalizedProfileUser();
   const isUserRole = role === "user";
   const showProfileCard = isUserRole || isExpertRole;
-  const showDashboardWidgets = !isUserRole && !isExpertRole;
-  const showAnalyticsOverview =
-    showDashboardWidgets && user?.dashboard_analytics_overview !== false;
+  const showAdminCompanyPlaceholder = !isUserRole && !isExpertRole;
 
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
@@ -48,15 +42,14 @@ const Dashboard = () => {
                 </Button>
               }
             />
-            {isExpertRole && (
-              <ExpertCareerSection data={user || {}} />
-            )}
+            {isExpertRole && <ExpertCareerSection data={user || {}} />}
           </div>
         )}
-        {showDashboardWidgets && (
-          <DashboardWidgets stats={stats} loading={loading} />
-        )}
-        {showAnalyticsOverview && <AnalyticsOverview />}
+        {showAdminCompanyPlaceholder ? (
+          <p className="C-heading size-6 color-light mb-0 text-center py-5">
+            To be decided what to show here
+          </p>
+        ) : null}
       </div>
     </div>
   );

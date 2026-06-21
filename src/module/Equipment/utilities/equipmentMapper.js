@@ -60,11 +60,45 @@ function formatEquipmentDate(dateValue) {
   return `${day}-${month}-${year}`;
 }
 
+function parseEquipmentSocialMedia(raw) {
+  if (!raw || typeof raw !== "object") return {};
+  return {
+    facebook: raw.facebook || "",
+    instagram: raw.instagram || "",
+    linkedin: raw.linkedin || "",
+    twitter: raw.twitter || raw.x || "",
+  };
+}
+
+export function formatEquipmentStatus(availableFor) {
+  if (!availableFor) return "";
+  const key = String(availableFor).toLowerCase();
+  const labels = {
+    rent: "Available for Rental",
+    rental: "Available for Rental",
+    lease: "Available for Lease",
+    purchase: "Available for Sale",
+    sale: "Available for Sale",
+  };
+  return labels[key] || `Available for ${availableFor}`;
+}
+
+export function getEquipmentMakeModel(equipment) {
+  if (!equipment) return "";
+  return (
+    equipment.makeModel ||
+    equipment.make_model ||
+    equipment.manufactureCompany ||
+    ""
+  );
+}
+
 /** Normalize GET /equipments/:id (or list row) into app equipment shape. */
 export function mapApiEquipmentRecord(raw) {
   if (!raw || typeof raw !== "object") return null;
 
   const createdAt = raw.createdAt || raw.created_at || raw.created_on;
+  const updatedAt = raw.updatedAt || raw.updated_at || raw.updated_on;
   const address = raw?.equipment_address || raw?.address || {};
   const contactCountryCode = resolveEquipmentContactCountryCode(raw);
 
@@ -84,7 +118,27 @@ export function mapApiEquipmentRecord(raw) {
     contactCountryCode,
     address,
     createDate: raw?.createDate || formatEquipmentDate(createdAt),
+    updateDate: raw?.updateDate || formatEquipmentDate(updatedAt),
     companyId: raw?.company_id ?? raw?.companyId ?? null,
+    makeModel:
+      raw?.make_model ??
+      raw?.makeModel ??
+      raw?.make_and_model ??
+      raw?.makeAndModel ??
+      "",
+    specsPdf:
+      raw?.specs_pdf ??
+      raw?.specsPdf ??
+      raw?.specification_pdf ??
+      raw?.specificationPdf ??
+      "",
+    videoUrl:
+      raw?.video_url ??
+      raw?.videoUrl ??
+      raw?.youtube_url ??
+      raw?.youtubeUrl ??
+      "",
+    socialMedia: parseEquipmentSocialMedia(raw?.social_media ?? raw?.socialMedia),
   };
 }
 

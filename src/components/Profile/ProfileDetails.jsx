@@ -59,6 +59,7 @@ const ProfileDetails = memo(function ProfileDetails({
   headerAction = null,
   forceEditMode = false,
   hideHeader = false,
+  bare = false,
   onCancelEdit,
 }) {
   const [editing, setEditing] = useState(false);
@@ -252,7 +253,7 @@ const ProfileDetails = memo(function ProfileDetails({
 
   return (
     <div className="profileDetails">
-      <div className="profileDetails__pageCard">
+      <div className={bare ? undefined : "profileDetails__pageCard"}>
         {!hideHeader ? (
           <div className="d-flex align-items-center justify-content-between mb-3">
             <Typography.Title level={4} style={{ margin: 0 }}>

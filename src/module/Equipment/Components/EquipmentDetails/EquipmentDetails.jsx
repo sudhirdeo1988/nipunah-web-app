@@ -44,7 +44,10 @@ ViewSection.propTypes = {
   children: PropTypes.node,
 };
 
-const EquipmentDetails = memo(function EquipmentDetails({ equipment }) {
+const EquipmentDetails = memo(function EquipmentDetails({
+  equipment,
+  showContact = true,
+}) {
   if (!equipment) return null;
 
   const contactNumber =
@@ -65,9 +68,7 @@ const EquipmentDetails = memo(function EquipmentDetails({ equipment }) {
             value={equipment.manufactureCompany}
           />
           <ViewField label="Available For" value={equipment.availableFor} />
-          {equipment.rentType ? (
-            <ViewField label="Rent Type" value={equipment.rentType} />
-          ) : null}
+          <ViewField label="Rent Type" value={equipment.rentType} />
         </ViewSection>
 
         <ViewSection title="About">
@@ -86,13 +87,16 @@ const EquipmentDetails = memo(function EquipmentDetails({ equipment }) {
           />
         </ViewSection>
 
-        <ViewSection title="Contact Information">
-          <ViewField label="Contact Email" value={equipment.contactEmail} />
-          <ViewField label="Contact Number" value={contactNumber} />
-        </ViewSection>
+        {showContact ? (
+          <ViewSection title="Contact Information">
+            <ViewField label="Contact Email" value={equipment.contactEmail} />
+            <ViewField label="Contact Number" value={contactNumber} />
+          </ViewSection>
+        ) : null}
 
         <ViewSection title="Additional Information">
           <ViewField label="Created On" value={equipment.createDate} />
+          <ViewField label="Updated On" value={equipment.updateDate} />
         </ViewSection>
 
         <Card size="small" className="profileDetails__sectionCard">
@@ -112,6 +116,7 @@ const EquipmentDetails = memo(function EquipmentDetails({ equipment }) {
 
 EquipmentDetails.propTypes = {
   equipment: PropTypes.object,
+  showContact: PropTypes.bool,
 };
 
 export default EquipmentDetails;

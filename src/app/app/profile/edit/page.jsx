@@ -1,17 +1,20 @@
 "use client";
 
-import React, { useCallback, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { message, Spin } from "antd";
 import { useAppDispatch } from "@/store/hooks";
 import { setUser } from "@/store/slices/userSlice";
 import BecomeExpertModal from "@/components/BecomeExpertModal";
 import ExpertProfileFormLayout from "@/components/BecomeExpertModal/ExpertProfileFormLayout";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
+import CompanyProfileForm from "@/components/Profile/CompanyProfileForm";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
 import {
   expertBasicInfoFormValues,
   expertCareerFormValues,
 } from "@/utilities/expertProfileNormalize";
+import { companyProfileFormValues } from "@/utilities/companyProfileNormalize";
 import { useNormalizedProfileUser } from "@/hooks/useNormalizedProfileUser";
 import {
   applyRolePermissionsToUser,
@@ -25,13 +28,78 @@ import { ROUTES } from "@/constants/routes";
 const ProfileEditPage = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
-  const { user, role, isExpert, reduxUser } = useNormalizedProfileUser();
+  const { user, role, isExpert, isCompany, reduxUser } =
+    useNormalizedProfileUser();
+  const [companyProfile, setCompanyProfile] = useState(null);
+  const [loadingCompanyProfile, setLoadingCompanyProfile] = useState(isCompany);
 
   const sections = useMemo(() => {
     if (role === "company") return PROFILE_SCHEMAS.company;
     if (role === "expert") return PROFILE_SCHEMAS.expert;
     return PROFILE_SCHEMAS.user;
   }, [role]);
+
+  const companyId = useMemo(
+    () => getIdFromStoredUser(reduxUser),
+    [reduxUser]
+  );
+
+  useEffect(() => {
+    if (!isCompany) {
+      setCompanyProfile(null);
+      setLoadingCompanyProfile(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadCompanyProfile = async () => {
+      const sessionBase = reduxUser || user || {};
+
+      if (!companyId) {
+        setCompanyProfile(sessionBase);
+        setLoadingCompanyProfile(false);
+        return;
+      }
+
+      setLoadingCompanyProfile(true);
+      try {
+        const latest = await fetchUserDetailsByRole({
+          role: "company",
+          id: companyId,
+        });
+        const merged = applyRolePermissionsToUser({
+          ...sessionBase,
+          ...(latest || {}),
+        });
+        if (!cancelled) {
+          setCompanyProfile(merged);
+          saveUserSession(merged);
+          dispatch(setUser(merged));
+        }
+      } catch (error) {
+        console.warn("Failed to load company profile for edit:", error);
+        if (!cancelled) {
+          setCompanyProfile(sessionBase);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingCompanyProfile(false);
+        }
+      }
+    };
+
+    loadCompanyProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [companyId, dispatch, isCompany]);
+
+  const companyFormInitialValues = useMemo(() => {
+    if (!isCompany) return null;
+    return companyProfileFormValues(companyProfile || user);
+  }, [companyProfile, isCompany, user]);
 
   const expertFormInitialValues = useMemo(() => {
     if (!isExpert) return null;
@@ -88,7 +156,7 @@ const ProfileEditPage = () => {
       await updateUserDetailsByRole({
         role,
         id,
-        payload: updated,
+        payload: { ...(reduxUser || {}), ...updated },
       });
 
       const latest = await fetchUserDetailsByRole({ role, id });
@@ -98,6 +166,7 @@ const ProfileEditPage = () => {
       });
       saveUserSession(merged);
       dispatch(setUser(merged));
+      message.success("Profile updated successfully.");
       router.push(ROUTES.PRIVATE.PROFILE);
     },
     [dispatch, reduxUser, role, router]
@@ -123,6 +192,34 @@ const ProfileEditPage = () => {
           closeAfterSubmit={false}
           successMessage="Profile updated successfully."
         />
+      </ExpertProfileFormLayout>
+    );
+  }
+
+  if (isCompany) {
+    return (
+      <ExpertProfileFormLayout
+        title="Edit Profile"
+        subtitle="Update your company details, addresses, categories, and statistics."
+        onBack={goToProfileView}
+        backLabel="Back to Profile"
+      >
+        <div className="becomeExpertModal becomeExpertModal--page becomeExpertModal--pageFull">
+          {loadingCompanyProfile || !companyFormInitialValues ? (
+            <div className="text-center py-5">
+              <Spin size="large" />
+            </div>
+          ) : (
+            <CompanyProfileForm
+              key={`company-profile-${getIdFromStoredUser(companyProfile || reduxUser) || "edit"}`}
+              initialValues={companyFormInitialValues}
+              onSubmit={handleUserProfileSave}
+              onCancel={goToProfileView}
+              cancelText="Back to Profile"
+              okText="Submit"
+            />
+          )}
+        </div>
       </ExpertProfileFormLayout>
     );
   }

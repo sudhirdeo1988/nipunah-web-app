@@ -1,0 +1,69 @@
+.companyProfileSection {
+  &__hero {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 16px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border: 1px solid #eef2f6;
+    border-radius: 10px;
+  }
+
+  &__logo,
+  &__logoPlaceholder {
+    width: 72px;
+    height: 72px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    object-fit: cover;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+  }
+
+  &__logoPlaceholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #64748b;
+  }
+
+  &__name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.88);
+    margin: 0;
+  }
+
+  &__subtitle {
+    font-size: 0.875rem;
+    color: rgba(0, 0, 0, 0.55);
+  }
+
+  &__entryTitle {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: rgba(0, 0, 0, 0.75);
+  }
+
+  &__logoPreview {
+    max-width: 180px;
+    max-height: 180px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    padding: 6px;
+    background: #fff;
+  }
+
+  .profileDetails__link {
+    color: #1677ff;
+    text-decoration: none;
+    word-break: break-all;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}

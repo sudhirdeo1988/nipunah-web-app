@@ -1,16 +1,21 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { Empty, Image, Tag, Timeline, Typography } from "antd";
-import { ArrowLeftOutlined } from "@ant-design/icons";
-import Icon from "@/components/Icon";
+import { Empty, Tag, Timeline, Typography } from "antd";
+import {
+  PublicDetailsProfile,
+  PublicDetailsContentSection,
+  PublicDetailsSidebar,
+  PublicDetailsInfoRow,
+} from "@/components/PublicDetailsProfile";
 import { useAuth } from "@/utilities/AuthContext";
-import ExpertInfoSidebar from "./ExpertInfoSidebar";
 import {
   buildAboutFallback,
   employmentTypeLabel,
+  formatExpertContact,
   formatExpertDuration,
   formatExpertLocation,
+  formatMemberSince,
   sortEntriesByFromDateDesc,
   sortWorkExperienceByFromDateDesc,
 } from "@/utilities/expertPublicProfile";
@@ -21,22 +26,6 @@ const { Text } = Typography;
 function YearBadge({ children }) {
   if (!children) return null;
   return <span className="expertPublicProfile__yearBadge">{children}</span>;
-}
-
-function ContentSection({ title, children, empty = false, emptyDescription }) {
-  return (
-    <section className="expertPublicProfile__contentSection">
-      <h2 className="expertPublicProfile__contentTitle">{title}</h2>
-      {empty ? (
-        <Empty
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-          description={emptyDescription}
-        />
-      ) : (
-        children
-      )}
-    </section>
-  );
 }
 
 function ProfileTimeline({ items, emptyDescription }) {
@@ -75,9 +64,7 @@ function WorkTimelineItem({ entry }) {
         </Tag>
       ) : null}
       {description ? (
-        <p className="expertPublicProfile__timelineDescription">
-          {description}
-        </p>
+        <p className="expertPublicProfile__timelineDescription">{description}</p>
       ) : null}
     </div>
   );
@@ -99,51 +86,19 @@ function EducationTimelineItem({ entry }) {
         <Text className="expertPublicProfile__timelineSubtitle">{school}</Text>
       ) : null}
       {description ? (
-        <p className="expertPublicProfile__timelineDescription">
-          {description}
-        </p>
+        <p className="expertPublicProfile__timelineDescription">{description}</p>
       ) : null}
-    </div>
-  );
-}
-
-function ExpertAvatar({ expert }) {
-  const imageUrl = expert?.profileImageUrl;
-  const name = expert?.fullName || "Expert";
-
-  if (imageUrl) {
-    return (
-      <div className="expertPublicProfile__avatar">
-        <Image
-          src={imageUrl}
-          alt={name}
-          className="expertPublicProfile__avatarImg"
-          preview={false}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div
-      className="expertPublicProfile__avatar expertPublicProfile__avatar--placeholder"
-      aria-label="Expert photo placeholder"
-    >
-      <Icon name="person" isFilled color="#94a3b8" size="large" />
     </div>
   );
 }
 
 const timelineDot = <span className="expertPublicProfile__timelineDot" />;
 
-/**
- * Public expert profile — banner header + About, Skills, timelines, sidebar.
- */
 export default function ExpertPublicProfile({ expert, backLink }) {
   const { isLoggedIn } = useAuth();
   const location = useMemo(
     () => formatExpertLocation(expert?.address),
-    [expert?.address],
+    [expert?.address]
   );
 
   const firstName = useMemo(() => {
@@ -153,15 +108,20 @@ export default function ExpertPublicProfile({ expert, backLink }) {
   }, [expert]);
 
   const aboutText = useMemo(() => buildAboutFallback(expert), [expert]);
+  const contact = useMemo(() => formatExpertContact(expert), [expert]);
+  const memberSince = useMemo(
+    () => formatMemberSince(expert?.createdOn ?? expert?.created_on),
+    [expert]
+  );
 
   const sortedWork = useMemo(
     () => sortWorkExperienceByFromDateDesc(expert?.workExperience ?? []),
-    [expert?.workExperience],
+    [expert?.workExperience]
   );
 
   const sortedEducation = useMemo(
     () => sortEntriesByFromDateDesc(expert?.education ?? []),
-    [expert?.education],
+    [expert?.education]
   );
 
   const workTimelineItems = useMemo(
@@ -171,7 +131,7 @@ export default function ExpertPublicProfile({ expert, backLink }) {
         dot: timelineDot,
         children: <WorkTimelineItem entry={entry} />,
       })),
-    [sortedWork],
+    [sortedWork]
   );
 
   const educationTimelineItems = useMemo(
@@ -181,119 +141,84 @@ export default function ExpertPublicProfile({ expert, backLink }) {
         dot: timelineDot,
         children: <EducationTimelineItem entry={entry} />,
       })),
-    [sortedEducation],
+    [sortedEducation]
   );
 
   const skills = expert?.skills ?? [];
 
+  const metaItems = useMemo(
+    () =>
+      location
+        ? [{ icon: "location_on", label: "Location", text: location }]
+        : [],
+    [location]
+  );
+
+  const sidebar = isLoggedIn ? (
+    <PublicDetailsSidebar socialMedia={expert?.socialMedia}>
+      <PublicDetailsInfoRow label="Email">
+        {expert?.email ? (
+          <a href={`mailto:${expert.email}`} className="publicDetailsProfile__link">
+            {expert.email}
+          </a>
+        ) : null}
+      </PublicDetailsInfoRow>
+      <PublicDetailsInfoRow label="Phone">{contact || null}</PublicDetailsInfoRow>
+      <PublicDetailsInfoRow label="Member since">{memberSince || null}</PublicDetailsInfoRow>
+    </PublicDetailsSidebar>
+  ) : null;
+
   return (
-    <div className="expertPublicProfile">
-      <header className="expertPublicProfile__banner">
-        <div className="expertPublicProfile__bannerOverlay" aria-hidden />
-        <div className="container expertPublicProfile__bannerInner">
-          {backLink ? (
-            <div className="expertPublicProfile__bannerBack">
-              {backLink.href ? (
-                <a
-                  href={backLink.href}
-                  className="expertPublicProfile__backLink"
-                >
-                  <ArrowLeftOutlined />
-                  <span>{backLink.label}</span>
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  className="expertPublicProfile__backLink"
-                  onClick={backLink.onClick}
-                >
-                  <ArrowLeftOutlined />
-                  <span>{backLink.label}</span>
-                </button>
-              )}
-            </div>
-          ) : null}
+    <PublicDetailsProfile
+      backLink={backLink}
+      imageUrl={expert?.profileImageUrl}
+      imageAlt={expert?.fullName || "Expert"}
+      placeholderIcon="person"
+      imageVariant="circle"
+      name={expert?.fullName || "Expert"}
+      subtitle={expert?.expertise || ""}
+      metaItems={metaItems}
+      sidebar={sidebar}
+      showSidebar={isLoggedIn}
+    >
+      <PublicDetailsContentSection
+        title={`About ${firstName}`}
+        empty={!aboutText}
+        emptyDescription="No about information provided."
+      >
+        <p className="publicDetailsProfile__aboutText">{aboutText}</p>
+      </PublicDetailsContentSection>
 
-          <div className="expertPublicProfile__bannerProfile">
-            <ExpertAvatar expert={expert} />
-            <div className="expertPublicProfile__bannerText">
-              <h1 className="expertPublicProfile__bannerName">
-                {expert?.fullName || "Expert"}
-              </h1>
-              {expert?.expertise ? (
-                <p className="expertPublicProfile__bannerRole">
-                  {expert.expertise}
-                </p>
-              ) : null}
-              <div className="expertPublicProfile__bannerMeta">
-                {location ? (
-                  <span className="expertPublicProfile__bannerMetaItem">
-                    <Icon
-                      name="location_on"
-                      color="rgba(255,255,255,0.85)"
-                      size="small"
-                    />
-                    {location}
-                  </span>
-                ) : null}
-              </div>
-            </div>
-          </div>
+      <PublicDetailsContentSection
+        title="Skills"
+        empty={!skills.length}
+        emptyDescription="No skills listed."
+      >
+        <div className="expertPublicProfile__skills">
+          {skills.map((skill, idx) => (
+            <span
+              key={`${String(skill)}-${idx}`}
+              className="expertPublicProfile__skillPill"
+            >
+              {skill}
+            </span>
+          ))}
         </div>
-      </header>
+      </PublicDetailsContentSection>
 
-      <div className="expertPublicProfile__body">
-        <div className="container">
-          <div className="row g-4 g-xl-5">
-            <div className="col-lg-8 col-12">
-              <ContentSection
-                title={`About ${firstName}`}
-                empty={!aboutText}
-                emptyDescription="No about information provided."
-              >
-                <p className="expertPublicProfile__aboutText">{aboutText}</p>
-              </ContentSection>
+      <PublicDetailsContentSection title="Work Experience">
+        <ProfileTimeline
+          items={workTimelineItems}
+          emptyDescription="No work experience listed."
+        />
+      </PublicDetailsContentSection>
 
-              <ContentSection
-                title="Skills"
-                empty={!skills.length}
-                emptyDescription="No skills listed."
-              >
-                <div className="expertPublicProfile__skills">
-                  {skills.map((skill, idx) => (
-                    <span
-                      key={`${String(skill)}-${idx}`}
-                      className="expertPublicProfile__skillPill"
-                    >
-                      {skill}
-                    </span>
-                  ))}
-                </div>
-              </ContentSection>
-
-              <ContentSection title="Work Experience">
-                <ProfileTimeline
-                  items={workTimelineItems}
-                  emptyDescription="No work experience listed."
-                />
-              </ContentSection>
-
-              <ContentSection title="Education & Training">
-                <ProfileTimeline
-                  items={educationTimelineItems}
-                  emptyDescription="No education listed."
-                />
-              </ContentSection>
-            </div>
-
-            {isLoggedIn ? (
-              <div className="col-lg-4 col-12">
-                <ExpertInfoSidebar expert={expert} />
-              </div>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </div>
+      <PublicDetailsContentSection title="Education & Training">
+        <ProfileTimeline
+          items={educationTimelineItems}
+          emptyDescription="No education listed."
+        />
+      </PublicDetailsContentSection>
+    </PublicDetailsProfile>
   );
 }

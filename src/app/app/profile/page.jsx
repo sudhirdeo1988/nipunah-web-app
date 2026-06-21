@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useAppDispatch } from "@/store/hooks";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import ProfileDetails from "@/components/Profile/ProfileDetails";
+import CompanyProfileSection from "@/components/Profile/CompanyProfileSection";
 import ExpertCareerSection from "@/components/Profile/ExpertCareerSection";
 import { PROFILE_SCHEMAS } from "@/components/Profile/profileSchemas";
 import { setUser } from "@/store/slices/userSlice";
@@ -28,7 +29,7 @@ const ProfilePage = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoggedIn } = useAuth();
-  const { user, role, isExpert, reduxUser } = useNormalizedProfileUser();
+  const { user, role, isExpert, isCompany, reduxUser } = useNormalizedProfileUser();
   const hasRenderableProfileData = Boolean(
     user?.first_name ||
       user?.last_name ||
@@ -37,6 +38,13 @@ const ProfilePage = () => {
       user?.title ||
       user?.username ||
       user?.contact_number
+  );
+  const hasCompanyProfileDetails = Boolean(
+    !isCompany ||
+      (((Array.isArray(user?.addresses) && user.addresses.length > 0) ||
+        (Array.isArray(user?.locations) && user.locations.length > 0)) &&
+        Array.isArray(user?.categories) &&
+        user.categories.length > 0)
   );
 
   const sections = useMemo(() => {
@@ -65,7 +73,7 @@ const ProfilePage = () => {
   useEffect(() => {
     const hydrateProfileOnRefresh = async () => {
       if (!isLoggedIn) return;
-      if (hasRenderableProfileData) return;
+      if (hasRenderableProfileData && hasCompanyProfileDetails) return;
 
       let sessionUser = reduxUser || loadUserSession() || {};
       sessionUser = applyUserIdFromCookieIfMissing(sessionUser);
@@ -106,7 +114,7 @@ const ProfilePage = () => {
     };
 
     hydrateProfileOnRefresh();
-  }, [dispatch, hasRenderableProfileData, isLoggedIn, reduxUser]);
+  }, [dispatch, hasCompanyProfileDetails, hasRenderableProfileData, isLoggedIn, reduxUser]);
 
   const goToEditProfile = useCallback(() => {
     router.push(ROUTES.PRIVATE.PROFILE_EDIT);
@@ -117,24 +125,28 @@ const ProfilePage = () => {
       <AppPageHeader
         title="Profile"
         subtitle="View and update your profile information."
-      />
+      >
+        <Button
+          type="primary"
+          className="C-button is-filled"
+          onClick={goToEditProfile}
+        >
+          Edit Profile
+        </Button>
+      </AppPageHeader>
       <div className="mt-3">
-        <ProfileDetails
-          title="Profile"
-          data={user}
-          sections={sections}
-          role={role}
-          showEditButton={false}
-          headerAction={
-            <Button
-              type="primary"
-              className="C-button is-filled"
-              onClick={goToEditProfile}
-            >
-              Edit Profile
-            </Button>
-          }
-        />
+        {isCompany ? (
+          <CompanyProfileSection data={user} />
+        ) : (
+          <ProfileDetails
+            data={user}
+            sections={sections}
+            role={role}
+            showEditButton={false}
+            hideHeader
+            bare
+          />
+        )}
         {isExpert && <ExpertCareerSection data={user} canEdit />}
       </div>
     </div>

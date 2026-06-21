@@ -4,6 +4,10 @@ import {
   normalizeExpertUser,
   expertProfileToApiPayload,
 } from "./expertProfileNormalize";
+import {
+  companyProfileToApiPayload,
+  normalizeCompanyUser,
+} from "./companyProfileNormalize";
 
 const STORAGE_KEY = "nipunah_user_session";
 
@@ -224,6 +228,9 @@ export async function fetchUserDetailsByRole({ role, id }) {
     if (cleanRole === "expert") {
       return normalizeExpertUser(rest);
     }
+    if (cleanRole === "company") {
+      return normalizeCompanyUser(rest);
+    }
     return rest;
   }
 
@@ -246,7 +253,9 @@ export async function updateUserDetailsByRole({ role, id, payload }) {
   const bodyPayload =
     cleanRole === "expert"
       ? expertProfileToApiPayload(payload || {})
-      : payload || {};
+      : cleanRole === "company"
+        ? companyProfileToApiPayload(payload || {})
+        : payload || {};
 
   const res = await fetch(endpoint, {
     method: "PUT",

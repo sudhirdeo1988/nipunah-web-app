@@ -2,7 +2,8 @@
 
 import React, { useState, useMemo, useCallback, memo, useRef } from "react";
 import dynamic from "next/dynamic";
-import { Form, Input, message, Select, Divider, Space } from "antd";
+import { Form, Input, message, Select, Divider, Space, Button, Upload } from "antd";
+import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import { map as _map } from "lodash-es";
 import Icon from "@/components/Icon";
 import { useRouter } from "next/navigation";
@@ -44,6 +45,7 @@ const UserRegistration = () => {
   const [form] = Form.useForm();
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
+  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
 
   // ===== MEMOIZED DATA PROCESSING =====
 
@@ -225,6 +227,9 @@ const UserRegistration = () => {
         payload.captchaToken = captchaTokenValue;
       }
 
+      // Local preview only until profile photo upload API is ready
+      delete payload.profile_image_url;
+
       // Log final payload before API call
       console.log("User Registration Payload:", payload);
 
@@ -329,6 +334,112 @@ const UserRegistration = () => {
       });
     },
     [form]
+  );
+
+  // Profile photo (static/local preview until upload API is ready)
+  const handleProfilePhotoUpload = useCallback(
+    (file) => {
+      const isValidType =
+        file.type === "image/png" ||
+        file.type === "image/jpeg" ||
+        file.type === "image/jpg" ||
+        file.type === "image/webp";
+
+      if (!isValidType) {
+        message.error("You can only upload PNG, JPG, or WEBP files!");
+        return false;
+      }
+
+      const isLt5M = file.size / 1024 / 1024 < 5;
+      if (!isLt5M) {
+        message.error("Image must be smaller than 5MB!");
+        return false;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const preview = reader.result;
+        setProfilePhotoPreview(preview);
+        form.setFieldValue("profile_image_url", preview);
+      };
+      reader.readAsDataURL(file);
+
+      return false;
+    },
+    [form]
+  );
+
+  const handleProfilePhotoRemove = useCallback(() => {
+    setProfilePhotoPreview(null);
+    form.setFieldValue("profile_image_url", undefined);
+  }, [form]);
+
+  const renderProfilePhotoUploadField = () => (
+    <Form.Item
+      label={
+        <span className="C-heading size-6 semiBold color-light mb-0">
+          Profile Photo
+          <span className="text-muted ms-1" style={{ fontSize: "12px" }}>
+            (Optional)
+          </span>
+        </span>
+      }
+      name="profile_image_url"
+      className="mb-2"
+    >
+      <div>
+        {profilePhotoPreview ? (
+          <div
+            style={{
+              marginBottom: 16,
+              position: "relative",
+              display: "inline-block",
+            }}
+          >
+            <img
+              src={profilePhotoPreview}
+              alt="Profile preview"
+              style={{
+                width: "120px",
+                height: "120px",
+                objectFit: "cover",
+                borderRadius: "50%",
+                border: "1px solid #d9d9d9",
+                padding: "4px",
+                backgroundColor: "#fff",
+              }}
+            />
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              onClick={handleProfilePhotoRemove}
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                backgroundColor: "rgba(255, 255, 255, 0.9)",
+              }}
+            >
+              Remove
+            </Button>
+          </div>
+        ) : null}
+        <Upload
+          name="profile_photo"
+          beforeUpload={handleProfilePhotoUpload}
+          showUploadList={false}
+          accept="image/png,image/jpeg,image/jpg,image/webp"
+        >
+          <Button icon={<UploadOutlined />} size="large" block>
+            {profilePhotoPreview ? "Change Photo" : "Upload Profile Photo"}
+          </Button>
+        </Upload>
+        <div className="mt-2" style={{ fontSize: "12px", color: "#8c8c8c" }}>
+          Supported formats: PNG, JPG, WEBP (Max 5MB)
+        </div>
+      </div>
+    </Form.Item>
   );
 
   return (
@@ -466,6 +577,8 @@ const UserRegistration = () => {
                     </Space.Compact>
                   </Form.Item>
                 </div>
+
+                <div className="col-12">{renderProfilePhotoUploadField()}</div>
 
                 {/* ===== ADDRESS INFORMATION SECTION ===== */}
                 <div className="col-12">

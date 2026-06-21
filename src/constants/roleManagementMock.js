@@ -18,12 +18,6 @@ export const ROLE_MANAGEMENT_MOCK = {
     nav_pricing: true,
     nav_enquiries: true,
 
-    dashboard_registered_companies: true,
-    dashboard_total_users: true,
-    dashboard_total_experts: true,
-    dashboard_active_jobs: true,
-    dashboard_analytics_overview: true,
-
     dashboard_view: true,
     users_view: true,
     users_add: true,
@@ -86,12 +80,6 @@ export const ROLE_MANAGEMENT_MOCK = {
     nav_role_management: false,
     nav_pricing: false,
     nav_enquiries: true,
-
-    dashboard_registered_companies: false,
-    dashboard_total_users: false,
-    dashboard_total_experts: false,
-    dashboard_active_jobs: false,
-    dashboard_analytics_overview: false,
 
     dashboard_view: true,
     users_view: true,
@@ -156,12 +144,6 @@ export const ROLE_MANAGEMENT_MOCK = {
     nav_pricing: false,
     nav_enquiries: true,
 
-    dashboard_registered_companies: true,
-    dashboard_total_users: true,
-    dashboard_total_experts: true,
-    dashboard_active_jobs: true,
-    dashboard_analytics_overview: false,
-
     dashboard_view: true,
     users_view: true,
     users_add: true,
@@ -224,12 +206,6 @@ export const ROLE_MANAGEMENT_MOCK = {
     nav_role_management: false,
     nav_pricing: false,
     nav_enquiries: true,
-
-    dashboard_registered_companies: true,
-    dashboard_total_users: true,
-    dashboard_total_experts: true,
-    dashboard_active_jobs: true,
-    dashboard_analytics_overview: false,
 
     dashboard_view: true,
     users_view: true,
