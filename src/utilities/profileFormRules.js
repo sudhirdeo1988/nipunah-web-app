@@ -123,6 +123,11 @@ const USER_EXPERT_RULES = {
   address__postal_code: postalRules(true),
 };
 
+const EXPERT_RULES = {
+  ...USER_EXPERT_RULES,
+  expertise: [requiredRule("Please select expertise.")],
+};
+
 const COMPANY_RULES = {
   name: [requiredRule("Enter company name")],
   contact_country_code: [requiredRule("Select code")],
@@ -143,7 +148,7 @@ const COMPANY_RULES = {
 
 const RULES_BY_ROLE = {
   user: USER_EXPERT_RULES,
-  expert: USER_EXPERT_RULES,
+  expert: EXPERT_RULES,
   company: COMPANY_RULES,
 };
 

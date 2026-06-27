@@ -14,6 +14,8 @@ import {
   DatePicker,
   message,
   Checkbox,
+  Row,
+  Col,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import {
@@ -35,6 +37,7 @@ import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import { startsWithSelectFilter } from "@/utilities/selectFilters";
 import { groupBy as _groupBy, map as _map } from "lodash-es";
 import "./BecomeExpertModal.scss";
+import "@/components/Profile/ProfileDetails.scss";
 
 const { TextArea } = Input;
 
@@ -187,7 +190,9 @@ const BecomeExpertModal = ({
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const isPageVariant = variant === "page";
+  const isPageVariant = variant === "page" || variant === "pageProfile";
+  const isProfilePageVariant = variant === "pageProfile";
+  const formControlSize = isProfilePageVariant ? "large" : undefined;
   const resolvedCancelText =
     cancelText ?? (isPageVariant ? "Back to dashboard" : "Cancel");
 
@@ -225,7 +230,10 @@ const BecomeExpertModal = ({
   const normalizedInitialValues = useMemo(() => {
     const career = normalizeInitialValues(initialValues);
     if (!includeBasicInfo) return career;
-    const basic = expertBasicInfoFormValues(profileData || initialValues || {});
+    const basic = expertBasicInfoFormValues({
+      ...(initialValues && typeof initialValues === "object" ? initialValues : {}),
+      ...(profileData && typeof profileData === "object" ? profileData : {}),
+    });
     return { ...basic, ...career };
   }, [initialValues, includeBasicInfo, profileData]);
 
@@ -368,6 +376,7 @@ const BecomeExpertModal = ({
       <Form
         form={form}
         layout="vertical"
+        size={formControlSize}
         initialValues={normalizedInitialValues}
         onFinish={handleSubmit}
       >
@@ -424,6 +433,7 @@ const BecomeExpertModal = ({
                     <Select
                       showSearch
                       placeholder="Code"
+                      size={formControlSize}
                       style={{ width: "38%" }}
                       options={countryCodeOptions}
                       optionFilterProp="label"
@@ -439,6 +449,7 @@ const BecomeExpertModal = ({
                     <DigitsOnlyInput
                       placeholder="Phone number"
                       maxLength={15}
+                      size={formControlSize}
                       style={{ width: "62%" }}
                     />
                   </Form.Item>
@@ -706,6 +717,7 @@ const BecomeExpertModal = ({
                     }
                     block
                     icon={<PlusOutlined />}
+                    size={formControlSize}
                   >
                     Add Work Experience
                   </Button>
@@ -723,27 +735,32 @@ const BecomeExpertModal = ({
             <Form.List name="skills">
               {(fields, { add, remove }) => (
                 <>
-                  {fields.map(({ key, name, ...rest }) => (
-                    <div key={key} className="becomeExpertModal__listRow">
-                      <Form.Item {...rest} name={name} noStyle>
-                        <Input placeholder="Skill" />
-                      </Form.Item>
-                      <Button
-                        type="text"
-                        danger
-                        icon={<DeleteOutlined />}
-                        onClick={() => remove(name)}
-                        aria-label="Delete"
-                        className="becomeExpertModal__deleteBtn"
-                      />
-                    </div>
-                  ))}
-                  <Form.Item>
+                  <Row gutter={[12, 12]}>
+                    {fields.map(({ key, name, ...rest }) => (
+                      <Col xs={24} md={12} key={key}>
+                        <div className="becomeExpertModal__skillRow">
+                          <Form.Item {...rest} name={name} noStyle>
+                            <Input placeholder="Skill" />
+                          </Form.Item>
+                          <Button
+                            type="text"
+                            danger
+                            icon={<DeleteOutlined />}
+                            onClick={() => remove(name)}
+                            aria-label="Delete skill"
+                            className="becomeExpertModal__deleteBtn"
+                          />
+                        </div>
+                      </Col>
+                    ))}
+                  </Row>
+                  <Form.Item className="mb-0 mt-2">
                     <Button
                       type="dashed"
                       onClick={() => add("")}
                       block
                       icon={<PlusOutlined />}
+                      size={formControlSize}
                     >
                       Add Skills
                     </Button>
@@ -875,6 +892,7 @@ const BecomeExpertModal = ({
                       }
                       block
                       icon={<PlusOutlined />}
+                      size={formControlSize}
                     >
                       Add Education
                     </Button>
@@ -886,7 +904,11 @@ const BecomeExpertModal = ({
 
         <div className="becomeExpertModal__footer">
           <Space>
-            <Button onClick={handleClose} disabled={loading}>
+            <Button
+              onClick={handleClose}
+              disabled={loading}
+              size={formControlSize}
+            >
               {resolvedCancelText}
             </Button>
             <Button
@@ -894,6 +916,7 @@ const BecomeExpertModal = ({
               htmlType="submit"
               loading={loading}
               className="C-button is-filled"
+              size={formControlSize}
             >
               {okText}
             </Button>
@@ -905,8 +928,18 @@ const BecomeExpertModal = ({
 
   if (isPageVariant) {
     return (
-      <div className="becomeExpertModal becomeExpertModal--page">
-        <div className="becomeExpertModal__pageCard">{content}</div>
+      <div
+        className={`becomeExpertModal ${
+          isProfilePageVariant
+            ? "becomeExpertModal--pageProfile profileDetails"
+            : "becomeExpertModal--page"
+        }`}
+      >
+        {isProfilePageVariant ? (
+          content
+        ) : (
+          <div className="becomeExpertModal__pageCard">{content}</div>
+        )}
       </div>
     );
   }

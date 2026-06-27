@@ -18,6 +18,7 @@ import CountryDetails from "@/utilities/CountryDetails.json";
 import { resolveProfileUsername } from "@/utilities/profileUtils";
 import { buildProfileFieldRules } from "@/utilities/profileFormRules";
 import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
+import { getExpertiseFilterOptions } from "@/module/Experts/constants/expertConstants";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
 import { startsWithSelectFilter } from "@/utilities/selectFilters";
@@ -85,6 +86,8 @@ const ProfileDetails = memo(function ProfileDetails({
       })),
     []
   );
+
+  const expertiseOptions = useMemo(() => getExpertiseFilterOptions(), []);
 
   const resolveFieldValue = (f) => {
     const lastSegment = f.path?.[f.path.length - 1];
@@ -234,6 +237,18 @@ const ProfileDetails = memo(function ProfileDetails({
       );
     }
 
+    if (f.type === "expertise") {
+      return (
+        <Select
+          showSearch
+          placeholder="Select expertise"
+          options={expertiseOptions}
+          optionFilterProp="label"
+          disabled={!!f.readOnly}
+        />
+      );
+    }
+
     if (f.type === "textarea" || f.type === "json") {
       return (
         <Input.TextArea
@@ -299,7 +314,12 @@ const ProfileDetails = memo(function ProfileDetails({
             ))}
           </div>
         ) : (
-          <Form form={form} layout="vertical" onFinish={handleFinish}>
+          <Form
+            form={form}
+            layout="vertical"
+            size="large"
+            onFinish={handleFinish}
+          >
             {sections.map((section) => (
               <Card
                 key={section.title}
@@ -335,7 +355,7 @@ const ProfileDetails = memo(function ProfileDetails({
               </Card>
             ))}
             <div className="profileDetails__footer">
-              <Button onClick={handleCancel} disabled={saving}>
+              <Button onClick={handleCancel} disabled={saving} size="large">
                 {onCancelEdit ? "Back to Profile" : "Cancel"}
               </Button>
               <Button
@@ -343,8 +363,9 @@ const ProfileDetails = memo(function ProfileDetails({
                 htmlType="submit"
                 loading={saving}
                 className="C-button is-filled"
+                size="large"
               >
-                Submit
+                Save Profile
               </Button>
             </div>
           </Form>

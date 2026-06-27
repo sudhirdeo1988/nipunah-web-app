@@ -47,6 +47,8 @@ const ProfilePage = () => {
         user.categories.length > 0)
   );
 
+  const hasExpertProfileDetails = Boolean(!isExpert || user?.expertise);
+
   const sections = useMemo(() => {
     if (role === "company") return PROFILE_SCHEMAS.company;
     if (role === "expert") return PROFILE_SCHEMAS.expert;
@@ -73,7 +75,13 @@ const ProfilePage = () => {
   useEffect(() => {
     const hydrateProfileOnRefresh = async () => {
       if (!isLoggedIn) return;
-      if (hasRenderableProfileData && hasCompanyProfileDetails) return;
+      if (
+        hasRenderableProfileData &&
+        hasCompanyProfileDetails &&
+        hasExpertProfileDetails
+      ) {
+        return;
+      }
 
       let sessionUser = reduxUser || loadUserSession() || {};
       sessionUser = applyUserIdFromCookieIfMissing(sessionUser);
@@ -114,7 +122,14 @@ const ProfilePage = () => {
     };
 
     hydrateProfileOnRefresh();
-  }, [dispatch, hasCompanyProfileDetails, hasRenderableProfileData, isLoggedIn, reduxUser]);
+  }, [
+    dispatch,
+    hasCompanyProfileDetails,
+    hasExpertProfileDetails,
+    hasRenderableProfileData,
+    isLoggedIn,
+    reduxUser,
+  ]);
 
   const goToEditProfile = useCallback(() => {
     router.push(ROUTES.PRIVATE.PROFILE_EDIT);

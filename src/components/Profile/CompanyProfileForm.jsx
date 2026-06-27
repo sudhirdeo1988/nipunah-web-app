@@ -9,6 +9,7 @@ import React, {
 } from "react";
 import {
   Button,
+  Card,
   Divider,
   Form,
   Input,
@@ -37,6 +38,7 @@ import axiosPublicInstance from "@/utilities/axiosPublicInstance";
 import axiosInstance from "@/utilities/axiosInstance";
 import { coerceSelectId } from "@/utilities/companyProfileNormalize";
 import { EMPLOYEE_COUNT_RANGES } from "@/module/Company/constants/companyConstants";
+import "@/components/Profile/ProfileDetails.scss";
 
 const { TextArea } = Input;
 
@@ -54,7 +56,7 @@ export default function CompanyProfileForm({
   onSubmit,
   onCancel,
   cancelText = "Cancel",
-  okText = "Submit",
+  okText = "Save Profile",
 }) {
   const [form] = Form.useForm();
   const [saving, setSaving] = useState(false);
@@ -380,8 +382,9 @@ export default function CompanyProfileForm({
       onFinish={handleFinish}
       className="companyProfileForm"
     >
-      <div className="becomeExpertModal__pageCard becomeExpertModal__pageCard--full">
-        <h3 className="C-heading size-5 semiBold mb-3">Company Details</h3>
+      <Card size="small" className="profileDetails__sectionCard">
+        <h4 className="profileDetails__sectionTitle">Company Details</h4>
+        <Divider className="profileDetails__sectionDivider" />
         <div className="row g-3">
           <div className="col-md-6 col-12">
             <Form.Item
@@ -743,10 +746,11 @@ export default function CompanyProfileForm({
             )}
           </Form.List>
         </div>
-      </div>
+      </Card>
 
-      <div className="becomeExpertModal__pageCard becomeExpertModal__pageCard--full mt-3">
-        <h3 className="C-heading size-5 semiBold mb-3">Categories</h3>
+      <Card size="small" className="profileDetails__sectionCard">
+        <h4 className="profileDetails__sectionTitle">Categories</h4>
+        <Divider className="profileDetails__sectionDivider" />
         <Form.List name="categories">
           {(fields, { add, remove }) => (
             <>
@@ -917,10 +921,11 @@ export default function CompanyProfileForm({
             </>
           )}
         </Form.List>
-      </div>
+      </Card>
 
-      <div className="becomeExpertModal__pageCard becomeExpertModal__pageCard--full mt-3">
-        <h3 className="C-heading size-5 semiBold mb-3">Statistics</h3>
+      <Card size="small" className="profileDetails__sectionCard">
+        <h4 className="profileDetails__sectionTitle">Statistics</h4>
+        <Divider className="profileDetails__sectionDivider" />
         <div className="row g-3">
           <div className="col-md-6 col-12">
             <Form.Item
@@ -1194,9 +1199,9 @@ export default function CompanyProfileForm({
             </Form.Item>
           </div>
         </div>
-      </div>
+      </Card>
 
-      <div className="profileDetails__footer mt-3">
+      <div className="profileDetails__footer">
         <Button onClick={onCancel} disabled={saving}>
           {cancelText}
         </Button>

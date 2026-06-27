@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { message, Spin } from "antd";
 import { useAppDispatch } from "@/store/hooks";
@@ -32,6 +32,8 @@ const ProfileEditPage = () => {
     useNormalizedProfileUser();
   const [companyProfile, setCompanyProfile] = useState(null);
   const [loadingCompanyProfile, setLoadingCompanyProfile] = useState(isCompany);
+  const [expertProfile, setExpertProfile] = useState(null);
+  const [loadingExpertProfile, setLoadingExpertProfile] = useState(isExpert);
 
   const sections = useMemo(() => {
     if (role === "company") return PROFILE_SCHEMAS.company;
@@ -43,6 +45,60 @@ const ProfileEditPage = () => {
     () => getIdFromStoredUser(reduxUser),
     [reduxUser]
   );
+
+  const expertId = companyId;
+
+  useEffect(() => {
+    if (!isExpert) {
+      setExpertProfile(null);
+      setLoadingExpertProfile(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadExpertProfile = async () => {
+      const sessionBase = reduxUser || user || {};
+
+      if (!expertId) {
+        setExpertProfile(sessionBase);
+        setLoadingExpertProfile(false);
+        return;
+      }
+
+      setLoadingExpertProfile(true);
+      try {
+        const latest = await fetchUserDetailsByRole({
+          role: "expert",
+          id: expertId,
+        });
+        const merged = applyRolePermissionsToUser({
+          ...sessionBase,
+          ...(latest || {}),
+        });
+        if (!cancelled) {
+          setExpertProfile(merged);
+          saveUserSession(merged);
+          dispatch(setUser(merged));
+        }
+      } catch (error) {
+        console.warn("Failed to load expert profile for edit:", error);
+        if (!cancelled) {
+          setExpertProfile(sessionBase);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoadingExpertProfile(false);
+        }
+      }
+    };
+
+    loadExpertProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dispatch, expertId, isExpert]);
 
   useEffect(() => {
     if (!isCompany) {
@@ -103,11 +159,12 @@ const ProfileEditPage = () => {
 
   const expertFormInitialValues = useMemo(() => {
     if (!isExpert) return null;
+    const source = expertProfile || user;
     return {
-      ...expertBasicInfoFormValues(user),
-      ...expertCareerFormValues(user),
+      ...expertBasicInfoFormValues(source),
+      ...expertCareerFormValues(source),
     };
-  }, [isExpert, user]);
+  }, [expertProfile, isExpert, user]);
 
   const goToProfileView = useCallback(() => {
     router.push(ROUTES.PRIVATE.PROFILE);
@@ -180,18 +237,24 @@ const ProfileEditPage = () => {
         onBack={goToProfileView}
         backLabel="Back to Profile"
       >
-        <BecomeExpertModal
-          variant="page"
-          includeBasicInfo
-          profileData={user}
-          initialValues={expertFormInitialValues}
-          onCancel={goToProfileView}
-          onSubmit={handleExpertProfileSave}
-          cancelText="Back to Profile"
-          okText="Submit"
-          closeAfterSubmit={false}
-          successMessage="Profile updated successfully."
-        />
+        {loadingExpertProfile || !expertFormInitialValues ? (
+          <div className="text-center py-5">
+            <Spin size="large" />
+          </div>
+        ) : (
+          <BecomeExpertModal
+            variant="pageProfile"
+            includeBasicInfo
+            profileData={expertProfile || user}
+            initialValues={expertFormInitialValues}
+            onCancel={goToProfileView}
+            onSubmit={handleExpertProfileSave}
+            cancelText="Back to Profile"
+            okText="Save Profile"
+            closeAfterSubmit={false}
+            successMessage="Profile updated successfully."
+          />
+        )}
       </ExpertProfileFormLayout>
     );
   }
@@ -204,7 +267,7 @@ const ProfileEditPage = () => {
         onBack={goToProfileView}
         backLabel="Back to Profile"
       >
-        <div className="becomeExpertModal becomeExpertModal--page becomeExpertModal--pageFull">
+        <div className="profileDetails">
           {loadingCompanyProfile || !companyFormInitialValues ? (
             <div className="text-center py-5">
               <Spin size="large" />
@@ -216,7 +279,7 @@ const ProfileEditPage = () => {
               onSubmit={handleUserProfileSave}
               onCancel={goToProfileView}
               cancelText="Back to Profile"
-              okText="Submit"
+              okText="Save Profile"
             />
           )}
         </div>
@@ -231,20 +294,17 @@ const ProfileEditPage = () => {
       onBack={goToProfileView}
       backLabel="Back to Profile"
     >
-      <div className="becomeExpertModal becomeExpertModal--page">
-        <div className="becomeExpertModal__pageCard">
-          <ProfileDetails
-            data={user}
-            sections={sections}
-            role={role}
-            onSave={handleUserProfileSave}
-            showEditButton={false}
-            hideHeader
-            forceEditMode
-            onCancelEdit={goToProfileView}
-          />
-        </div>
-      </div>
+      <ProfileDetails
+        data={user}
+        sections={sections}
+        role={role}
+        onSave={handleUserProfileSave}
+        showEditButton={false}
+        hideHeader
+        bare
+        forceEditMode
+        onCancelEdit={goToProfileView}
+      />
     </ExpertProfileFormLayout>
   );
 };

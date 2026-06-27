@@ -16,7 +16,10 @@ export default function ExpertProfileFormLayout({
   children,
 }) {
   return (
-    <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
+    <div
+      className="bg-white rounded shadow-sm p-4"
+      style={{ minHeight: "100%" }}
+    >
       <AppPageHeader
         title={title}
         subtitle={subtitle}
@@ -26,7 +29,7 @@ export default function ExpertProfileFormLayout({
             : { label: backLabel, onClick: onBack }
         }
       />
-      <div className="p-4">{children}</div>
+      <div className="mt-3">{children}</div>
     </div>
   );
 }

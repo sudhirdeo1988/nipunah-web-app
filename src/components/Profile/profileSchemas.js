@@ -118,6 +118,12 @@ export const PROFILE_SCHEMAS = {
           maxLength: 15,
           required: true,
         },
+        {
+          path: ["expertise"],
+          label: "Expertise",
+          type: "expertise",
+          required: true,
+        },
       ],
     },
     {

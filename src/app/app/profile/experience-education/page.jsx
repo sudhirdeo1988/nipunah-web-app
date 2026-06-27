@@ -81,12 +81,12 @@ const ExperienceEducationPage = () => {
       backLabel="Back to Profile"
     >
       <BecomeExpertModal
-        variant="page"
+        variant="pageProfile"
         initialValues={careerInitialValues}
         onCancel={goToProfile}
         onSubmit={handleSave}
         cancelText="Back to Profile"
-        okText="Submit"
+        okText="Save Profile"
         closeAfterSubmit={false}
         successMessage="Experience and education updated successfully."
       />

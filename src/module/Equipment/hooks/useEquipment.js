@@ -3,7 +3,6 @@ import { equipmentService } from "@/utilities/apiServices";
 import { message } from "antd";
 import { useAppSelector } from "@/store/hooks";
 import {
-  getResolvedCompanyId,
   mapApiEquipmentRecord,
   parseEquipmentListResponse,
 } from "@/module/Equipment/utilities/equipmentMapper";
@@ -51,10 +50,6 @@ export const useEquipment = ({ autoFetch = false } = {}) => {
     () => String(reduxRole || user?.role || user?.type || "").toLowerCase(),
     [reduxRole, user?.role, user?.type]
   );
-  const resolvedCompanyId = useMemo(
-    () => getResolvedCompanyId(user),
-    [user]
-  );
 
   const isFetchingRef = useRef(false);
   const lastFetchKeyRef = useRef(null);
@@ -78,13 +73,6 @@ export const useEquipment = ({ autoFetch = false } = {}) => {
   const loadEquipment = useCallback(
     async (params = {}, { force = false } = {}) => {
       if (autoFetch && !resolvedRole) return;
-      if (
-        autoFetch &&
-        resolvedRole === "company" &&
-        (resolvedCompanyId == null || resolvedCompanyId === "")
-      ) {
-        return;
-      }
 
       const page = params.page ?? paginationRef.current.current;
       const limit = params.limit ?? paginationRef.current.pageSize;
@@ -94,13 +82,13 @@ export const useEquipment = ({ autoFetch = false } = {}) => {
         params.search !== undefined ? params.search : searchQueryRef.current;
 
       const fetchKey = [
-        resolvedRole,
-        resolvedCompanyId ?? "",
         page,
         limit,
         nextSortBy,
         nextOrder,
         nextSearch,
+        params.availableFor ?? "",
+        params.location ?? "",
       ].join(":");
 
       if (!force && lastFetchKeyRef.current === fetchKey) return;
@@ -112,7 +100,6 @@ export const useEquipment = ({ autoFetch = false } = {}) => {
       setError(null);
 
       try {
-        const isCompanyRole = resolvedRole === "company";
         const apiParams = {
           page,
           limit,
@@ -127,15 +114,7 @@ export const useEquipment = ({ autoFetch = false } = {}) => {
           apiParams.location = params.location;
         }
 
-        let response;
-        if (isCompanyRole) {
-          response = await equipmentService.getEquipmentByCompany(
-            resolvedCompanyId,
-            apiParams
-          );
-        } else {
-          response = await equipmentService.getEquipment(apiParams);
-        }
+        const response = await equipmentService.getEquipment(apiParams);
 
         if (currentRequestId !== requestIdRef.current) return;
 
@@ -170,7 +149,6 @@ export const useEquipment = ({ autoFetch = false } = {}) => {
     [
       autoFetch,
       resolvedRole,
-      resolvedCompanyId,
     ]
   );
 
@@ -182,7 +160,7 @@ export const useEquipment = ({ autoFetch = false } = {}) => {
   useEffect(() => {
     if (!autoFetch) return;
     loadEquipment({ page: 1, search: debouncedSearch });
-  }, [autoFetch, resolvedRole, resolvedCompanyId, debouncedSearch, loadEquipment]);
+  }, [autoFetch, resolvedRole, debouncedSearch, loadEquipment]);
 
   const createEquipment = useCallback(
     async (equipmentData) => {
