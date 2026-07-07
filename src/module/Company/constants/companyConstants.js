@@ -1,5 +1,36 @@
 "use client";
 
+export const COMPANY_TYPE_ALL_VALUE = "all";
+export const COMPANY_LIST_MIN_SEARCH_LENGTH = 4;
+
+/** Build query params for GET /companies/getAllCompanies */
+export function buildCompanyListParams({
+  page = 1,
+  limit = 500,
+  search = "",
+  companyType = COMPANY_TYPE_ALL_VALUE,
+  location = "",
+} = {}) {
+  const params = { page, limit };
+  const trimmedSearch = String(search ?? "").trim();
+
+  if (trimmedSearch.length >= COMPANY_LIST_MIN_SEARCH_LENGTH) {
+    params.search = trimmedSearch;
+  }
+
+  params.type = companyType || COMPANY_TYPE_ALL_VALUE;
+  if (params.type !== COMPANY_TYPE_ALL_VALUE) {
+    params.categoryId = params.type;
+  }
+
+  const trimmedLocation = String(location ?? "").trim();
+  if (trimmedLocation) {
+    params.country = trimmedLocation;
+  }
+
+  return params;
+}
+
 /**
  * Employee count range options
  * @type {Array<Object>}

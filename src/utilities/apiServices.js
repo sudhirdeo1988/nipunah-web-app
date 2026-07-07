@@ -93,6 +93,19 @@ export const companyService = {
   },
 
   /**
+   * Update company approval status
+   *
+   * API Endpoint: PATCH /companies/{id}
+   *
+   * @param {string|number} companyId - ID of the company
+   * @param {boolean} isApproved - Approval status (true for approved, false for pending)
+   * @returns {Promise<Object>} Updated company response
+   */
+  updateApprovalStatus: async (companyId, isApproved) => {
+    return axiosInstance.patch(`/companies/${companyId}`, { isApproved });
+  },
+
+  /**
    * Delete company (via Next.js proxy DELETE /api/companies/:id)
    */
   deleteCompany: async (companyId) => {

@@ -9,8 +9,18 @@ import {
   setCategoriesLoading,
   setCategoriesError,
 } from "@/store/slices/categoriesSlice";
+import {
+  buildCompanyListParams,
+  COMPANY_LIST_MIN_SEARCH_LENGTH,
+  COMPANY_TYPE_ALL_VALUE,
+} from "../constants/companyConstants";
 
-const MIN_SEARCH_LENGTH = 4;
+const MIN_SEARCH_LENGTH = COMPANY_LIST_MIN_SEARCH_LENGTH;
+const DEFAULT_FILTERS = {
+  search: "",
+  companyType: COMPANY_TYPE_ALL_VALUE,
+  location: "",
+};
 
 /** Parse GET /companies response into { items, total } */
 function parseCompaniesResponse(res) {
@@ -84,6 +94,7 @@ function normalizeCompanyFromApi(c) {
       : statusLower === "rejected" || statusLower === "blocked" || statusLower === "inactive"
         ? "inactive"
         : "active";
+  const isApproved = c.isApproved === true || c.is_approved === true;
   const postedJobs = Array.isArray(c.posted_jobs)
     ? c.posted_jobs
     : Array.isArray(c.postedJobs)
@@ -120,6 +131,7 @@ function normalizeCompanyFromApi(c) {
     employeeCount,
     subscriptionPlan,
     status,
+    isApproved,
     postedJobs,
     createdAt,
     categories,
@@ -160,23 +172,20 @@ export const useCompanyListing = () => {
   /** @type {[Error|null, Function]} Last fetch error */
   const [error, setError] = useState(null);
 
-  /** Debounced search for API */
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  /** Draft filter values (UI) */
+  const [filters, setFilters] = useState(DEFAULT_FILTERS);
+
+  /** Applied filter values sent to the API */
+  const [appliedFilters, setAppliedFilters] = useState(DEFAULT_FILTERS);
 
   /** @type {[string, Function]} Search query for filtering companies (min 4 chars for search filter) */
-  const [searchQuery, setSearchQuery] = useState("");
+  const searchQuery = filters.search;
 
   /** @type {[string, Function]} Company type / category filter; "all" = All categories */
-  const [companyType, setCompanyType] = useState("all");
+  const companyType = filters.companyType;
 
   /** @type {[string, Function]} Optional location filter */
-  const [location, setLocation] = useState("");
-
-  /**
-   * Registered-on date range: [startDate, endDate] as "YYYY-MM-DD", or null when not set.
-   * Used for filtering and for API params (startDate, endDate).
-   */
-  const [registeredOnRange, setRegisteredOnRange] = useState(null);
+  const location = filters.location;
 
   // ==================== MODAL STATE MANAGEMENT ====================
 
@@ -207,26 +216,6 @@ export const useCompanyListing = () => {
   const [companyForPostedJobs, setCompanyForPostedJobs] = useState(null);
 
   // ==================== COMPUTED VALUES ====================
-
-  /** startDate and endDate for API: "YYYY-MM-DD" or null when no range selected */
-  const { startDate, endDate } = useMemo(() => {
-    if (!registeredOnRange || !Array.isArray(registeredOnRange) || registeredOnRange.length !== 2) {
-      return { startDate: null, endDate: null };
-    }
-    const [start, end] = registeredOnRange;
-    return {
-      startDate: start && typeof start === "string" ? start : null,
-      endDate: end && typeof end === "string" ? end : null,
-    };
-  }, [registeredOnRange]);
-
-  /** Debounce search before calling GET /api/companies */
-  useEffect(() => {
-    const t = setTimeout(() => {
-      setDebouncedSearch(searchQuery.trim());
-    }, 400);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
 
   /** Load categories for filter dropdown (GET categories via proxy) */
   useEffect(() => {
@@ -261,27 +250,12 @@ export const useCompanyListing = () => {
     };
   }, [categories.length, dispatch]);
 
-  /** Fetch companies: GET /api/companies (proxied) with filters */
+  /** Fetch companies: GET /api/companies/getAllCompanies with applied filters */
   const loadCompanies = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const params = { page: 1, limit: 500 };
-      if (debouncedSearch.length >= MIN_SEARCH_LENGTH) {
-        params.search = debouncedSearch;
-      }
-      if (companyType && companyType !== "all") {
-        params.type = companyType;
-        params.categoryId = companyType;
-      }
-      if (location.trim()) {
-        params.country = location.trim();
-      }
-      if (startDate && endDate) {
-        params.startDate = startDate;
-        params.endDate = endDate;
-      }
-
+      const params = buildCompanyListParams(appliedFilters);
       const res = await companyService.getCompanies(params);
       const { items } = parseCompaniesResponse(res);
       const normalized = items
@@ -296,13 +270,7 @@ export const useCompanyListing = () => {
     } finally {
       setLoading(false);
     }
-  }, [
-    debouncedSearch,
-    companyType,
-    location,
-    startDate,
-    endDate,
-  ]);
+  }, [appliedFilters]);
 
   useEffect(() => {
     loadCompanies();
@@ -332,31 +300,41 @@ export const useCompanyListing = () => {
    * Handles search input change (min 4 chars required for search to apply)
    */
   const handleSearchChange = useCallback((e) => {
-    setSearchQuery(e.target.value ?? "");
+    const value = e?.target?.value ?? "";
+    setFilters((prev) => ({ ...prev, search: value }));
   }, []);
 
   /** Handles company type (category) dropdown change; "all" = All. */
   const handleCompanyTypeChange = useCallback((value) => {
-    setCompanyType(value === undefined || value === null ? "all" : value);
+    setFilters((prev) => ({
+      ...prev,
+      companyType:
+        value === undefined || value === null ? COMPANY_TYPE_ALL_VALUE : value,
+    }));
   }, []);
 
   /** Handles optional location filter change. */
-  const handleLocationChange = useCallback((e) => {
-    setLocation(e.target.value ?? "");
+  const handleLocationChange = useCallback((value) => {
+    setFilters((prev) => ({ ...prev, location: value ?? "" }));
   }, []);
 
-  /**
-   * Handles registered-on date range change from RangePicker.
-   * Accepts (dates, dateStrings) from Ant Design RangePicker; stores [startDate, endDate] as "YYYY-MM-DD" for API.
-   * @param {[unknown, unknown]} dates - dayjs instances from RangePicker (unused, we use dateStrings)
-   * @param {[string, string]|null} dateStrings - [startDate, endDate] as "YYYY-MM-DD"
-   */
-  const handleRegisteredOnRangeChange = useCallback((dates, dateStrings) => {
-    if (!dateStrings || !Array.isArray(dateStrings) || !dateStrings[0] || !dateStrings[1]) {
-      setRegisteredOnRange(null);
+  /** Apply current draft filters and fetch companies */
+  const handleApplyFilters = useCallback(() => {
+    const trimmedSearch = filters.search.trim();
+    if (
+      trimmedSearch.length > 0 &&
+      trimmedSearch.length < MIN_SEARCH_LENGTH
+    ) {
+      message.warning(`Enter at least ${MIN_SEARCH_LENGTH} characters to search`);
       return;
     }
-    setRegisteredOnRange([dateStrings[0], dateStrings[1]]);
+    setAppliedFilters({ ...filters });
+  }, [filters]);
+
+  /** Reset filters to defaults and refetch */
+  const handleClearFilters = useCallback(() => {
+    setFilters(DEFAULT_FILTERS);
+    setAppliedFilters(DEFAULT_FILTERS);
   }, []);
 
   /**
@@ -385,82 +363,93 @@ export const useCompanyListing = () => {
     setIsPostedJobsModalOpen(true);
   }, []);
 
-  /**
-   * Handles dropdown menu click
-   * @param {Object} menuInfo - Menu click information
-   * @param {Object} record - Company record
-   */
-  const handleMenuClick = useCallback((menuInfo, record) => {
-    const { key } = menuInfo;
+  /** @type {[boolean, Function]} Loading state while updating approval status */
+  const [statusUpdating, setStatusUpdating] = useState(false);
 
-    switch (key) {
-      case "view_details":
-        setCompanyForDetails(record);
-        setIsCompanyDetailsModalOpen(true);
-        break;
-      case "edit":
-        // TODO: Implement edit functionality
-        message.info("Edit functionality will be implemented soon");
-        break;
-      case "approve":
-        handleApproveCompany(record);
-        break;
-      case "reject":
-        handleBlockCompany(record);
-        break;
-      case "delete":
-        setCompanyToDelete(record);
-        setIsDeleteModalOpen(true);
-        break;
-      default:
-        break;
-    }
-  }, []);
+  /**
+   * Handles update company approval status via switch or menu
+   * @param {number|string} companyId - ID of the company
+   * @param {boolean} isApproved - New approval status
+   */
+  const handleUpdateStatus = useCallback(
+    async (companyId, isApproved) => {
+      setStatusUpdating(true);
+      try {
+        await companyService.updateApprovalStatus(companyId, isApproved);
+        setCompanies((prevCompanies) =>
+          prevCompanies.map((comp) =>
+            comp.id === companyId ? { ...comp, isApproved } : comp
+          )
+        );
+        const company = companies.find((c) => c.id === companyId);
+        message.success(
+          `${company?.name || "Company"} is now ${isApproved ? "approved" : "pending approval"}`
+        );
+      } catch (err) {
+        message.error(err?.message || "Failed to update company approval status");
+        throw err;
+      } finally {
+        setStatusUpdating(false);
+      }
+    },
+    [companies]
+  );
 
   /**
    * Handles approve company action
    * @param {Object} company - Company to approve
    */
-  const handleApproveCompany = useCallback((company) => {
-    setCompanies((prevCompanies) =>
-      prevCompanies.map((comp) =>
-        comp.id === company.id ? { ...comp, status: "active" } : comp
-      )
-    );
-    message.success(`${company.name} is now active`);
-  }, []);
+  const handleApproveCompany = useCallback(
+    async (company) => {
+      await handleUpdateStatus(company.id, true);
+    },
+    [handleUpdateStatus]
+  );
 
   /**
    * Handles reject company action
    * @param {Object} company - Company to reject
    */
-  const handleBlockCompany = useCallback((company) => {
-    setCompanies((prevCompanies) =>
-      prevCompanies.map((comp) =>
-        comp.id === company.id ? { ...comp, status: "inactive" } : comp
-      )
-    );
-    message.success(`${company.name} is now inactive`);
-  }, []);
+  const handleBlockCompany = useCallback(
+    async (company) => {
+      await handleUpdateStatus(company.id, false);
+    },
+    [handleUpdateStatus]
+  );
 
   /**
-   * Handles update company status via switch
-   * @param {number} companyId - ID of the company
-   * @param {boolean} isApproved - New status (true for approved, false for rejected)
+   * Handles dropdown menu click
+   * @param {Object} menuInfo - Menu click information
+   * @param {Object} record - Company record
    */
-  const handleUpdateStatus = useCallback((companyId, isApproved) => {
-    setCompanies((prevCompanies) =>
-      prevCompanies.map((comp) =>
-        comp.id === companyId
-          ? { ...comp, status: isApproved ? "active" : "inactive" }
-          : comp
-      )
-    );
-    const company = companies.find((c) => c.id === companyId);
-    message.success(
-      `${company?.name || "Company"} is now ${isApproved ? "active" : "inactive"}`
-    );
-  }, [companies]);
+  const handleMenuClick = useCallback(
+    (menuInfo, record) => {
+      const { key } = menuInfo;
+
+      switch (key) {
+        case "view_details":
+          setCompanyForDetails(record);
+          setIsCompanyDetailsModalOpen(true);
+          break;
+        case "edit":
+          message.info("Edit functionality will be implemented soon");
+          break;
+        case "approve":
+          handleApproveCompany(record);
+          break;
+        case "reject":
+          handleBlockCompany(record);
+          break;
+        case "delete":
+          setCompanyToDelete(record);
+          setIsDeleteModalOpen(true);
+          break;
+        default:
+          break;
+      }
+    },
+    [handleApproveCompany, handleBlockCompany]
+  );
 
   /**
    * Handles single company delete confirmation
@@ -596,9 +585,6 @@ export const useCompanyListing = () => {
     searchQuery,
     companyType,
     location,
-    registeredOnRange,
-    startDate,
-    endDate,
     rowSelection,
     loading,
     error,
@@ -607,7 +593,8 @@ export const useCompanyListing = () => {
     // Search handlers
     handleCompanyTypeChange,
     handleLocationChange,
-    handleRegisteredOnRangeChange,
+    handleApplyFilters,
+    handleClearFilters,
 
     // Modal states
     isDeleteModalOpen,
@@ -634,6 +621,7 @@ export const useCompanyListing = () => {
     handleCancelPostedJobs,
     handleCancelCreateCompany,
     handleUpdateStatus,
+    statusUpdating,
 
     // Setters
     setCompanies,

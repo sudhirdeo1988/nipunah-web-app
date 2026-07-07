@@ -293,4 +293,29 @@
       padding-top: 2rem;
     }
   }
+
+  &--embedded {
+    .publicDetailsProfile__banner {
+      padding: 1.25rem 0 1.5rem;
+      border-radius: 0;
+    }
+
+    .publicDetailsProfile__avatar {
+      width: 80px;
+      height: 80px;
+    }
+
+    .publicDetailsProfile__bannerName {
+      font-size: 1.35rem;
+    }
+
+    .publicDetailsProfile__body {
+      padding-top: 1.25rem;
+      padding-bottom: 1.25rem;
+    }
+
+    .publicDetailsProfile__sidebar {
+      position: static;
+    }
+  }
 }

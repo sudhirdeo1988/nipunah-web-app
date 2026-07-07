@@ -38,9 +38,12 @@ function ExternalLink({ href, children }) {
  */
 const CompanyProfileSection = memo(function CompanyProfileSection({
   data = {},
+  showApprovalStatus = false,
 }) {
   const normalized = useMemo(() => normalizeCompanyUser(data), [data]);
   const view = useMemo(() => companyProfileViewData(normalized), [normalized]);
+  const isApproved =
+    normalized.isApproved === true || normalized.is_approved === true;
 
   return (
     <div className="profileDetails companyProfileSection">
@@ -57,7 +60,14 @@ const CompanyProfileSection = memo(function CompanyProfileSection({
           </div>
         )}
         <div>
-          <h2 className="companyProfileSection__name mb-1">{view.name}</h2>
+          <div className="d-flex align-items-center flex-wrap gap-2 mb-1">
+            <h2 className="companyProfileSection__name mb-0">{view.name}</h2>
+            {showApprovalStatus ? (
+              <Tag color={isApproved ? "green" : "orange"} className="m-0">
+                {isApproved ? "Approved" : "Pending Approval"}
+              </Tag>
+            ) : null}
+          </div>
           {view.title !== "—" ? (
             <p className="companyProfileSection__subtitle mb-0">{view.title}</p>
           ) : null}

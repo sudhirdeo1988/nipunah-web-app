@@ -29,6 +29,11 @@ const DEFAULT_FILTERS = {
   countrySelect: "",
 };
 
+/** Returns true when a company is approved for public listing */
+function isCompanyApproved(company) {
+  return company?.isApproved === true || company?.is_approved === true;
+}
+
 /**
  * Parses URL search params into filter state (search, type, location).
  * No preselected defaults — values come only from the URL when present.
@@ -146,7 +151,7 @@ const CompanyListPage = () => {
       setLoading(true);
       setError(null);
       try {
-        const params = { page, limit };
+        const params = { page, limit, isApproved: true };
         if (filters.search?.trim().length >= MIN_SEARCH_LENGTH) {
           params.search = filters.search.trim();
         }
@@ -174,6 +179,8 @@ const CompanyListPage = () => {
           items = response;
           total = response.length;
         }
+
+        items = items.filter(isCompanyApproved);
 
         setCompanies(items);
         setPagination((prev) => ({

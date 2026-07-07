@@ -131,6 +131,71 @@ export async function PUT(request, { params }) {
 }
 
 /**
+ * PATCH /api/companies/{id}
+ * Proxy endpoint to partially update a company by id (auth required via cookie token)
+ */
+export async function PATCH(request, { params }) {
+  try {
+    const resolvedParams = await params;
+    const { id } = resolvedParams || {};
+    const url = `${API_BASE_URL}/companies/${id}`;
+    const body = await request.json();
+
+    const cookieHeader = request.headers.get("cookie") || "";
+    const token = getBearerTokenFromCookieHeader(cookieHeader);
+
+    const headers = {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    else {
+      return NextResponse.json(
+        {
+          error: "Unauthorized",
+          message: "Authentication token is required",
+        },
+        { status: 401 }
+      );
+    }
+
+    const response = await fetch(url, {
+      method: "PATCH",
+      headers,
+      body: JSON.stringify(body),
+    });
+
+    const contentType = response.headers.get("content-type");
+    let data;
+
+    if (contentType && contentType.includes("application/json")) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      try {
+        data = JSON.parse(text);
+      } catch {
+        data = { message: text || response.statusText };
+      }
+    }
+
+    return NextResponse.json(data, {
+      status: response.status,
+      statusText: response.statusText,
+    });
+  } catch (error) {
+    console.error("Patch company by id proxy error:", error);
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: error.message || "Failed to update company",
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * DELETE /api/companies/{id}
  * Proxy to backend DELETE companies/:id
  */

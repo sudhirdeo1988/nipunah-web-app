@@ -66,9 +66,12 @@ export default function PublicDetailsProfile({
   children,
   sidebar,
   showSidebar = true,
+  embedded = false,
 }) {
   return (
-    <div className="publicDetailsProfile">
+    <div
+      className={`publicDetailsProfile${embedded ? " publicDetailsProfile--embedded" : ""}`}
+    >
       <header className="publicDetailsProfile__banner">
         <div className="publicDetailsProfile__bannerOverlay" aria-hidden />
         <div className="container publicDetailsProfile__bannerInner">
@@ -179,4 +182,5 @@ PublicDetailsProfile.propTypes = {
   children: PropTypes.node,
   sidebar: PropTypes.node,
   showSidebar: PropTypes.bool,
+  embedded: PropTypes.bool,
 };

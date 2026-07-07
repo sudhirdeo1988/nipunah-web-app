@@ -180,6 +180,9 @@ const Company = () => {
       // Add subscription plan
       payload.subscription_plan = "Free";
 
+      // New companies require admin approval before appearing in public listings
+      payload.isApproved = false;
+
       // Ensure social_media matches API contract (always include keys)
       payload.social_media = {
         facebook: payload?.social_media?.facebook || "",

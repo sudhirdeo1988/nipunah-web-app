@@ -18,7 +18,7 @@ import { STATUS_COLORS, PLAN_COLORS } from "../../constants/companyConstants";
  * @returns {JSX.Element} The CompanyTable component
  */
 const CompanyTable = memo(
-  ({ companies, rowSelection, onMenuClick, onPostedJobsClick, onUpdateStatus, loading = false, permissions = {} }) => {
+  ({ companies, rowSelection, onMenuClick, onPostedJobsClick, onUpdateStatus, loading = false, statusUpdating = false, permissions = {} }) => {
     const canView = Boolean(permissions.view);
     const canEdit = Boolean(permissions.edit);
     const canApprove = Boolean(permissions.approve);
@@ -123,40 +123,38 @@ const CompanyTable = memo(
     }, []);
 
     /**
-     * Memoized render function for status column
+     * Memoized render function for approval status column
      * Renders status text and icon first, then switch component
-     * Only shows "Approved" or "Rejected" status
      */
     const renderStatus = useCallback(
-      (status, record) => {
-        const normalizedStatus = String(status || "").toLowerCase();
-        const isActive =
-          normalizedStatus === "approved" ||
-          normalizedStatus === "active";
-        
+      (isApproved, record) => {
+        const approved = isApproved === true;
+
         return (
           <Space size={8} align="center">
-            {isActive ? (
+            {approved ? (
               <Space size={4} align="center">
                 <Icon name="check_circle" size="small" style={{ color: "#52c41a" }} />
-                <span style={{ color: "#52c41a", fontSize: "12px" }}>Active</span>
+                <span style={{ color: "#52c41a", fontSize: "12px" }}>Approved</span>
               </Space>
             ) : (
               <Space size={4} align="center">
                 <Icon name="cancel" size="small" style={{ color: "#ff4d4f" }} />
-                <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Inactive</span>
+                <span style={{ color: "#ff4d4f", fontSize: "12px" }}>Pending</span>
               </Space>
             )}
-            <Switch
-              checked={isActive}
-              onChange={(checked) => handleStatusChange(checked, record)}
-              size="small"
-              disabled={loading}
-            />
+            {canApprove && (
+              <Switch
+                checked={approved}
+                onChange={(checked) => handleStatusChange(checked, record)}
+                size="small"
+                disabled={loading || statusUpdating}
+              />
+            )}
           </Space>
         );
       },
-      [handleStatusChange, loading]
+      [canApprove, handleStatusChange, loading, statusUpdating]
     );
 
     /**
@@ -213,19 +211,17 @@ const CompanyTable = memo(
           });
         }
         if (canApprove) {
-          const normalizedStatus = String(record.status || "").toLowerCase();
-          const isActive =
-            normalizedStatus === "approved" || normalizedStatus === "active";
+          const approved = record.isApproved === true;
           items.push({
-            key: isActive ? "reject" : "approve",
+            key: approved ? "reject" : "approve",
             label: (
               <Space align="center">
                 <Icon
-                  name={isActive ? "cancel" : "check_circle"}
+                  name={approved ? "cancel" : "check_circle"}
                   size="small"
                 />
                 <span className="C-heading size-xs mb-0 semiBold">
-                  {isActive ? "Inactive" : "Active"}
+                  {approved ? "Unapprove" : "Approve"}
                 </span>
               </Space>
             ),
@@ -332,11 +328,11 @@ const CompanyTable = memo(
         },
         {
           title: "Status",
-          dataIndex: "status",
-          key: "status",
+          dataIndex: "isApproved",
+          key: "isApproved",
           width: "12%",
           render: renderStatus,
-          sorter: (a, b) => a.status.localeCompare(b.status),
+          sorter: (a, b) => Number(a.isApproved === true) - Number(b.isApproved === true),
         },
         {
           title: "Jobs Posted",
@@ -399,29 +395,29 @@ const CompanyTable = memo(
         <Modal
           title={
             <span className="C-heading size-5 mb-0 bold">
-              {newStatus ? "Approve Company" : "Reject Company"}
+              {newStatus ? "Approve Company" : "Unapprove Company"}
             </span>
           }
           open={isStatusModalOpen}
           onOk={handleConfirmStatusChange}
           onCancel={handleCancelStatusChange}
-          okText={newStatus ? "Approve" : "Reject"}
+          okText={newStatus ? "Approve" : "Unapprove"}
           cancelText="Cancel"
           okButtonProps={{
             className: "C-button is-filled",
-            loading: loading,
+            loading: statusUpdating,
           }}
           cancelButtonProps={{
             className: "C-button is-bordered",
-            disabled: loading,
+            disabled: statusUpdating,
           }}
           centered
-          confirmLoading={loading}
+          confirmLoading={statusUpdating}
         >
           <div className="py-3 text-center">
             <p className="C-heading size-6 bold mb-3">
               Are you sure you want to{" "}
-              {newStatus ? "approve" : "reject"}{" "}
+              {newStatus ? "approve" : "unapprove"}{" "}
               <span className="color-dark">
                 {companyForStatusChange?.name || "this company"}
               </span>

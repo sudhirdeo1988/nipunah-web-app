@@ -159,7 +159,14 @@ function AboutCompanyTab({ company, isLoggedIn, companyIndustry, companySize, co
   );
 }
 
-export default function CompanyPublicProfile({ company, companyId, backLink }) {
+export default function CompanyPublicProfile({
+  company,
+  companyId,
+  backLink,
+  embedded = false,
+  showEnquiry = true,
+  forceShowSidebar = false,
+}) {
   const { isLoggedIn } = useAuth();
   const user = useAppSelector((state) => state.user.user);
   const [enquiryOpen, setEnquiryOpen] = useState(false);
@@ -336,11 +343,11 @@ export default function CompanyPublicProfile({ company, companyId, backLink }) {
     }
   };
 
-  const sidebar = isLoggedIn ? (
+  const sidebar = forceShowSidebar || isLoggedIn ? (
     <PublicDetailsSidebar
       socialMedia={socialMedia}
       action={
-        !isOwnCompany ? (
+        showEnquiry && !isOwnCompany ? (
           <button
             type="button"
             className="C-button is-filled full-width"
@@ -403,7 +410,7 @@ export default function CompanyPublicProfile({ company, companyId, backLink }) {
       },
     ];
 
-    if (isLoggedIn) {
+    if (forceShowSidebar || isLoggedIn) {
       tabs.push(
         {
           key: "companyEquipments",
@@ -433,6 +440,7 @@ export default function CompanyPublicProfile({ company, companyId, backLink }) {
     companySize,
     companyTurnover,
     equipments,
+    forceShowSidebar,
     isLoggedIn,
     loadingEquipments,
     loadingServices,
@@ -442,8 +450,8 @@ export default function CompanyPublicProfile({ company, companyId, backLink }) {
   return (
     <>
       <PublicDetailsProfile
-        backLink={backLink}
-        imageUrl="/assets/images/logo.png"
+        backLink={embedded ? null : backLink}
+        imageUrl={company?.logo_url || company?.logoUrl || "/assets/images/logo.png"}
         imageAlt={companyName}
         placeholderIcon="business"
         imageVariant="square"
@@ -451,7 +459,8 @@ export default function CompanyPublicProfile({ company, companyId, backLink }) {
         subtitle={companyIndustry}
         metaItems={metaItems}
         sidebar={sidebar}
-        showSidebar={isLoggedIn}
+        showSidebar={forceShowSidebar || isLoggedIn}
+        embedded={embedded}
       >
         <Tabs
           type="card"
@@ -526,4 +535,7 @@ CompanyPublicProfile.propTypes = {
     href: PropTypes.string,
     onClick: PropTypes.func,
   }),
+  embedded: PropTypes.bool,
+  showEnquiry: PropTypes.bool,
+  forceShowSidebar: PropTypes.bool,
 };

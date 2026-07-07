@@ -31,9 +31,6 @@ const Company = ({ permissions = {} }) => {
     searchQuery,
     companyType,
     location,
-    registeredOnRange,
-    startDate,
-    endDate,
     rowSelection,
 
     // Modal states
@@ -50,7 +47,8 @@ const Company = ({ permissions = {} }) => {
     handleSearchChange,
     handleCompanyTypeChange,
     handleLocationChange,
-    handleRegisteredOnRangeChange,
+    handleApplyFilters,
+    handleClearFilters,
     handleMenuClick,
     handleCreateCompany,
     handleCreateCompanySubmit,
@@ -65,6 +63,7 @@ const Company = ({ permissions = {} }) => {
     handleCancelCreateCompany,
     handleUpdateStatus,
     loading,
+    statusUpdating,
     error,
     loadCompanies,
   } = useCompanyListing();
@@ -100,14 +99,15 @@ const Company = ({ permissions = {} }) => {
           searchQuery={searchQuery}
           companyType={companyType}
           location={location}
-          registeredOnRange={registeredOnRange}
           onSearchChange={handleSearchChange}
           onCompanyTypeChange={handleCompanyTypeChange}
           onLocationChange={handleLocationChange}
-          onRegisteredOnRangeChange={handleRegisteredOnRangeChange}
+          onApplyFilters={handleApplyFilters}
+          onClearFilters={handleClearFilters}
           onCreateCompany={handleCreateCompany}
           onBulkDelete={handleBulkDelete}
           selectedCompanies={selectedCompanies}
+          loading={loading}
           permissions={permissions}
         />
 
@@ -119,6 +119,7 @@ const Company = ({ permissions = {} }) => {
             onPostedJobsClick={handlePostedJobsClick}
             onUpdateStatus={handleUpdateStatus}
             loading={loading}
+            statusUpdating={statusUpdating}
             permissions={permissions}
           />
         </Suspense>
