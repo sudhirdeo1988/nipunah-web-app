@@ -145,20 +145,21 @@ const CompanyListPage = () => {
     [filters.search, companyTypeLabel, filters.countrySelect]
   );
 
-  /** Fetch companies with current filters */
+  /** Fetch companies with current filters (approved-only for public listing) */
   const fetchCompanies = useCallback(
     async (page = 1, limit = 10) => {
       setLoading(true);
       setError(null);
       try {
-        const params = { page, limit, isApproved: true };
+        // Fetch a large approved set so "{x} Companies found" matches approved count
+        // even when the API total includes unapproved companies.
+        const params = { page: 1, limit: 500, isApproved: true };
         if (filters.search?.trim().length >= MIN_SEARCH_LENGTH) {
           params.search = filters.search.trim();
         }
         if (filters.countrySelect?.trim()) {
           params.country = filters.countrySelect.trim();
         }
-        // Always send companyType to API (default "all") so backend receives it consistently.
         params.type = filters.companyType || COMPANY_TYPE_ALL_VALUE;
         if (params.type !== COMPANY_TYPE_ALL_VALUE) {
           params.categoryId = params.type;
@@ -167,22 +168,20 @@ const CompanyListPage = () => {
         const response = await companyService.getCompanies(params);
 
         let items = [];
-        let total = 0;
         if (response?.data?.items && Array.isArray(response.data.items)) {
           items = response.data.items;
-          total =
-            response.data.total ?? response.data.totalItems ?? items.length;
         } else if (Array.isArray(response?.data)) {
           items = response.data;
-          total = response.total ?? items.length;
         } else if (Array.isArray(response)) {
           items = response;
-          total = response.length;
         }
 
-        items = items.filter(isCompanyApproved);
+        const approved = items.filter(isCompanyApproved);
+        const total = approved.length;
+        const start = Math.max(0, (page - 1) * limit);
+        const pageItems = approved.slice(start, start + limit);
 
-        setCompanies(items);
+        setCompanies(pageItems);
         setPagination((prev) => ({
           ...prev,
           current: page,
@@ -194,6 +193,7 @@ const CompanyListPage = () => {
         setError(err);
         message.error("Failed to load companies. Please try again.");
         setCompanies([]);
+        setPagination((prev) => ({ ...prev, total: 0 }));
       } finally {
         setLoading(false);
       }

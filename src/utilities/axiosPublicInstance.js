@@ -33,7 +33,13 @@ const axiosPublicInstance = axios.create({
  */
 axiosPublicInstance.interceptors.request.use(
   (config) => {
-    // Public endpoints don't need authentication
+    // Let the browser set multipart boundary when sending FormData
+    if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+      if (config.headers) {
+        delete config.headers["Content-Type"];
+        delete config.headers["content-type"];
+      }
+    }
     return config;
   },
   (error) => {

@@ -1,5 +1,5 @@
 "use client";
-import { clearToken, getUserIdFromCookie } from "./auth";
+import { clearToken, getClientToken, getUserIdFromCookie } from "./auth";
 import {
   normalizeExpertUser,
   expertProfileToApiPayload,
@@ -10,6 +10,18 @@ import {
 } from "./companyProfileNormalize";
 
 const STORAGE_KEY = "nipunah_user_session";
+
+function authHeaders(extra = {}) {
+  const headers = {
+    Accept: "application/json",
+    ...extra,
+  };
+  const token = typeof window !== "undefined" ? getClientToken() : null;
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+  return headers;
+}
 
 export function sanitizeAuthResponse(raw) {
   if (!raw || typeof raw !== "object") return null;
@@ -114,7 +126,10 @@ export function getRoleFromStoredUser(userObj) {
  * GET /api/me — bootstrap id/role when localStorage session is incomplete (e.g. only token was persisted).
  */
 export async function fetchCurrentUserMe() {
-  const res = await fetch("/api/me", { credentials: "include" });
+  const res = await fetch("/api/me", {
+    credentials: "include",
+    headers: authHeaders(),
+  });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
     const msg = data?.message || data?.error || "Failed to fetch current user";
@@ -191,7 +206,10 @@ export async function fetchUserDetailsByRole({ role, id }) {
       ? `/api/experts/${resolvedId}`
       : `/api/users/${resolvedId}`;
 
-  const res = await fetch(endpoint, { credentials: "include" });
+  const res = await fetch(endpoint, {
+    credentials: "include",
+    headers: authHeaders(),
+  });
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
@@ -260,10 +278,9 @@ export async function updateUserDetailsByRole({ role, id, payload }) {
   const res = await fetch(endpoint, {
     method: "PUT",
     credentials: "include",
-    headers: {
+    headers: authHeaders({
       "Content-Type": "application/json",
-      Accept: "application/json",
-    },
+    }),
     body: JSON.stringify(bodyPayload),
   });
 

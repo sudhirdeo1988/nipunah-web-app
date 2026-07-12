@@ -90,7 +90,15 @@ export function expertProfileToApiPayload(profile) {
   if (workExperience !== undefined || workExperienceDTO !== undefined) {
     result.workExperienceDTO = coerceExperienceList(
       workExperience !== undefined ? workExperience : workExperienceDTO
-    );
+    ).map((entry) => {
+      if (!entry || typeof entry !== "object") return entry;
+      const { job_description, ...rest } = entry;
+      return {
+        ...rest,
+        jobDescription:
+          entry.jobDescription ?? job_description ?? "",
+      };
+    });
   }
 
   if (education !== undefined || educationDTO !== undefined) {

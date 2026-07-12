@@ -275,7 +275,7 @@ const BecomeExpertModal = ({
               return {
                 jobTitle: entry?.jobTitle ?? "",
                 employmentType: entry?.employmentType,
-                job_description:
+                jobDescription:
                   entry?.jobDescription ?? entry?.job_description ?? "",
                 company: entry?.company ?? "",
                 fromDate: formatMonthYearToken(fromD) || "",

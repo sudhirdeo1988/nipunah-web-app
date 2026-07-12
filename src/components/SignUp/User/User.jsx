@@ -45,7 +45,10 @@ const UserRegistration = () => {
   const [form] = Form.useForm();
   const [showThankYouModal, setShowThankYouModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for form submission
-  const [profilePhotoPreview, setProfilePhotoPreview] = useState(null);
+  /** Uploaded photos: { id, file, url } — File for API + preview URL for UI */
+  const [profilePhotos, setProfilePhotos] = useState([]);
+
+  const MAX_PROFILE_PHOTOS = 5;
 
   // ===== MEMOIZED DATA PROCESSING =====
 
@@ -170,19 +173,97 @@ const UserRegistration = () => {
     };
   }, []);
 
+  /**
+   * Build registration payload fields shared by JSON and multipart submits.
+   */
+  const buildRegistrationFields = useCallback((allFields) => {
+    return {
+      first_name: allFields.first_name,
+      last_name: allFields.last_name,
+      email: allFields.email,
+      contact_number: allFields.contact_number,
+      contact_country_code: allFields.contact_country_code,
+      username: allFields.username || allFields.email,
+      password: allFields.password,
+      is_user_approved: true,
+      address: {
+        country: allFields.address?.country || "",
+        state: allFields.address?.state || "",
+        location: allFields.address?.location || "",
+        city: allFields.address?.city || "",
+        postal_code: allFields.address?.postal_code || "",
+      },
+      subscription_plan: "Free",
+      payment_details: {
+        is_paid_user: false,
+      },
+      created_on: Date.now(),
+    };
+  }, []);
+
+  /**
+   * Build multipart FormData for registration.
+   * profile_photo is optional — only appended when one or more files are provided.
+   */
+  const buildRegistrationFormData = useCallback(
+    (fields, captchaTokenValue, photoFiles = []) => {
+      const formData = new FormData();
+
+      Object.entries(fields).forEach(([key, value]) => {
+        if (value === undefined || value === null) return;
+        // Never send local preview helpers in the API payload
+        if (key === "profile_image_url" || key === "profile_photo") return;
+        if (typeof value === "object") {
+          formData.append(key, JSON.stringify(value));
+        } else {
+          formData.append(key, String(value));
+        }
+      });
+
+      if (captchaTokenValue) {
+        formData.append("captchaToken", captchaTokenValue);
+      }
+
+      const files = (photoFiles || []).filter((f) => f instanceof File);
+      files.forEach((photoFile, index) => {
+        formData.append(
+          "profile_photo",
+          photoFile,
+          photoFile.name || `profile_photo_${index + 1}`
+        );
+      });
+
+      return formData;
+    },
+    []
+  );
+
   // ===== EVENT HANDLERS =====
 
   /**
    * Handle form submission
-   * - Validates form fields
-   * - Prepares payload (removes confirm_password)
-   * - Makes POST request to user registration API
-   * - Handles loading, success, and error states
+   * - Validates form fields (profile photo is optional — not required)
+   * - If profile photo(s) are selected, sends multipart/form-data and includes binary profile_photo
+   * - If no photo selected, sends JSON payload without profile_photo
    */
   const onFinish = useCallback(async () => {
     try {
-      // Validate all form fields before submission
-      await form.validateFields();
+      // Validate required fields only — profile photo is optional
+      await form.validateFields([
+        "first_name",
+        "last_name",
+        "email",
+        "contact_country_code",
+        "contact_number",
+        ["address", "country"],
+        ["address", "state"],
+        ["address", "location"],
+        ["address", "city"],
+        ["address", "postal_code"],
+        "username",
+        "password",
+        "confirm_password",
+      ]);
 
       let captchaTokenValue;
       if (needsClientCaptcha) {
@@ -193,62 +274,46 @@ const UserRegistration = () => {
         }
       }
 
-      // Set loading state to prevent multiple submissions
       setIsSubmitting(true);
 
-      // Get all form values
-      const allFields = form.getFieldsValue(true); // Include undefined values
+      const allFields = form.getFieldsValue(true);
+      const fields = buildRegistrationFields(allFields);
+      const selectedPhotoFiles = profilePhotos
+        .map((item) => item.file)
+        .filter((f) => f instanceof File);
 
-      // Build payload according to API specification
-      const payload = {
-        first_name: allFields.first_name,
-        last_name: allFields.last_name,
-        email: allFields.email,
-        contact_number: allFields.contact_number,
-        contact_country_code: allFields.contact_country_code,
-        username: allFields.username || allFields.email, // Use email as username if not set
-        password: allFields.password,
-        is_user_approved: true,
-        address: {
-          country: allFields.address?.country || "",
-          state: allFields.address?.state || "",
-          location: allFields.address?.location || "",
-          city: allFields.address?.city || "",
-          postal_code: allFields.address?.postal_code || "",
-        },
-        subscription_plan: "Free",
-        payment_details: {
-          is_paid_user: false,
-        },
-        created_on: Date.now(),
-      };
+      let response;
 
-      if (needsClientCaptcha) {
-        payload.captchaToken = captchaTokenValue;
+      if (selectedPhotoFiles.length > 0) {
+        // Optional photos selected → include binary profile_photo in multipart payload
+        const formData = buildRegistrationFormData(
+          fields,
+          needsClientCaptcha ? captchaTokenValue : undefined,
+          selectedPhotoFiles
+        );
+
+        console.log(
+          `User Registration Payload: multipart with ${selectedPhotoFiles.length} profile_photo file(s)`
+        );
+
+        response = await axiosPublicInstance.post("/users/register", formData);
+      } else {
+        // No photo selected → JSON payload without profile_photo
+        const payload = { ...fields };
+        delete payload.profile_image_url;
+        delete payload.profile_photo;
+        if (needsClientCaptcha) {
+          payload.captchaToken = captchaTokenValue;
+        }
+
+        console.log("User Registration Payload (no profile_photo):", payload);
+
+        response = await axiosPublicInstance.post("/users/register", payload);
       }
-
-      // Local preview only until profile photo upload API is ready
-      delete payload.profile_image_url;
-
-      // Log final payload before API call
-      console.log("User Registration Payload:", payload);
-
-      // Make POST request to user registration API
-      // Endpoint: /users/register
-      // Method: POST
-      // Payload: Structured payload object
-      // Using axiosPublicInstance (no credentials) to avoid CORS issues
-      const response = await axiosPublicInstance.post(
-        "/users/register",
-        payload
-      );
 
       console.log("Response:", response);
 
-      // Show success message
       message.success("User registered successfully!");
-
-      // Show thank you modal on successful registration
       setShowThankYouModal(true);
     } catch (err) {
       // Handle API errors
@@ -299,14 +364,6 @@ const UserRegistration = () => {
           "Captcha verification failed. Please complete the reCAPTCHA again.";
       }
 
-      // Log error for debugging
-      console.error("Registration error details:", {
-        message: err?.message,
-        status,
-        data: errorData,
-        error: err,
-      });
-
       if (!isFormValidationError) {
         message.error(errorMessage);
       }
@@ -318,7 +375,13 @@ const UserRegistration = () => {
       // Reset loading state regardless of success or failure
       setIsSubmitting(false);
     }
-  }, [form, needsClientCaptcha]);
+  }, [
+    form,
+    needsClientCaptcha,
+    profilePhotos,
+    buildRegistrationFields,
+    buildRegistrationFormData,
+  ]);
 
   /**
    * Handle email field change
@@ -336,9 +399,20 @@ const UserRegistration = () => {
     [form]
   );
 
-  // Profile photo (static/local preview until upload API is ready)
+  // Profile photos: keep File(s) for multipart submit + data-URL(s) for preview
+  const readFileAsDataUrl = useCallback(
+    (file) =>
+      new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      }),
+    []
+  );
+
   const handleProfilePhotoUpload = useCallback(
-    (file) => {
+    async (file, fileList) => {
       const isValidType =
         file.type === "image/png" ||
         file.type === "image/jpeg" ||
@@ -346,31 +420,96 @@ const UserRegistration = () => {
         file.type === "image/webp";
 
       if (!isValidType) {
-        message.error("You can only upload PNG, JPG, or WEBP files!");
-        return false;
+        message.error(`${file.name || "File"}: only PNG, JPG, or WEBP allowed`);
+        return Upload.LIST_IGNORE;
       }
 
       const isLt5M = file.size / 1024 / 1024 < 5;
       if (!isLt5M) {
-        message.error("Image must be smaller than 5MB!");
+        message.error(`${file.name || "File"} must be smaller than 5MB`);
+        return Upload.LIST_IGNORE;
+      }
+
+      // Ant Design calls beforeUpload once per file; process the full batch on the last file.
+      const batch = Array.isArray(fileList) && fileList.length ? fileList : [file];
+      const isLastInBatch = batch[batch.length - 1]?.uid === file.uid;
+      if (!isLastInBatch) {
         return false;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const preview = reader.result;
-        setProfilePhotoPreview(preview);
-        form.setFieldValue("profile_image_url", preview);
-      };
-      reader.readAsDataURL(file);
+      const remainingSlots = Math.max(0, MAX_PROFILE_PHOTOS - profilePhotos.length);
+      if (remainingSlots === 0) {
+        message.warning(`You can upload up to ${MAX_PROFILE_PHOTOS} photos`);
+        return false;
+      }
+
+      const incomingFiles = batch
+        .map((item) => item?.originFileObj || item)
+        .filter((f) => f instanceof File)
+        .filter((f) => {
+          const okType =
+            f.type === "image/png" ||
+            f.type === "image/jpeg" ||
+            f.type === "image/jpg" ||
+            f.type === "image/webp";
+          const okSize = f.size / 1024 / 1024 < 5;
+          return okType && okSize;
+        })
+        .slice(0, remainingSlots);
+
+      if (incomingFiles.length < batch.filter((item) => item?.originFileObj || item instanceof File).length) {
+        message.warning(`Only ${remainingSlots} more photo(s) can be added`);
+      }
+
+      try {
+        const nextItems = await Promise.all(
+          incomingFiles.map(async (incomingFile) => {
+            const url = await readFileAsDataUrl(incomingFile);
+            return {
+              id: `${incomingFile.name}-${incomingFile.size}-${incomingFile.lastModified}-${Math.random()
+                .toString(36)
+                .slice(2, 8)}`,
+              file: incomingFile,
+              url,
+              name: incomingFile.name,
+            };
+          })
+        );
+
+        setProfilePhotos((prev) => {
+          const next = [...prev, ...nextItems].slice(0, MAX_PROFILE_PHOTOS);
+          form.setFieldValue(
+            "profile_image_url",
+            next.length ? next.map((p) => p.name) : undefined
+          );
+          return next;
+        });
+      } catch (error) {
+        console.error("Failed to read profile photo(s):", error);
+        message.error("Failed to read one or more selected photos");
+      }
 
       return false;
+    },
+    [form, profilePhotos.length, readFileAsDataUrl]
+  );
+
+  const handleProfilePhotoRemove = useCallback(
+    (id) => {
+      setProfilePhotos((prev) => {
+        const next = prev.filter((item) => item.id !== id);
+        form.setFieldValue(
+          "profile_image_url",
+          next.length ? next.map((p) => p.name) : undefined
+        );
+        return next;
+      });
     },
     [form]
   );
 
-  const handleProfilePhotoRemove = useCallback(() => {
-    setProfilePhotoPreview(null);
+  const handleClearAllProfilePhotos = useCallback(() => {
+    setProfilePhotos([]);
     form.setFieldValue("profile_image_url", undefined);
   }, [form]);
 
@@ -378,51 +517,57 @@ const UserRegistration = () => {
     <Form.Item
       label={
         <span className="C-heading size-6 semiBold color-light mb-0">
-          Profile Photo
+          Profile Photos
           <span className="text-muted ms-1" style={{ fontSize: "12px" }}>
-            (Optional)
+            (Optional, up to {MAX_PROFILE_PHOTOS})
           </span>
         </span>
       }
       name="profile_image_url"
+      required={false}
+      rules={[]}
       className="mb-2"
     >
       <div>
-        {profilePhotoPreview ? (
-          <div
-            style={{
-              marginBottom: 16,
-              position: "relative",
-              display: "inline-block",
-            }}
-          >
-            <img
-              src={profilePhotoPreview}
-              alt="Profile preview"
-              style={{
-                width: "120px",
-                height: "120px",
-                objectFit: "cover",
-                borderRadius: "50%",
-                border: "1px solid #d9d9d9",
-                padding: "4px",
-                backgroundColor: "#fff",
-              }}
-            />
-            <Button
-              type="text"
-              danger
-              icon={<DeleteOutlined />}
-              onClick={handleProfilePhotoRemove}
-              style={{
-                position: "absolute",
-                top: 0,
-                right: 0,
-                backgroundColor: "rgba(255, 255, 255, 0.9)",
-              }}
-            >
-              Remove
-            </Button>
+        {profilePhotos.length > 0 ? (
+          <div className="d-flex flex-wrap gap-3 mb-3">
+            {profilePhotos.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  position: "relative",
+                  display: "inline-block",
+                }}
+              >
+                <img
+                  src={item.url}
+                  alt={item.name || "Profile preview"}
+                  style={{
+                    width: "100px",
+                    height: "100px",
+                    objectFit: "cover",
+                    borderRadius: "12px",
+                    border: "1px solid #d9d9d9",
+                    padding: "4px",
+                    backgroundColor: "#fff",
+                  }}
+                />
+                <Button
+                  type="text"
+                  danger
+                  size="small"
+                  icon={<DeleteOutlined />}
+                  onClick={() => handleProfilePhotoRemove(item.id)}
+                  style={{
+                    position: "absolute",
+                    top: 0,
+                    right: 0,
+                    backgroundColor: "rgba(255, 255, 255, 0.9)",
+                  }}
+                  aria-label={`Remove ${item.name || "photo"}`}
+                />
+              </div>
+            ))}
           </div>
         ) : null}
         <Upload
@@ -430,13 +575,32 @@ const UserRegistration = () => {
           beforeUpload={handleProfilePhotoUpload}
           showUploadList={false}
           accept="image/png,image/jpeg,image/jpg,image/webp"
+          multiple
+          disabled={profilePhotos.length >= MAX_PROFILE_PHOTOS}
         >
-          <Button icon={<UploadOutlined />} size="large" block>
-            {profilePhotoPreview ? "Change Photo" : "Upload Profile Photo"}
+          <Button
+            icon={<UploadOutlined />}
+            size="large"
+            block
+            disabled={profilePhotos.length >= MAX_PROFILE_PHOTOS}
+          >
+            {profilePhotos.length
+              ? `Add More Photos (${profilePhotos.length}/${MAX_PROFILE_PHOTOS})`
+              : "Upload Profile Photos"}
           </Button>
         </Upload>
+        {profilePhotos.length > 0 ? (
+          <button
+            type="button"
+            className="C-button is-link small mt-2"
+            onClick={handleClearAllProfilePhotos}
+          >
+            Remove all photos
+          </button>
+        ) : null}
         <div className="mt-2" style={{ fontSize: "12px", color: "#8c8c8c" }}>
-          Supported formats: PNG, JPG, WEBP (Max 5MB)
+          Supported formats: PNG, JPG, WEBP (Max 5MB each). Multiple files
+          allowed.
         </div>
       </div>
     </Form.Item>
