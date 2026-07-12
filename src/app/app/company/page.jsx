@@ -13,6 +13,7 @@ import { useModuleAccess } from "@/hooks/useModuleAccess";
 const CompanyPage = () => {
   const router = useRouter();
   const [isPostJobModalOpen, setIsPostJobModalOpen] = useState(false);
+  const [createCompanyRequestId, setCreateCompanyRequestId] = useState(0);
   const { allowed, permissions } = useModuleAccess("company");
 
   const handleNavigateToEquipment = () => {
@@ -27,7 +28,7 @@ const CompanyPage = () => {
     setIsPostJobModalOpen(false);
   };
 
-  const handlePostJobSubmit = async (payload) => {
+  const handlePostJobSubmit = async () => {
     handleClosePostJobModal();
   };
 
@@ -44,6 +45,15 @@ const CompanyPage = () => {
           children={
             canAdd && (
               <Space>
+                <button
+                  className="C-button is-filled small"
+                  onClick={() => setCreateCompanyRequestId((id) => id + 1)}
+                >
+                  <Space>
+                    <Icon name="add" />
+                    Create Company
+                  </Space>
+                </button>
                 <button
                   className="C-button is-filled small"
                   onClick={handleOpenPostJobModal}
@@ -67,7 +77,10 @@ const CompanyPage = () => {
           }
         />
         <div className="p-3">
-          <Company permissions={permissions} />
+          <Company
+            permissions={permissions}
+            createCompanyRequestId={createCompanyRequestId}
+          />
         </div>
       </div>
 

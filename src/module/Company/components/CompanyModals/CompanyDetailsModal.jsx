@@ -73,7 +73,7 @@ const CompanyDetailsModal = memo(({ isOpen, company, onCancel }) => {
       footer={null}
       width={960}
       centered
-      destroyOnClose
+      destroyOnHidden
       styles={{ body: { maxHeight: "80vh", overflowY: "auto", paddingTop: 8 } }}
     >
       {loading ? (

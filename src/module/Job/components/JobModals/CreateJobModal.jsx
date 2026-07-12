@@ -287,7 +287,7 @@ const CreateJobModal = memo(
         width={900}
         centered
         closable={!isSubmitting}
-        maskClosable={!isSubmitting}
+        mask={{ closable: !isSubmitting }}
       >
         <Spin spinning={isSubmitting} tip="Posting job...">
           <Form

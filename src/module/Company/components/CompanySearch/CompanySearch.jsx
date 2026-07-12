@@ -22,14 +22,11 @@ const CompanySearch = ({
   onCompanyTypeChange,
   onLocationChange,
   onApplyFilters,
-  onClearFilters,
-  onCreateCompany,
   onBulkDelete,
   selectedCompanies,
   loading = false,
   permissions = {},
 }) => {
-  const canAdd = Boolean(permissions.add);
   const canDelete = Boolean(permissions.delete);
 
   const categories = useAppSelector((state) => state.categories?.list ?? []);
@@ -130,34 +127,12 @@ const CompanySearch = ({
                   Search
                 </Space>
               </Button>
-              <Button
-                size="large"
-                className="C-button is-bordered small"
-                onClick={onClearFilters}
-                disabled={loading}
-              >
-                Clear
-              </Button>
             </Space>
           </div>
         </div>
 
         <div className="col-12 text-lg-end mt-2 mt-lg-0">
           <Space wrap>
-            {canAdd && (
-              <Button
-                type="primary"
-                size="large"
-                onClick={onCreateCompany}
-                className="C-button is-filled small"
-              >
-                <Space>
-                  <Icon name="add" />
-                  Create Company
-                </Space>
-              </Button>
-            )}
-
             {canDelete && !!selectedCompanies.length && (
               <Button
                 size="large"

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, useEffect } from "react";
 import { Spin, Alert, Button } from "antd";
 import { useAppSelector } from "@/store/hooks";
 import CompanySearch from "./components/CompanySearch";
@@ -21,7 +21,10 @@ const PostedJobsModal = lazy(() =>
   import("./components/CompanyModals/PostedJobsModal")
 );
 
-const Company = ({ permissions = {} }) => {
+const Company = ({
+  permissions = {},
+  createCompanyRequestId = 0,
+}) => {
   const categoriesError = useAppSelector((state) => state.categories?.error);
 
   const {
@@ -48,7 +51,6 @@ const Company = ({ permissions = {} }) => {
     handleCompanyTypeChange,
     handleLocationChange,
     handleApplyFilters,
-    handleClearFilters,
     handleMenuClick,
     handleCreateCompany,
     handleCreateCompanySubmit,
@@ -67,6 +69,12 @@ const Company = ({ permissions = {} }) => {
     error,
     loadCompanies,
   } = useCompanyListing();
+
+  useEffect(() => {
+    if (createCompanyRequestId > 0) {
+      handleCreateCompany();
+    }
+  }, [createCompanyRequestId, handleCreateCompany]);
 
   return (
     <>
@@ -103,8 +111,6 @@ const Company = ({ permissions = {} }) => {
           onCompanyTypeChange={handleCompanyTypeChange}
           onLocationChange={handleLocationChange}
           onApplyFilters={handleApplyFilters}
-          onClearFilters={handleClearFilters}
-          onCreateCompany={handleCreateCompany}
           onBulkDelete={handleBulkDelete}
           selectedCompanies={selectedCompanies}
           loading={loading}
