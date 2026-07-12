@@ -715,8 +715,8 @@ const ExpertRegistration = () => {
       {/* Thank You Modal */}
       <ThankYouModal
         isOpen={showThankYouModal}
-        title="Thank you!"
-        message="Your Profile has been upgraded to Expert Successfully. Please login again"
+        title="You're on the expert list!"
+        message="Your expert profile request has been submitted successfully. To unlock your new expert access and permissions, please sign in again."
         onClose={() => {
           setShowThankYouModal(false);
           router.push(ROUTES?.PUBLIC.LOGIN);

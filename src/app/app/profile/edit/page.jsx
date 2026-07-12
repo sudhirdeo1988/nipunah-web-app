@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { message, Spin } from "antd";
+import { Spin } from "antd";
 import { useAppDispatch } from "@/store/hooks";
 import { setUser } from "@/store/slices/userSlice";
 import BecomeExpertModal from "@/components/BecomeExpertModal";
@@ -223,7 +223,6 @@ const ProfileEditPage = () => {
       });
       saveUserSession(merged);
       dispatch(setUser(merged));
-      message.success("Profile updated successfully.");
       router.push(ROUTES.PRIVATE.PROFILE);
     },
     [dispatch, reduxUser, role, router]

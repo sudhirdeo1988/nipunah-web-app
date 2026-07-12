@@ -88,7 +88,7 @@ const UpgradeExpertPage = () => {
         width={500}
         centered
         closable
-        maskClosable={false}
+        mask={{ closable: false }}
         className="thank-you-modal becomeExpertSuccessModal"
       >
         <div className="thank-you-content text-center py-4">
@@ -121,20 +121,12 @@ const UpgradeExpertPage = () => {
           </h3>
 
           <p
-            className="C-heading size-6 color-light mb-2"
+            className="C-heading size-6 color-light mb-4"
             style={{ lineHeight: "1.6" }}
           >
             Your expert profile request has been submitted successfully. To
             unlock your new expert access and permissions, please sign in
             again.
-          </p>
-          <p
-            className="C-heading size-6 color-light mb-4"
-            style={{ lineHeight: "1.6" }}
-          >
-            Click <strong>Login as expert</strong> to continue, or close this
-            window — either way we&apos;ll log you out so your expert session
-            starts fresh.
           </p>
 
           <Button

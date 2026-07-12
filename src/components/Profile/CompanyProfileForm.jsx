@@ -354,6 +354,7 @@ export default function CompanyProfileForm({
       setSaving(true);
       try {
         await onSubmit?.(values);
+        message.success("Profile updated successfully.");
       } catch (error) {
         const errorMessage =
           error?.data?.message ||

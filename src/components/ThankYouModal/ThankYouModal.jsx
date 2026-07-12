@@ -6,7 +6,7 @@ import Icon from "@/components/Icon";
 
 const DEFAULT_TITLE = "Thank You!";
 const DEFAULT_MESSAGE =
-  "Thank you! Your Profile has been upgraded to Expert Successfully. Please login again";
+  "Your profile has been created successfully. Please login to continue.";
 
 /**
  * ThankYouModal Component
