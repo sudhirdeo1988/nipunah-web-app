@@ -2,13 +2,8 @@
 
 /**
  * EditJobModal Component
- * 
- * Simple modal for editing (PUT) existing jobs
- * 
- * @param {boolean} isOpen - Whether modal is open
- * @param {Object} selectedJob - Job to edit (required)
- * @param {Function} onCancel - Cancel handler
- * @param {Function} onUpdate - Update handler (receives jobId, payload)
+ *
+ * Modal for editing (PUT) existing jobs — Naukri-aligned field set + rich text.
  */
 
 import React, { memo, useCallback, useState, useEffect, useMemo } from "react";
@@ -19,11 +14,13 @@ import {
   Select,
   DatePicker,
   Switch,
+  Checkbox,
   Row,
   Col,
   Button,
   message,
   Spin,
+  InputNumber,
 } from "antd";
 import Icon from "@/components/Icon";
 import CountryDetails from "@/utilities/CountryDetails.json";
@@ -32,30 +29,48 @@ import { map as _map, find as _find } from "lodash-es";
 import dayjs from "dayjs";
 import DigitsOnlyInput from "@/components/DigitsOnlyInput";
 import { digitsOnlyNormalize } from "@/utilities/numericInput";
+import RichTextEditor from "@/components/RichTextEditor";
+import {
+  EMPLOYMENT_TYPES,
+  EMPLOYMENT_NATURES,
+  EXPERIENCE_RANGES,
+  WORK_MODES,
+  ROLE_CATEGORIES,
+  DEPARTMENTS,
+  INDUSTRIES,
+  EDUCATION_OPTIONS,
+  EDUCATION_SPECIALIZATIONS,
+  richTextMinLength,
+} from "../../constants/jobFormOptions";
 
 const { TextArea } = Input;
 
-const EMPLOYMENT_TYPES = [
-  { label: "Full-time", value: "Full-time" },
-  { label: "Part-time", value: "Part-time" },
-  { label: "Contract", value: "Contract" },
-  { label: "Internship", value: "Internship" },
-];
+/**
+ * Normalize skills from API (array of tags or HTML string) for the RTE.
+ */
+const normalizeSkillsForForm = (skills) => {
+  if (!skills) return "";
+  if (typeof skills === "string") return skills;
+  if (Array.isArray(skills)) {
+    const unique = [...new Set(skills.filter(Boolean))];
+    if (unique.length === 0) return "";
+    return `<ul>${unique.map((s) => `<li>${s}</li>`).join("")}</ul>`;
+  }
+  return "";
+};
 
-const EXPERIENCE_RANGES = [
-  { label: "0-1 years", value: "0-1 years" },
-  { label: "1-3 years", value: "1-3 years" },
-  { label: "3-5 years", value: "3-5 years" },
-  { label: "5-8 years", value: "5-8 years" },
-  { label: "8-10 years", value: "8-10 years" },
-  { label: "10+ years", value: "10+ years" },
-];
+const normalizeTags = (tags) => {
+  if (!tags) return [];
+  if (Array.isArray(tags)) return [...new Set(tags.filter(Boolean))];
+  if (typeof tags === "string" && tags.trim()) return [tags.trim()];
+  return [];
+};
 
 const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
   const [form] = Form.useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const salaryNotDisclosed = Form.useWatch("salary_not_disclosed", form);
 
-  // Country options
   const countrySelectOptions = useMemo(
     () =>
       _map(CountryDetails, (country) => ({
@@ -65,52 +80,45 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
     []
   );
 
-  // Currency options
-  const currencyOptions = useMemo(
-    () => {
-      const seenCurrencyCodes = new Set();
-      return _map(CountryDetails, (c) => {
-        const code = String(c?.currencyCode || "").trim();
-        if (!code || seenCurrencyCodes.has(code)) return null;
-        seenCurrencyCodes.add(code);
-        const symbol = String(c?.currencySymbol || "").trim();
-        return {
-          label: symbol ? `${code} (${symbol})` : code,
-          value: code,
-          symbol,
-        };
-      }).filter(Boolean);
-    },
-    []
-  );
+  const currencyOptions = useMemo(() => {
+    const seenCurrencyCodes = new Set();
+    return _map(CountryDetails, (c) => {
+      const code = String(c?.currencyCode || "").trim();
+      if (!code || seenCurrencyCodes.has(code)) return null;
+      seenCurrencyCodes.add(code);
+      const symbol = String(c?.currencySymbol || "").trim();
+      return {
+        label: symbol ? `${code} (${symbol})` : code,
+        value: code,
+        symbol,
+      };
+    }).filter(Boolean);
+  }, []);
 
-  /**
-   * Format Posted On date from createdOn or postedOn
-   */
   const formatPostedOnDate = useMemo(() => {
     if (!selectedJob) return "N/A";
-    
-    const dateValue = selectedJob.createdOn || selectedJob.created_on || selectedJob.postedOn || selectedJob.posted_on || "";
+
+    const dateValue =
+      selectedJob.createdOn ||
+      selectedJob.created_on ||
+      selectedJob.postedOn ||
+      selectedJob.posted_on ||
+      "";
     if (!dateValue) return "N/A";
-    
+
     try {
-      // If it's a timestamp (number)
       if (typeof dateValue === "number") {
         return dayjs(dateValue).format("YYYY-MM-DD");
       }
-      
-      // If it's a date string
       if (typeof dateValue === "string") {
         const parsed = dayjs(dateValue);
         if (parsed.isValid()) {
           return parsed.format("YYYY-MM-DD");
         }
-        // If already in YYYY-MM-DD format, return as is
         if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
           return dateValue;
         }
       }
-      
       return "N/A";
     } catch (error) {
       console.error("Error formatting date:", error);
@@ -118,46 +126,64 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
     }
   }, [selectedJob]);
 
-  // Populate form when modal opens with selectedJob data
   useEffect(() => {
     if (isOpen && selectedJob) {
       const job = selectedJob;
 
-      // Parse salary range
+      // Derive salary range input from stored min/max strings
       let salaryRangeValue = "";
-      if (job.salaryRange) {
-        const match = job.salaryRange.match(/\$([\d,]+)\s*-\s*\$([\d,]+)/);
-        if (match) {
-          const min = parseInt(match[1].replace(/,/g, "")) / 1000000;
-          const max = parseInt(match[2].replace(/,/g, "")) / 1000000;
-          salaryRangeValue = `${min}-${max}M`;
-        }
-      } else if (job.salary_range) {
-        const minStr = job.salary_range.min?.replace(/[^0-9]/g, "") || "";
-        const maxStr = job.salary_range.max?.replace(/[^0-9]/g, "") || "";
-        if (minStr && maxStr) {
-          const min = parseInt(minStr);
-          const max = parseInt(maxStr);
-          if (min >= 1000000 || max >= 1000000) {
-            const minM = min / 1000000;
-            const maxM = max / 1000000;
-            salaryRangeValue = `${minM}-${maxM}M`;
-          } else {
-            const minK = min / 1000;
-            const maxK = max / 1000;
-            salaryRangeValue = `${minK}-${maxK}K`;
+      let salaryNotDisclosedValue = !!(
+        job.salaryNotDisclosed || job.salary_not_disclosed
+      );
+      const salaryObj = job.salary_range || job.salaryRange;
+      if (salaryObj && typeof salaryObj === "object") {
+        const minRaw = String(salaryObj.min || "");
+        const maxRaw = String(salaryObj.max || "");
+        if (
+          /not\s*disclosed/i.test(minRaw) ||
+          /not\s*disclosed/i.test(maxRaw)
+        ) {
+          salaryNotDisclosedValue = true;
+        } else {
+          const minStr = minRaw.replace(/[^0-9.]/g, "");
+          const maxStr = maxRaw.replace(/[^0-9.]/g, "");
+          if (minStr && maxStr) {
+            const minNum = parseFloat(minStr);
+            const maxNum = parseFloat(maxStr);
+            if (minNum >= 1000000 || maxNum >= 1000000) {
+              salaryRangeValue = `${(minNum / 1000000).toFixed(
+                minNum % 1000000 === 0 ? 0 : 1
+              )}-${(maxNum / 1000000).toFixed(
+                maxNum % 1000000 === 0 ? 0 : 1
+              )}M`;
+            } else if (minNum >= 1000 || maxNum >= 1000) {
+              salaryRangeValue = `${(minNum / 1000).toFixed(
+                minNum % 1000 === 0 ? 0 : 1
+              )}-${(maxNum / 1000).toFixed(maxNum % 1000 === 0 ? 0 : 1)}K`;
+            } else {
+              salaryRangeValue = `${minNum}-${maxNum}`;
+            }
           }
+        }
+      } else if (typeof job.salaryRange === "string" && job.salaryRange) {
+        if (/not\s*disclosed/i.test(job.salaryRange)) {
+          salaryNotDisclosedValue = true;
+        } else {
+          salaryRangeValue = job.salaryRange
+            .replace(/[^0-9.\-MK\s]/gi, "")
+            .trim();
         }
       }
 
-      // Parse location
-      const locationObj = job.locationObj || (typeof job.location === "object" ? job.location : {}) || {};
+      const locationObj =
+        job.locationObj ||
+        (typeof job.location === "object" ? job.location : {}) ||
+        {};
       const city = locationObj.city || "";
       const state = locationObj.state || "";
       const pincode = locationObj.pinCode || locationObj.pincode || "";
       let countryCode = locationObj.countryCode || locationObj.country || "";
 
-      // Convert country name to code if needed
       if (countryCode && countryCode.length > 2) {
         const countryData = _find(
           CountryDetails,
@@ -168,7 +194,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         }
       }
 
-      // Parse deadline
       let deadlineValue = null;
       if (job.applicationDeadline) {
         deadlineValue = dayjs(job.applicationDeadline);
@@ -176,39 +201,67 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         deadlineValue = dayjs(job.application_deadline);
       }
 
-      // Ensure skills array is unique and properly formatted
-      const skillsArray = job.skillsRequired || job.skills_required || [];
-      const uniqueSkills = Array.isArray(skillsArray) 
-        ? [...new Set(skillsArray.filter(Boolean))] 
-        : [];
+      const requiredSkillsHtml = normalizeSkillsForForm(
+        job.requiredSkills ||
+          job.required_skills ||
+          job.skillsRequired ||
+          job.skills_required
+      );
 
-      // Set form values
       form.setFieldsValue({
         title: job.title || "",
-        experience_required: job.experienceRequired || job.experience_required || "",
+        experience_required:
+          job.experienceRequired || job.experience_required || "",
         employment_type: job.employmentType || job.employment_type || "",
+        employment_nature:
+          job.employmentNature || job.employment_nature || "Permanent",
+        work_mode: job.workMode || job.work_mode || "Office",
+        openings: job.openings != null ? Number(job.openings) : 1,
+        role: job.role || "",
+        role_category: job.roleCategory || job.role_category || "",
+        department: job.department || "",
+        industry: job.industry || "",
+        education: job.education || "",
+        education_specialization:
+          job.educationSpecialization ||
+          job.education_specialization ||
+          "Any Specialization",
+        qualifications: job.qualifications || "",
         currency: "USD",
+        salary_not_disclosed: salaryNotDisclosedValue,
         salary_range: salaryRangeValue,
         description: job.description || "",
-        skills_required: uniqueSkills,
+        key_responsibilities:
+          job.keyResponsibilities || job.key_responsibilities || "",
+        required_skills: requiredSkillsHtml,
+        preferred_skills:
+          job.preferredSkills || job.preferred_skills || "",
+        key_skills: normalizeTags(job.keySkills || job.key_skills),
+        preferred_key_skills: normalizeTags(
+          job.preferredKeySkills || job.preferred_key_skills
+        ),
         application_deadline: deadlineValue,
         status: job.status || "pending",
-        isActive: job.isActive !== undefined ? job.isActive : job.is_active !== undefined ? job.is_active : true,
+        isActive:
+          job.isActive !== undefined
+            ? job.isActive
+            : job.is_active !== undefined
+            ? job.is_active
+            : true,
         location: {
-          city: city,
-          state: state,
-          pincode: pincode,
+          city,
+          state,
+          pincode,
           country: countryCode,
         },
       });
 
-      // Set again after delay for country dropdown
       setTimeout(() => {
         form.setFieldsValue({
           location: {
-            city: city,
-            state: state,
-            pincode: pincode,
+            city,
+            state,
+            pincode,
             country: countryCode,
           },
         });
@@ -216,12 +269,13 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
     }
   }, [isOpen, form, selectedJob]);
 
-  // Parse salary range
   const parseSalaryRange = useCallback((rangeString, currencySymbol) => {
     if (!rangeString) return { min: "", max: "" };
 
     const normalized = rangeString.trim().toUpperCase();
-    const match = normalized.match(/(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*([MK])?/);
+    const match = normalized.match(
+      /(\d+(?:\.\d+)?)\s*-\s*(\d+(?:\.\d+)?)\s*([MK])?/
+    );
 
     if (match) {
       const min = parseFloat(match[1]);
@@ -232,9 +286,8 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
       const minValue = min * multiplier;
       const maxValue = max * multiplier;
 
-      const formatNumber = (num) => {
-        return num.toLocaleString("en-US", { maximumFractionDigits: 0 });
-      };
+      const formatNumber = (num) =>
+        num.toLocaleString("en-US", { maximumFractionDigits: 0 });
 
       return {
         min: `${currencySymbol}${formatNumber(minValue)}`,
@@ -245,7 +298,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
     return { min: "", max: "" };
   }, []);
 
-  // Handle form submission - PUT only
   const handleSubmit = useCallback(async () => {
     try {
       setIsSubmitting(true);
@@ -254,11 +306,11 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         throw new Error("No job selected for editing");
       }
 
-      // Get jobId
-      let jobId = selectedJob?.id || selectedJob?.jobId || selectedJob?.job_id || null;
-      
-      if (typeof jobId === 'string' && jobId.startsWith('JOB-')) {
-        const numericId = jobId.replace('JOB-', '');
+      let jobId =
+        selectedJob?.id || selectedJob?.jobId || selectedJob?.job_id || null;
+
+      if (typeof jobId === "string" && jobId.startsWith("JOB-")) {
+        const numericId = jobId.replace("JOB-", "");
         jobId = /^\d+$/.test(numericId) ? numericId : jobId;
       }
 
@@ -273,9 +325,11 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
       );
       const currencySymbol = selectedCurrency?.symbol || "$";
 
-      const salaryRange = parseSalaryRange(values.salary_range, currencySymbol);
+      const salaryNotDisclosedValue = !!values.salary_not_disclosed;
+      const salaryRange = salaryNotDisclosedValue
+        ? { min: "Not Disclosed", max: "Not Disclosed" }
+        : parseSalaryRange(values.salary_range, currencySymbol);
 
-      // Get country code and country name
       const countryCode = values.location?.country || "";
       let countryName = "";
       if (countryCode) {
@@ -294,6 +348,7 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
           companyShortName: selectedJob.postedBy?.companyShortName || "",
         },
         experienceRequired: values.experience_required,
+        salaryNotDisclosed: salaryNotDisclosedValue,
         salaryRange: {
           min: salaryRange.min,
           max: salaryRange.max,
@@ -303,11 +358,26 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
           state: values.location?.state || "",
           pinCode: values.location?.pincode || "",
           countryCode: countryCode,
-          country: countryName, // Store country name as well
+          country: countryName,
         },
-        description: values.description,
+        description: values.description || "",
+        keyResponsibilities: values.key_responsibilities || "",
+        requiredSkills: values.required_skills || "",
+        preferredSkills: values.preferred_skills || "",
+        skillsRequired: values.required_skills || "",
+        keySkills: values.key_skills || [],
+        preferredKeySkills: values.preferred_key_skills || [],
+        qualifications: values.qualifications || "",
         employmentType: values.employment_type,
-        skillsRequired: values.skills_required || [],
+        employmentNature: values.employment_nature || "Permanent",
+        workMode: values.work_mode || "Office",
+        openings: values.openings != null ? Number(values.openings) : 1,
+        role: values.role || "",
+        roleCategory: values.role_category || "",
+        department: values.department || "",
+        industry: values.industry || "",
+        education: values.education || "",
+        educationSpecialization: values.education_specialization || "",
         applicationDeadline: values.application_deadline
           ? dayjs(values.application_deadline).format("YYYY-MM-DD")
           : null,
@@ -315,14 +385,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
         isActive: values.isActive !== undefined ? values.isActive : true,
       };
 
-      console.log("🔄 UPDATE JOB PAYLOAD:", JSON.stringify(payload, null, 2));
-      console.log("🔄 Job ID:", jobId);
-      console.log("🌍 Location in payload:", {
-        countryCode: payload.location.countryCode,
-        country: payload.location.country,
-      });
-
-      // Always use PUT via onUpdate callback
       if (onUpdate && typeof onUpdate === "function") {
         await onUpdate(jobId, payload);
         message.success("Job updated successfully!");
@@ -346,7 +408,14 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [form, onUpdate, onCancel, selectedJob, currencyOptions, parseSalaryRange]);
+  }, [
+    form,
+    onUpdate,
+    onCancel,
+    selectedJob,
+    currencyOptions,
+    parseSalaryRange,
+  ]);
 
   const handleCancel = useCallback(() => {
     if (!isSubmitting) {
@@ -354,6 +423,14 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
       onCancel();
     }
   }, [form, onCancel, isSubmitting]);
+
+  const sectionTitle = (label) => (
+    <Col span={24}>
+      <div className="border-top pt-3 mt-2 mb-3">
+        <h5 className="C-heading size-xs bold mb-0">{label}</h5>
+      </div>
+    </Col>
+  );
 
   if (!selectedJob) {
     return null;
@@ -383,27 +460,26 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
           {isSubmitting ? "Updating..." : "Update Job"}
         </Button>,
       ]}
-      width={900}
+      width={1000}
       centered
       closable={!isSubmitting}
-      maskClosable={!isSubmitting}
+      mask={{ closable: !isSubmitting }}
+      styles={{ body: { maxHeight: "70vh", overflowY: "auto" } }}
     >
       <Spin spinning={isSubmitting} tip="Updating job...">
-        {/* Posted On Info */}
         <div className="mb-3 pb-2 border-bottom">
           <div className="d-flex justify-content-between align-items-center">
             <span className="C-heading size-xs text-muted mb-0">Posted On:</span>
-            <span className="C-heading size-xs semiBold mb-0">{formatPostedOnDate}</span>
+            <span className="C-heading size-xs semiBold mb-0">
+              {formatPostedOnDate}
+            </span>
           </div>
         </div>
 
-        <Form
-          form={form}
-          layout="vertical"
-          className="py-3"
-        >
+        <Form form={form} layout="vertical" className="py-3">
           <Row gutter={16}>
-            {/* Job Title */}
+            {sectionTitle("Basic Details")}
+
             <Col span={24}>
               <Form.Item
                 label={
@@ -421,14 +497,13 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                 ]}
               >
                 <Input
-                  placeholder="e.g., Senior Software Engineer"
+                  placeholder="e.g., Hiring ServiceNow Professionals"
                   size="large"
                   prefix={<Icon name="work" isFilled color="#ccc" />}
                 />
               </Form.Item>
             </Col>
 
-            {/* Experience Required */}
             <Col span={12}>
               <Form.Item
                 label={
@@ -452,7 +527,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* Employment Type */}
             <Col span={12}>
               <Form.Item
                 label={
@@ -476,7 +550,86 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* Currency */}
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Employment Nature
+                  </span>
+                }
+                name="employment_nature"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select employment nature",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="e.g., Permanent"
+                  size="large"
+                  options={EMPLOYMENT_NATURES}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Work Mode
+                  </span>
+                }
+                name="work_mode"
+                rules={[
+                  { required: true, message: "Please select work mode" },
+                ]}
+              >
+                <Select
+                  placeholder="Select work mode"
+                  size="large"
+                  options={WORK_MODES}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Number of Openings
+                  </span>
+                }
+                name="openings"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter number of openings",
+                  },
+                ]}
+              >
+                <InputNumber
+                  min={1}
+                  max={999}
+                  size="large"
+                  style={{ width: "100%" }}
+                  placeholder="e.g., 5"
+                />
+              </Form.Item>
+            </Col>
+
+            {sectionTitle("Compensation")}
+
+            <Col span={24}>
+              <Form.Item
+                name="salary_not_disclosed"
+                valuePropName="checked"
+                className="mb-2"
+              >
+                <Checkbox>Salary not disclosed</Checkbox>
+              </Form.Item>
+            </Col>
+
             <Col span={12}>
               <Form.Item
                 label={
@@ -485,9 +638,16 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                   </span>
                 }
                 name="currency"
-                rules={[
-                  { required: true, message: "Please select currency" },
-                ]}
+                rules={
+                  salaryNotDisclosed
+                    ? []
+                    : [
+                        {
+                          required: true,
+                          message: "Please select currency",
+                        },
+                      ]
+                }
               >
                 <Select
                   placeholder="Select Currency"
@@ -495,11 +655,11 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                   showSearch
                   optionFilterProp="label"
                   options={currencyOptions}
+                  disabled={salaryNotDisclosed}
                 />
               </Form.Item>
             </Col>
 
-            {/* Salary Range */}
             <Col span={12}>
               <Form.Item
                 label={
@@ -508,32 +668,38 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                   </span>
                 }
                 name="salary_range"
-                rules={[
-                  { required: true, message: "Please enter salary range" },
-                  {
-                    pattern: /^\d+(\.\d+)?\s*-\s*\d+(\.\d+)?\s*[MK]?$/i,
-                    message:
-                      "Format: 1-2M or 10-30M (e.g., 1-2M, 10-30M)",
-                  },
-                ]}
-                extra="Enter range like: 1-2M, 10-30M, 50-100K"
+                rules={
+                  salaryNotDisclosed
+                    ? []
+                    : [
+                        {
+                          required: true,
+                          message: "Please enter salary range",
+                        },
+                        {
+                          pattern: /^\d+(\.\d+)?\s*-\s*\d+(\.\d+)?\s*[MK]?$/i,
+                          message:
+                            "Format: 1-2M or 10-30M (e.g., 1-2M, 10-30M)",
+                        },
+                      ]
+                }
+                extra={
+                  salaryNotDisclosed
+                    ? "Salary will show as Not Disclosed"
+                    : "Enter range like: 1-2M, 10-30M, 50-100K"
+                }
               >
                 <Input
                   placeholder="e.g., 1-2M or 10-30M"
                   size="large"
+                  disabled={salaryNotDisclosed}
                   prefix={<Icon name="attach_money" isFilled color="#ccc" />}
                 />
               </Form.Item>
             </Col>
 
-            {/* Address Section */}
-            <Col span={24}>
-              <div className="border-top pt-3 mt-2 mb-3">
-                <h5 className="C-heading size-xs bold mb-3">Job Location</h5>
-              </div>
-            </Col>
+            {sectionTitle("Job Location")}
 
-            {/* Country */}
             <Col span={6}>
               <Form.Item
                 label={
@@ -557,7 +723,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* State */}
             <Col span={6}>
               <Form.Item
                 label={
@@ -582,16 +747,13 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* City */}
-            <Col span={12}>
+            <Col span={6}>
               <Form.Item
                 label={
                   <span className="C-heading size-xs semiBold mb-0">City</span>
                 }
                 name={["location", "city"]}
-                rules={[
-                  { required: true, message: "Please enter city" },
-                ]}
+                rules={[{ required: true, message: "Please enter city" }]}
               >
                 <Input
                   placeholder="Enter City"
@@ -603,12 +765,11 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* Pincode */}
-            <Col span={12}>
+            <Col span={6}>
               <Form.Item
                 label={
                   <span className="C-heading size-xs semiBold mb-0">
-                    Pincode/ZIP Code
+                    Pincode/ZIP
                   </span>
                 }
                 name={["location", "pincode"]}
@@ -622,7 +783,7 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                 ]}
               >
                 <DigitsOnlyInput
-                  placeholder="Enter Pincode"
+                  placeholder="Pincode"
                   maxLength={10}
                   size="large"
                   prefix={<Icon name="pin_drop" isFilled color="#ccc" />}
@@ -630,64 +791,316 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* Description */}
+            {sectionTitle("Role Classification")}
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">Role</span>
+                }
+                name="role"
+                rules={[
+                  { required: true, message: "Please enter role" },
+                  { min: 2, message: "Role must be at least 2 characters" },
+                ]}
+              >
+                <Input
+                  placeholder="e.g., ServiceNow Developer"
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Role Category
+                  </span>
+                }
+                name="role_category"
+                rules={[
+                  { required: true, message: "Please select role category" },
+                ]}
+              >
+                <Select
+                  placeholder="Select role category"
+                  size="large"
+                  showSearch
+                  optionFilterProp="label"
+                  options={ROLE_CATEGORIES}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Department
+                  </span>
+                }
+                name="department"
+                rules={[
+                  { required: true, message: "Please select department" },
+                ]}
+              >
+                <Select
+                  placeholder="Select department"
+                  size="large"
+                  showSearch
+                  optionFilterProp="label"
+                  options={DEPARTMENTS}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Industry
+                  </span>
+                }
+                name="industry"
+                rules={[
+                  { required: true, message: "Please select industry" },
+                ]}
+              >
+                <Select
+                  placeholder="Select industry"
+                  size="large"
+                  showSearch
+                  optionFilterProp="label"
+                  options={INDUSTRIES}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Education (UG / Degree)
+                  </span>
+                }
+                name="education"
+                rules={[
+                  { required: true, message: "Please select education" },
+                ]}
+              >
+                <Select
+                  placeholder="e.g., B.Tech / B.E."
+                  size="large"
+                  showSearch
+                  optionFilterProp="label"
+                  options={EDUCATION_OPTIONS}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Specialization
+                  </span>
+                }
+                name="education_specialization"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please select specialization",
+                  },
+                ]}
+              >
+                <Select
+                  placeholder="e.g., Any Specialization"
+                  size="large"
+                  showSearch
+                  optionFilterProp="label"
+                  options={EDUCATION_SPECIALIZATIONS}
+                />
+              </Form.Item>
+            </Col>
+
             <Col span={24}>
               <Form.Item
                 label={
                   <span className="C-heading size-xs semiBold mb-0">
-                    Job Description
+                    Qualifications
+                  </span>
+                }
+                name="qualifications"
+                rules={[
+                  {
+                    required: true,
+                    message: "Please enter qualifications",
+                  },
+                  {
+                    min: 10,
+                    message: "Qualifications must be at least 10 characters",
+                  },
+                ]}
+                extra="e.g., Bachelor's or Master's degree in Computer Science, IT, Engineering, or a related field."
+              >
+                <TextArea
+                  rows={3}
+                  placeholder="Describe education / qualification requirements..."
+                  size="large"
+                />
+              </Form.Item>
+            </Col>
+
+            {sectionTitle("Job Content")}
+
+            <Col span={24}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Job Description / Summary
                   </span>
                 }
                 name="description"
                 rules={[
                   {
                     required: true,
-                    message: "Please enter job description",
-                  },
-                  {
-                    min: 20,
-                    message: "Description must be at least 20 characters",
+                    validator: richTextMinLength(
+                      20,
+                      "Description must be at least 20 characters"
+                    ),
                   },
                 ]}
+                trigger="onChange"
+                validateTrigger={["onChange", "onBlur"]}
               >
-                <TextArea
-                  rows={6}
-                  placeholder="Enter detailed job description..."
-                  size="large"
+                <RichTextEditor
+                  placeholder="Job summary — who you are hiring and what the role involves..."
+                  minHeight={140}
                 />
               </Form.Item>
             </Col>
 
-            {/* Skills Required */}
             <Col span={24}>
               <Form.Item
                 label={
                   <span className="C-heading size-xs semiBold mb-0">
-                    Skills Required
+                    Key Responsibilities
                   </span>
                 }
-                name="skills_required"
+                name="key_responsibilities"
                 rules={[
                   {
-                    type: "array",
-                    min: 1,
-                    message: "Please add at least one skill",
+                    required: true,
+                    validator: richTextMinLength(
+                      10,
+                      "Please add key responsibilities"
+                    ),
                   },
                 ]}
-                extra="Press Enter or comma to add skills"
+                trigger="onChange"
+                validateTrigger={["onChange", "onBlur"]}
               >
-                <Select
-                  mode="tags"
-                  placeholder="Add skills (press Enter to add)"
-                  size="large"
-                  tokenSeparators={[","]}
-                  maxTagCount="responsive"
-                  allowClear
+                <RichTextEditor
+                  placeholder="Use a bullet list for key responsibilities..."
+                  minHeight={140}
                 />
               </Form.Item>
             </Col>
 
-            {/* Application Deadline */}
+            <Col span={24}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Required Skills
+                  </span>
+                }
+                name="required_skills"
+                rules={[
+                  {
+                    required: true,
+                    validator: richTextMinLength(
+                      3,
+                      "Please add required skills"
+                    ),
+                  },
+                ]}
+                trigger="onChange"
+                validateTrigger={["onChange", "onBlur"]}
+              >
+                <RichTextEditor
+                  placeholder="Bullet list of must-have technical and soft skills..."
+                  minHeight={120}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={24}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Preferred Skills
+                  </span>
+                }
+                name="preferred_skills"
+                trigger="onChange"
+                validateTrigger={["onChange", "onBlur"]}
+                extra="Optional — nice-to-have skills and certifications"
+              >
+                <RichTextEditor
+                  placeholder="Bullet list of preferred skills / certifications..."
+                  minHeight={100}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Key Skills (tags)
+                  </span>
+                }
+                name="key_skills"
+                rules={[
+                  {
+                    type: "array",
+                    min: 1,
+                    message: "Add at least one key skill tag",
+                  },
+                ]}
+                extra="Press Enter or comma to add — shown as skill chips"
+              >
+                <Select
+                  mode="tags"
+                  placeholder="e.g., ServiceNow, ITSM, Project Manager"
+                  size="large"
+                  tokenSeparators={[","]}
+                />
+              </Form.Item>
+            </Col>
+
+            <Col span={12}>
+              <Form.Item
+                label={
+                  <span className="C-heading size-xs semiBold mb-0">
+                    Preferred Key Skills (tags)
+                  </span>
+                }
+                name="preferred_key_skills"
+                extra="Starred / preferred skill chips on Naukri-style listings"
+              >
+                <Select
+                  mode="tags"
+                  placeholder="e.g., CSA, CIS, CAD"
+                  size="large"
+                  tokenSeparators={[","]}
+                />
+              </Form.Item>
+            </Col>
+
+            {sectionTitle("Publishing")}
+
             <Col span={12}>
               <Form.Item
                 label={
@@ -714,7 +1127,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* Status */}
             <Col span={12}>
               <Form.Item
                 label={
@@ -739,7 +1151,6 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
               </Form.Item>
             </Col>
 
-            {/* Is Active */}
             <Col span={24}>
               <Form.Item
                 label={
@@ -750,7 +1161,10 @@ const EditJobModal = memo(({ isOpen, selectedJob, onCancel, onUpdate }) => {
                 name="isActive"
                 valuePropName="checked"
               >
-                <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
+                <Switch
+                  checkedChildren="Active"
+                  unCheckedChildren="Inactive"
+                />
               </Form.Item>
             </Col>
           </Row>

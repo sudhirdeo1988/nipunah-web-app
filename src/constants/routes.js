@@ -18,6 +18,8 @@ export const ROUTES = {
     UPGRADE_EXPERT: "/app/dashboard/upgrade-expert",
     CATEGORY: "/app/category",
     JOB: "/app/job",
+    JOB_CREATE: "/app/job/create",
+    JOB_EDIT: "/app/job/edit",
     USERS: "/app/users",
     COMPANY: "/app/company",
     SERVICES: "/app/services",

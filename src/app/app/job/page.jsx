@@ -1,21 +1,17 @@
 "use client";
 
-import React, { useRef } from "react";
+import React from "react";
 import { Space } from "antd";
+import { useRouter } from "next/navigation";
 import Icon from "@/components/Icon";
 import Job from "@/module/Job";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { ROUTES } from "@/constants/routes";
 
 const JobPage = () => {
-  const postJobHandlerRef = useRef(null);
+  const router = useRouter();
   const { allowed, permissions } = useModuleAccess("jobs");
-
-  const handlePostJobClick = () => {
-    if (postJobHandlerRef.current) {
-      postJobHandlerRef.current();
-    }
-  };
 
   if (!allowed) return null;
 
@@ -30,7 +26,7 @@ const JobPage = () => {
           canAdd && (
             <button
               className="C-button is-filled small"
-              onClick={handlePostJobClick}
+              onClick={() => router.push(ROUTES.PRIVATE.JOB_CREATE)}
             >
               <Space>
                 <Icon name="work" />
@@ -41,7 +37,7 @@ const JobPage = () => {
         }
       />
       <div className="p-3">
-        <Job onPostJobClickRef={postJobHandlerRef} permissions={permissions} />
+        <Job permissions={permissions} />
       </div>
     </div>
   );

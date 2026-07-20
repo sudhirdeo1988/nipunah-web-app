@@ -2,8 +2,11 @@
 
 import { useState, useCallback, useMemo, useEffect } from "react";
 import { message } from "antd";
+import { useRouter } from "next/navigation";
 import { useJob } from "./useJob";
 import { useJobModal } from "./useJobModal";
+import { ROUTES } from "@/constants/routes";
+import { stashJobForEdit } from "../utils/jobFormMapper";
 
 /**
  * Custom hook for managing job listing state and operations
@@ -12,6 +15,8 @@ import { useJobModal } from "./useJobModal";
  * @returns {Object} Job listing state and handlers
  */
 export const useJobListing = () => {
+  const router = useRouter();
+
   // ==================== API INTEGRATION ====================
   
   const {
@@ -21,7 +26,6 @@ export const useJobListing = () => {
     pagination,
     searchQuery: apiSearchQuery,
     fetchJobs,
-    createJob,
     updateJob,
     deleteJob,
     handleSort,
@@ -61,9 +65,6 @@ export const useJobListing = () => {
 
   /** @type {[boolean, Function]} Controls applied users modal visibility */
   const [isAppliedUsersModalOpen, setIsAppliedUsersModalOpen] = useState(false);
-
-  /** @type {[boolean, Function]} Controls create job modal visibility */
-  const [isCreateJobModalOpen, setIsCreateJobModalOpen] = useState(false);
 
   /** @type {[Object|null, Function]} Job object to be deleted */
   const [jobToDelete, setJobToDelete] = useState(null);
@@ -145,10 +146,16 @@ export const useJobListing = () => {
         setJobForAppliedUsers(record);
         setIsAppliedUsersModalOpen(true);
         break;
-      case "edit":
-        // Open edit modal with selected job
-        openEditModal(record);
+      case "edit": {
+        const id = record.id || record.jobId || record.job_id;
+        if (!id) {
+          message.error("Job id is missing");
+          break;
+        }
+        stashJobForEdit(record);
+        router.push(`${ROUTES.PRIVATE.JOB_EDIT}/${id}`);
         break;
+      }
       case "approve":
         handleApproveJob(record);
         break;
@@ -162,7 +169,7 @@ export const useJobListing = () => {
       default:
         break;
     }
-  }, []);
+  }, [router]);
 
   /**
    * Handles approve job action
@@ -262,22 +269,6 @@ export const useJobListing = () => {
   }, []);
 
   /**
-   * Handle create job action
-   */
-  const handleCreateJob = useCallback(
-    async (jobData) => {
-      try {
-        await createJob(jobData);
-        setIsCreateJobModalOpen(false);
-      } catch (error) {
-        console.error("Error creating job:", error);
-        // Error is already handled in createJob
-      }
-    },
-    [createJob]
-  );
-
-  /**
    * Handle update job action
    */
   const handleUpdateJob = useCallback(
@@ -292,20 +283,6 @@ export const useJobListing = () => {
     },
     [updateJob, closeEditModal]
   );
-
-  /**
-   * Open create job modal
-   */
-  const openCreateJobModal = useCallback(() => {
-    setIsCreateJobModalOpen(true);
-  }, []);
-
-  /**
-   * Close create job modal
-   */
-  const closeCreateJobModal = useCallback(() => {
-    setIsCreateJobModalOpen(false);
-  }, []);
 
   return {
     // State
@@ -325,7 +302,6 @@ export const useJobListing = () => {
     isJobDetailsModalOpen,
     isAppliedUsersModalOpen,
     isEditModalOpen,
-    isCreateJobModalOpen,
     jobToDelete,
     jobForDetails,
     jobForAppliedUsers,
@@ -342,10 +318,7 @@ export const useJobListing = () => {
     handleCancelBulkDelete,
     handleCancelJobDetails,
     handleCancelAppliedUsers,
-    handleCreateJob,
     handleUpdateJob,
-    openCreateJobModal,
-    closeCreateJobModal,
     closeEditModal,
     fetchJobs,
     handleSort,

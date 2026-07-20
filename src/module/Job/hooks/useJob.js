@@ -20,7 +20,9 @@ import CountryDetails from "@/utilities/CountryDetails.json";
 import { jobService } from "@/utilities/apiServices";
 import dayjs from "dayjs";
 
-export const useJob = () => {
+export const useJob = (options = {}) => {
+  const { skipInitialFetch = false } = options;
+
   // ==================== STATE MANAGEMENT ====================
 
   /** @type {[Object[], Function]} List of jobs */
@@ -231,7 +233,48 @@ export const useJob = () => {
             locationObj: preservedLocationObj, // Preserve complete object structure for edit form
             description: job.description || "",
             employmentType: job.employmentType || job.employment_type || "",
-            skillsRequired: job.skillsRequired || job.skills_required || [],
+            employmentNature:
+              job.employmentNature || job.employment_nature || "",
+            workMode: job.workMode || job.work_mode || "",
+            openings:
+              job.openings != null
+                ? job.openings
+                : job.numberOfOpenings != null
+                ? job.numberOfOpenings
+                : null,
+            role: job.role || "",
+            roleCategory: job.roleCategory || job.role_category || "",
+            department: job.department || "",
+            industry: job.industry || "",
+            education: job.education || "",
+            educationSpecialization:
+              job.educationSpecialization ||
+              job.education_specialization ||
+              "",
+            qualifications: job.qualifications || "",
+            keyResponsibilities:
+              job.keyResponsibilities || job.key_responsibilities || "",
+            requiredSkills:
+              job.requiredSkills ||
+              job.required_skills ||
+              job.skillsRequired ||
+              job.skills_required ||
+              "",
+            preferredSkills:
+              job.preferredSkills || job.preferred_skills || "",
+            keySkills: job.keySkills || job.key_skills || [],
+            preferredKeySkills:
+              job.preferredKeySkills || job.preferred_key_skills || [],
+            salaryNotDisclosed: !!(
+              job.salaryNotDisclosed || job.salary_not_disclosed
+            ),
+            // HTML string (new) or string[] (legacy) — prefer requiredSkills
+            skillsRequired:
+              job.requiredSkills ||
+              job.required_skills ||
+              job.skillsRequired ||
+              job.skills_required ||
+              "",
             applicationDeadline: job.applicationDeadline || job.application_deadline || "",
             application_deadline: job.applicationDeadline || job.application_deadline || "", // Preserve for edit
             status: job.status || "pending",
@@ -291,28 +334,67 @@ export const useJob = () => {
       setError(null);
 
       try {
-        console.log("🟢 API CALL: POST /jobs");
-        const response = await jobService.createJob(jobData);
-        console.log("✅ API Response:", response);
+        console.log("\n🟢 API CALL: POST /jobs");
+        console.log(
+          "📦 CREATE JOB PAYLOAD:\n",
+          JSON.stringify(jobData, null, 2)
+        );
 
-        message.success("Job created successfully");
-        
-        // Refresh the list (fetchJobs uses current pagination and filters from state)
-        await fetchJobs();
-        
+        const response = await jobService.createJob(jobData);
+        console.log("✅ CREATE JOB RESPONSE:", response);
+
+        const isSuccess =
+          response?.success !== false &&
+          (response?.data !== undefined ||
+            response?.id !== undefined ||
+            response?.job_id !== undefined ||
+            response?.jobId !== undefined);
+
+        if (!isSuccess) {
+          const errorMessage =
+            response?.message ||
+            response?.error ||
+            "Failed to create job. Please try again.";
+          message.error(errorMessage);
+          const err = new Error(errorMessage);
+          err._toastShown = true;
+          setError(err);
+          throw err;
+        }
+
+        message.success(response?.message || "Job posted successfully");
+
+        if (!skipInitialFetch) {
+          try {
+            await fetchJobs();
+          } catch (refreshErr) {
+            console.warn(
+              "⚠️ Could not refresh jobs after create:",
+              refreshErr
+            );
+          }
+        }
+
         return response;
       } catch (err) {
         console.error("❌ Error creating job:", err);
         setError(err);
-        const errorMessage =
-          err?.message || "Failed to create job. Please try again.";
-        message.error(errorMessage);
+
+        if (!err?._toastShown) {
+          message.error(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Failed to create job. Please try again."
+          );
+          err._toastShown = true;
+        }
+
         throw err;
       } finally {
         setLoading(false);
       }
     },
-    [fetchJobs]
+    [fetchJobs, skipInitialFetch]
   );
 
   // ==================== UPDATE JOB ====================
@@ -330,48 +412,51 @@ export const useJob = () => {
       setError(null);
 
       try {
-        console.log("🟢 API CALL: PUT /jobs/" + jobId);
-        const response = await jobService.updateJob(jobId, jobData);
-        console.log("✅ API Response:", response);
+        console.log("\n🟢 API CALL: PUT /jobs/" + jobId);
+        console.log(
+          "📦 UPDATE JOB PAYLOAD:\n",
+          JSON.stringify(jobData, null, 2)
+        );
 
-        message.success("Job updated successfully");
-        
-        // Refresh the list (fetchJobs uses current pagination and filters from state)
-        console.log("🔄 Refreshing job list after update...");
-        console.log("📊 Current state:", {
-          currentPage: pagination.current,
-          pageSize: pagination.pageSize,
-          searchQuery,
-          sortBy,
-          order,
-        });
-        
-        // Small delay to ensure API has propagated the update
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        await fetchJobs({
-          page: pagination.current,
-          limit: pagination.pageSize,
-          search: searchQuery,
-          sortBy: sortBy,
-          order: order,
-        });
-        
-        console.log("✅ Job list refreshed after update");
-        
+        const response = await jobService.updateJob(jobId, jobData);
+        console.log("✅ UPDATE JOB RESPONSE:", response);
+
+        message.success(response?.message || "Job updated successfully");
+
+        if (!skipInitialFetch) {
+          await new Promise((resolve) => setTimeout(resolve, 300));
+          await fetchJobs({
+            page: pagination.current,
+            limit: pagination.pageSize,
+            search: searchQuery,
+            sortBy: sortBy,
+            order: order,
+          });
+        }
+
         return response;
       } catch (err) {
         console.error("❌ Error updating job:", err);
         setError(err);
-        const errorMessage =
-          err?.message || "Failed to update job. Please try again.";
-        message.error(errorMessage);
+        message.error(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Failed to update job. Please try again."
+        );
         throw err;
       } finally {
         setLoading(false);
       }
     },
-    [fetchJobs, pagination.current, pagination.pageSize, searchQuery, sortBy, order]
+    [
+      fetchJobs,
+      skipInitialFetch,
+      pagination.current,
+      pagination.pageSize,
+      searchQuery,
+      sortBy,
+      order,
+    ]
   );
 
   // ==================== DELETE JOB ====================
@@ -433,11 +518,13 @@ export const useJob = () => {
   // ==================== INITIAL FETCH ====================
 
   /**
-   * Fetch jobs on mount
+   * Fetch jobs on mount (skipped on create page via skipInitialFetch)
    */
   useEffect(() => {
+    if (skipInitialFetch) return;
     fetchJobs();
-  }, []); // Only run on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skipInitialFetch]);
 
   return {
     // State

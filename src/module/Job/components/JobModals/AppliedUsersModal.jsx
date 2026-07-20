@@ -207,8 +207,26 @@ const AppliedUsersModal = memo(({ isOpen, job, onCancel }) => {
       open={isOpen}
       onCancel={onCancel}
       footer={null}
-      width={800}
+      width="100%"
+      centered={false}
       className="applied-users-modal"
+      style={{ top: 0, maxWidth: "100vw", paddingBottom: 0, margin: 0 }}
+      styles={{
+        wrapper: { overflow: "hidden" },
+        content: {
+          borderRadius: 0,
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+        },
+        header: { marginBottom: 0, padding: "16px 24px" },
+        body: {
+          flex: 1,
+          overflowY: "auto",
+          padding: "16px 24px 24px",
+          maxHeight: "calc(100vh - 64px)",
+        },
+      }}
     >
       <div className="applied-users-content">
         {/* Job Information Header */}
@@ -218,11 +236,11 @@ const AppliedUsersModal = memo(({ isOpen, job, onCancel }) => {
               <h4 className="C-heading size-xs semiBold mb-2">{job.title}</h4>
               <div className="C-heading size-xss text-muted mb-1">
                 <Icon name="business" size="small" className="me-1" />
-                {job.postedBy.companyName}
+                {job.postedBy?.companyName || "N/A"}
               </div>
               <div className="C-heading size-xss text-muted mb-0">
                 <Icon name="location_on" size="small" className="me-1" />
-                {job.location}
+                {job.location || "N/A"}
               </div>
             </div>
             <div className="col-4 text-right">
@@ -304,9 +322,10 @@ const AppliedUsersModal = memo(({ isOpen, job, onCancel }) => {
             dataSource={appliedUsers}
             renderItem={renderUserItem}
             pagination={{
-              pageSize: 5,
-              showSizeChanger: false,
-              showQuickJumper: false,
+              pageSize: 10,
+              showSizeChanger: true,
+              pageSizeOptions: ["10", "20", "50"],
+              showQuickJumper: true,
               showTotal: (total, range) =>
                 `${range[0]}-${range[1]} of ${total} applicants`,
             }}

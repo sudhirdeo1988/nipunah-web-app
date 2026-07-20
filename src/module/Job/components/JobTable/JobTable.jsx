@@ -91,21 +91,6 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagin
   }, []);
 
   /**
-   * Memoized render function for salary range column
-   */
-  const renderSalaryRange = useCallback(
-    (salary) => (
-      <span
-        className="C-heading size-6 mb-0 semiBold"
-        style={{ color: "#52c41a" }}
-      >
-        {salary || "N/A"}
-      </span>
-    ),
-    []
-  );
-
-  /**
    * Memoized render function for location column
    */
   const renderLocation = useCallback(
@@ -135,37 +120,6 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagin
       );
     },
     [onMenuClick]
-  );
-
-  /**
-   * Memoized render function for posted on column
-   * Formats and displays the date
-   */
-  const renderPostedOn = useCallback(
-    (date) => {
-      if (!date) return <span className="C-heading size-6 mb-0">N/A</span>;
-      
-      // If date is already formatted (YYYY-MM-DD), display as is
-      // Otherwise try to format it
-      try {
-        const dateStr = typeof date === "string" ? date : String(date);
-        // If it's already in YYYY-MM-DD format, use it
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
-          return <span className="C-heading size-6 mb-0">{dateStr}</span>;
-        }
-        // Otherwise try to parse and format
-        const dateObj = new Date(dateStr);
-        if (!isNaN(dateObj.getTime())) {
-          const formatted = dateObj.toISOString().split("T")[0];
-          return <span className="C-heading size-6 mb-0">{formatted}</span>;
-        }
-      } catch (error) {
-        console.error("Error formatting date:", error);
-      }
-      
-      return <span className="C-heading size-6 mb-0">{date || "N/A"}</span>;
-    },
-    []
   );
 
   /**
@@ -254,11 +208,22 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagin
     [getActionMenuItems, onMenuClick]
   );
 
+  /**
+   * Memoized render function for status column
+   */
+  const renderStatus = useCallback((status) => {
+    if (!status) return <span className="C-heading size-6 mb-0">N/A</span>;
+    return (
+      <Tag color={JOB_STATUS_COLORS[status] || "default"}>
+        {status.charAt(0).toUpperCase() + status.slice(1)}
+      </Tag>
+    );
+  }, []);
+
   // ==================== TABLE CONFIGURATION ====================
 
   /**
-   * Memoized table columns configuration
-   * Optimized with memoized render functions to prevent unnecessary re-renders
+   * Essential columns only for the listing table
    */
   const columns = useMemo(
     () => [
@@ -266,83 +231,85 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagin
         title: "Title",
         dataIndex: "title",
         key: "title",
-        width: "22%",
+        width: "28%",
         render: renderJobTitle,
         sorter: (a, b) => a.title.localeCompare(b.title),
       },
       {
-        title: "Posted By",
+        title: "Company",
         dataIndex: "postedBy",
         key: "postedBy",
-        width: "18%",
+        width: "20%",
         render: renderPostedBy,
         sorter: (a, b) =>
-          a.postedBy.companyName.localeCompare(b.postedBy.companyName),
-      },
-      {
-        title: "Experience Required",
-        dataIndex: "experienceRequired",
-        key: "experienceRequired",
-        width: "14%",
-        render: renderExperience,
-        sorter: (a, b) => {
-          const aYears = parseInt(a.experienceRequired.match(/\d+/)?.[0] || 0);
-          const bYears = parseInt(b.experienceRequired.match(/\d+/)?.[0] || 0);
-          return aYears - bYears;
-        },
-      },
-      {
-        title: "Salary Range",
-        dataIndex: "salaryRange",
-        key: "salaryRange",
-        width: "14%",
-        render: renderSalaryRange,
-        sorter: (a, b) => {
-          const aSalary = parseInt(a.salaryRange.replace(/[^0-9]/g, ""));
-          const bSalary = parseInt(b.salaryRange.replace(/[^0-9]/g, ""));
-          return aSalary - bSalary;
-        },
+          (a.postedBy?.companyName || "").localeCompare(
+            b.postedBy?.companyName || ""
+          ),
       },
       {
         title: "Location",
         dataIndex: "location",
         key: "location",
-        width: "14%",
+        width: "16%",
         render: renderLocation,
-        sorter: (a, b) => a.location.localeCompare(b.location),
+        sorter: (a, b) =>
+          String(a.location || "").localeCompare(String(b.location || "")),
       },
       {
-        title: "People Applied",
+        title: "Experience",
+        dataIndex: "experienceRequired",
+        key: "experienceRequired",
+        width: "12%",
+        render: renderExperience,
+        sorter: (a, b) => {
+          const aYears = parseInt(
+            a.experienceRequired?.match(/\d+/)?.[0] || 0,
+            10
+          );
+          const bYears = parseInt(
+            b.experienceRequired?.match(/\d+/)?.[0] || 0,
+            10
+          );
+          return aYears - bYears;
+        },
+      },
+      {
+        title: "Applicants",
         dataIndex: "peopleApplied",
         key: "peopleApplied",
         width: "10%",
         render: renderPeopleApplied,
-        sorter: (a, b) => a.peopleApplied - b.peopleApplied,
+        sorter: (a, b) => (a.peopleApplied || 0) - (b.peopleApplied || 0),
       },
       {
-        title: "Posted On",
-        dataIndex: "postedOn",
-        key: "postedOn",
+        title: "Status",
+        dataIndex: "status",
+        key: "status",
         width: "10%",
-        render: renderPostedOn,
-        sorter: (a, b) => new Date(a.postedOn) - new Date(b.postedOn),
+        render: renderStatus,
+        filters: [
+          { text: "Pending", value: "pending" },
+          { text: "Approved", value: "approved" },
+          { text: "Blocked", value: "blocked" },
+        ],
+        onFilter: (value, record) => record.status === value,
       },
       {
         title: "Action",
         dataIndex: "action",
         key: "action",
         width: "8%",
+        fixed: "right",
         render: renderAction,
       },
     ],
     [
       renderJobTitle,
       renderPostedBy,
-      renderExperience,
-      renderSalaryRange,
       renderLocation,
+      renderExperience,
       renderPeopleApplied,
-      renderPostedOn,
+      renderStatus,
       renderAction,
     ]
   );
@@ -377,7 +344,7 @@ const JobTable = memo(({ jobs, rowSelection, onMenuClick, loading = false, pagin
       }
       loading={loading}
       onChange={onChange}
-      scroll={{ x: 1200 }} // Enable horizontal scroll for smaller screens
+      scroll={{ x: 900 }}
     />
   );
 });

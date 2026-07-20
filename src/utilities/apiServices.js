@@ -276,6 +276,21 @@ export const jobService = {
    */
   getJobs: async (params = {}) => {
     try {
+      // Lazy import keeps client bundle clean when flipping mock off
+      const {
+        USE_MOCK_JOBS_API,
+        buildMockGetJobsResponse,
+      } = await import("@/module/Job/constants/mockJobsApiResponse");
+
+      if (USE_MOCK_JOBS_API) {
+        console.log("🟡 MOCK GET /jobs — using mock list (API not wired yet)");
+        console.log("📋 Query params:", params);
+        await new Promise((r) => setTimeout(r, 400));
+        const mock = buildMockGetJobsResponse(params);
+        console.log("✅ MOCK GET /jobs response:", mock);
+        return mock;
+      }
+
       console.log("📝 Fetching jobs via proxy route /api/jobs");
       console.log("📋 Query params:", params);
       const response = await axiosInstance.get("/jobs", { params });
@@ -298,6 +313,24 @@ export const jobService = {
    */
   getJobById: async (jobId) => {
     try {
+      const {
+        USE_MOCK_JOBS_API,
+        buildMockGetJobByIdResponse,
+      } = await import("@/module/Job/constants/mockJobsApiResponse");
+
+      if (USE_MOCK_JOBS_API) {
+        console.log("🟡 MOCK GET /jobs/" + jobId);
+        await new Promise((r) => setTimeout(r, 300));
+        const mock = buildMockGetJobByIdResponse(jobId);
+        console.log("✅ MOCK GET job by id:", mock);
+        if (!mock.success) {
+          const err = new Error(mock.message || "Job not found");
+          err.response = { status: 404, data: mock };
+          throw err;
+        }
+        return mock;
+      }
+
       const response = await axiosInstance.get(`/jobs/${jobId}`);
       return response;
     } catch (error) {
@@ -313,45 +346,31 @@ export const jobService = {
    * Requires: Bearer token authentication (automatically included via proxy route)
    *
    * @param {Object} jobData - Job data payload
-   * @param {string} jobData.title - Job title
-   * @param {Object} jobData.posted_by - Company information
-   * @param {string} jobData.experience_required - Experience requirement
-   * @param {Object} jobData.salary_range - Salary range with min and max
-   * @param {Object} jobData.location - Location details
-   * @param {string} jobData.description - Job description
-   * @param {string} jobData.employment_type - Employment type
-   * @param {string[]} jobData.skills_required - Required skills array
-   * @param {number} jobData.application_deadline - Application deadline timestamp
-   * @param {string} jobData.status - Job status (pending/approved/blocked)
-   * @param {boolean} jobData.isActive - Whether job is active
    * @returns {Promise<Object>} Created job response
-   *
-   * @example
-   * await jobService.createJob({
-   *   title: "Senior Software Engineer",
-   *   posted_by: { company_id: 1, company_name: "TechCorp", company_short_name: "TC" },
-   *   experience_required: "5-8 years",
-   *   salary_range: { min: "$120,000", max: "$150,000" },
-   *   location: { city: "San Francisco", state: "California", pincode: "94102" },
-   *   description: "Full-stack development role",
-   *   employment_type: "Full-time",
-   *   skills_required: ["React", "Node.js"],
-   *   application_deadline: 1708214400000,
-   *   status: "pending",
-   *   isActive: true
-   * });
    */
   createJob: async (jobData) => {
     try {
-      console.log("📝 Client: Calling Next.js proxy route /api/jobs");
-      console.log("📦 Client: Job payload:", JSON.stringify(jobData, null, 2));
-      console.log("🔄 Client: Request will be proxied to external API server-side");
-      
-      // Call proxy route which handles CORS and authentication
-      // axiosInstance has baseURL: "/api", so "/jobs" becomes "/api/jobs"
-      // This hits the Next.js API route at /src/app/api/jobs/route.js
+      console.log("\n📦 ========== CREATE JOB PAYLOAD ==========");
+      console.log(JSON.stringify(jobData, null, 2));
+      console.log("📦 ========================================\n");
+
+      const {
+        USE_MOCK_JOBS_API,
+        buildMockCreateJobResponse,
+      } = await import("@/module/Job/constants/mockJobsApiResponse");
+
+      if (USE_MOCK_JOBS_API) {
+        console.log(
+          "🟡 MOCK POST /jobs — payload logged above; not hitting real API"
+        );
+        await new Promise((r) => setTimeout(r, 600));
+        const mock = buildMockCreateJobResponse(jobData);
+        console.log("✅ MOCK POST /jobs response:", mock);
+        return mock;
+      }
+
+      console.log("📝 Client: Calling Next.js proxy route POST /api/jobs");
       const response = await axiosInstance.post("/jobs", jobData);
-      
       console.log("✅ Client: Job created successfully via proxy:", response);
       return response;
     } catch (error) {
@@ -372,8 +391,25 @@ export const jobService = {
    */
   updateJob: async (jobId, jobData) => {
     try {
+      console.log("\n📦 ========== UPDATE JOB PAYLOAD ==========");
+      console.log("Job ID:", jobId);
+      console.log(JSON.stringify(jobData, null, 2));
+      console.log("📦 ========================================\n");
+
+      const {
+        USE_MOCK_JOBS_API,
+        buildMockUpdateJobResponse,
+      } = await import("@/module/Job/constants/mockJobsApiResponse");
+
+      if (USE_MOCK_JOBS_API) {
+        console.log("🟡 MOCK PUT /jobs/" + jobId);
+        await new Promise((r) => setTimeout(r, 600));
+        const mock = buildMockUpdateJobResponse(jobId, jobData);
+        console.log("✅ MOCK PUT response:", mock);
+        return mock;
+      }
+
       console.log("✏️ Updating job via proxy route /api/jobs/" + jobId);
-      console.log("📦 Job payload:", JSON.stringify(jobData, null, 2));
       const response = await axiosInstance.put(`/jobs/${jobId}`, jobData);
       console.log("✅ Job updated successfully:", response);
       return response;

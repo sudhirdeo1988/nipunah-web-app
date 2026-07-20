@@ -1,312 +1,369 @@
 "use client";
 
 import React, { memo, useMemo } from "react";
-import { Modal, Descriptions, Tag, Space, Divider } from "antd";
+import { Modal, Tag, Space, Divider } from "antd";
 import Icon from "@/components/Icon";
 import { find as _find } from "lodash-es";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import dayjs from "dayjs";
-import {
-  JOB_STATUS_COLORS,
-  EXPERIENCE_COLORS,
-} from "../../constants/jobConstants";
+import relativeTime from "dayjs/plugin/relativeTime";
+import { sanitizeHtml } from "@/components/RichTextEditor";
+import "@/components/RichTextEditor/RichTextEditor.scss";
+import "./JobDetailsModal.scss";
+
+dayjs.extend(relativeTime);
 
 /**
- * JobDetailsModal Component
- *
- * Displays comprehensive job information in a modal dialog
- *
- * @param {Object} props - Component props
- * @param {boolean} props.isOpen - Controls modal visibility
- * @param {Object} props.job - Job object to display
- * @param {Function} props.onCancel - Handler for modal close
- * @returns {JSX.Element} The JobDetailsModal component
+ * Naukri-style Job Details view (fullscreen modal).
  */
 const JobDetailsModal = memo(({ isOpen, job, onCancel }) => {
-  if (!job) return null;
-
-  /**
-   * Get country name from country code
-   */
   const getCountryName = useMemo(() => {
-    const locationObj = job.locationObj || (typeof job.location === "object" ? job.location : {}) || {};
+    if (!job) return null;
+    const locationObj =
+      job.locationObj ||
+      (typeof job.location === "object" ? job.location : {}) ||
+      {};
     const countryCode = locationObj.countryCode || locationObj.country || "";
-    
     if (!countryCode) return null;
-    
-    // If it's already a country name (length > 2), return as is
-    if (countryCode.length > 2) {
-      return countryCode;
-    }
-    
-    // Find country by code
+    if (countryCode.length > 2) return countryCode;
     const countryData = _find(
       CountryDetails,
       (c) => c.countryCode === countryCode
     );
-    
     return countryData ? countryData.countryName : countryCode;
   }, [job]);
 
-  /**
-   * Format location string with country name
-   */
   const formatLocation = useMemo(() => {
-    const locationObj = job.locationObj || (typeof job.location === "object" ? job.location : {}) || {};
+    if (!job) return "N/A";
+    const locationObj =
+      job.locationObj ||
+      (typeof job.location === "object" ? job.location : {}) ||
+      {};
     const city = locationObj.city || "";
     const state = locationObj.state || "";
-    const pincode = locationObj.pinCode || locationObj.pincode || "";
-    const countryName = getCountryName;
-    
-    const parts = [];
-    if (city) parts.push(city);
-    if (state) parts.push(state);
-    if (pincode) parts.push(pincode);
-    if (countryName) parts.push(countryName);
-    
-    return parts.length > 0 ? parts.join(", ") : job.location || "N/A";
-  }, [job, getCountryName]);
-
-  /**
-   * Format date from createdOn or postedOn
-   */
-  const formatPostedOnDate = useMemo(() => {
-    const dateValue = job.createdOn || job.created_on || job.postedOn || job.posted_on || "";
-    if (!dateValue) return "N/A";
-    
-    try {
-      // If it's a timestamp (number)
-      if (typeof dateValue === "number") {
-        return dayjs(dateValue).format("YYYY-MM-DD");
-      }
-      
-      // If it's a date string
-      if (typeof dateValue === "string") {
-        const parsed = dayjs(dateValue);
-        if (parsed.isValid()) {
-          return parsed.format("YYYY-MM-DD");
-        }
-        // If already in YYYY-MM-DD format, return as is
-        if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-          return dateValue;
-        }
-      }
-      
-      return "N/A";
-    } catch (error) {
-      console.error("Error formatting date:", error);
-      return "N/A";
-    }
+    const workMode = job.workMode || job.work_mode || "";
+    const parts = [city, state].filter(Boolean);
+    let text =
+      parts.length > 0
+        ? parts.join(", ")
+        : typeof job.location === "string"
+        ? job.location
+        : "N/A";
+    if (workMode) text = `${text}${text !== "N/A" ? " / " : ""}${workMode}`;
+    return text;
   }, [job]);
 
-  /**
-   * Renders skills as tags
-   */
-  const renderSkills = (skills) => {
+  const postedLabel = useMemo(() => {
+    if (!job) return "";
+    const dateValue =
+      job.createdOn ||
+      job.created_on ||
+      job.postedOn ||
+      job.posted_on ||
+      "";
+    if (!dateValue) return "Recently";
+    const d = dayjs(dateValue);
+    return d.isValid() ? d.fromNow() : "Recently";
+  }, [job]);
+
+  if (!job) return null;
+
+  const salaryDisplay =
+    job.salaryNotDisclosed ||
+    (typeof job.salaryRange === "string" &&
+      /not\s*disclosed/i.test(job.salaryRange))
+      ? "Not Disclosed"
+      : job.salaryRange || "Not Disclosed";
+
+  const educationDisplay =
+    [
+      job.education,
+      job.educationSpecialization || job.education_specialization,
+    ]
+      .filter(Boolean)
+      .join(" in ") || "N/A";
+
+  const employmentDisplay =
+    [
+      job.employmentType,
+      job.employmentNature || job.employment_nature,
+    ]
+      .filter(Boolean)
+      .join(", ") || "N/A";
+
+  const renderHtml = (html, emptyText = "Not specified") => {
+    if (!html) {
+      return <p className="job-view__muted">{emptyText}</p>;
+    }
+    if (typeof html === "string" && /<[a-z][\s\S]*>/i.test(html)) {
+      return (
+        <div
+          className="job-rich-content"
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(html) }}
+        />
+      );
+    }
+    if (Array.isArray(html)) {
+      return (
+        <ul>
+          {html.map((item, i) => (
+            <li key={i}>{item}</li>
+          ))}
+        </ul>
+      );
+    }
     return (
-      <Space wrap>
-        {skills.map((skill, index) => (
-          <Tag key={index} color="blue">
-            {skill}
-          </Tag>
-        ))}
-      </Space>
+      <p className="job-view__muted" style={{ whiteSpace: "pre-wrap" }}>
+        {html}
+      </p>
     );
   };
 
-  /**
-   * Gets status color based on job status
-   */
-  const getStatusColor = (status) => {
-    return JOB_STATUS_COLORS[status] || "default";
-  };
-
-  /**
-   * Gets experience color based on experience level
-   */
-  const getExperienceColor = (experience) => {
-    const years = experience.match(/\d+/)?.[0];
-    const colorKey = years
-      ? parseInt(years) <= 1
-        ? "0-1 years"
-        : parseInt(years) <= 3
-        ? "1-3 years"
-        : parseInt(years) <= 5
-        ? "3-5 years"
-        : parseInt(years) <= 8
-        ? "5-8 years"
-        : "8+ years"
-      : "default";
-    return EXPERIENCE_COLORS[colorKey] || "default";
-  };
+  const keySkills = Array.isArray(job.keySkills) ? job.keySkills : [];
+  const preferredKeySkills = Array.isArray(job.preferredKeySkills)
+    ? job.preferredKeySkills
+    : [];
 
   return (
     <Modal
-      title={
-        <div className="d-flex align-items-center">
-          <Icon name="work" className="me-2" />
-          <span className="C-heading size-5 semiBold mb-0">Job Details</span>
-        </div>
-      }
+      title={null}
       open={isOpen}
       onCancel={onCancel}
       footer={null}
-      width={800}
-      className="job-details-modal"
+      width="100%"
+      centered={false}
+      className="job-details-naukri-modal"
+      style={{ top: 0, maxWidth: "100vw", paddingBottom: 0, margin: 0 }}
+      styles={{
+        content: {
+          borderRadius: 0,
+          minHeight: "100vh",
+          background: "#f7f8fa",
+        },
+        body: {
+          padding: 0,
+          maxHeight: "100vh",
+          overflowY: "auto",
+        },
+      }}
+      closable
     >
-      <div className="job-details-content">
-        {/* Job Header */}
-        <div className="mb-4">
-          <h3 className="C-heading size-4 semiBold mb-2">{job.title || "N/A"}</h3>
-          <div className="d-flex align-items-center gap-3">
-            <Tag color={getStatusColor(job.status)} className="mb-0">
-              {job.status ? job.status.charAt(0).toUpperCase() + job.status.slice(1) : "N/A"}
-            </Tag>
-            <Tag color="blue" className="mb-0">
-              {job.employmentType || "N/A"}
-            </Tag>
-            <span className="C-heading size-xs text-muted mb-0">
-              Job ID: {job.jobId || job.id || "N/A"}
-            </span>
-          </div>
+      <div className="job-view">
+        <div className="job-view__toolbar">
+          <button
+            type="button"
+            className="C-button is-bordered small"
+            onClick={onCancel}
+          >
+            <Space size={6}>
+              <Icon name="arrow_back" size="small" />
+              Back to jobs
+            </Space>
+          </button>
         </div>
 
-        <Divider />
-
-        {/* Job Information */}
-        <Descriptions column={2} size="small" bordered className="mb-4">
-          <Descriptions.Item label="Company" span={2}>
-            <div>
-              <div className="C-heading size-6 semiBold mb-1">
-                {job.postedBy?.companyName || "N/A"}
+        <div className="job-view__shell">
+          {/* Header card — Naukri style */}
+          <section className="job-view__header-card">
+            <div className="job-view__header-main">
+              <h1 className="job-view__title">{job.title || "Untitled job"}</h1>
+              <div className="job-view__company">
+                <span className="job-view__company-name">
+                  {job.postedBy?.companyName || "Company"}
+                </span>
+                {job.postedBy?.companyShortName && (
+                  <span className="job-view__company-sub">
+                    Posted by {job.postedBy.companyShortName}
+                  </span>
+                )}
               </div>
-              <div className="C-heading size-xs text-muted mb-0">
-                {job.postedBy?.companyShortName || ""}
+
+              <div className="job-view__meta-row">
+                <div className="job-view__meta-item">
+                  <Icon name="work" size="small" />
+                  <span>{job.experienceRequired || "N/A"}</span>
+                </div>
+                <div className="job-view__meta-item">
+                  <Icon name="payments" size="small" />
+                  <span>{salaryDisplay}</span>
+                </div>
+                <div className="job-view__meta-item">
+                  <Icon name="location_on" size="small" />
+                  <span>{formatLocation}</span>
+                </div>
+              </div>
+
+              <div className="job-view__stats-row">
+                <span>Posted: {postedLabel}</span>
+                <span className="job-view__dot">·</span>
+                <span>
+                  Openings:{" "}
+                  {job.openings != null ? job.openings : "N/A"}
+                </span>
+                <span className="job-view__dot">·</span>
+                <span>
+                  Applicants: {job.peopleApplied != null ? job.peopleApplied : 0}
+                </span>
+                {getCountryName && (
+                  <>
+                    <span className="job-view__dot">·</span>
+                    <span>{getCountryName}</span>
+                  </>
+                )}
               </div>
             </div>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Experience Required">
-            {job.experienceRequired ? (
-              <Tag color={getExperienceColor(job.experienceRequired)}>
-                {job.experienceRequired}
-              </Tag>
-            ) : (
-              <span className="C-heading size-6 mb-0">N/A</span>
-            )}
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Salary Range">
-            <span
-              className="C-heading size-6 semiBold"
-              style={{ color: "#52c41a" }}
-            >
-              {job.salaryRange || "N/A"}
-            </span>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Location">
-            <div className="d-flex align-items-center">
-              <Icon name="location_on" size="small" className="me-1" />
-              <span className="C-heading size-6 mb-0">{formatLocation}</span>
-            </div>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="People Applied">
-            <span
-              className="C-heading size-6 semiBold"
-              style={{ color: "#1890ff" }}
-            >
-              {job.peopleApplied || 0}
-            </span>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Posted On">
-            <span className="C-heading size-6 mb-0">{formatPostedOnDate}</span>
-          </Descriptions.Item>
-
-          <Descriptions.Item label="Updated On">
-            <span className="C-heading size-6 mb-0">
-              {(() => {
-                const dateValue = job.updatedOn || job.updated_on || "";
-                if (!dateValue) return "N/A";
-                try {
-                  if (typeof dateValue === "number") {
-                    return dayjs(dateValue).format("YYYY-MM-DD");
-                  }
-                  if (typeof dateValue === "string") {
-                    const parsed = dayjs(dateValue);
-                    if (parsed.isValid()) {
-                      return parsed.format("YYYY-MM-DD");
-                    }
-                    if (/^\d{4}-\d{2}-\d{2}$/.test(dateValue)) {
-                      return dateValue;
-                    }
-                  }
-                  return "N/A";
-                } catch (error) {
-                  return "N/A";
+            <div className="job-view__header-side">
+              <div className="job-view__logo">
+                {(job.postedBy?.companyShortName ||
+                  job.postedBy?.companyName ||
+                  "J")
+                  .toString()
+                  .slice(0, 2)
+                  .toUpperCase()}
+              </div>
+              <Tag
+                color={
+                  job.status === "approved"
+                    ? "success"
+                    : job.status === "blocked"
+                    ? "error"
+                    : "warning"
                 }
-              })()}
-            </span>
-          </Descriptions.Item>
+              >
+                {job.status
+                  ? job.status.charAt(0).toUpperCase() + job.status.slice(1)
+                  : "Pending"}
+              </Tag>
+            </div>
+          </section>
 
-          <Descriptions.Item label="Application Deadline">
-            <span className="C-heading size-6 mb-0">
-              {job.applicationDeadline || "N/A"}
-            </span>
-          </Descriptions.Item>
+          {/* Job description card */}
+          <section className="job-view__card">
+            <h2 className="job-view__section-title">Job description</h2>
 
-          <Descriptions.Item label="Status">
-            <Tag color={job.isActive ? "success" : "default"}>
-              {job.isActive ? "Active" : "Inactive"}
-            </Tag>
-          </Descriptions.Item>
-        </Descriptions>
+            {(job.role || job.experienceRequired || formatLocation) && (
+              <div className="job-view__quick-facts">
+                {job.role && (
+                  <p>
+                    <strong>Role:</strong> {job.role}
+                  </p>
+                )}
+                {job.experienceRequired && (
+                  <p>
+                    <strong>Experience:</strong> {job.experienceRequired}
+                  </p>
+                )}
+                <p>
+                  <strong>Location:</strong> {formatLocation}
+                </p>
+              </div>
+            )}
 
-        {/* Job Description */}
-        <div className="mb-4">
-          <h4 className="C-heading size-6 semiBold mb-2">Description</h4>
-          <p className="C-heading size-xs mb-0 text-muted">{job.description || "No description available"}</p>
-        </div>
+            {job.qualifications && (
+              <div className="job-view__block">
+                <h3>Qualifications</h3>
+                <p style={{ whiteSpace: "pre-wrap" }}>{job.qualifications}</p>
+              </div>
+            )}
 
-        {/* Skills Required */}
-        <div className="mb-4">
-          <h4 className="C-heading size-6 semiBold mb-2">Skills Required</h4>
-          {job.skillsRequired && job.skillsRequired.length > 0 ? (
-            renderSkills(job.skillsRequired)
-          ) : (
-            <span className="C-heading size-xs text-muted">No skills specified</span>
-          )}
-        </div>
+            <div className="job-view__block">
+              <h3>Job summary</h3>
+              {renderHtml(job.description, "No description available")}
+            </div>
 
-        {/* Additional Information */}
-        <div className="additional-info">
-          <h4 className="C-heading size-6 semiBold mb-2">
-            Additional Information
-          </h4>
-          <div className="row">
-            <div className="col-6">
-              <div className="info-item mb-2">
-                <span className="C-heading size-xs text-muted">
-                  Employment Type:
+            {(job.keyResponsibilities || job.key_responsibilities) && (
+              <div className="job-view__block">
+                <h3>Key Responsibilities</h3>
+                {renderHtml(
+                  job.keyResponsibilities || job.key_responsibilities
+                )}
+              </div>
+            )}
+
+            <div className="job-view__block">
+              <h3>Required Skills</h3>
+              {renderHtml(
+                job.requiredSkills ||
+                  job.required_skills ||
+                  job.skillsRequired,
+                "No required skills listed"
+              )}
+            </div>
+
+            {(job.preferredSkills || job.preferred_skills) && (
+              <div className="job-view__block">
+                <h3>Preferred Skills</h3>
+                {renderHtml(job.preferredSkills || job.preferred_skills)}
+              </div>
+            )}
+
+            <Divider />
+
+            <div className="job-view__detail-grid">
+              <div>
+                <span className="job-view__label">Role</span>
+                <span className="job-view__value">{job.role || "N/A"}</span>
+              </div>
+              <div>
+                <span className="job-view__label">Industry Type</span>
+                <span className="job-view__value">{job.industry || "N/A"}</span>
+              </div>
+              <div>
+                <span className="job-view__label">Department</span>
+                <span className="job-view__value">
+                  {job.department || "N/A"}
                 </span>
-                <span className="C-heading size-xs semiBold ms-2">
-                  {job.employmentType || "N/A"}
+              </div>
+              <div>
+                <span className="job-view__label">Employment Type</span>
+                <span className="job-view__value">{employmentDisplay}</span>
+              </div>
+              <div>
+                <span className="job-view__label">Role Category</span>
+                <span className="job-view__value">
+                  {job.roleCategory || job.role_category || "N/A"}
+                </span>
+              </div>
+              <div>
+                <span className="job-view__label">Work Mode</span>
+                <span className="job-view__value">
+                  {job.workMode || job.work_mode || "N/A"}
                 </span>
               </div>
             </div>
-            <div className="col-6">
-              <div className="info-item mb-2">
-                <span className="C-heading size-xs text-muted">
-                  Experience Level:
-                </span>
-                <span className="C-heading size-xs semiBold ms-2">
-                  {job.experienceRequired || "N/A"}
-                </span>
-              </div>
+
+            <div className="job-view__block mt-4">
+              <h3>Education</h3>
+              <p>
+                <strong>UG:</strong> {educationDisplay}
+              </p>
             </div>
-          </div>
+
+            {(keySkills.length > 0 || preferredKeySkills.length > 0) && (
+              <div className="job-view__block">
+                <h3>Key Skills</h3>
+                <p className="job-view__skills-hint">
+                  Skills with ★ are preferred keyskills
+                </p>
+                <Space wrap size={[8, 8]}>
+                  {keySkills.map((skill, index) => (
+                    <Tag key={`k-${index}`} className="job-view__skill-tag">
+                      {skill}
+                    </Tag>
+                  ))}
+                  {preferredKeySkills.map((skill, index) => (
+                    <Tag
+                      key={`p-${index}`}
+                      className="job-view__skill-tag is-preferred"
+                      color="gold"
+                    >
+                      ★ {skill}
+                    </Tag>
+                  ))}
+                </Space>
+              </div>
+            )}
+          </section>
         </div>
       </div>
     </Modal>
