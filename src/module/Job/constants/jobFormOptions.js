@@ -3,10 +3,14 @@
  */
 
 export const EMPLOYMENT_TYPES = [
-  { label: "Full-time", value: "Full-time" },
-  { label: "Part-time", value: "Part-time" },
+  { label: "Full Time", value: "Full Time" },
+  { label: "Part Time", value: "Part Time" },
   { label: "Contract", value: "Contract" },
   { label: "Internship", value: "Internship" },
+  { label: "Temporary", value: "Temporary" },
+  { label: "Trainee", value: "Trainee" },
+  { label: "Rotation", value: "Rotation" },
+  { label: "Remote", value: "Remote" },
 ];
 
 /** Naukri-style employment nature (e.g. Full Time, Permanent) */
@@ -17,17 +21,10 @@ export const EMPLOYMENT_NATURES = [
 ];
 
 export const EXPERIENCE_RANGES = [
-  { label: "0-1 years", value: "0-1 years" },
-  { label: "1-3 years", value: "1-3 years" },
-  { label: "3-5 years", value: "3-5 years" },
-  { label: "5-8 years", value: "5-8 years" },
-  { label: "5-15+ years", value: "5-15+ years" },
-  { label: "6-11 years", value: "6-11 years" },
-  { label: "8-10 years", value: "8-10 years" },
-  { label: "8-12 years", value: "8-12 years" },
-  { label: "10-15 years", value: "10-15 years" },
+  { label: "0-2 years", value: "0-2 years" },
+  { label: "2-5 years", value: "2-5 years" },
+  { label: "5-10 years", value: "5-10 years" },
   { label: "10+ years", value: "10+ years" },
-  { label: "15+ years", value: "15+ years" },
 ];
 
 export const EDUCATION_SPECIALIZATIONS = [
@@ -41,8 +38,11 @@ export const EDUCATION_SPECIALIZATIONS = [
 
 export const WORK_MODES = [
   { label: "Office", value: "Office" },
-  { label: "Hybrid", value: "Hybrid" },
   { label: "Remote", value: "Remote" },
+  { label: "Hybrid", value: "Hybrid" },
+  { label: "Offshore", value: "Offshore" },
+  { label: "Onboard Vessel", value: "Onboard Vessel" },
+  { label: "Field Work", value: "Field Work" },
 ];
 
 export const ROLE_CATEGORIES = [

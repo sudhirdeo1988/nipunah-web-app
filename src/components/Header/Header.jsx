@@ -21,6 +21,7 @@ const Header = () => {
     { label: "Companies", href: ROUTES.PUBLIC.COMPANIES },
     { label: "Equipment", href: ROUTES.PUBLIC.EQUIPMENT },
     { label: "Experts", href: ROUTES.PUBLIC.EXPERTS },
+    { label: "Jobs", href: ROUTES.PUBLIC.JOBS },
     { label: "Pricing", href: ROUTES.PUBLIC.SUBSCRIPTION },
   ];
 

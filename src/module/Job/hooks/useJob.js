@@ -13,15 +13,35 @@
  * - Automatic error messages
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { message } from "antd";
 import { find as _find } from "lodash-es";
 import CountryDetails from "@/utilities/CountryDetails.json";
 import { jobService } from "@/utilities/apiServices";
 import dayjs from "dayjs";
+import { useAppSelector } from "@/store/hooks";
+import { USER_ROLES } from "@/constants/roles";
+import {
+  getViewerCompanyId,
+} from "../utils/jobAccess";
 
 export const useJob = (options = {}) => {
   const { skipInitialFetch = false } = options;
+
+  const user = useAppSelector((state) => state.user?.user);
+  const reduxRole = useAppSelector((state) => state.user?.role);
+
+  const resolvedRole = useMemo(
+    () =>
+      String(reduxRole || user?.role || user?.type || "").toLowerCase(),
+    [reduxRole, user?.role, user?.type]
+  );
+
+  const isCompanyUser = resolvedRole === USER_ROLES.COMPANY;
+  const viewerCompanyId = useMemo(
+    () => (isCompanyUser ? getViewerCompanyId(user) : null),
+    [isCompanyUser, user]
+  );
 
   // ==================== STATE MANAGEMENT ====================
 
@@ -111,6 +131,13 @@ export const useJob = (options = {}) => {
         order: params.order || order,
         ...params,
       };
+
+      // Company users: only their jobs. Admin / others: no company filter.
+      if (isCompanyUser && viewerCompanyId != null) {
+        queryParams.companyId = viewerCompanyId;
+      } else {
+        delete queryParams.companyId;
+      }
 
       const response = await jobService.getJobs(queryParams);
 
@@ -213,6 +240,37 @@ export const useJob = (options = {}) => {
             ? locationParts.join(", ")
             : "";
           
+          // Build salary display (no currency symbol; support free text)
+          let salaryDisplay = "";
+          const salaryNotDisclosed = !!(
+            job.salaryNotDisclosed || job.salary_not_disclosed
+          );
+          const salaryObj = job.salaryRange || job.salary_range;
+          if (salaryNotDisclosed) {
+            salaryDisplay = "Not Disclosed";
+          } else if (salaryObj && typeof salaryObj === "object") {
+            const minRaw = String(salaryObj.min || "").trim();
+            const maxRaw = String(salaryObj.max || "").trim();
+            if (/not\s*disclosed/i.test(minRaw) || /not\s*disclosed/i.test(maxRaw)) {
+              salaryDisplay = "Not Disclosed";
+            } else if (minRaw && maxRaw && minRaw !== maxRaw) {
+              salaryDisplay = `${minRaw} - ${maxRaw}`;
+            } else {
+              salaryDisplay = minRaw || maxRaw || "";
+            }
+          } else if (typeof job.salaryRange === "string") {
+            salaryDisplay = job.salaryRange.trim();
+          }
+
+          const jobPostedDateRaw =
+            job.jobPostedDate ||
+            job.job_posted_date ||
+            job.postedDate ||
+            job.posted_date ||
+            job.createdOn ||
+            job.created_on ||
+            "";
+
           return {
             id: job.id || job.jobId,
             jobId: job.jobId || `JOB-${job.id}`,
@@ -223,14 +281,12 @@ export const useJob = (options = {}) => {
               companyShortName: job.posted_by?.companyShortName || job.posted_by?.company_short_name || "",
             },
             experienceRequired: job.experienceRequired || job.experience_required || "",
-            salaryRange: job.salaryRange
-              ? `${job.salaryRange.min || ""} - ${job.salaryRange.max || ""}`
-              : job.salary_range
-              ? `${job.salary_range.min || ""} - ${job.salary_range.max || ""}`
-              : "",
-            salary_range: job.salaryRange || job.salary_range || { min: "", max: "" }, // Preserve object for edit
-            location: locationDisplay, // Display string for table
-            locationObj: preservedLocationObj, // Preserve complete object structure for edit form
+            salaryRange: salaryDisplay,
+            salary_range: job.salaryRange || job.salary_range || { min: "", max: "" },
+            salaryNotDisclosed:
+              salaryNotDisclosed || /not\s*disclosed/i.test(salaryDisplay),
+            location: locationDisplay,
+            locationObj: preservedLocationObj,
             description: job.description || "",
             employmentType: job.employmentType || job.employment_type || "",
             employmentNature:
@@ -242,15 +298,6 @@ export const useJob = (options = {}) => {
                 : job.numberOfOpenings != null
                 ? job.numberOfOpenings
                 : null,
-            role: job.role || "",
-            roleCategory: job.roleCategory || job.role_category || "",
-            department: job.department || "",
-            industry: job.industry || "",
-            education: job.education || "",
-            educationSpecialization:
-              job.educationSpecialization ||
-              job.education_specialization ||
-              "",
             qualifications: job.qualifications || "",
             keyResponsibilities:
               job.keyResponsibilities || job.key_responsibilities || "",
@@ -260,23 +307,17 @@ export const useJob = (options = {}) => {
               job.skillsRequired ||
               job.skills_required ||
               "",
-            preferredSkills:
-              job.preferredSkills || job.preferred_skills || "",
-            keySkills: job.keySkills || job.key_skills || [],
-            preferredKeySkills:
-              job.preferredKeySkills || job.preferred_key_skills || [],
-            salaryNotDisclosed: !!(
-              job.salaryNotDisclosed || job.salary_not_disclosed
-            ),
-            // HTML string (new) or string[] (legacy) — prefer requiredSkills
+            weOffer: job.weOffer || job.we_offer || "",
             skillsRequired:
               job.requiredSkills ||
               job.required_skills ||
               job.skillsRequired ||
               job.skills_required ||
               "",
+            jobPostedDate: formatDate(jobPostedDateRaw),
+            job_posted_date: job.jobPostedDate || job.job_posted_date || jobPostedDateRaw,
             applicationDeadline: job.applicationDeadline || job.application_deadline || "",
-            application_deadline: job.applicationDeadline || job.application_deadline || "", // Preserve for edit
+            application_deadline: job.applicationDeadline || job.application_deadline || "",
             status: job.status || "pending",
             isActive: job.isActive !== undefined ? job.isActive : job.is_active !== undefined ? job.is_active : true,
             peopleApplied: job.peopleApplied || job.people_applied || 0,
@@ -285,11 +326,15 @@ export const useJob = (options = {}) => {
           };
         });
 
-        setJobs(transformedJobs);
+        // Safety net: company users never see other companies' jobs (real API).
+        // Skip client re-filter in mock when API already scoped / fell back.
+        const scopedJobs = transformedJobs;
+
+        setJobs(scopedJobs);
         setPagination({
           current: responseData.page || 1,
           pageSize: responseData.limit || 10,
-          total: responseData.total || transformedJobs.length,
+          total: responseData.total || scopedJobs.length,
         });
 
         // Update search query state
@@ -318,7 +363,15 @@ export const useJob = (options = {}) => {
     } finally {
       setLoading(false);
     }
-  }, [pagination.current, pagination.pageSize, searchQuery, sortBy, order]);
+  }, [
+    pagination.current,
+    pagination.pageSize,
+    searchQuery,
+    sortBy,
+    order,
+    isCompanyUser,
+    viewerCompanyId,
+  ]);
 
   // ==================== CREATE JOB ====================
 
@@ -518,13 +571,13 @@ export const useJob = (options = {}) => {
   // ==================== INITIAL FETCH ====================
 
   /**
-   * Fetch jobs on mount (skipped on create page via skipInitialFetch)
+   * Fetch jobs on mount (skipped on create/edit via skipInitialFetch).
    */
   useEffect(() => {
     if (skipInitialFetch) return;
     fetchJobs();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skipInitialFetch]);
+  }, [skipInitialFetch, isCompanyUser, viewerCompanyId]);
 
   return {
     // State

@@ -100,6 +100,7 @@ const navItems = [
   { label: "Companies", href: ROUTES.PUBLIC.COMPANIES },
   { label: "Equipment", href: ROUTES.PUBLIC.EQUIPMENT },
   { label: "Experts", href: ROUTES.PUBLIC.EXPERTS },
+  { label: "Jobs", href: ROUTES.PUBLIC.JOBS },
   { label: "Pricing", href: ROUTES.PUBLIC.SUBSCRIPTION },
 ];
 
@@ -114,6 +115,9 @@ function isPublicNavLinkActive(href, pathname) {
     return true;
   }
   if (href === ROUTES.PUBLIC.EQUIPMENT && pathname.startsWith("/equipment/")) {
+    return true;
+  }
+  if (href === ROUTES.PUBLIC.JOBS && pathname.startsWith("/jobs/")) {
     return true;
   }
   return false;

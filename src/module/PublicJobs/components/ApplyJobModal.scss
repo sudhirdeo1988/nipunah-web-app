@@ -1,0 +1,64 @@
+.apply-job-modal {
+  .ant-modal-body {
+    padding-top: 12px;
+  }
+
+  &__job {
+    background: #fafbfc;
+    border: 1px solid #e8ecf1;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+
+  &__job-title {
+    margin: 0 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1.35;
+  }
+
+  &__job-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  &__dot {
+    color: #d1d5db;
+  }
+
+  &__form {
+    .ant-form-item-extra {
+      font-size: 12px;
+      color: #9ca3af;
+    }
+  }
+
+  &__resume-upload {
+    .ant-upload-drag {
+      padding: 10px 12px !important;
+    }
+
+    .ant-upload-drag-icon {
+      margin-bottom: 4px !important;
+
+      .anticon {
+        font-size: 28px !important;
+      }
+    }
+
+    .ant-upload-text {
+      margin: 0 !important;
+      font-size: 13px !important;
+    }
+
+    .ant-upload-hint {
+      display: none;
+    }
+  }
+}

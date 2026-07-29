@@ -34,30 +34,34 @@ const CreateJobPage = () => {
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
       <AppPageHeader
-        title="Post a Job"
-        subtitle="Create a new job posting for your company"
+        title="New Job Offer"
+        subtitle="Add a new job to your company's jobs list."
         backLink={{ label: "Back to Jobs", href: ROUTES.PRIVATE.JOB }}
       />
-      <div className="p-3" style={{ maxWidth: 1100 }}>
-        {error && (
-          <Alert
-            type="error"
-            showIcon
-            closable
-            className="mb-3"
-            message="Failed to post job"
-            description={
-              error?.response?.data?.message ||
-              error?.message ||
-              "Something went wrong. Please try again."
-            }
-          />
-        )}
-        <CreateJobForm
-          onCancel={goBack}
-          onSubmit={handleSubmit}
-          loading={loading}
-        />
+      <div className="container-fluid px-4 py-3">
+        <div className="row justify-content-center">
+          <div className="col-12 col-xl-8">
+            {error && (
+              <Alert
+                type="error"
+                showIcon
+                closable
+                className="mb-3"
+                message="Failed to post job"
+                description={
+                  error?.response?.data?.message ||
+                  error?.message ||
+                  "Something went wrong. Please try again."
+                }
+              />
+            )}
+            <CreateJobForm
+              onCancel={goBack}
+              onSubmit={handleSubmit}
+              loading={loading}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );

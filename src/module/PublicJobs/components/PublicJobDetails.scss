@@ -1,0 +1,389 @@
+.public-job-details {
+  &__card {
+    background: #fff;
+    border: 1px solid #e8ecf1;
+    border-radius: 14px;
+    padding: 20px 22px;
+    box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    margin-bottom: 14px;
+  }
+
+  &__header-top {
+    display: flex;
+    gap: 16px;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  &__header-main {
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__title {
+    margin: 0 0 8px;
+    font-size: 22px;
+    line-height: 1.3;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  &__company-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+
+  &__company {
+    color: #4b5563;
+    font-weight: 500;
+  }
+
+  &__logo {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 10px;
+    background: linear-gradient(145deg, #0d7377, #14919b);
+    color: #fff;
+    font-size: 14px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__quick,
+  &__location {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #4b5563;
+
+    .g-icon {
+      font-size: 18px !important;
+      color: #6b7280;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
+    > span {
+      display: inline-flex;
+      align-items: center;
+    }
+  }
+
+  &__sep {
+    width: 1px;
+    height: 14px;
+    background: #d1d5db;
+  }
+
+  &__header-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid #f0f2f5;
+  }
+
+  &__stats {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b7280;
+  }
+
+  &__apply {
+    border: 1.5px solid #275df5;
+    background: #fff;
+    color: #275df5;
+    border-radius: 24px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      background: #eef3ff;
+    }
+  }
+
+  &__applied {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #16a34a;
+
+    .g-icon {
+      font-size: 18px !important;
+      color: #16a34a;
+    }
+  }
+
+  &__section-title {
+    margin: 0 0 14px;
+    font-size: 17px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  &__block {
+    margin-bottom: 18px;
+
+    h3 {
+      margin: 0 0 8px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #1f2937;
+    }
+
+    p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.65;
+      color: #4b5563;
+    }
+  }
+
+  &__desc-text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #4b5563;
+  }
+
+  &__read-more {
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin-left: 4px;
+    color: #275df5;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  &__skills-hint {
+    margin: 0 0 10px !important;
+    font-size: 12px !important;
+    color: #6b7280 !important;
+  }
+
+  &__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  &__skill-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-radius: 999px;
+    border: 1px solid #d1d5db;
+    background: #fff;
+    font-size: 12px;
+    color: #374151;
+
+    &.is-preferred {
+      border-color: #fbbf24;
+      background: #fffbeb;
+      color: #92400e;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px 20px;
+    padding-top: 8px;
+    border-top: 1px solid #f0f2f5;
+
+    > div {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+  }
+
+  &__label {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  &__value {
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  &__sidebar {
+    position: sticky;
+    top: 88px;
+  }
+
+  &__related-list {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__related-item {
+    display: flex;
+    gap: 12px;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid #f0f2f5;
+    text-decoration: none;
+    color: inherit;
+
+    &:first-child {
+      padding-top: 0;
+    }
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    &:hover .public-job-details__related-title {
+      color: #275df5;
+    }
+  }
+
+  &__related-main {
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__related-title {
+    margin: 0 0 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1f2937;
+    line-height: 1.35;
+  }
+
+  &__related-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 14px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    color: #4b5563;
+
+    span {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .g-icon {
+      font-size: 14px !important;
+      color: #6b7280;
+    }
+  }
+
+  &__related-posted {
+    font-size: 11px;
+    color: #9ca3af;
+  }
+
+  &__related-logo {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: linear-gradient(145deg, #0d7377, #14919b);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__highlights {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  &__highlight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__highlight-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #f3f4f6;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .g-icon {
+      font-size: 20px !important;
+      color: #6b7280;
+    }
+  }
+
+  &__highlight-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  &__highlight-sub {
+    font-size: 12px;
+    color: #6b7280;
+  }
+}
+
+@media (max-width: 991px) {
+  .public-job-details {
+    &__sidebar {
+      position: static;
+    }
+
+    &__title {
+      font-size: 18px;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .public-job-details {
+    &__header-top {
+      flex-direction: column;
+    }
+
+    &__grid {
+      grid-template-columns: 1fr;
+    }
+
+    &__header-footer {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__apply {
+      width: 100%;
+    }
+  }
+}

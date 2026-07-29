@@ -35,34 +35,20 @@ export const mapJobToFormValues = (job) => {
   );
   const salaryObj = job.salary_range || job.salaryRange;
   if (salaryObj && typeof salaryObj === "object") {
-    const minRaw = String(salaryObj.min || "");
-    const maxRaw = String(salaryObj.max || "");
+    const minRaw = String(salaryObj.min || "").trim();
+    const maxRaw = String(salaryObj.max || "").trim();
     if (/not\s*disclosed/i.test(minRaw) || /not\s*disclosed/i.test(maxRaw)) {
       salaryNotDisclosedValue = true;
+    } else if (minRaw && maxRaw && minRaw !== maxRaw) {
+      salaryRangeValue = `${minRaw} - ${maxRaw}`;
     } else {
-      const minStr = minRaw.replace(/[^0-9.]/g, "");
-      const maxStr = maxRaw.replace(/[^0-9.]/g, "");
-      if (minStr && maxStr) {
-        const minNum = parseFloat(minStr);
-        const maxNum = parseFloat(maxStr);
-        if (minNum >= 1000000 || maxNum >= 1000000) {
-          salaryRangeValue = `${(minNum / 1000000).toFixed(
-            minNum % 1000000 === 0 ? 0 : 1
-          )}-${(maxNum / 1000000).toFixed(maxNum % 1000000 === 0 ? 0 : 1)}M`;
-        } else if (minNum >= 1000 || maxNum >= 1000) {
-          salaryRangeValue = `${(minNum / 1000).toFixed(
-            minNum % 1000 === 0 ? 0 : 1
-          )}-${(maxNum / 1000).toFixed(maxNum % 1000 === 0 ? 0 : 1)}K`;
-        } else {
-          salaryRangeValue = `${minNum}-${maxNum}`;
-        }
-      }
+      salaryRangeValue = minRaw || maxRaw || "";
     }
   } else if (typeof job.salaryRange === "string" && job.salaryRange) {
     if (/not\s*disclosed/i.test(job.salaryRange)) {
       salaryNotDisclosedValue = true;
     } else {
-      salaryRangeValue = job.salaryRange.replace(/[^0-9.\-MK\s]/gi, "").trim();
+      salaryRangeValue = job.salaryRange.trim();
     }
   }
 
@@ -92,6 +78,13 @@ export const mapJobToFormValues = (job) => {
     deadlineValue = dayjs(job.application_deadline);
   }
 
+  let postedDateValue = null;
+  if (job.jobPostedDate || job.job_posted_date) {
+    postedDateValue = dayjs(job.jobPostedDate || job.job_posted_date);
+  } else if (job.postedDate || job.posted_date) {
+    postedDateValue = dayjs(job.postedDate || job.posted_date);
+  }
+
   return {
     title: job.title || "",
     experience_required: job.experienceRequired || job.experience_required || "",
@@ -100,17 +93,7 @@ export const mapJobToFormValues = (job) => {
       job.employmentNature || job.employment_nature || "Permanent",
     work_mode: job.workMode || job.work_mode || "Office",
     openings: job.openings != null ? Number(job.openings) : 1,
-    role: job.role || "",
-    role_category: job.roleCategory || job.role_category || "",
-    department: job.department || "",
-    industry: job.industry || "",
-    education: job.education || "",
-    education_specialization:
-      job.educationSpecialization ||
-      job.education_specialization ||
-      "Any Specialization",
     qualifications: job.qualifications || "",
-    currency: "USD",
     salary_not_disclosed: salaryNotDisclosedValue,
     salary_range: salaryRangeValue,
     description: job.description || "",
@@ -122,11 +105,8 @@ export const mapJobToFormValues = (job) => {
         job.skillsRequired ||
         job.skills_required
     ),
-    preferred_skills: job.preferredSkills || job.preferred_skills || "",
-    key_skills: normalizeTags(job.keySkills || job.key_skills),
-    preferred_key_skills: normalizeTags(
-      job.preferredKeySkills || job.preferred_key_skills
-    ),
+    we_offer: job.weOffer || job.we_offer || "",
+    job_posted_date: postedDateValue || dayjs(),
     application_deadline: deadlineValue,
     status: job.status || "pending",
     isActive:

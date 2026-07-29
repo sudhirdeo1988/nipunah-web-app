@@ -1,0 +1,12 @@
+.public-jobs {
+  &__filters-sticky {
+    position: sticky;
+    top: 88px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+}

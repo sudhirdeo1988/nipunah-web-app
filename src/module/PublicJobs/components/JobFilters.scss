@@ -1,0 +1,72 @@
+.job-filters {
+  background: #fff;
+  border: 1px solid #e8ecf1;
+  border-radius: 12px;
+  padding: 16px;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f0f2f5;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #111827;
+  }
+
+  &__reset {
+    border: none;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: #275df5;
+  }
+
+  &__form {
+    .ant-form-item {
+      margin-bottom: 14px;
+    }
+
+    .ant-form-item-label > label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #4b5563;
+    }
+  }
+
+  &__group {
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #f3f4f6;
+  }
+
+  &__group-label {
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #4b5563;
+  }
+
+  &__checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+
+    .ant-checkbox-group-item,
+    .ant-checkbox-wrapper {
+      margin-inline-start: 0 !important;
+      font-size: 13px;
+      color: #374151;
+      line-height: 1.3;
+    }
+  }
+}

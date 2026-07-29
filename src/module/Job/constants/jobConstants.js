@@ -179,9 +179,8 @@ export const EMPLOYMENT_TYPE_COLORS = {
  * Experience level color mapping
  */
 export const EXPERIENCE_COLORS = {
-  "0-1 years": "green",
-  "1-3 years": "blue",
-  "3-5 years": "orange",
-  "5-8 years": "red",
-  "8+ years": "purple",
+  "0-2 years": "green",
+  "2-5 years": "blue",
+  "5-10 years": "orange",
+  "10+ years": "purple",
 };

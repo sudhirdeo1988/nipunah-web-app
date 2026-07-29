@@ -8,14 +8,17 @@ import { ROUTES } from "@/constants/routes";
 import CreateJobForm from "@/module/Job/components/CreateJobForm";
 import { useJob } from "@/module/Job/hooks/useJob";
 import { useModuleAccess } from "@/hooks/useModuleAccess";
+import { useRole } from "@/hooks/useRole";
 import { jobService } from "@/utilities/apiServices";
 import { readStashedJobForEdit } from "@/module/Job/utils/jobFormMapper";
+import { canViewerAccessJob } from "@/module/Job/utils/jobAccess";
 
 const EditJobPage = () => {
   const router = useRouter();
   const params = useParams();
   const jobId = params?.jobId;
   const { allowed, permissions } = useModuleAccess("jobs");
+  const { user, role, isCompany } = useRole();
   const { updateJob, loading, error } = useJob({ skipInitialFetch: true });
 
   const [initialJob, setInitialJob] = useState(null);
@@ -39,29 +42,41 @@ const EditJobPage = () => {
       setLoadingJob(true);
       setLoadError(null);
 
-      try {
-        const stashed = readStashedJobForEdit(jobId);
-        if (stashed) {
-          if (!cancelled) {
-            setInitialJob(stashed);
-            setLoadingJob(false);
-          }
-          return;
-        }
+      const stashed = readStashedJobForEdit(jobId);
 
+      try {
         const response = await jobService.getJobById(jobId);
         const job = response?.data || response;
         if (!cancelled) {
-          setInitialJob(job);
+          const merged = job ? { ...stashed, ...job } : stashed;
+          if (
+            merged &&
+            isCompany() &&
+            !canViewerAccessJob(merged, user, role)
+          ) {
+            setLoadError("You can only edit jobs posted by your company.");
+            setInitialJob(null);
+          } else {
+            setInitialJob(merged);
+          }
         }
       } catch (err) {
         console.error("Failed to load job for edit:", err);
         if (!cancelled) {
-          setLoadError(
-            err?.response?.data?.message ||
-              err?.message ||
-              "Failed to load job"
-          );
+          if (
+            stashed &&
+            (!isCompany() || canViewerAccessJob(stashed, user, role))
+          ) {
+            setInitialJob(stashed);
+          } else if (stashed && isCompany()) {
+            setLoadError("You can only edit jobs posted by your company.");
+          } else {
+            setLoadError(
+              err?.response?.data?.message ||
+                err?.message ||
+                "Failed to load job"
+            );
+          }
         }
       } finally {
         if (!cancelled) setLoadingJob(false);
@@ -72,7 +87,7 @@ const EditJobPage = () => {
     return () => {
       cancelled = true;
     };
-  }, [jobId]);
+  }, [jobId, user, role, isCompany]);
 
   const handleSubmit = useCallback(
     async (payload) => {
@@ -89,47 +104,51 @@ const EditJobPage = () => {
   return (
     <div className="bg-white rounded shadow-sm" style={{ minHeight: "100%" }}>
       <AppPageHeader
-        title="Edit Job"
-        subtitle="Update this job posting"
+        title="Edit Job Offer"
+        subtitle="Update this job in your company's jobs list."
         backLink={{ label: "Back to Jobs", href: ROUTES.PRIVATE.JOB }}
       />
-      <div className="p-3" style={{ maxWidth: 1100 }}>
-        {(error || loadError) && (
-          <Alert
-            type="error"
-            showIcon
-            closable
-            className="mb-3"
-            message="Could not edit job"
-            description={
-              error?.response?.data?.message ||
-              error?.message ||
-              loadError ||
-              "Something went wrong. Please try again."
-            }
-          />
-        )}
+      <div className="container-fluid px-4 py-3">
+        <div className="row justify-content-center">
+          <div className="col-12 col-xl-8">
+            {(error || loadError) && (
+              <Alert
+                type="error"
+                showIcon
+                closable
+                className="mb-3"
+                message="Could not edit job"
+                description={
+                  error?.response?.data?.message ||
+                  error?.message ||
+                  loadError ||
+                  "Something went wrong. Please try again."
+                }
+              />
+            )}
 
-        {loadingJob ? (
-          <div className="text-center py-5">
-            <Spin tip="Loading job..." />
+            {loadingJob ? (
+              <div className="text-center py-5">
+                <Spin tip="Loading job..." />
+              </div>
+            ) : initialJob ? (
+              <CreateJobForm
+                mode="edit"
+                initialJob={initialJob}
+                onCancel={goBack}
+                onSubmit={handleSubmit}
+                loading={loading}
+              />
+            ) : (
+              <Alert
+                type="warning"
+                showIcon
+                message="Job not found"
+                description="This job could not be loaded for editing."
+              />
+            )}
           </div>
-        ) : initialJob ? (
-          <CreateJobForm
-            mode="edit"
-            initialJob={initialJob}
-            onCancel={goBack}
-            onSubmit={handleSubmit}
-            loading={loading}
-          />
-        ) : (
-          <Alert
-            type="warning"
-            showIcon
-            message="Job not found"
-            description="This job could not be loaded for editing."
-          />
-        )}
+        </div>
       </div>
     </div>
   );

@@ -1,10 +1,11 @@
 /**
  * Job API mock config + GET response
  *
+ * Uses the same seed data as the public Jobs browse module.
  * Flip USE_MOCK_JOBS_API to `false` when the real jobs API is ready.
- * Replace the proxy target in `src/utilities/apiServices.js` / `src/app/api/jobs/route.js`
- * when the backend endpoint changes.
  */
+
+import { PUBLIC_JOBS_MOCK } from "@/module/PublicJobs/constants/publicJobsMock";
 
 /** Set to false to hit the real GET/POST /api/jobs proxy */
 export const USE_MOCK_JOBS_API = true;
@@ -26,183 +27,31 @@ export const clearMockCreatedJobs = () => {
   mockCreatedJobs = [];
 };
 
+/** Seed list shared with public Jobs browse (+ peopleApplied for management table). */
+const SEED_JOBS = PUBLIC_JOBS_MOCK.map((job, index) => ({
+  ...job,
+  peopleApplied: job.peopleApplied ?? [42, 100, 18, 7, 12, 5][index] ?? 0,
+  updatedOn: job.updatedOn || job.createdOn || Date.now(),
+}));
+
 /**
  * Mock GET /jobs response shape (matches useJob transform expectations).
  */
 export const MOCK_GET_JOBS_RESPONSE = {
   success: true,
   data: {
-    total: 3,
+    total: SEED_JOBS.length,
     page: 1,
     limit: 10,
     totalPages: 1,
-    items: [
-      {
-        id: 1,
-        jobId: "JOB-001",
-        title: "Hiring: ServiceNow Professionals Multiple Modules",
-        postedBy: {
-          companyId: 1,
-          companyName: "eLabs Infotech",
-          companyShortName: "eLabs",
-        },
-        experienceRequired: "6-11 years",
-        salaryNotDisclosed: true,
-        salaryRange: {
-          min: "Not Disclosed",
-          max: "Not Disclosed",
-        },
-        location: {
-          city: "Bengaluru",
-          state: "Karnataka",
-          pinCode: "560066",
-          countryCode: "IN",
-          country: "India",
-        },
-        peopleApplied: 100,
-        createdOn: Date.now() - 6 * 24 * 60 * 60 * 1000,
-        updatedOn: Date.now() - 2 * 24 * 60 * 60 * 1000,
-        status: "approved",
-        description:
-          "<p>We are looking for ServiceNow professionals with strong implementation and integration experience across multiple modules.</p>",
-        keyResponsibilities:
-          "<ul><li>Design and implement ServiceNow solutions</li><li>Build workflows, business rules, and integrations</li><li>Collaborate with stakeholders for requirements</li></ul>",
-        requiredSkills:
-          "<ul><li>JavaScript and ServiceNow scripting</li><li>Flow Designer and Integration Hub</li><li>REST/SOAP APIs</li></ul>",
-        preferredSkills:
-          "<ul><li>ServiceNow CSA / CIS / CAD certifications</li><li>Agile/Scrum and ITIL knowledge</li></ul>",
-        skillsRequired:
-          "<ul><li>JavaScript and ServiceNow scripting</li><li>Flow Designer and Integration Hub</li></ul>",
-        keySkills: [
-          "ServiceNow",
-          "ITSM",
-          "Project Manager",
-          "CSM",
-          "ITAM",
-        ],
-        preferredKeySkills: ["CSA", "CIS", "CAD"],
-        qualifications:
-          "Bachelor's or Master's degree in Computer Science, Information Technology, Engineering, or a related field.",
-        employmentType: "Full-time",
-        employmentNature: "Permanent",
-        workMode: "Hybrid",
-        openings: 5,
-        role: "ServiceNow Professionals | Multiple Modules",
-        roleCategory: "Software Development",
-        department: "Engineering - Software & QA",
-        industry: "IT Services & Consulting",
-        education: "B.Tech / B.E.",
-        educationSpecialization: "Any Specialization",
-        applicationDeadline: "2026-08-30",
-        isActive: true,
-      },
-      {
-        id: 2,
-        jobId: "JOB-002",
-        title: "Senior Software Engineer",
-        postedBy: {
-          companyId: 1,
-          companyName: "TechCorp Solutions",
-          companyShortName: "TechCorp",
-        },
-        experienceRequired: "5-8 years",
-        salaryNotDisclosed: false,
-        salaryRange: {
-          min: "$120,000",
-          max: "$150,000",
-        },
-        location: {
-          city: "San Francisco",
-          state: "California",
-          pinCode: "94102",
-          countryCode: "US",
-          country: "United States",
-        },
-        peopleApplied: 25,
-        createdOn: Date.now() - 10 * 24 * 60 * 60 * 1000,
-        updatedOn: Date.now() - 8 * 24 * 60 * 60 * 1000,
-        status: "approved",
-        description:
-          "<p>Full-stack development role with React and Node.js.</p>",
-        keyResponsibilities:
-          "<ul><li>Build and maintain web applications</li><li>Collaborate with product and design</li></ul>",
-        requiredSkills:
-          "<ul><li>React</li><li>Node.js</li><li>TypeScript</li></ul>",
-        preferredSkills: "<ul><li>AWS</li><li>GraphQL</li></ul>",
-        skillsRequired:
-          "<ul><li>React</li><li>Node.js</li><li>TypeScript</li></ul>",
-        keySkills: ["React", "Node.js", "AWS", "TypeScript"],
-        preferredKeySkills: ["GraphQL"],
-        qualifications:
-          "Bachelor's degree in Computer Science or equivalent experience.",
-        employmentType: "Full-time",
-        employmentNature: "Permanent",
-        workMode: "Office",
-        openings: 2,
-        role: "Senior Software Engineer",
-        roleCategory: "Software Development",
-        department: "Engineering - Software & QA",
-        industry: "Software Product",
-        education: "B.Tech / B.E.",
-        educationSpecialization: "Computer Science",
-        applicationDeadline: "2026-09-15",
-        isActive: true,
-      },
-      {
-        id: 3,
-        jobId: "JOB-003",
-        title: "Frontend Developer",
-        postedBy: {
-          companyId: 2,
-          companyName: "Global Logistics Inc",
-          companyShortName: "GLI",
-        },
-        experienceRequired: "3-5 years",
-        salaryNotDisclosed: false,
-        salaryRange: {
-          min: "$90,000",
-          max: "$120,000",
-        },
-        location: {
-          city: "Miami",
-          state: "Florida",
-          pinCode: "33101",
-          countryCode: "US",
-          country: "United States",
-        },
-        peopleApplied: 18,
-        createdOn: Date.now() - 4 * 24 * 60 * 60 * 1000,
-        updatedOn: Date.now() - 1 * 24 * 60 * 60 * 1000,
-        status: "pending",
-        description: "<p>React and JavaScript development for logistics platforms.</p>",
-        keyResponsibilities:
-          "<ul><li>Implement UI features</li><li>Ensure responsive design</li></ul>",
-        requiredSkills:
-          "<ul><li>React</li><li>JavaScript</li><li>CSS</li></ul>",
-        preferredSkills: "<ul><li>Redux</li></ul>",
-        skillsRequired: "<ul><li>React</li><li>JavaScript</li><li>CSS</li></ul>",
-        keySkills: ["React", "JavaScript", "CSS", "HTML"],
-        preferredKeySkills: ["Redux"],
-        qualifications: "Any Graduate in IT or related field.",
-        employmentType: "Full-time",
-        employmentNature: "Permanent",
-        workMode: "Remote",
-        openings: 1,
-        role: "Frontend Developer",
-        roleCategory: "Software Development",
-        department: "Engineering - Software & QA",
-        industry: "Logistics / Supply Chain",
-        education: "Any Graduate",
-        educationSpecialization: "Any Specialization",
-        applicationDeadline: "2026-08-20",
-        isActive: true,
-      },
-    ],
+    items: SEED_JOBS,
   },
 };
 
+const getAllMockJobs = () => [...getMockCreatedJobs(), ...SEED_JOBS];
+
 /**
- * Build a paginated mock GET response (supports search + pagination).
+ * Build a paginated mock GET response (supports search + pagination + companyId).
  */
 export const buildMockGetJobsResponse = (params = {}) => {
   const page = Number(params.page) || 1;
@@ -210,27 +59,50 @@ export const buildMockGetJobsResponse = (params = {}) => {
   const search = String(params.search || "")
     .trim()
     .toLowerCase();
+  const companyId =
+    params.companyId != null && params.companyId !== ""
+      ? String(params.companyId)
+      : null;
 
-  const baseItems = [
-    ...getMockCreatedJobs(),
-    ...MOCK_GET_JOBS_RESPONSE.data.items,
-  ];
+  const baseItems = getAllMockJobs();
 
-  const filtered = search
+  let filtered = companyId
     ? baseItems.filter((job) => {
-        const haystack = [
-          job.title,
-          job.role,
-          job.postedBy?.companyName,
-          job.location?.city,
-          job.employmentType,
-        ]
-          .filter(Boolean)
-          .join(" ")
-          .toLowerCase();
-        return haystack.includes(search);
+        const ownerId =
+          job.postedBy?.companyId ??
+          job.postedBy?.company_id ??
+          job.posted_by?.companyId ??
+          job.posted_by?.company_id;
+        return ownerId != null && String(ownerId) === companyId;
       })
     : baseItems;
+
+  // Mock UX: if company filter matches nothing, show full seed so management
+  // isn't empty while company ids aren't aligned with seeded data yet.
+  if (companyId && filtered.length === 0) {
+    console.warn(
+      `[mock jobs] No jobs for companyId=${companyId}; showing all mock jobs.`
+    );
+    filtered = baseItems;
+  }
+
+  if (search) {
+    filtered = filtered.filter((job) => {
+      const haystack = [
+        job.title,
+        job.postedBy?.companyName,
+        job.location?.city,
+        job.location?.country,
+        job.employmentType,
+        job.workMode,
+        job.experienceRequired,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(search);
+    });
+  }
 
   const total = filtered.length;
   const totalPages = Math.max(1, Math.ceil(total / limit) || 1);
@@ -277,9 +149,8 @@ export const buildMockCreateJobResponse = (jobData) => {
  */
 export const findMockJobById = (jobId) => {
   const idStr = String(jobId);
-  const all = [...getMockCreatedJobs(), ...MOCK_GET_JOBS_RESPONSE.data.items];
   return (
-    all.find(
+    getAllMockJobs().find(
       (j) =>
         String(j.id) === idStr ||
         String(j.jobId) === idStr ||
@@ -311,7 +182,6 @@ export const buildMockUpdateJobResponse = (jobId, jobData) => {
     updatedOn: Date.now(),
   };
 
-  // Replace in created list if present
   const idx = mockCreatedJobs.findIndex(
     (j) => String(j.id) === String(id) || String(j.jobId) === String(jobId)
   );
