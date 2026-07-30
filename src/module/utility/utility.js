@@ -60,6 +60,14 @@ export const DASHBOARD_ROUTES = {
       moduleKey: "jobs",
     },
     {
+      route: ROUTES?.PRIVATE?.JOB_APPLICATIONS,
+      label: "Job Applications",
+      subHeading: "Track jobs you have applied to",
+      id: "job-applications-1",
+      icon: "description",
+      moduleKey: "job_applications",
+    },
+    {
       route: ROUTES?.PRIVATE?.ENQUIRIES,
       label: "Enquiries",
       subHeading: "View and respond to user enquiries",

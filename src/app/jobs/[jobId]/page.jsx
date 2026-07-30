@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { useParams } from "next/navigation";
-import { Empty } from "antd";
+import React, { Suspense, useEffect, useMemo } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { Empty, Spin } from "antd";
 import PublicLayout from "@/layout/PublicLayout";
 import PageHeadingBanner from "@/components/StaticAtoms/PageHeadingBanner";
 import PublicJobDetails from "@/module/PublicJobs/components/PublicJobDetails";
@@ -10,16 +10,46 @@ import ApplyJobModal from "@/module/PublicJobs/components/ApplyJobModal";
 import { useApplyJob } from "@/module/PublicJobs/hooks/useApplyJob";
 import { PUBLIC_JOBS_MOCK } from "@/module/PublicJobs/constants/publicJobsMock";
 import { ROUTES } from "@/constants/routes";
+import { useAuth } from "@/utilities/AuthContext";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 
-const PublicJobDetailsPage = () => {
+const PublicJobDetailsPageContent = () => {
   const params = useParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const jobId = params?.jobId;
+  const from = searchParams?.get("from");
+  const { isLoggedIn } = useAuth();
+  const { flatPermissions, permissionsReady } = useRolePermissions();
+
+  const canViewJob =
+    Boolean(isLoggedIn) &&
+    (Boolean(flatPermissions?.nav_public_jobs) ||
+      Boolean(flatPermissions?.nav_job_applications) ||
+      Boolean(flatPermissions?.jobs_apply));
+
+  useEffect(() => {
+    if (!permissionsReady) return;
+    if (!isLoggedIn) {
+      router.replace(
+        `${ROUTES.PUBLIC.LOGIN}?redirect=${encodeURIComponent(
+          typeof window !== "undefined" ? window.location.pathname : "/jobs"
+        )}`
+      );
+      return;
+    }
+    if (!canViewJob) {
+      router.replace(ROUTES.PRIVATE.DASHBOARD);
+    }
+  }, [permissionsReady, isLoggedIn, canViewJob, router]);
+
   const {
     applyJob,
     isApplyOpen,
     openApply,
     closeApply,
     submitApplication,
+    submitting,
     hasApplied,
   } = useApplyJob();
 
@@ -36,12 +66,29 @@ const PublicJobDetailsPage = () => {
     );
   }, [jobId]);
 
+  const backLink = useMemo(() => {
+    if (from === "job-applications") {
+      return {
+        label: "Back to Job Applications",
+        href: ROUTES.PRIVATE.JOB_APPLICATIONS,
+      };
+    }
+    return { label: "Back to Jobs", href: ROUTES.PUBLIC.JOBS };
+  }, [from]);
+
+  if (!permissionsReady || !canViewJob) {
+    return (
+      <PublicLayout>
+        <div className="d-flex justify-content-center py-5">
+          <Spin size="large" />
+        </div>
+      </PublicLayout>
+    );
+  }
+
   return (
     <PublicLayout>
-      <PageHeadingBanner
-        heading="Job Details"
-        backLink={{ label: "Back to Jobs", href: ROUTES.PUBLIC.JOBS }}
-      />
+      <PageHeadingBanner heading="Job Details" backLink={backLink} />
       <div className="container py-4">
         {job ? (
           <PublicJobDetails
@@ -61,9 +108,24 @@ const PublicJobDetailsPage = () => {
         job={applyJob}
         onCancel={closeApply}
         onSubmit={submitApplication}
+        confirming={submitting}
       />
     </PublicLayout>
   );
 };
+
+const PublicJobDetailsPage = () => (
+  <Suspense
+    fallback={
+      <PublicLayout>
+        <div className="d-flex justify-content-center py-5">
+          <Spin size="large" />
+        </div>
+      </PublicLayout>
+    }
+  >
+    <PublicJobDetailsPageContent />
+  </Suspense>
+);
 
 export default PublicJobDetailsPage;

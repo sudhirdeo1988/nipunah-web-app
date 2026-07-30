@@ -1,12 +1,19 @@
 "use client";
 
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { message } from "antd";
 import { useRouter } from "next/navigation";
 import { useJob } from "./useJob";
 import { useJobModal } from "./useJobModal";
 import { ROUTES } from "@/constants/routes";
 import { stashJobForEdit } from "../utils/jobFormMapper";
+import { jobService } from "@/utilities/apiServices";
+import {
+  JOB_LIST_VIEW,
+  isJobActiveListing,
+  isJobInHistory,
+  buildJobClosurePayload,
+} from "../constants/jobHiringStatuses";
 
 /**
  * Custom hook for managing job listing state and operations
@@ -17,182 +24,157 @@ import { stashJobForEdit } from "../utils/jobFormMapper";
 export const useJobListing = () => {
   const router = useRouter();
 
-  // ==================== API INTEGRATION ====================
-  
   const {
     jobs: apiJobs,
     loading,
     error,
     pagination,
-    searchQuery: apiSearchQuery,
     fetchJobs,
     updateJob,
     deleteJob,
     handleSort,
   } = useJob();
 
-  // ==================== MODAL MANAGEMENT ====================
-  
   const {
     isModalOpen: isEditModalOpen,
     selectedJob,
     isEditMode,
-    openModal: openEditModal,
     closeModal: closeEditModal,
   } = useJobModal();
 
-  // ==================== STATE MANAGEMENT ====================
-
-  /** @type {[string[], Function]} Selected row keys for bulk operations */
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
-
-  /** @type {[Object[], Function]} Selected job objects for bulk operations */
   const [selectedJobs, setSelectedJobs] = useState([]);
-
-  /** @type {[string, Function]} Local search query for UI */
   const [searchQuery, setSearchQuery] = useState("");
+  const [listView, setListView] = useState(JOB_LIST_VIEW.ACTIVE);
+  const listViewRef = useRef(listView);
+  listViewRef.current = listView;
 
-  // ==================== MODAL STATE MANAGEMENT ====================
-
-  /** @type {[boolean, Function]} Controls single job delete modal visibility */
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-
-  /** @type {[boolean, Function]} Controls bulk delete modal visibility */
   const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
-
-  /** @type {[boolean, Function]} Controls job details modal visibility */
-  const [isJobDetailsModalOpen, setIsJobDetailsModalOpen] = useState(false);
-
-  /** @type {[boolean, Function]} Controls applied users modal visibility */
-  const [isAppliedUsersModalOpen, setIsAppliedUsersModalOpen] = useState(false);
-
-  /** @type {[Object|null, Function]} Job object to be deleted */
   const [jobToDelete, setJobToDelete] = useState(null);
 
-  /** @type {[Object|null, Function]} Job object for details view */
-  const [jobForDetails, setJobForDetails] = useState(null);
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+  const [jobToClose, setJobToClose] = useState(null);
+  const [closingJob, setClosingJob] = useState(false);
 
-  /** @type {[Object|null, Function]} Job object for applied users view */
-  const [jobForAppliedUsers, setJobForAppliedUsers] = useState(null);
-
-  // ==================== COMPUTED VALUES ====================
-
-  /**
-   * Use jobs from API (search is handled server-side)
-   * Filtered jobs are the same as jobs since API handles search
-   */
   const filteredJobs = useMemo(() => {
-    return apiJobs || [];
-  }, [apiJobs]);
+    const list = apiJobs || [];
+    if (listView === JOB_LIST_VIEW.HISTORY) {
+      return list.filter(isJobInHistory);
+    }
+    return list.filter(isJobActiveListing);
+  }, [apiJobs, listView]);
 
-  /**
-   * Memoized row selection configuration
-   * Prevents unnecessary re-renders of table selection
-   */
   const rowSelection = useMemo(
     () => ({
       selectedRowKeys,
-      onChange: (selectedRowKeys, selectedRows) => {
-        setSelectedRowKeys(selectedRowKeys);
-        setSelectedJobs(selectedRows);
+      onChange: (keys, rows) => {
+        setSelectedRowKeys(keys);
+        setSelectedJobs(rows);
       },
     }),
     [selectedRowKeys]
   );
 
-  // ==================== EVENT HANDLERS ====================
+  const searchTimeoutRef = useRef(null);
 
-  /**
-   * Handles search input change with debouncing
-   * @param {Event} e - Input change event
-   */
-  const handleSearchChange = useCallback((e) => {
-    const value = e.target.value;
-    setSearchQuery(value);
-    
-    // Debounce API call
-    const timeoutId = setTimeout(() => {
+  const handleSearchChange = useCallback(
+    (e) => {
+      const value = e.target.value;
+      setSearchQuery(value);
+
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current);
+      }
+      searchTimeoutRef.current = setTimeout(() => {
+        fetchJobs({
+          search: value,
+          page: 1,
+          listView: listViewRef.current,
+        });
+      }, 500);
+    },
+    [fetchJobs]
+  );
+
+  const handleListViewChange = useCallback(
+    (nextView) => {
+      setListView(nextView);
+      setSelectedRowKeys([]);
+      setSelectedJobs([]);
       fetchJobs({
-        search: value,
-        page: 1, // Reset to first page on search
+        listView: nextView,
+        page: 1,
+        search: searchQuery,
       });
-    }, 500);
-    
-    return () => clearTimeout(timeoutId);
-  }, [fetchJobs]);
+    },
+    [fetchJobs, searchQuery]
+  );
 
-  /**
-   * Handles bulk delete action
-   * Opens confirmation modal for multiple jobs
-   */
   const handleBulkDelete = useCallback(() => {
     setIsBulkDeleteModalOpen(true);
   }, []);
 
-  /**
-   * Handles dropdown menu click
-   * @param {Object} menuInfo - Menu click information
-   * @param {Object} record - Job record
-   */
-  const handleMenuClick = useCallback((menuInfo, record) => {
-    const { key } = menuInfo;
-
-    switch (key) {
-      case "view_details":
-        setJobForDetails(record);
-        setIsJobDetailsModalOpen(true);
-        break;
-      case "view_applied_users":
-        setJobForAppliedUsers(record);
-        setIsAppliedUsersModalOpen(true);
-        break;
-      case "edit": {
-        const id = record.id || record.jobId || record.job_id;
-        if (!id) {
-          message.error("Job id is missing");
-          break;
-        }
-        stashJobForEdit(record);
-        router.push(`${ROUTES.PRIVATE.JOB_EDIT}/${id}`);
-        break;
-      }
-      case "approve":
-        handleApproveJob(record);
-        break;
-      case "block":
-        handleBlockJob(record);
-        break;
-      case "delete":
-        setJobToDelete(record);
-        setIsDeleteModalOpen(true);
-        break;
-      default:
-        break;
-    }
-  }, [router]);
-
-  /**
-   * Handles approve job action
-   * @param {Object} job - Job to approve
-   * TODO: Implement API call for approve
-   */
-  const handleApproveJob = useCallback((job) => {
+  const handleApproveJob = useCallback(() => {
     message.info("Approve functionality will be implemented soon");
   }, []);
 
-  /**
-   * Handles block job action
-   * @param {Object} job - Job to block
-   * TODO: Implement API call for block
-   */
-  const handleBlockJob = useCallback((job) => {
+  const handleBlockJob = useCallback(() => {
     message.info("Block functionality will be implemented soon");
   }, []);
 
-  /**
-   * Handles single job delete confirmation
-   * Calls API to delete job and refreshes list
-   */
+  const handleMenuClick = useCallback(
+    (menuInfo, record) => {
+      const { key } = menuInfo;
+      const id = record?.id || record?.jobId || record?.job_id;
+
+      switch (key) {
+        case "view_details": {
+          if (!id) {
+            message.error("Job id is missing");
+            break;
+          }
+          router.push(`${ROUTES.PRIVATE.JOB_DETAILS}/${id}`);
+          break;
+        }
+        case "view_applied_users": {
+          if (!id) {
+            message.error("Job id is missing");
+            break;
+          }
+          router.push(`${ROUTES.PRIVATE.JOB_DETAILS}/${id}?tab=candidates`);
+          break;
+        }
+        case "edit": {
+          if (!id) {
+            message.error("Job id is missing");
+            break;
+          }
+          stashJobForEdit(record);
+          router.push(`${ROUTES.PRIVATE.JOB_EDIT}/${id}`);
+          break;
+        }
+        case "close_job":
+          setJobToClose(record);
+          setIsCloseModalOpen(true);
+          break;
+        case "approve":
+          handleApproveJob(record);
+          break;
+        case "block":
+          handleBlockJob(record);
+          break;
+        case "delete":
+          setJobToDelete(record);
+          setIsDeleteModalOpen(true);
+          break;
+        default:
+          break;
+      }
+    },
+    [router, handleApproveJob, handleBlockJob]
+  );
+
   const handleConfirmDelete = useCallback(async () => {
     if (jobToDelete) {
       try {
@@ -200,16 +182,11 @@ export const useJobListing = () => {
         setIsDeleteModalOpen(false);
         setJobToDelete(null);
       } catch (error) {
-        // Error is already handled in deleteJob
         console.error("Error deleting job:", error);
       }
     }
   }, [jobToDelete, deleteJob]);
 
-  /**
-   * Handles bulk delete confirmation
-   * Deletes multiple jobs via API
-   */
   const handleConfirmBulkDelete = useCallback(async () => {
     if (selectedJobs.length === 0) {
       setIsBulkDeleteModalOpen(false);
@@ -217,60 +194,72 @@ export const useJobListing = () => {
     }
 
     try {
-      // Delete all selected jobs
       const deletePromises = selectedJobs.map((job) =>
         deleteJob(job.id || job.jobId)
       );
       await Promise.all(deletePromises);
-      
+
       setSelectedRowKeys([]);
       setSelectedJobs([]);
       message.success(`${selectedJobs.length} job(s) deleted successfully`);
       setIsBulkDeleteModalOpen(false);
     } catch (error) {
       console.error("Error deleting jobs:", error);
-      // Error messages are already shown by deleteJob
     }
   }, [selectedJobs, deleteJob]);
 
-  /**
-   * Handles cancel delete action
-   * Closes modal and resets state
-   */
   const handleCancelDelete = useCallback(() => {
     setIsDeleteModalOpen(false);
     setJobToDelete(null);
   }, []);
 
-  /**
-   * Handles cancel bulk delete action
-   * Closes modal without making changes
-   */
   const handleCancelBulkDelete = useCallback(() => {
     setIsBulkDeleteModalOpen(false);
   }, []);
 
-  /**
-   * Handles cancel job details modal
-   * Closes modal and resets state
-   */
-  const handleCancelJobDetails = useCallback(() => {
-    setIsJobDetailsModalOpen(false);
-    setJobForDetails(null);
+  const handleCancelCloseJob = useCallback(() => {
+    setIsCloseModalOpen(false);
+    setJobToClose(null);
   }, []);
 
-  /**
-   * Handles cancel applied users modal
-   * Closes modal and resets state
-   */
-  const handleCancelAppliedUsers = useCallback(() => {
-    setIsAppliedUsersModalOpen(false);
-    setJobForAppliedUsers(null);
-  }, []);
+  const handleConfirmCloseJob = useCallback(
+    async (hiringStatus) => {
+      if (!jobToClose) return;
+      const id = jobToClose.id || jobToClose.jobId || jobToClose.job_id;
+      if (!id) {
+        message.error("Job id is missing");
+        return;
+      }
 
-  /**
-   * Handle update job action
-   */
+      setClosingJob(true);
+      try {
+        await jobService.updateJob(id, buildJobClosurePayload(hiringStatus));
+        message.success(
+          hiringStatus === "filled"
+            ? "Job marked as Filled and moved to history"
+            : "Job marked as Closed and moved to history"
+        );
+        setIsCloseModalOpen(false);
+        setJobToClose(null);
+        await fetchJobs({
+          listView: listViewRef.current,
+          page: 1,
+          search: searchQuery,
+        });
+      } catch (error) {
+        console.error("Error closing job:", error);
+        message.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to update job"
+        );
+      } finally {
+        setClosingJob(false);
+      }
+    },
+    [jobToClose, fetchJobs, searchQuery]
+  );
+
   const handleUpdateJob = useCallback(
     async (jobId, jobData) => {
       try {
@@ -278,46 +267,41 @@ export const useJobListing = () => {
         closeEditModal();
       } catch (error) {
         console.error("Error updating job:", error);
-        // Error is already handled in updateJob
       }
     },
     [updateJob, closeEditModal]
   );
 
   return {
-    // State
     jobs: filteredJobs,
     filteredJobs,
     selectedRowKeys,
     selectedJobs,
     searchQuery,
+    listView,
     rowSelection,
     loading,
     error,
     pagination,
-
-    // Modal states
     isDeleteModalOpen,
     isBulkDeleteModalOpen,
-    isJobDetailsModalOpen,
-    isAppliedUsersModalOpen,
     isEditModalOpen,
+    isCloseModalOpen,
     jobToDelete,
-    jobForDetails,
-    jobForAppliedUsers,
+    jobToClose,
+    closingJob,
     selectedJob,
     isEditMode,
-
-    // Handlers
     handleSearchChange,
+    handleListViewChange,
     handleBulkDelete,
     handleMenuClick,
     handleConfirmDelete,
     handleConfirmBulkDelete,
     handleCancelDelete,
     handleCancelBulkDelete,
-    handleCancelJobDetails,
-    handleCancelAppliedUsers,
+    handleConfirmCloseJob,
+    handleCancelCloseJob,
     handleUpdateJob,
     closeEditModal,
     fetchJobs,

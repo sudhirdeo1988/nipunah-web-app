@@ -8,15 +8,22 @@ import CountryDetails from "@/utilities/CountryDetails.json";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 import { sanitizeHtml } from "@/components/RichTextEditor";
+import {
+  getHiringStatus,
+  getHiringStatusLabel,
+  getHiringStatusColor,
+  isJobInHistory,
+} from "../../constants/jobHiringStatuses";
 import "@/components/RichTextEditor/RichTextEditor.scss";
 import "./JobDetailsModal.scss";
 
 dayjs.extend(relativeTime);
 
 /**
- * Shared job details body (used by modal + public detail page).
+ * Shared job details body (used by modal + management detail page).
+ * @param {boolean} compactHeader - hide duplicate title when page toolbar already shows it
  */
-const JobDetailsView = memo(({ job }) => {
+const JobDetailsView = memo(({ job, compactHeader = false }) => {
   const getCountryName = useMemo(() => {
     if (!job) return null;
     const locationObj =
@@ -120,10 +127,12 @@ const JobDetailsView = memo(({ job }) => {
   };
 
   return (
-    <div className="job-view">
+    <div className={`job-view${compactHeader ? " is-compact" : ""}`}>
       <section className="job-view__header-card">
         <div className="job-view__header-main">
-          <h1 className="job-view__title">{job.title || "Untitled job"}</h1>
+          {!compactHeader ? (
+            <h1 className="job-view__title">{job.title || "Untitled job"}</h1>
+          ) : null}
           <div className="job-view__company">
             <span className="job-view__company-name">
               {job.postedBy?.companyName || "Company"}
@@ -163,8 +172,20 @@ const JobDetailsView = memo(({ job }) => {
           </div>
         </div>
         <div className="job-view__header-side">
-          <Tag color={job.isActive !== false ? "success" : "default"}>
-            {job.isActive !== false ? "Active" : "Inactive"}
+          <Tag
+            color={
+              isJobInHistory(job)
+                ? getHiringStatusColor(getHiringStatus(job))
+                : job.isActive !== false
+                  ? "success"
+                  : "default"
+            }
+          >
+            {isJobInHistory(job)
+              ? getHiringStatusLabel(getHiringStatus(job))
+              : job.isActive !== false
+                ? "Active"
+                : "Inactive"}
           </Tag>
         </div>
       </section>

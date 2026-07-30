@@ -430,6 +430,26 @@ export const jobService = {
    */
   deleteJob: async (jobId) => {
     try {
+      console.log("\n📦 ========== DELETE JOB ==========");
+      console.log("Job ID:", jobId);
+      console.log("📦 =================================\n");
+
+      const {
+        USE_MOCK_JOBS_API,
+      } = await import("@/module/Job/constants/mockJobsApiResponse");
+
+      if (USE_MOCK_JOBS_API) {
+        console.log("🟡 MOCK DELETE /jobs/" + jobId);
+        await new Promise((r) => setTimeout(r, 400));
+        const mock = {
+          success: true,
+          data: { id: jobId, deleted: true },
+          message: "Job deleted successfully (mock)",
+        };
+        console.log("✅ MOCK DELETE response:", mock);
+        return mock;
+      }
+
       console.log("🗑️ Deleting job via proxy route /api/jobs/" + jobId);
       const response = await axiosInstance.delete(`/jobs/${jobId}`);
       console.log("✅ Job deleted successfully:", response);

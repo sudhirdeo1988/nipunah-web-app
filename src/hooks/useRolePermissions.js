@@ -17,6 +17,7 @@ const MODULE_KEY_TO_NAV_KEY = {
   company: "nav_companies",
   services: "nav_services",
   jobs: "nav_jobs",
+  job_applications: "nav_job_applications",
   enquiries: "nav_enquiries",
   equipments: "nav_equipments",
   role_management: "nav_role_management",
@@ -30,6 +31,7 @@ const MODULE_PERMISSION_NAMES = {
   company: ["view", "add", "edit", "delete", "approve"],
   services: ["view", "add", "edit", "delete"],
   jobs: ["view", "add", "edit", "delete", "apply", "approve"],
+  job_applications: ["view"],
   enquiries: ["view", "delete", "respond"],
   equipments: ["view", "add", "edit", "delete"],
   categories: [

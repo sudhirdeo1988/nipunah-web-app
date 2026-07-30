@@ -19,6 +19,7 @@ const MODULE_KEY_TO_NAV_KEY = {
   company: "nav_companies",
   services: "nav_services",
   jobs: "nav_jobs",
+  job_applications: "nav_job_applications",
   pricing: "nav_pricing",
   enquiries: "nav_enquiries",
   equipments: "nav_equipments",

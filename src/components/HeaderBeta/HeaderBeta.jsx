@@ -8,6 +8,7 @@ import Icon from "../Icon";
 import { useAuth } from "@/utilities/AuthContext";
 import { useLogout } from "@/hooks/useLogout";
 import { useRole } from "@/hooks/useRole";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 import { useAppSelector } from "@/store/hooks";
 import "./HeaderBeta.scss";
 
@@ -266,6 +267,7 @@ const HeaderBeta = memo(() => {
   const router = useRouter();
   const { isLoggedIn } = useAuth();
   const user = useAppSelector((state) => state.user.user);
+  const { flatPermissions, permissionsReady } = useRolePermissions();
   const { initials: headerInitials, avatarUrl: headerAvatarUrl } = useMemo(
     () => getHeaderUserDisplay(user),
     [user]
@@ -292,24 +294,33 @@ const HeaderBeta = memo(() => {
     [closeProfilePopover]
   );
 
-  // Memoized navigation items to prevent recreation
+  // Public "Jobs" header link: Expert only (nav_public_jobs)
+  const canSeePublicJobs =
+    Boolean(isLoggedIn) &&
+    permissionsReady &&
+    Boolean(flatPermissions?.nav_public_jobs);
+
   const navigationItems = useMemo(() => {
-    const items = isLoggedIn
-      ? [...navItems, { label: "Dashboard", href: ROUTES.PRIVATE.DASHBOARD }]
-      : navItems;
-    return items.map(({ label, href }) => (
-        <li className="d-block" key={label}>
-          <Link
-            href={href}
-            className={`navLink ${
-              isPublicNavLinkActive(href, pathname) ? "active" : ""
-            }`}
-          >
-            {label}
-          </Link>
-        </li>
-      ));
-  }, [pathname, isLoggedIn]);
+    const items = navItems.filter((item) => {
+      if (item.href === ROUTES.PUBLIC.JOBS) return canSeePublicJobs;
+      return true;
+    });
+    const withDashboard = isLoggedIn
+      ? [...items, { label: "Dashboard", href: ROUTES.PRIVATE.DASHBOARD }]
+      : items;
+    return withDashboard.map(({ label, href }) => (
+      <li className="d-block" key={label}>
+        <Link
+          href={href}
+          className={`navLink ${
+            isPublicNavLinkActive(href, pathname) ? "active" : ""
+          }`}
+        >
+          {label}
+        </Link>
+      </li>
+    ));
+  }, [pathname, isLoggedIn, canSeePublicJobs]);
 
   /**
    * Renders the main navigation menu bar

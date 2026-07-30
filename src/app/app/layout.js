@@ -23,6 +23,7 @@ const NAV_ROUTE_PERMISSIONS = [
   { route: ROUTES?.PRIVATE?.COMPANY, key: "nav_companies" },
   { route: ROUTES?.PRIVATE?.SERVICES, key: "nav_services" },
   { route: ROUTES?.PRIVATE?.JOB, key: "nav_jobs" },
+  { route: ROUTES?.PRIVATE?.JOB_APPLICATIONS, key: "nav_job_applications" },
   { route: ROUTES?.PRIVATE?.ENQUIRIES, key: "nav_enquiries" },
   { route: ROUTES?.PRIVATE?.EQUIPMENT, key: "nav_equipments" },
   { route: ROUTES?.PRIVATE?.ROLES, key: "nav_role_management" },

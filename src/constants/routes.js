@@ -21,6 +21,8 @@ export const ROUTES = {
     JOB: "/app/job",
     JOB_CREATE: "/app/job/create",
     JOB_EDIT: "/app/job/edit",
+    JOB_DETAILS: "/app/job",
+    JOB_APPLICATIONS: "/app/job-applications",
     USERS: "/app/users",
     COMPANY: "/app/company",
     SERVICES: "/app/services",

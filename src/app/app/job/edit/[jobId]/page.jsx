@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Alert, Spin } from "antd";
 import AppPageHeader from "@/components/AppPageHeader/AppPageHeader";
@@ -12,11 +12,13 @@ import { useRole } from "@/hooks/useRole";
 import { jobService } from "@/utilities/apiServices";
 import { readStashedJobForEdit } from "@/module/Job/utils/jobFormMapper";
 import { canViewerAccessJob } from "@/module/Job/utils/jobAccess";
+import { USE_MOCK_JOBS_API } from "@/module/Job/constants/mockJobsApiResponse";
 
 const EditJobPage = () => {
   const router = useRouter();
   const params = useParams();
-  const jobId = params?.jobId;
+  const rawJobId = params?.jobId;
+  const jobId = Array.isArray(rawJobId) ? rawJobId[0] : rawJobId;
   const { allowed, permissions } = useModuleAccess("jobs");
   const { user, role, isCompany } = useRole();
   const { updateJob, loading, error } = useJob({ skipInitialFetch: true });
@@ -24,18 +26,25 @@ const EditJobPage = () => {
   const [initialJob, setInitialJob] = useState(null);
   const [loadError, setLoadError] = useState(null);
   const [loadingJob, setLoadingJob] = useState(true);
+  const requestIdRef = useRef(0);
+  const accessRef = useRef({ user, role, isCompany });
+  accessRef.current = { user, role, isCompany };
 
   const goBack = useCallback(() => {
     router.push(ROUTES.PRIVATE.JOB);
   }, [router]);
 
   useEffect(() => {
-    let cancelled = false;
+    const requestId = ++requestIdRef.current;
+    let active = true;
 
     const load = async () => {
       if (!jobId) {
-        setLoadError("Missing job id");
-        setLoadingJob(false);
+        if (requestId === requestIdRef.current) {
+          setLoadError("Missing job id");
+          setLoadingJob(false);
+          setInitialJob(null);
+        }
         return;
       }
 
@@ -43,51 +52,71 @@ const EditJobPage = () => {
       setLoadError(null);
 
       const stashed = readStashedJobForEdit(jobId);
+      const { user: u, role: r, isCompany: isCo } = accessRef.current;
 
       try {
         const response = await jobService.getJobById(jobId);
+        if (!active || requestId !== requestIdRef.current) return;
+
         const job = response?.data || response;
-        if (!cancelled) {
-          const merged = job ? { ...stashed, ...job } : stashed;
-          if (
-            merged &&
-            isCompany() &&
-            !canViewerAccessJob(merged, user, role)
-          ) {
-            setLoadError("You can only edit jobs posted by your company.");
-            setInitialJob(null);
-          } else {
-            setInitialJob(merged);
-          }
+        const merged = job ? { ...(stashed || {}), ...job } : stashed;
+
+        if (
+          !USE_MOCK_JOBS_API &&
+          merged &&
+          typeof isCo === "function" &&
+          isCo() &&
+          !canViewerAccessJob(merged, u, r)
+        ) {
+          setLoadError("You can only edit jobs posted by your company.");
+          setInitialJob(null);
+        } else if (merged && typeof merged === "object") {
+          setInitialJob(merged);
+        } else {
+          setLoadError("Job not found");
+          setInitialJob(null);
         }
       } catch (err) {
         console.error("Failed to load job for edit:", err);
-        if (!cancelled) {
-          if (
-            stashed &&
-            (!isCompany() || canViewerAccessJob(stashed, user, role))
-          ) {
-            setInitialJob(stashed);
-          } else if (stashed && isCompany()) {
-            setLoadError("You can only edit jobs posted by your company.");
-          } else {
-            setLoadError(
-              err?.response?.data?.message ||
-                err?.message ||
-                "Failed to load job"
-            );
-          }
+        if (!active || requestId !== requestIdRef.current) return;
+
+        const { user: u2, role: r2, isCompany: isCo2 } = accessRef.current;
+        if (
+          stashed &&
+          (USE_MOCK_JOBS_API ||
+            typeof isCo2 !== "function" ||
+            !isCo2() ||
+            canViewerAccessJob(stashed, u2, r2))
+        ) {
+          setInitialJob(stashed);
+        } else if (
+          stashed &&
+          typeof isCo2 === "function" &&
+          isCo2() &&
+          !USE_MOCK_JOBS_API
+        ) {
+          setLoadError("You can only edit jobs posted by your company.");
+          setInitialJob(null);
+        } else {
+          setLoadError(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Failed to load job"
+          );
+          setInitialJob(null);
         }
       } finally {
-        if (!cancelled) setLoadingJob(false);
+        if (requestId === requestIdRef.current) {
+          setLoadingJob(false);
+        }
       }
     };
 
     load();
     return () => {
-      cancelled = true;
+      active = false;
     };
-  }, [jobId, user, role, isCompany]);
+  }, [jobId]);
 
   const handleSubmit = useCallback(
     async (payload) => {
@@ -129,7 +158,7 @@ const EditJobPage = () => {
 
             {loadingJob ? (
               <div className="text-center py-5">
-                <Spin tip="Loading job..." />
+                <Spin description="Loading job..." />
               </div>
             ) : initialJob ? (
               <CreateJobForm

@@ -30,9 +30,26 @@ export const clearMockCreatedJobs = () => {
 /** Seed list shared with public Jobs browse (+ peopleApplied for management table). */
 const SEED_JOBS = PUBLIC_JOBS_MOCK.map((job, index) => ({
   ...job,
+  hiringStatus: job.hiringStatus || "open",
   peopleApplied: job.peopleApplied ?? [42, 100, 18, 7, 12, 5][index] ?? 0,
   updatedOn: job.updatedOn || job.createdOn || Date.now(),
 }));
+
+// Demo history entries for Job History tab (mock only)
+if (SEED_JOBS[4]) {
+  SEED_JOBS[4] = {
+    ...SEED_JOBS[4],
+    hiringStatus: "filled",
+    isActive: false,
+  };
+}
+if (SEED_JOBS[5]) {
+  SEED_JOBS[5] = {
+    ...SEED_JOBS[5],
+    hiringStatus: "closed",
+    isActive: false,
+  };
+}
 
 /**
  * Mock GET /jobs response shape (matches useJob transform expectations).
@@ -66,6 +83,7 @@ export const buildMockGetJobsResponse = (params = {}) => {
 
   const baseItems = getAllMockJobs();
 
+  // Company dashboard: only jobs posted by that company. Admin: no companyId filter.
   let filtered = companyId
     ? baseItems.filter((job) => {
         const ownerId =
@@ -76,15 +94,6 @@ export const buildMockGetJobsResponse = (params = {}) => {
         return ownerId != null && String(ownerId) === companyId;
       })
     : baseItems;
-
-  // Mock UX: if company filter matches nothing, show full seed so management
-  // isn't empty while company ids aren't aligned with seeded data yet.
-  if (companyId && filtered.length === 0) {
-    console.warn(
-      `[mock jobs] No jobs for companyId=${companyId}; showing all mock jobs.`
-    );
-    filtered = baseItems;
-  }
 
   if (search) {
     filtered = filtered.filter((job) => {
@@ -101,6 +110,21 @@ export const buildMockGetJobsResponse = (params = {}) => {
         .join(" ")
         .toLowerCase();
       return haystack.includes(search);
+    });
+  }
+
+  const listView = String(params.listView || params.list_view || "active")
+    .trim()
+    .toLowerCase();
+  if (listView === "history") {
+    filtered = filtered.filter((job) => {
+      const hs = job.hiringStatus || job.hiring_status || "open";
+      return hs === "filled" || hs === "closed";
+    });
+  } else if (listView === "active") {
+    filtered = filtered.filter((job) => {
+      const hs = job.hiringStatus || job.hiring_status || "open";
+      return hs !== "filled" && hs !== "closed";
     });
   }
 
@@ -129,6 +153,7 @@ export const buildMockCreateJobResponse = (jobData) => {
   const created = {
     id,
     jobId: `JOB-${id}`,
+    hiringStatus: "open",
     ...jobData,
     peopleApplied: 0,
     createdOn: Date.now(),

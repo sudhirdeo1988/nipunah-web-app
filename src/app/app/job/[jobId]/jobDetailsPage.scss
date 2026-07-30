@@ -1,0 +1,16 @@
+.job-details-page__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+
+  &:hover {
+    color: #1d4ed8;
+  }
+}

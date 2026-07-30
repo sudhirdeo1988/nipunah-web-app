@@ -39,6 +39,8 @@ const NAV_KEYS = [
   "nav_companies",
   "nav_services",
   "nav_jobs",
+  "nav_job_applications",
+  "nav_public_jobs",
   "nav_pricing",
   "nav_enquiries",
   "nav_equipments",
@@ -72,6 +74,7 @@ const MODULE_PERMISSION_KEYS = [
   "jobs_delete",
   "jobs_apply",
   "jobs_approve",
+  "job_applications_view",
   "equipments_view",
   "equipments_add",
   "equipments_edit",
@@ -100,7 +103,17 @@ const KEY_GROUPS = [
   { label: "Module Permissions", keys: MODULE_PERMISSION_KEYS },
 ];
 
-const getHumanLabel = (key) => String(key || "").replace(/_/g, " ");
+const getHumanLabel = (key) => {
+  const labels = {
+    nav_jobs: "Jobs (Management)",
+    nav_job_applications: "Job Applications",
+    nav_public_jobs: "Public Jobs Header",
+    job_applications_view: "Job Applications View",
+    job_applications: "Job Applications",
+  };
+  if (labels[key]) return labels[key];
+  return String(key || "").replace(/_/g, " ");
+};
 const MODULE_PERMISSION_CATEGORY_ORDER = [
   "dashboard",
   "users",
@@ -108,6 +121,7 @@ const MODULE_PERMISSION_CATEGORY_ORDER = [
   "company",
   "services",
   "jobs",
+  "job_applications",
   "equipments",
   "categories",
   "role_management",

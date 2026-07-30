@@ -38,10 +38,15 @@ export const useJob = (options = {}) => {
   );
 
   const isCompanyUser = resolvedRole === USER_ROLES.COMPANY;
-  const viewerCompanyId = useMemo(
-    () => (isCompanyUser ? getViewerCompanyId(user) : null),
-    [isCompanyUser, user]
-  );
+  const viewerCompanyId = useMemo(() => {
+    if (!isCompanyUser || !user) return null;
+    return getViewerCompanyId(user);
+  }, [
+    isCompanyUser,
+    user?.company_id,
+    user?.companyId,
+    user?.id,
+  ]);
 
   // ==================== STATE MANAGEMENT ====================
 
@@ -319,6 +324,8 @@ export const useJob = (options = {}) => {
             applicationDeadline: job.applicationDeadline || job.application_deadline || "",
             application_deadline: job.applicationDeadline || job.application_deadline || "",
             status: job.status || "pending",
+            hiringStatus:
+              job.hiringStatus || job.hiring_status || "open",
             isActive: job.isActive !== undefined ? job.isActive : job.is_active !== undefined ? job.is_active : true,
             peopleApplied: job.peopleApplied || job.people_applied || 0,
             postedOn: formatDate(job.createdOn || job.created_on || job.postedOn || job.posted_on || ""),
@@ -572,12 +579,14 @@ export const useJob = (options = {}) => {
 
   /**
    * Fetch jobs on mount (skipped on create/edit via skipInitialFetch).
+   * Do not depend on company identity — those can change every render and
+   * restart the request, leaving the list spinner stuck.
    */
   useEffect(() => {
     if (skipInitialFetch) return;
-    fetchJobs();
+    fetchJobs({ listView: "active", page: 1 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [skipInitialFetch, isCompanyUser, viewerCompanyId]);
+  }, [skipInitialFetch]);
 
   return {
     // State

@@ -1,0 +1,897 @@
+.job-management-details {
+  &__toolbar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__title-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px 14px;
+    min-width: 0;
+  }
+
+  &__title {
+    min-width: 0;
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  &__title-actions {
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    gap: 8px;
+  }
+
+  &__title-sep {
+    color: #9ca3af;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+  }
+
+  &__title-action {
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 650;
+    line-height: 1.2;
+    color: #1d4ed8;
+    text-decoration: none;
+
+    &:hover {
+      color: #1e40af;
+      text-decoration: underline;
+    }
+
+    &.is-close {
+      color: #b91c1c;
+
+      &:hover {
+        color: #991b1b;
+      }
+    }
+  }
+
+  &__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 6px;
+    margin-left: 4px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #275df5;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+
+  &__panel {
+    padding-top: 12px;
+  }
+
+  &__tabs {
+    .ant-tabs-nav {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.applied-candidates-tab {
+  &__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+}
+
+.applicant-status-pill {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1;
+  padding: 3px 8px;
+  border-radius: 999px;
+
+  &--applied {
+    color: #1d4ed8;
+    background: #dbeafe;
+  }
+
+  &--under_review {
+    color: #0e7490;
+    background: #cffafe;
+  }
+
+  &--shortlisted {
+    color: #15803d;
+    background: #dcfce7;
+  }
+
+  &--interview_scheduled {
+    color: #c2410c;
+    background: #ffedd5;
+  }
+
+  &--selected {
+    color: #6d28d9;
+    background: #ede9fe;
+  }
+
+  &--rejected {
+    color: #b91c1c;
+    background: #fee2e2;
+  }
+}
+
+
+.job-view.is-compact {
+  .job-view__company {
+    margin-top: 0;
+  }
+}
+
+.candidate-remarks {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #fde68a;
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  box-shadow: inset 3px 0 0 #f59e0b;
+
+  &--rejected {
+    border-color: #fecaca;
+    background: linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);
+    box-shadow: inset 3px 0 0 #ef4444;
+
+    .candidate-remarks__header {
+      color: #b91c1c;
+
+      .g-icon {
+        color: #ef4444;
+      }
+    }
+
+    .candidate-remarks__text {
+      color: #7f1d1d;
+    }
+  }
+
+  &__header {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #b45309;
+
+    .g-icon {
+      font-size: 18px !important;
+      color: #f59e0b;
+    }
+  }
+
+  &__text {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 1.55;
+    color: #78350f;
+    white-space: pre-wrap;
+  }
+}
+
+.candidate-remarks-field {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+
+  &__hint {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #b45309;
+  }
+
+  &__label {
+    font-weight: 700;
+    color: #92400e;
+  }
+
+  &__optional {
+    font-weight: 500;
+    color: #a16207;
+  }
+
+  &__input.ant-input,
+  .ant-input {
+    border-color: #fcd34d !important;
+    background: #fffef7;
+
+    &:hover,
+    &:focus {
+      border-color: #f59e0b !important;
+      box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+    }
+  }
+
+  .ant-form-item-extra {
+    color: #a16207;
+    font-size: 12px;
+  }
+}
+
+
+.candidate-details-modal-wrap {
+  .ant-modal-content {
+    border-radius: 14px;
+    overflow: hidden;
+  }
+
+  .ant-modal-header {
+    display: none;
+  }
+
+  .ant-modal-body {
+    padding: 0;
+  }
+}
+
+.candidate-details-modal {
+  padding: 20px 20px 8px;
+
+  &__hero {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    padding: 16px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    background: linear-gradient(145deg, #f5f8ff 0%, #eef3ff 55%, #f8fafc 100%);
+    border: 1px solid #e4ebf7;
+  }
+
+  &__avatar {
+    flex-shrink: 0;
+    width: 64px;
+    height: 64px;
+    border-radius: 14px;
+    background: linear-gradient(145deg, #275df5, #1d4ed8);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 6px 16px rgba(39, 93, 245, 0.28);
+  }
+
+  &__hero-main {
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__hero-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  &__name {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.25;
+    color: #111827;
+  }
+
+  &__applied-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 8px;
+    line-height: 1.2;
+
+    .candidate-details-modal__interview-sep {
+      display: inline-flex;
+      align-items: center;
+      height: 16px;
+      line-height: 1;
+      margin: 0 10px;
+    }
+  }
+
+  &__applied {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 0;
+    height: 16px;
+    font-size: 12px;
+    line-height: 1;
+    color: #6b7280;
+
+    .g-icon {
+      font-size: 15px !important;
+      line-height: 1 !important;
+      color: #9ca3af;
+    }
+  }
+
+  &__resume-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    height: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1;
+    color: #275df5;
+    text-decoration: none;
+
+    .g-icon {
+      font-size: 13px !important;
+      line-height: 1 !important;
+      color: #275df5;
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      color: #1d4ed8;
+      text-decoration: none;
+
+      .g-icon {
+        color: #1d4ed8;
+      }
+    }
+  }
+
+  &__resume-link-name {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__meta-inline {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 0;
+    margin-bottom: 10px;
+  }
+
+  &__skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  &__skill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #dbe4f5;
+    color: #374151;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  &__info-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  &__info-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    min-width: 0;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #e8ecf1;
+    background: #fff;
+  }
+
+  &__info-icon {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #eef3ff;
+    color: #275df5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .g-icon {
+      font-size: 16px !important;
+      color: #275df5;
+    }
+  }
+
+  &__info-label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    color: #9ca3af;
+    margin-bottom: 4px;
+  }
+
+  &__info-value {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #111827;
+    word-break: break-word;
+  }
+
+  &__section {
+    margin-bottom: 16px;
+  }
+
+  &__section-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #1f2937;
+
+    .g-icon {
+      font-size: 16px !important;
+      color: #6b7280;
+    }
+  }
+
+  &__resume {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px dashed #c7d2fe;
+    background: #f8faff;
+  }
+
+  &__resume-icon {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: #fee2e2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .g-icon {
+      font-size: 22px !important;
+      color: #dc2626;
+    }
+  }
+
+  &__resume-meta {
+    min-width: 0;
+    flex: 1;
+  }
+
+  &__resume-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: #111827;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  &__resume-sub {
+    font-size: 11px;
+    color: #6b7280;
+    margin-top: 2px;
+  }
+
+  &__cover {
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 0;
+    border: none;
+    border-radius: 0;
+    background: transparent;
+    font-size: 13px;
+    line-height: 1.6;
+    color: #374151;
+
+    p {
+      margin: 0 0 8px;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  &__interview {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px 16px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid #e8ecf1;
+    background: #fafbfc;
+
+    &--inline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px 0;
+      row-gap: 6px;
+      padding: 0;
+      border: none;
+      background: transparent;
+    }
+  }
+
+  &__interview-pair {
+    display: inline-flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px;
+    font-size: 13px;
+
+    .candidate-details-modal__info-label {
+      display: inline;
+      margin: 0;
+      font-size: 11px;
+      letter-spacing: 0.04em;
+    }
+
+    .candidate-details-modal__info-value {
+      display: inline;
+      margin: 0;
+      font-size: 13px;
+    }
+
+    &.is-link {
+      max-width: 100%;
+    }
+  }
+
+  &__interview-sep {
+    margin: 0 10px;
+    color: #d1d5db;
+    font-weight: 500;
+  }
+
+  &__interview-item {
+    min-width: 0;
+
+    .candidate-details-modal__info-label {
+      display: block;
+      margin: 0 0 2px;
+      line-height: 1.2;
+    }
+
+    .candidate-details-modal__info-value {
+      display: block;
+      margin: 0;
+      line-height: 1.35;
+    }
+
+    &.is-full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__link {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #275df5;
+    word-break: break-all;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &__manage-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #eef0f3;
+  }
+
+  &__manage-actions {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  &__form {
+    .ant-form-item {
+      margin-bottom: 14px;
+    }
+  }
+
+  &__interview-form {
+    margin-bottom: 14px;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid #dbe4f5;
+    background: #fff;
+  }
+
+  &__interview-form-title {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    color: #374151;
+
+    .g-icon {
+      font-size: 16px !important;
+      color: #275df5;
+    }
+  }
+}
+
+.candidate-remarks-field.is-required {
+  border-color: #fecaca;
+  background: #fff1f2;
+
+  .candidate-remarks-field__label {
+    color: #b91c1c;
+  }
+
+  .ant-form-item-extra {
+    color: #b91c1c;
+  }
+
+  .candidate-remarks-field__input.ant-input,
+  .ant-input {
+    border-color: #fca5a5 !important;
+    background: #fff;
+  }
+}
+
+.candidate-details-accordion {
+  margin-bottom: 16px;
+  background: transparent;
+
+  .ant-collapse-item {
+    margin-bottom: 8px;
+    border: 1px solid #e8ecf1 !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  .ant-collapse-header {
+    align-items: center !important;
+    padding: 12px 14px !important;
+    background: #f8fafc;
+  }
+
+  .ant-collapse-item-active .ant-collapse-header {
+    background: #f5f8ff;
+    border-bottom: 1px solid #eef0f3;
+  }
+
+  .ant-collapse-content-box {
+    padding: 12px 14px 14px !important;
+  }
+
+  .ant-collapse-expand-icon {
+    color: #6b7280;
+
+    .g-icon {
+      font-size: 28px !important;
+    }
+  }
+
+  &__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    background: #eef3ff;
+    flex-shrink: 0;
+
+    .g-icon {
+      font-size: 16px !important;
+      color: #275df5;
+    }
+  }
+
+  &__title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1f2937;
+  }
+
+  &__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #eef2ff;
+    color: #275df5;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  &--update {
+    .ant-collapse-item-active .ant-collapse-header {
+      background: #f5f8ff;
+    }
+  }
+}
+
+.candidate-stage-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
+
+  &__item {
+    display: flex;
+    gap: 12px;
+    min-height: 56px;
+
+    &.is-latest {
+      .candidate-stage-timeline__dot {
+        background: #275df5;
+        box-shadow: 0 0 0 4px rgba(39, 93, 245, 0.15);
+      }
+    }
+
+    &.is-rejected {
+      .candidate-stage-timeline__dot {
+        background: #ef4444;
+        box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12);
+      }
+    }
+
+    &.is-selected {
+      .candidate-stage-timeline__dot {
+        background: #7c3aed;
+        box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+      }
+    }
+  }
+
+  &__rail {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 14px;
+    flex-shrink: 0;
+  }
+
+  &__dot {
+    width: 10px;
+    height: 10px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #9ca3af;
+    flex-shrink: 0;
+  }
+
+  &__line {
+    flex: 1;
+    width: 2px;
+    margin: 4px 0 0;
+    background: #e5e7eb;
+    min-height: 24px;
+  }
+
+  &__body {
+    flex: 1;
+    min-width: 0;
+    padding-bottom: 14px;
+  }
+
+  &__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 4px;
+  }
+
+  &__date {
+    font-size: 11px;
+    color: #9ca3af;
+    font-weight: 500;
+  }
+
+  &__remarks {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.45;
+    color: #374151;
+
+    &.is-muted {
+      color: #9ca3af;
+      font-style: italic;
+    }
+  }
+
+  &__interview {
+    margin-top: 6px;
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border: 1px solid #eef0f3;
+  }
+}
+
+
+@media (max-width: 700px) {
+  .candidate-details-modal {
+    &__info-grid,
+    &__interview {
+      grid-template-columns: 1fr;
+    }
+
+    &__hero {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &__resume {
+      flex-wrap: wrap;
+    }
+  }
+}
+

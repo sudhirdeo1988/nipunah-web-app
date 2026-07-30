@@ -2,8 +2,26 @@
 
 import React, { useCallback, useMemo, memo } from "react";
 import { Table, Dropdown, Space } from "antd";
+import Link from "next/link";
 import Icon from "@/components/Icon";
+import { ROUTES } from "@/constants/routes";
+import {
+  getHiringStatus,
+  getHiringStatusLabel,
+  isJobInHistory,
+  JOB_LIST_VIEW,
+} from "../../constants/jobHiringStatuses";
 import "./JobTable.scss";
+
+const getJobId = (record) =>
+  record?.id ?? record?.jobId ?? record?.job_id ?? null;
+
+const getJobDetailsHref = (record, tab) => {
+  const id = getJobId(record);
+  if (id == null) return ROUTES.PRIVATE.JOB;
+  const base = `${ROUTES.PRIVATE.JOB}/${id}`;
+  return tab === "candidates" ? `${base}?tab=candidates` : base;
+};
 
 /**
  * JobTable Component
@@ -19,6 +37,7 @@ const JobTable = memo(
     pagination: paginationConfig,
     onChange,
     permissions = {},
+    listView = JOB_LIST_VIEW.ACTIVE,
   }) => {
     const canView = Boolean(permissions.view);
     const canEdit = Boolean(permissions.edit);
@@ -26,25 +45,46 @@ const JobTable = memo(
     const canDelete = Boolean(permissions.delete);
 
     const renderJobTitle = useCallback((text, record) => {
-      const isActive = record.isActive !== false;
+      const hiringStatus = getHiringStatus(record);
+      const inHistory = isJobInHistory(record);
+      const statusLabel = inHistory
+        ? getHiringStatusLabel(hiringStatus)
+        : record.isActive !== false
+          ? "Active"
+          : "Inactive";
+      const statusClass = inHistory
+        ? hiringStatus === "filled"
+          ? "is-filled"
+          : "is-closed"
+        : record.isActive !== false
+          ? "is-active"
+          : "is-inactive";
       const metaParts = [
         record.employmentType,
         record.workMode,
         record.experienceRequired,
       ].filter(Boolean);
+      const href = getJobDetailsHref(record);
+      const hasId = getJobId(record) != null;
 
       return (
         <div className="job-table-title">
           <div className="job-table-title__row">
-            <span className="job-table-title__name" title={text || "N/A"}>
-              {text || "N/A"}
-            </span>
-            <span
-              className={`job-table-title__status ${
-                isActive ? "is-active" : "is-inactive"
-              }`}
-            >
-              {isActive ? "Active" : "Inactive"}
+            {hasId ? (
+              <Link
+                href={href}
+                className="job-table-title__name is-link"
+                title={text || "N/A"}
+              >
+                {text || "N/A"}
+              </Link>
+            ) : (
+              <span className="job-table-title__name" title={text || "N/A"}>
+                {text || "N/A"}
+              </span>
+            )}
+            <span className={`job-table-title__status ${statusClass}`}>
+              {statusLabel}
             </span>
           </div>
           {metaParts.length > 0 ? (
@@ -65,16 +105,27 @@ const JobTable = memo(
 
     const renderPostedBy = useCallback((postedBy) => {
       if (!postedBy) return <span className="C-heading size-6 mb-0">N/A</span>;
+      const initials = String(
+        postedBy.companyShortName || postedBy.companyName || "CO"
+      )
+        .replace(/[^a-zA-Z0-9]/g, "")
+        .slice(0, 2)
+        .toUpperCase() || "CO";
       return (
-        <div>
-          <span className="C-heading size-6 mb-0 semiBold">
-            {postedBy.companyName || "N/A"}
-          </span>
-          {postedBy.companyShortName ? (
-            <div className="C-heading size-xss mb-0 text-muted">
-              {postedBy.companyShortName}
-            </div>
-          ) : null}
+        <div className="job-table-company">
+          <div className="job-table-company__logo" aria-hidden>
+            {initials}
+          </div>
+          <div className="job-table-company__meta">
+            <span className="job-table-company__name">
+              {postedBy.companyName || "N/A"}
+            </span>
+            {postedBy.companyShortName ? (
+              <span className="job-table-company__short">
+                {postedBy.companyShortName}
+              </span>
+            ) : null}
+          </div>
         </div>
       );
     }, []);
@@ -106,26 +157,21 @@ const JobTable = memo(
       []
     );
 
-    const renderPeopleApplied = useCallback(
-      (count, record) => {
-        const appliedCount = count || 0;
-        return (
-          <button
-            className="C-button is-clean small"
-            onClick={() => onMenuClick({ key: "view_applied_users" }, record)}
-            style={{
-              color: "#1890ff",
-              textDecoration: "underline",
-              fontWeight: "bold",
-              fontSize: "14px",
-            }}
-          >
-            {appliedCount}
-          </button>
-        );
-      },
-      [onMenuClick]
-    );
+    const renderPeopleApplied = useCallback((count, record) => {
+      const appliedCount = count || 0;
+      const id = getJobId(record);
+      if (id == null) {
+        return <span className="C-heading size-6 mb-0">{appliedCount}</span>;
+      }
+      return (
+        <Link
+          href={getJobDetailsHref(record, "candidates")}
+          className="job-table-applicants-link"
+        >
+          {appliedCount}
+        </Link>
+      );
+    }, []);
 
     const getActionMenuItems = useCallback(
       (record) => {
@@ -153,6 +199,22 @@ const JobTable = memo(
               </Space>
             ),
           });
+          if (
+            listView !== JOB_LIST_VIEW.HISTORY &&
+            !isJobInHistory(record)
+          ) {
+            items.push({
+              key: "close_job",
+              label: (
+                <Space align="center">
+                  <Icon name="work_off" size="small" />
+                  <span className="C-heading size-xs mb-0 semiBold">
+                    Close Position
+                  </span>
+                </Space>
+              ),
+            });
+          }
         }
         if (canApprove && record.status !== "approved") {
           items.push({
@@ -178,7 +240,7 @@ const JobTable = memo(
         }
         return items;
       },
-      [canView, canEdit, canApprove, canDelete]
+      [canView, canEdit, canApprove, canDelete, listView]
     );
 
     const renderAction = useCallback(
@@ -229,7 +291,7 @@ const JobTable = memo(
           title: "Company",
           dataIndex: "postedBy",
           key: "postedBy",
-          width: 160,
+          width: 200,
           render: renderPostedBy,
           sorter: (a, b) =>
             (a.postedBy?.companyName || "").localeCompare(

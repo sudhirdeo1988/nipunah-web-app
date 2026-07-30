@@ -21,10 +21,11 @@ const MAX_RESUME_MB = 5;
 /**
  * Apply for Job modal — cover letter (rich text) + resume attach.
  */
-const ApplyJobModal = memo(({ open, job, onCancel, onSubmit }) => {
+const ApplyJobModal = memo(({ open, job, onCancel, onSubmit, confirming }) => {
   const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
   const [fileList, setFileList] = useState([]);
+  const isBusy = Boolean(submitting || confirming);
 
   useEffect(() => {
     if (!open) {
@@ -66,7 +67,8 @@ const ApplyJobModal = memo(({ open, job, onCancel, onSubmit }) => {
       const values = await form.validateFields();
       setSubmitting(true);
 
-      const resumeFile = fileList[0] || values.resume?.[0]?.originFileObj || values.resume?.[0];
+      const resumeFile =
+        fileList[0] || values.resume?.[0]?.originFileObj || values.resume?.[0];
 
       const payload = {
         jobId: job?.id || job?.jobId,
@@ -82,14 +84,14 @@ const ApplyJobModal = memo(({ open, job, onCancel, onSubmit }) => {
           : null,
       };
 
-      console.log("\n📨 APPLY JOB PAYLOAD:\n", JSON.stringify(payload, null, 2));
+      console.log("\n📨 APPLY JOB FORM PAYLOAD:\n", JSON.stringify(payload, null, 2));
 
       if (onSubmit) {
         await onSubmit(payload, resumeFile);
       } else {
         await new Promise((r) => setTimeout(r, 600));
+        message.success("Application submitted successfully!");
       }
-      message.success("Application submitted successfully!");
       form.resetFields();
       setFileList([]);
       onCancel?.();
@@ -99,9 +101,12 @@ const ApplyJobModal = memo(({ open, job, onCancel, onSubmit }) => {
         return;
       }
       console.error("Apply job error:", error);
-      message.error(
-        error?.message || "Failed to submit application. Please try again."
-      );
+      // Parent submit handler already toasts API errors
+      if (!onSubmit) {
+        message.error(
+          error?.message || "Failed to submit application. Please try again."
+        );
+      }
     } finally {
       setSubmitting(false);
     }
@@ -123,7 +128,7 @@ const ApplyJobModal = memo(({ open, job, onCancel, onSubmit }) => {
         <span className="C-heading size-5 semiBold mb-0">Apply for Job</span>
       }
       open={open}
-      onCancel={submitting ? undefined : onCancel}
+      onCancel={isBusy ? undefined : onCancel}
       width={720}
       centered
       destroyOnClose
@@ -133,17 +138,17 @@ const ApplyJobModal = memo(({ open, job, onCancel, onSubmit }) => {
           <Button
             className="C-button is-bordered"
             onClick={onCancel}
-            disabled={submitting}
+            disabled={isBusy}
           >
             Cancel
           </Button>
           <Button
             type="primary"
             className="C-button is-filled"
-            loading={submitting}
+            loading={isBusy}
             onClick={handleSubmit}
           >
-            {submitting ? "Submitting..." : "Submit application"}
+            {isBusy ? "Submitting..." : "Submit application"}
           </Button>
         </Space>
       }
@@ -178,7 +183,7 @@ const ApplyJobModal = memo(({ open, job, onCancel, onSubmit }) => {
       <Form
         form={form}
         layout="vertical"
-        disabled={submitting}
+        disabled={isBusy}
         className="apply-job-modal__form"
         initialValues={{ cover_letter: "", resume: [] }}
       >

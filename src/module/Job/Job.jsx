@@ -6,42 +6,39 @@ import JobSearch from "./components/JobSearch";
 import JobTable from "./components/JobTable";
 import { useJobListing } from "./hooks/useJobListing";
 
-const AppliedUsersModal = lazy(() =>
-  import("./components/JobModals/AppliedUsersModal")
-);
 const DeleteConfirmModal = lazy(() =>
   import("./components/JobModals/DeleteConfirmModal")
 );
-const JobDetailsModal = lazy(() =>
-  import("./components/JobModals/JobDetailsModal")
+const CloseJobModal = lazy(() =>
+  import("./components/JobModals/CloseJobModal")
 );
 
 const Job = ({ permissions = {} }) => {
   const {
-    jobs,
     filteredJobs,
     selectedJobs,
     searchQuery,
+    listView,
     rowSelection,
     loading,
     error,
     pagination,
     isDeleteModalOpen,
     isBulkDeleteModalOpen,
-    isJobDetailsModalOpen,
-    isAppliedUsersModalOpen,
+    isCloseModalOpen,
     jobToDelete,
-    jobForDetails,
-    jobForAppliedUsers,
+    jobToClose,
+    closingJob,
     handleSearchChange,
+    handleListViewChange,
     handleMenuClick,
     handleBulkDelete,
     handleConfirmDelete,
     handleConfirmBulkDelete,
     handleCancelDelete,
     handleCancelBulkDelete,
-    handleCancelJobDetails,
-    handleCancelAppliedUsers,
+    handleConfirmCloseJob,
+    handleCancelCloseJob,
     handleSort,
   } = useJobListing();
 
@@ -61,12 +58,14 @@ const Job = ({ permissions = {} }) => {
         onSearchChange={handleSearchChange}
         selectedJobs={selectedJobs}
         onBulkDelete={handleBulkDelete}
+        listView={listView}
+        onListViewChange={handleListViewChange}
         permissions={permissions}
       />
 
       <Spin spinning={loading}>
         <JobTable
-          jobs={filteredJobs.length > 0 ? filteredJobs : jobs}
+          jobs={filteredJobs}
           rowSelection={rowSelection}
           onMenuClick={handleMenuClick}
           loading={loading}
@@ -74,20 +73,11 @@ const Job = ({ permissions = {} }) => {
           pagination={pagination}
           onChange={handleTableChange}
           permissions={permissions}
+          listView={listView}
         />
       </Spin>
 
       <Suspense fallback={null}>
-        <AppliedUsersModal
-          isOpen={isAppliedUsersModalOpen}
-          job={jobForAppliedUsers}
-          onCancel={handleCancelAppliedUsers}
-        />
-        <JobDetailsModal
-          isOpen={isJobDetailsModalOpen}
-          job={jobForDetails}
-          onCancel={handleCancelJobDetails}
-        />
         <DeleteConfirmModal
           isOpen={isDeleteModalOpen}
           isBulk={false}
@@ -103,6 +93,13 @@ const Job = ({ permissions = {} }) => {
           onConfirm={handleConfirmBulkDelete}
           onCancel={handleCancelBulkDelete}
           loading={loading}
+        />
+        <CloseJobModal
+          isOpen={isCloseModalOpen}
+          job={jobToClose}
+          onConfirm={handleConfirmCloseJob}
+          onCancel={handleCancelCloseJob}
+          loading={closingJob}
         />
       </Suspense>
     </>

@@ -111,6 +111,7 @@ const CreateJobForm = memo(
       form.setFieldsValue({
         status: "pending",
         isActive: true,
+        hiringStatus: "open",
         work_mode: "Office",
         openings: 1,
         salary_not_disclosed: false,
@@ -215,6 +216,7 @@ const CreateJobForm = memo(
             : null,
           status: "pending",
           isActive: values.isActive !== undefined ? values.isActive : true,
+          hiringStatus: "open",
         };
 
         console.log(
@@ -293,6 +295,7 @@ const CreateJobForm = memo(
           initialValues={{
             status: "pending",
             isActive: true,
+            hiringStatus: "open",
             work_mode: "Office",
             openings: 1,
             salary_not_disclosed: false,

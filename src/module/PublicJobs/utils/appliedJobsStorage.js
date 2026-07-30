@@ -56,3 +56,20 @@ export const hasUserAppliedToJob = (user, job) => {
   if (jobId == null) return false;
   return ids.includes(String(jobId));
 };
+
+/**
+ * Remove a job id from the user's applied list (mock persistence).
+ */
+export const removeAppliedJob = (user, jobId) => {
+  if (typeof window === "undefined" || jobId == null) return getAppliedJobIds(user);
+  const key = storageKey(user);
+  if (!key) return [];
+  const id = String(jobId);
+  const next = getAppliedJobIds(user).filter((item) => item !== id);
+  try {
+    window.localStorage.setItem(key, JSON.stringify(next));
+  } catch (e) {
+    console.warn("Could not update applied jobs:", e);
+  }
+  return next;
+};

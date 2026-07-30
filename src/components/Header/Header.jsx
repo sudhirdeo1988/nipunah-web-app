@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import Icon from "@/components/Icon/Icon";
 import { Drawer, Space } from "antd";
 import Image from "next/image";
@@ -8,22 +8,35 @@ import { usePathname } from "next/navigation";
 import { ROUTES } from "@/constants/routes";
 import Link from "next/link";
 import { useAuth } from "@/utilities/AuthContext";
+import { useRolePermissions } from "@/hooks/useRolePermissions";
 import "./Header.scss";
 
 const Header = () => {
   const pathname = usePathname();
   const { isLoggedIn } = useAuth();
-  const [open, setOpen] = useState(false);
+  const { flatPermissions, permissionsReady } = useRolePermissions();
+  const [open, setOpen] = React.useState(false);
 
-  const navItems = [
-    { label: "Home", href: ROUTES.PUBLIC.HOME },
-    { label: "About Us", href: ROUTES.PUBLIC.ABOUT },
-    { label: "Companies", href: ROUTES.PUBLIC.COMPANIES },
-    { label: "Equipment", href: ROUTES.PUBLIC.EQUIPMENT },
-    { label: "Experts", href: ROUTES.PUBLIC.EXPERTS },
-    { label: "Jobs", href: ROUTES.PUBLIC.JOBS },
-    { label: "Pricing", href: ROUTES.PUBLIC.SUBSCRIPTION },
-  ];
+  const canSeePublicJobs =
+    Boolean(isLoggedIn) &&
+    permissionsReady &&
+    Boolean(flatPermissions?.nav_public_jobs);
+
+  const navItems = useMemo(() => {
+    const items = [
+      { label: "Home", href: ROUTES.PUBLIC.HOME },
+      { label: "About Us", href: ROUTES.PUBLIC.ABOUT },
+      { label: "Companies", href: ROUTES.PUBLIC.COMPANIES },
+      { label: "Equipment", href: ROUTES.PUBLIC.EQUIPMENT },
+      { label: "Experts", href: ROUTES.PUBLIC.EXPERTS },
+      { label: "Jobs", href: ROUTES.PUBLIC.JOBS },
+      { label: "Pricing", href: ROUTES.PUBLIC.SUBSCRIPTION },
+    ];
+    return items.filter((item) => {
+      if (item.href === ROUTES.PUBLIC.JOBS) return canSeePublicJobs;
+      return true;
+    });
+  }, [canSeePublicJobs]);
 
   const onRenderMenuBar = () => {
     return (
@@ -87,20 +100,13 @@ const Header = () => {
           </div>
         </div>
       </header>
-
       <Drawer
         title="Menu"
-        placement={"left"}
+        placement="left"
         onClose={() => setOpen(false)}
         open={open}
-        key={"left"}
-        closable
       >
-        <nav className="nav-links forMobile">
-          <ul className="d-flex d-sm-flex d-md-none gap-4 mb-0 flex-column">
-            {onRenderMenuBar()}
-          </ul>
-        </nav>
+        <ul className="mobile-nav list-unstyled">{onRenderMenuBar()}</ul>
       </Drawer>
     </>
   );
